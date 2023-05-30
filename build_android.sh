@@ -1,0 +1,1 @@
+gogio -target android -arch amd64 -o ./build/g45w_android.apk github.com/g45t345rt/g45w

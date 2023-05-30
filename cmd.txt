@@ -1,0 +1,5 @@
+adb logcat | findstr github.com/g45t345rt/g45w
+emulator -writable-system -avd Pixel_6_API_33 -no-snapshot-load -qemu
+
+gogio -target android github.com/g45t345rt/g45w/
+adb install g45w.apk
