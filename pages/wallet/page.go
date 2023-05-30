@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 
@@ -13,6 +14,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
@@ -126,7 +128,6 @@ func (p *Page) Leave() {
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	//page.displayBalance.labelAmount.Text = "53.22334 DERO"
-	p.nodeStatusBar.statusText = "5349873 / 5349873"
 	//page.balanceTokens.displayBalance.labelAmount.Text = "53.22334 DERO"
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
@@ -205,8 +206,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 }
 
 type NodeStatusBar struct {
-	statusText string
-	clickable  *widget.Clickable
+	clickable *widget.Clickable
 }
 
 func NewNodeStatusBar() *NodeStatusBar {
@@ -222,6 +222,10 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	//paint.PaintOp{}.Add(gtx.Ops)
+
+	chain := app_instance.Current.Chain
+	our_height := chain.Get_Height()
+	best_height, _ := p2p.Best_Peer_Height()
 
 	if n.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
@@ -251,7 +255,8 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(16), n.statusText)
+					status := fmt.Sprintf("%d / %d", our_height, best_height)
+					label := material.Label(th, unit.Sp(16), status)
 					label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 					return label.Layout(gtx)
 				}),

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"eliasnaur.com/font/roboto/robotobold"
 	"eliasnaur.com/font/roboto/robotoregular"
@@ -15,16 +16,28 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/node"
 	"github.com/g45t345rt/g45w/pages"
 	page_node "github.com/g45t345rt/g45w/pages/node"
 	page_settings "github.com/g45t345rt/g45w/pages/settings"
 	page_wallet "github.com/g45t345rt/g45w/pages/wallet"
 	page_wallet_select "github.com/g45t345rt/g45w/pages/wallet_select"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
 )
 
 func main() {
+	settings, err := settings.LoadSettings()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	chain, err := node.Run(settings.NodeDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// window
 	minSizeX := unit.Dp(375)
 	minSizeY := unit.Dp(600)
@@ -62,6 +75,8 @@ func main() {
 		Theme:     theme,
 		Router:    router,
 		BottomBar: pages.NewBottomBar(router, theme),
+		Chain:     chain,
+		Settings:  settings,
 	}
 
 	router.Add("page_settings", page_settings.NewPage())
@@ -102,15 +117,22 @@ func loadFontCollection() ([]font.FontFace, error) {
 func runApp(window *app.Window, router *router.Router, th *material.Theme) error {
 	var ops op.Ops
 
+	// 1s ticker to update node status and topbar...
+	ticker := time.NewTicker(1 * time.Second)
+
 	for {
-		e := <-window.Events()
-		switch e := e.(type) {
-		case system.DestroyEvent:
-			return e.Err
-		case system.FrameEvent:
-			gtx := layout.NewContext(&ops, e)
-			router.Layout(gtx, th)
-			e.Frame(gtx.Ops)
+		select {
+		case e := <-window.Events():
+			switch e := e.(type) {
+			case system.DestroyEvent:
+				return e.Err
+			case system.FrameEvent:
+				gtx := layout.NewContext(&ops, e)
+				router.Layout(gtx, th)
+				e.Frame(gtx.Ops)
+			}
+		case <-ticker.C:
+			window.Invalidate()
 		}
 	}
 }

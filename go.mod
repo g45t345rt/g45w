@@ -5,6 +5,8 @@ go 1.19
 require (
 	eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d
 	gioui.org v0.0.0-20230526230622-e3ef98dda382
+	github.com/deroproject/derohe v0.0.0-20230528153107-466c94e98c50
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1
 	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1
 )
@@ -12,10 +14,50 @@ require (
 require (
 	gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 // indirect
 	gioui.org/shader v1.0.6 // indirect
+	github.com/VictoriaMetrics/metrics v1.24.0 // indirect
+	github.com/beevik/ntp v1.0.0 // indirect
+	github.com/blang/semver/v4 v4.0.0 // indirect
+	github.com/caarlos0/env/v6 v6.10.1 // indirect
+	github.com/cenk/hub v1.0.1 // indirect
+	github.com/cenkalti/hub v1.0.1 // indirect
+	github.com/cenkalti/rpc2 v0.0.0-20210604223624-c1acbc6ec984 // indirect
+	github.com/cespare/xxhash v1.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dchest/siphash v1.2.3 // indirect
+	github.com/deroproject/graviton v0.0.0-20220130070622-2c248a53b2e1 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
+	github.com/go-logr/zapr v1.2.4 // indirect
 	github.com/go-text/typesetting v0.0.0-20230413204129-b4f0492bf7ae // indirect
-	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
+	github.com/hashicorp/golang-lru v0.6.0 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
+	github.com/klauspost/reedsolomon v1.11.7 // indirect
+	github.com/minio/sha256-simd v1.0.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
+	github.com/segmentio/fasthash v1.0.3 // indirect
+	github.com/stretchr/testify v1.8.2 // indirect
+	github.com/templexxx/cpu v0.0.9 // indirect
+	github.com/templexxx/xorsimd v0.4.1 // indirect
+	github.com/tjfoc/gmsm v1.4.1 // indirect
+	github.com/valyala/fastrand v1.1.0 // indirect
+	github.com/valyala/histogram v1.2.0 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
+	github.com/xtaci/kcp-go/v5 v5.6.2 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/zap v1.24.0 // indirect
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95 // indirect
 	golang.org/x/image v0.5.0 // indirect
-	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -2,6 +2,7 @@ package page_settings
 
 import (
 	"gioui.org/layout"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/router"
@@ -32,6 +33,11 @@ func (p *Page) Leave() {
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			settings := app_instance.Current.Settings
+			label := material.Label(th, unit.Sp(16), settings.AppDir)
+			return label.Layout(gtx)
+		}),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			return layout.Dimensions{Size: gtx.Constraints.Max}
 		}),
