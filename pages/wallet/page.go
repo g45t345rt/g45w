@@ -42,11 +42,14 @@ var _ router.Container = &Page{}
 
 type PageInstance struct {
 	router *router.Router
+	header *pages.Header
 }
 
 var page_instance *PageInstance
 
 func NewPage() *Page {
+	th := app_instance.Current.Theme
+
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
 	))
@@ -60,16 +63,19 @@ func NewPage() *Page {
 	childRouter.Add("balanceTokens", pageBalanceTokens)
 	pageSendForm := NewPageSendForm()
 	childRouter.Add("sendForm", pageSendForm)
-	childRouter.SetPrimary("balanceTokens")
-	page_instance = &PageInstance{
-		router: childRouter,
-	}
+	pageReceiveForm := NewPageReceiveForm()
+	childRouter.Add("receiveForm", pageReceiveForm)
 
-	th := app_instance.Current.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-
 	header := pages.NewHeader(labelHeaderStyle, childRouter)
+
+	page_instance = &PageInstance{
+		router: childRouter,
+		header: header,
+	}
+
+	childRouter.SetPrimary("balanceTokens")
 
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
@@ -125,6 +131,10 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
 		p.childRouter.SetCurrent("sendForm")
+	}
+
+	if p.pageBalanceTokens.displayBalance.buttonReceive.Clickable.Clicked() {
+		p.childRouter.SetCurrent("receiveForm")
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
