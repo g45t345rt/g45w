@@ -2,7 +2,7 @@ package settings
 
 import (
 	"log"
-	"path"
+	"path/filepath"
 
 	"gioui.org/app"
 )
@@ -18,8 +18,8 @@ func LoadSettings() (*Settings, error) {
 		log.Fatal(err)
 	}
 
-	appDir := path.Join(dataDir, "g45w")
-	nodeDir := path.Join(appDir, "node")
+	appDir := filepath.Join(dataDir, "g45w")
+	nodeDir := filepath.Join(appDir, "node")
 
 	settings := &Settings{
 		AppDir:  appDir,
