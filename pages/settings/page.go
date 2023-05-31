@@ -35,8 +35,36 @@ func (p *Page) Leave() {
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(16), "App Dir")
+			return label.Layout(gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			appDir := settings.Instance.AppDir
 			label := material.Label(th, unit.Sp(16), appDir)
+			return label.Layout(gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(16), "Version")
+			return label.Layout(gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(16), settings.Version)
+			return label.Layout(gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(16), "Git Version")
+			return label.Layout(gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(16), settings.GitVersion)
+			return label.Layout(gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(16), "Build Time")
+			return label.Layout(gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(16), settings.BuildTime)
 			return label.Layout(gtx)
 		}),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

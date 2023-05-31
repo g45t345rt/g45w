@@ -257,8 +257,12 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 			return c.listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
 				if c.items[index].clickable.Clicked() {
 					switch index {
+					case 0:
+						page_instance.router.SetCurrent("create_wallet_fastreg_form")
 					case 1:
 						page_instance.router.SetCurrent("create_wallet_form")
+					case 2:
+						page_instance.router.SetCurrent("create_wallet_disk_form")
 					case 3:
 						page_instance.router.SetCurrent("create_wallet_seed_form")
 					case 4:

@@ -12,8 +12,14 @@ require (
 )
 
 require (
+	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
+	github.com/godbus/dbus/v5 v5.0.6 // indirect
+)
+
+require (
 	gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 // indirect
 	gioui.org/shader v1.0.6 // indirect
+	gioui.org/x v0.0.0-20230523210033-8432ec5563bb
 	github.com/VictoriaMetrics/metrics v1.24.0 // indirect
 	github.com/beevik/ntp v1.0.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -59,7 +65,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95 // indirect
-	golang.org/x/image v0.5.0 // indirect
+	golang.org/x/image v0.7.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect

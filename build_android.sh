@@ -12,8 +12,9 @@
 #	linkMode      = flag.String("linkmode", "", "set the -linkmode flag of the go tool")
 #	extraLdflags  = flag.String("ldflags", "", "extra flags to the Go linker")
 #	extraTags     = flag.String("tags", "", "extra tags to the Go tool")
-#	iconPath      = flag.String("icon", "", "specify an icon for iOS and Android")
+#	iconPath      = flag.String("icon", "", "specify an icon for iOS and Android") !!use appicon.png by default!!
 #	signKey       = flag.String("signkey", "", "specify the path of the keystore to be used to sign Android apk files.")
 #	signPass      = flag.String("signpass", "", "specify the password to decrypt the signkey.")
 
-gogio -target android -o ./build/g45w_android.apk github.com/g45t345rt/g45w
+source build_vars.sh
+gogio -target android -x -ldflags "$FLAGS" -appid $APPID -o ./build/g45w_android.apk github.com/g45t345rt/g45w

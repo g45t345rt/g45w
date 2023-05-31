@@ -15,6 +15,10 @@ type Settings struct {
 
 var Instance *Settings
 
+var Version = "" // replaced by -ldflags
+var BuildTime = ""
+var GitVersion = ""
+
 func NewSettings() *Settings {
 	s := &Settings{}
 	Instance = s

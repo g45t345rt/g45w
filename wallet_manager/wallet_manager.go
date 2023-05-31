@@ -40,7 +40,12 @@ func (w *WalletManager) LoadWallets() error {
 	walletsDir := settings.Instance.WalletsDir
 	w.Wallets = make(map[string]*WalletInfo)
 
-	err := filepath.WalkDir(walletsDir, func(path string, d fs.DirEntry, err error) error {
+	err := os.MkdirAll(walletsDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	err = filepath.WalkDir(walletsDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}

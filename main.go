@@ -16,6 +16,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"gioui.org/x/explorer"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/node"
 	"github.com/g45t345rt/g45w/pages"
@@ -61,6 +62,8 @@ func main() {
 		app.NavigationColor(color.NRGBA{R: 255, G: 255, A: 255}),
 	)
 
+	expl := explorer.NewExplorer(window)
+
 	// font
 	fontCollection, err := loadFontCollection()
 	if err != nil {
@@ -85,6 +88,7 @@ func main() {
 		Theme:     theme,
 		Router:    router,
 		BottomBar: pages.NewBottomBar(router, theme),
+		Explorer:  expl,
 	}
 
 	router.Add("page_settings", page_settings.NewPage())
@@ -94,7 +98,7 @@ func main() {
 	router.SetPrimary("page_wallet_select")
 
 	go func() {
-		err := runApp(window, router, theme)
+		err := runApp()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -122,8 +126,12 @@ func loadFontCollection() ([]font.FontFace, error) {
 	return fontCollection, nil
 }
 
-func runApp(window *app.Window, router *router.Router, th *material.Theme) error {
+func runApp() error {
 	var ops op.Ops
+	window := app_instance.Current.Window
+	router := app_instance.Current.Router
+	th := app_instance.Current.Theme
+	explorer := app_instance.Current.Explorer
 
 	// 1s ticker to update node status and topbar...
 	ticker := time.NewTicker(1 * time.Second)
@@ -131,6 +139,7 @@ func runApp(window *app.Window, router *router.Router, th *material.Theme) error
 	for {
 		select {
 		case e := <-window.Events():
+			explorer.ListenEvents(e)
 			switch e := e.(type) {
 			case system.DestroyEvent:
 				return e.Err

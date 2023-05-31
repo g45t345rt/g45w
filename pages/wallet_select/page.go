@@ -62,6 +62,12 @@ func NewPage() *Page {
 	pageCreateWalletHexSeedForm := NewPageCreateWalletHexSeedForm()
 	childRouter.Add("create_wallet_hexseed_form", pageCreateWalletHexSeedForm)
 
+	pageCreateWalletFastRegForm := NewPageCreateWalletFastRegForm()
+	childRouter.Add("create_wallet_fastreg_form", pageCreateWalletFastRegForm)
+
+	pageCreateWalletDiskForm := NewPageCreateWalletDiskForm()
+	childRouter.Add("create_wallet_disk_form", pageCreateWalletDiskForm)
+
 	th := app_instance.Current.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
