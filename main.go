@@ -26,15 +26,21 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 )
 
 func main() {
-	settings, err := settings.LoadSettings()
+	err := settings.NewSettings().LoadSettings()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	chain, err := node.Run(settings.NodeDir)
+	err = wallet_manager.NewWalletManager().LoadWallets()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = node.NewNode().Start()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,8 +85,6 @@ func main() {
 		Theme:     theme,
 		Router:    router,
 		BottomBar: pages.NewBottomBar(router, theme),
-		Chain:     chain,
-		Settings:  settings,
 	}
 
 	router.Add("page_settings", page_settings.NewPage())

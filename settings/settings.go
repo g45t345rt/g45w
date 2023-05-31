@@ -8,11 +8,20 @@ import (
 )
 
 type Settings struct {
-	AppDir  string
-	NodeDir string
+	AppDir     string
+	NodeDir    string
+	WalletsDir string
 }
 
-func LoadSettings() (*Settings, error) {
+var Instance *Settings
+
+func NewSettings() *Settings {
+	s := &Settings{}
+	Instance = s
+	return s
+}
+
+func (s *Settings) LoadSettings() error {
 	dataDir, err := app.DataDir()
 	if err != nil {
 		log.Fatal(err)
@@ -20,13 +29,12 @@ func LoadSettings() (*Settings, error) {
 
 	appDir := filepath.Join(dataDir, "g45w")
 	nodeDir := filepath.Join(appDir, "node")
+	walletsDir := filepath.Join(appDir, "wallets")
 
-	settings := &Settings{
-		AppDir:  appDir,
-		NodeDir: nodeDir,
-	}
-
-	return settings, nil
+	s.AppDir = appDir
+	s.NodeDir = nodeDir
+	s.WalletsDir = walletsDir
+	return nil
 }
 
 func (s *Settings) Save() {

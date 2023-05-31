@@ -16,7 +16,9 @@ import (
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/node"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/utils"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -78,7 +80,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 
-	chain := app_instance.Current.Chain
+	chain := node.Instance.Chain
 	our_height := chain.Get_Height()
 	best_height, _ := p2p.Best_Peer_Height()
 	//topo_height := chain.Load_TOPO_HEIGHT()
@@ -233,7 +235,7 @@ func NewNodeSize() *NodeSize {
 }
 
 func (n *NodeSize) Calculate() error {
-	nodeDir := app_instance.Current.Settings.NodeDir
+	nodeDir := settings.Instance.NodeDir
 	size, err := utils.GetFolderSize(nodeDir)
 	if err != nil {
 		return err

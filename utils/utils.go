@@ -124,3 +124,12 @@ func SplitString(s string, size int) []string {
 
 	return split
 }
+
+func ReduceString(s string, maxLeft, maxRight int) string {
+	if len(s) <= maxLeft+maxRight+3 {
+		return s
+	}
+	start := s[:maxLeft]
+	end := s[len(s)-maxRight:]
+	return start + "..." + end
+}

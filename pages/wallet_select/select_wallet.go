@@ -20,6 +20,8 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -55,10 +57,10 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 	walletList := NewWalletList(theme)
 
-	for i := 0; i < 20; i++ {
-		walletList.items = append(walletList.items,
-			NewWalletListItem(theme, fmt.Sprintf("Wallet %d", i), "dero1qy...gr2j8u5"))
-	}
+	//for i := 0; i < 20; i++ {
+	//walletList.items = append(walletList.items,
+	//	NewWalletListItem(theme, fmt.Sprintf("Wallet %d", i), "dero1qy...gr2j8u5"))
+	//}
 
 	childRouter := router.NewRouter()
 	childRouter.Add("create_wallet_form", NewPageCreateWalletForm())
@@ -103,6 +105,16 @@ func (p *PageSelectWallet) Enter() {
 		p.animationEnter.Start()
 	}
 
+	theme := app_instance.Current.Theme
+	walletManager := wallet_manager.Instance
+	for _, wallet := range walletManager.Wallets {
+		p.walletList.items = append(p.walletList.items,
+			NewWalletListItem(theme,
+				fmt.Sprintf("Wallet [%s]", wallet.Name),
+				utils.ReduceString(wallet.Addr, 7, 7)),
+		)
+	}
+
 	p.firstEnter = false
 }
 
@@ -140,7 +152,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						if len(p.walletList.items) == 0 {
-							labelNoWallet := material.Label(th, unit.Sp(16), "You didn't add a wallet yet.\n Click 'New Wallet' button to continue.")
+							labelNoWallet := material.Label(th, unit.Sp(16), "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.")
 							return labelNoWallet.Layout(gtx)
 						} else {
 							for _, item := range p.walletList.items {

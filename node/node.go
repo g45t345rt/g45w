@@ -9,9 +9,24 @@ import (
 	"github.com/deroproject/derohe/blockchain"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/p2p"
+	"github.com/g45t345rt/g45w/settings"
 )
 
-func Run(dataDir string) (*blockchain.Blockchain, error) {
+type Node struct {
+	Chain *blockchain.Blockchain
+}
+
+var Instance *Node
+
+func NewNode() *Node {
+	n := &Node{}
+	Instance = n
+	return n
+}
+
+func (n *Node) Start() error {
+	nodeDir := settings.Instance.NodeDir
+
 	runtime.MemProfileRate = 0
 	globals.Arguments = make(map[string]interface{})
 
@@ -23,7 +38,7 @@ func Run(dataDir string) (*blockchain.Blockchain, error) {
 	globals.Arguments["--clog-level"] = nil
 	globals.Arguments["--debug"] = false
 	globals.Arguments["--sync-node"] = false
-	globals.Arguments["--data-dir"] = dataDir
+	globals.Arguments["--data-dir"] = nodeDir
 	globals.Arguments["--add-priority-node"] = make([]string, 0)
 	globals.Arguments["--rpc-bind"] = nil
 	globals.Arguments["--integrator-address"] = nil
@@ -45,14 +60,15 @@ func Run(dataDir string) (*blockchain.Blockchain, error) {
 
 	chain, err := blockchain.Blockchain_Start(params)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
+	n.Chain = chain
 	params["chain"] = chain
 
 	err = p2p.P2P_Init(params)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	chain.P2P_Block_Relayer = func(cbl *block.Complete_Block, peerid uint64) {
@@ -64,5 +80,5 @@ func Run(dataDir string) (*blockchain.Blockchain, error) {
 	}
 
 	globals.Cron.Start()
-	return chain, nil
+	return nil
 }

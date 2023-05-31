@@ -17,6 +17,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/node"
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -231,7 +232,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	//paint.PaintOp{}.Add(gtx.Ops)
 
-	chain := app_instance.Current.Chain
+	chain := node.Instance.Chain
 	our_height := chain.Get_Height()
 	best_height, _ := p2p.Best_Peer_Height()
 

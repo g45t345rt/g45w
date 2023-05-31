@@ -1,6 +1,7 @@
 package page_wallet_select
 
 import (
+	"fmt"
 	"image/color"
 
 	"gioui.org/layout"
@@ -12,6 +13,7 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -113,6 +115,14 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 		if state.Active {
 			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
 		}
+	}
+
+	if p.buttonCreate.Clickable.Clicked() {
+		name := p.txtWalletName.EditorStyle.Editor.Text()
+		password := p.txtPassword.EditorStyle.Editor.Text()
+		confirmPassword := p.txtConfirmPassword.EditorStyle.Editor.Text()
+		err := wallet_manager.Instance.CreateWallet(name, password, confirmPassword)
+		fmt.Println(err)
 	}
 
 	widgets := []layout.Widget{
