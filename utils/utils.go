@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 	"io/fs"
-	"math"
 	"path/filepath"
 
 	"gioui.org/gpu/headless"
@@ -68,7 +67,6 @@ func FormatHashRate(hash_rate uint64) string {
 
 func FormatBytes(value int64) string {
 	bytes_string := ""
-	fmt.Print(int64(math.Pow(1024, 2)))
 
 	// math.Pow(1024, 2) for MB
 	switch {

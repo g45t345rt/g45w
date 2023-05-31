@@ -62,11 +62,12 @@ func NewPageSelectWallet() *PageSelectWallet {
 	//	NewWalletListItem(theme, fmt.Sprintf("Wallet %d", i), "dero1qy...gr2j8u5"))
 	//}
 
-	childRouter := router.NewRouter()
-	childRouter.Add("create_wallet_form", NewPageCreateWalletForm())
-	page_instance = &PageInstance{
-		router: childRouter,
-	}
+	//childRouter := router.NewRouter()
+	//childRouter.Add("create_wallet_form", NewPageCreateWalletForm())
+	//childRouter.Add("create_wallet_seed_form", NewPageCreateWalletSeedForm())
+	//page_instance = &PageInstance{
+	//	router: childRouter,
+	//}
 
 	modalWalletPassword := NewWalletPasswordModal(theme)
 	modalCreateWalletSelection := NewCreateWalletSelectionModal(theme)
@@ -107,6 +108,7 @@ func (p *PageSelectWallet) Enter() {
 
 	theme := app_instance.Current.Theme
 	walletManager := wallet_manager.Instance
+	p.walletList.items = make([]WalletListItem, 0)
 	for _, wallet := range walletManager.Wallets {
 		p.walletList.items = append(p.walletList.items,
 			NewWalletListItem(theme,
@@ -257,6 +259,10 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 					switch index {
 					case 1:
 						page_instance.router.SetCurrent("create_wallet_form")
+					case 3:
+						page_instance.router.SetCurrent("create_wallet_seed_form")
+					case 4:
+						page_instance.router.SetCurrent("create_wallet_hexseed_form")
 					}
 
 					c.modal.SetVisible(gtx, false)

@@ -49,10 +49,18 @@ func NewPage() *Page {
 	))
 
 	childRouter := router.NewRouter()
-	pageCreateWalletForm := NewPageCreateWalletForm()
-	childRouter.Add("create_wallet_form", pageCreateWalletForm)
+
 	pageSelectWallet := NewPageSelectWallet()
 	childRouter.Add("select_wallet", pageSelectWallet)
+
+	pageCreateWalletForm := NewPageCreateWalletForm()
+	childRouter.Add("create_wallet_form", pageCreateWalletForm)
+
+	pageCreateWalletSeedForm := NewPageCreateWalletSeedForm()
+	childRouter.Add("create_wallet_seed_form", pageCreateWalletSeedForm)
+
+	pageCreateWalletHexSeedForm := NewPageCreateWalletHexSeedForm()
+	childRouter.Add("create_wallet_hexseed_form", pageCreateWalletHexSeedForm)
 
 	th := app_instance.Current.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
