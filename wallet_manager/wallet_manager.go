@@ -1,6 +1,7 @@
 package wallet_manager
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -8,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/settings"
 )
@@ -107,17 +109,57 @@ func (w *WalletManager) DeleteWallet(id string, password string) error {
 	return nil
 }
 
+func (w *WalletManager) CreateWalletFromPath(name string, password string, path string) error {
+	wallet, err := walletapi.Open_Encrypted_Wallet(path, password)
+	if err != nil {
+		return err
+	}
+
+	return w.saveWallet(name, wallet.Wallet_Memory)
+}
+
+func (w *WalletManager) CreateWalletFromSeed(name string, password string, seed string) error {
+	wallet, err := walletapi.Create_Encrypted_Wallet_From_Recovery_Words_Memory(password, seed)
+	if err != nil {
+		return err
+	}
+
+	return w.saveWallet(name, wallet)
+}
+
+func (w *WalletManager) CreateWalletFromHexSeed(name string, password, hexSeed string) error {
+	seed, err := hex.DecodeString(hexSeed)
+	if err != nil {
+		return err
+	}
+
+	if len(seed) != 32 {
+		return fmt.Errorf("hex seed must be 64 chars")
+	}
+
+	eSeed := new(crypto.BNRed).SetBytes(seed)
+	wallet, err := walletapi.Create_Encrypted_Wallet_Memory(password, eSeed)
+	if err != nil {
+		return err
+	}
+
+	return w.saveWallet(name, wallet)
+}
+
 func (w *WalletManager) CreateWallet(name string, password string, confirmPassword string) error {
 	if password != confirmPassword {
 		return fmt.Errorf("password don't match")
 	}
 
-	walletsDir := settings.Instance.WalletsDir
 	wallet, err := walletapi.Create_Encrypted_Wallet_Random_Memory(password)
 	if err != nil {
 		return err
 	}
 
+	return w.saveWallet(name, wallet)
+}
+
+func (w *WalletManager) saveWallet(name string, wallet *walletapi.Wallet_Memory) error {
 	walletData := wallet.Get_Encrypted_Wallet()
 
 	id := fmt.Sprint(time.Now().Unix())
@@ -133,6 +175,7 @@ func (w *WalletManager) CreateWallet(name string, password string, confirmPasswo
 		return err
 	}
 
+	walletsDir := settings.Instance.WalletsDir
 	err = os.MkdirAll(walletsDir, fs.ModePerm)
 	if err != nil {
 		return err
