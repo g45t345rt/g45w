@@ -110,3 +110,17 @@ func GetFolderSize(folderPath string) (int64, error) {
 
 	return size, err
 }
+
+func SplitString(s string, size int) []string {
+	split := []string{}
+	for i := 0; i < len(s); i += size {
+		end := i + size
+		if end > len(s) {
+			end = len(s)
+		}
+
+		split = append(split, s[i:end])
+	}
+
+	return split
+}

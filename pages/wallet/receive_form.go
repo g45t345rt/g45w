@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"strings"
 
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -17,6 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/utils"
 	qrcode "github.com/skip2/go-qrcode"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -55,6 +58,7 @@ func NewPageReceiveForm() *PageReceiveForm {
 	editor := new(widget.Editor)
 	labelAddr := material.Editor(th, editor, "")
 	labelAddr.TextSize = unit.Sp(16)
+	labelAddr.Editor.Alignment = text.Middle
 	labelAddr.Font.Weight = font.Bold
 	labelAddr.Editor.ReadOnly = true
 
@@ -75,7 +79,10 @@ func (p *PageReceiveForm) Enter() {
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
+	// gio ui does not implement character break yet https://todo.sr.ht/~eliasnaur/gio/467
 	addr := "dero1qyvzwypmgqrqpsr8xlz209mwr6sz8fu9a4fphkpnesg29du40zw22qqpm2nkv"
+	splitAddr := utils.SplitString(addr, 22)
+	addr = strings.Join(splitAddr, "\n")
 
 	imgBytes, err := qrcode.Encode(addr, qrcode.Medium, 256)
 	if err != nil {
@@ -123,7 +130,10 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.labelAddr.Layout(gtx)
+			th.Shaper.LayoutString(text.Parameters{}, "asd")
+			d := p.labelAddr.Layout(gtx)
+			fmt.Println(d)
+			return d
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.addrImage.Layout(gtx)
