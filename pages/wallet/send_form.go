@@ -1,15 +1,11 @@
 package page_wallet
 
 import (
-	"image"
 	"image/color"
 
-	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -77,6 +73,7 @@ func NewPageSendForm() *PageSendForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 	listStyle := material.List(th, list)
+	listStyle.AnchorStrategy = material.Overlay
 
 	return &PageSendForm{
 		txtAmount:        txtAmount,
@@ -107,17 +104,6 @@ func (p *PageSendForm) Leave() {
 }
 
 func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	dr := image.Rectangle{Max: gtx.Constraints.Min}
-	paint.LinearGradientOp{
-		Stop1:  f32.Pt(0, float32(dr.Min.Y)),
-		Stop2:  f32.Pt(0, float32(dr.Max.Y)),
-		Color1: color.NRGBA{R: 0, G: 0, B: 0, A: 5},
-		Color2: color.NRGBA{R: 0, G: 0, B: 0, A: 50},
-	}.Add(gtx.Ops)
-	cl := clip.Rect(dr).Push(gtx.Ops)
-	paint.PaintOp{}.Add(gtx.Ops)
-	cl.Pop()
-
 	if p.buttonBuildTx.Clickable.Clicked() {
 
 	}

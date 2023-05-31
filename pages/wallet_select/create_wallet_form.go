@@ -38,6 +38,7 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 	listStyle := material.List(th, list)
+	listStyle.AnchorStrategy = material.Overlay
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),

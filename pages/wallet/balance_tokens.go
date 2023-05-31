@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -17,9 +18,9 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
-	"github.com/g45t345rt/g45w/ui/assets"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -33,10 +34,12 @@ type PageBalanceTokens struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	notRegistered   *NotRegistered
-	displayBalance  *DisplayBalance
-	tokensContainer *TokensContainer
-	tokenItems      []TokenListItem
+	notRegistered  *NotRegistered
+	displayBalance *DisplayBalance
+	tokenBar       *TokenBar
+	tokenItems     []*TokenListItem
+
+	listStyle material.ListStyle
 }
 
 var _ router.Container = &PageBalanceTokens{}
@@ -44,16 +47,16 @@ var _ router.Container = &PageBalanceTokens{}
 func NewPageBalanceTokens() *PageBalanceTokens {
 	th := app_instance.Current.Theme
 
-	img, err := assets.GetImage("hobo48.jpg")
+	img, err := assets.GetImage("dero.jpg")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tokenItems := []TokenListItem{}
+	tokenItems := []*TokenListItem{}
 	for i := 0; i < 10; i++ {
-		tokenItems = append(tokenItems, TokenListItem{
+		tokenItems = append(tokenItems, &TokenListItem{
 			tokenImageItem: NewTokenImageItem(img),
-			tokenName:      "Dero",
+			tokenName:      fmt.Sprintf("Dero %d", i),
 			tokenId:        "00000...00000",
 			tokenBalance:   "342.35546",
 			Clickable:      new(widget.Clickable),
@@ -69,14 +72,21 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		gween.New(0, -1, .25, ease.Linear),
 	))
 
+	list := new(widget.List)
+	list.Axis = layout.Vertical
+	listStyle := material.List(th, list)
+	listStyle.AnchorStrategy = material.Overlay
+
 	return &PageBalanceTokens{
-		displayBalance:  NewDisplayBalance(th),
-		tokensContainer: NewTokenContainer(th),
-		notRegistered:   NewNotRegistered(),
-		tokenItems:      tokenItems,
-		firstEnter:      true,
-		animationEnter:  animationEnter,
-		animationLeave:  animationLeave,
+		displayBalance: NewDisplayBalance(th),
+		//tokensContainer: NewTokenContainer(th),
+		tokenBar:       NewTokenBar(th),
+		notRegistered:  NewNotRegistered(),
+		tokenItems:     tokenItems,
+		firstEnter:     true,
+		animationEnter: animationEnter,
+		animationLeave: animationLeave,
+		listStyle:      listStyle,
 	}
 }
 
@@ -120,17 +130,33 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		}
 	}
 
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+	widgets := []layout.Widget{
+		func(gtx layout.Context) layout.Dimensions {
 			return p.notRegistered.Layout(gtx, th)
-		}),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			return p.displayBalance.Layout(gtx, th)
-		}),
-		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return p.tokensContainer.Layout(gtx, th, p.tokenItems)
-		}),
-	)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return p.tokenBar.Layout(gtx, th, p.tokenItems)
+		},
+	}
+
+	for _, item := range p.tokenItems {
+		widgets = append(widgets, item.Layout)
+	}
+
+	//widgets = append(widgets, p.widgets...)
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
+	})
+
+	//return p.tokensContainer.Layout(gtx, th, p.tokenItems)
+
+	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+		return widgets[index](gtx)
+	})
 }
 
 type NotRegistered struct {
@@ -298,12 +324,11 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 	})
 }
 
-type TokensContainer struct {
-	tokenList      *TokenList
+type TokenBar struct {
 	buttonAddToken *components.Button
 }
 
-func NewTokenContainer(th *material.Theme) *TokensContainer {
+func NewTokenBar(th *material.Theme) *TokenBar {
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 
@@ -315,32 +340,20 @@ func NewTokenContainer(th *material.Theme) *TokensContainer {
 		Animation:      components.NewButtonAnimationScale(.92),
 	})
 
-	return &TokensContainer{
-		tokenList:      NewTokenList(th),
+	return &TokenBar{
 		buttonAddToken: buttonAddToken,
 	}
 }
 
-func (t *TokensContainer) Layout(gtx layout.Context, th *material.Theme, items []TokenListItem) layout.Dimensions {
-	dr := image.Rectangle{Max: gtx.Constraints.Min}
-	paint.LinearGradientOp{
-		Stop1:  f32.Pt(0, float32(dr.Min.Y)),
-		Stop2:  f32.Pt(0, float32(dr.Max.Y)),
-		Color1: color.NRGBA{R: 0, G: 0, B: 0, A: 5},
-		Color2: color.NRGBA{R: 0, G: 0, B: 0, A: 50},
-	}.Add(gtx.Ops)
-	cl := clip.Rect(dr).Push(gtx.Ops)
-	paint.PaintOp{}.Add(gtx.Ops)
-	cl.Pop()
-
-	cl = clip.Rect{Max: image.Pt(gtx.Constraints.Max.X, gtx.Dp(1))}.Push(gtx.Ops)
+func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*TokenListItem) layout.Dimensions {
+	cl := clip.Rect{Max: image.Pt(gtx.Constraints.Max.X, gtx.Dp(1))}.Push(gtx.Ops)
 	paint.ColorOp{Color: color.NRGBA{R: 0, G: 0, B: 0, A: 50}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 	cl.Pop()
 
 	return layout.Inset{
 		Left: unit.Dp(30), Right: unit.Dp(30),
-		Top: unit.Dp(30), Bottom: unit.Dp(0),
+		Top: unit.Dp(30), Bottom: unit.Dp(20),
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -358,13 +371,6 @@ func (t *TokensContainer) Layout(gtx layout.Context, th *material.Theme, items [
 					}),
 				)
 			}),
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				return layout.Inset{
-					Top: unit.Dp(20),
-				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return t.tokenList.Layout(gtx, th, items)
-				})
-			}),
 		)
 	})
 }
@@ -379,10 +385,10 @@ func NewTokenList(th *material.Theme) *TokenList {
 
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
-	listStyle.Indicator.MinorWidth = unit.Dp(10)
-	listStyle.Indicator.CornerRadius = unit.Dp(5)
-	black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-	listStyle.Indicator.Color = black
+	//listStyle.Indicator.MinorWidth = unit.Dp(10)
+	//listStyle.Indicator.CornerRadius = unit.Dp(5)
+	//black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+	//listStyle.Indicator.Color = black
 	//listStyle.Indicator.HoverColor = f32color.Hovered(black)
 
 	return &TokenList{
@@ -393,9 +399,18 @@ func NewTokenList(th *material.Theme) *TokenList {
 func (l *TokenList) Layout(gtx layout.Context, th *material.Theme, items []TokenListItem) layout.Dimensions {
 	return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return l.listStyle.Layout(gtx, len(items), func(gtx layout.Context, i int) layout.Dimensions {
-			return items[i].Layout(gtx, th)
+			return items[i].Layout(gtx)
 		})
 	})
+
+	//childs := []layout.FlexChild{}
+	//for _, item := range items {
+	//	childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+	//		return item.Layout(gtx, th)
+	//	}))
+	//}
+
+	//return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
 
 	/*
 		bounds := image.Rect(0, 0, d.Size.X, d.Size.Y)
@@ -514,76 +529,81 @@ type TokenListItem struct {
 	tokenImageItem *TokenImageItem
 }
 
-func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	m := op.Record(gtx.Ops)
-	dims := item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Inset{
-			Top: unit.Dp(10), Bottom: unit.Dp(10),
-			Left: unit.Dp(15), Right: unit.Dp(15),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					gtx.Constraints.Max.X = gtx.Dp(50)
-					gtx.Constraints.Max.Y = gtx.Dp(50)
-					return item.tokenImageItem.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{
-						Axis:      layout.Horizontal,
-						Alignment: layout.Middle,
-					}.Layout(gtx,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									label := material.Label(th, unit.Sp(18), item.tokenName)
-									label.Font.Weight = font.Bold
-									return label.Layout(gtx)
-								}),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									label := material.Label(th, unit.Sp(14), item.tokenId)
-									label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
-									return label.Layout(gtx)
-								}),
-							)
-						}),
-						layout.Flexed(1, layout.Spacer{}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(18), item.tokenBalance)
-							label.Font.Weight = font.Bold
-							return label.Layout(gtx)
-						}),
-					)
-				}),
-			)
+func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
+	return layout.Inset{Top: unit.Dp(0), Left: unit.Dp(30), Right: unit.Dp(30), Bottom: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		th := app_instance.Current.Theme
+		m := op.Record(gtx.Ops)
+		dims := item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Inset{
+				Top: unit.Dp(10), Bottom: unit.Dp(10),
+				Left: unit.Dp(15), Right: unit.Dp(15),
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						gtx.Constraints.Max.X = gtx.Dp(50)
+						gtx.Constraints.Max.Y = gtx.Dp(50)
+						return item.tokenImageItem.Layout(gtx)
+					}),
+					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{
+							Axis:      layout.Horizontal,
+							Alignment: layout.Middle,
+						}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										label := material.Label(th, unit.Sp(18), item.tokenName)
+										label.Font.Weight = font.Bold
+										return label.Layout(gtx)
+									}),
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										label := material.Label(th, unit.Sp(14), item.tokenId)
+										label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+										return label.Layout(gtx)
+									}),
+								)
+							}),
+							layout.Flexed(1, layout.Spacer{}.Layout),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								label := material.Label(th, unit.Sp(18), item.tokenBalance)
+								label.Font.Weight = font.Bold
+								return label.Layout(gtx)
+							}),
+						)
+					}),
+				)
+			})
 		})
+		c := m.Stop()
+
+		paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+			clip.RRect{
+				Rect: image.Rectangle{Max: dims.Size},
+				SE:   gtx.Dp(10),
+				NW:   gtx.Dp(10),
+				NE:   gtx.Dp(10),
+				SW:   gtx.Dp(10),
+			}.Op(gtx.Ops))
+
+		c.Add(gtx.Ops)
+
+		return dims
 	})
-	c := m.Stop()
-
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		clip.RRect{
-			Rect: image.Rectangle{Max: dims.Size},
-			SE:   gtx.Dp(10),
-			NW:   gtx.Dp(10),
-			NE:   gtx.Dp(10),
-			SW:   gtx.Dp(10),
-		}.Op(gtx.Ops))
-
-	c.Add(gtx.Ops)
-
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return dims
-		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-	)
-
 	/*
-		if item.Clickable.Hovered() {
-			pointer.CursorPointer.Add(gtx.Ops)
-			bounds := image.Rect(0, 0, dims.Size.X, dims.Size.Y)
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
-				clip.UniformRRect(bounds, 10).Op(gtx.Ops),
-			)
-		}*/
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return dims
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+		)
+
+
+			if item.Clickable.Hovered() {
+				pointer.CursorPointer.Add(gtx.Ops)
+				bounds := image.Rect(0, 0, dims.Size.X, dims.Size.Y)
+				paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+					clip.UniformRRect(bounds, 10).Op(gtx.Ops),
+				)
+			}*/
 }

@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"image"
-	"image/color"
 	"log"
 
-	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -53,6 +50,7 @@ func NewPageReceiveForm() *PageReceiveForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 	listStyle := material.List(th, list)
+	listStyle.AnchorStrategy = material.Overlay
 
 	editor := new(widget.Editor)
 	labelAddr := material.Editor(th, editor, "")
@@ -104,17 +102,6 @@ func (p *PageReceiveForm) Leave() {
 }
 
 func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	dr := image.Rectangle{Max: gtx.Constraints.Min}
-	paint.LinearGradientOp{
-		Stop1:  f32.Pt(0, float32(dr.Min.Y)),
-		Stop2:  f32.Pt(0, float32(dr.Max.Y)),
-		Color1: color.NRGBA{R: 0, G: 0, B: 0, A: 5},
-		Color2: color.NRGBA{R: 0, G: 0, B: 0, A: 50},
-	}.Add(gtx.Ops)
-	cl := clip.Rect(dr).Push(gtx.Ops)
-	paint.PaintOp{}.Add(gtx.Ops)
-	cl.Pop()
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

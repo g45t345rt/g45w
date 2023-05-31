@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 
+	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -127,9 +128,6 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	//page.displayBalance.labelAmount.Text = "53.22334 DERO"
-	//page.balanceTokens.displayBalance.labelAmount.Text = "53.22334 DERO"
-
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
 		p.childRouter.SetCurrent("sendForm")
 	}
@@ -172,6 +170,16 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						SE:   gtx.Dp(0),
 						SW:   gtx.Dp(0),
 					}.Op(gtx.Ops))
+
+					dr := image.Rectangle{Max: gtx.Constraints.Max}
+					paint.LinearGradientOp{
+						Stop1:  f32.Pt(0, float32(dr.Min.Y)),
+						Stop2:  f32.Pt(0, float32(dr.Max.Y)),
+						Color1: color.NRGBA{R: 0, G: 0, B: 0, A: 5},
+						Color2: color.NRGBA{R: 0, G: 0, B: 0, A: 50},
+					}.Add(gtx.Ops)
+					defer clip.Rect(dr).Push(gtx.Ops).Pop()
+					paint.PaintOp{}.Add(gtx.Ops)
 
 					return layout.Inset{
 						Left: unit.Dp(30), Right: unit.Dp(30),
@@ -233,6 +241,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	if n.clickable.Clicked() {
 		app_instance.Current.Router.SetCurrent("page_node")
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
 	return n.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

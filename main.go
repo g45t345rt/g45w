@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"log"
 	"os"
 	"time"
@@ -49,6 +50,9 @@ func main() {
 		app.MinSize(minSizeX, minSizeY),
 		app.Size(minSizeX, minSizeY),
 		app.MaxSize(maxSizeX, maxSizeY),
+		app.StatusColor(color.NRGBA{R: 255, A: 255}),
+		app.PortraitOrientation.Option(),
+		app.NavigationColor(color.NRGBA{R: 255, G: 255, A: 255}),
 	)
 
 	// font
