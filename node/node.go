@@ -105,7 +105,7 @@ type NodeStatus struct {
 
 func NewNodeStatus(updateInterval time.Duration) *NodeStatus {
 	return &NodeStatus{
-		startTime:      time.Now().Add(updateInterval),
+		startTime:      time.Now().Add(-updateInterval),
 		updateInterval: updateInterval,
 	}
 }
@@ -149,7 +149,7 @@ type NodeSize struct {
 func NewNodeSize(updateInterval time.Duration) *NodeSize {
 	return &NodeSize{
 		Size:           0,
-		startTime:      time.Now().Add(updateInterval),
+		startTime:      time.Now().Add(-updateInterval),
 		updateInterval: updateInterval,
 	}
 }
