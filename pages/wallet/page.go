@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"time"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -15,7 +16,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/node"
 	"github.com/g45t345rt/g45w/pages"
@@ -215,12 +215,14 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 }
 
 type NodeStatusBar struct {
-	clickable *widget.Clickable
+	clickable  *widget.Clickable
+	nodeStatus *node.NodeStatus
 }
 
 func NewNodeStatusBar() *NodeStatusBar {
 	return &NodeStatusBar{
-		clickable: new(widget.Clickable),
+		clickable:  new(widget.Clickable),
+		nodeStatus: node.NewNodeStatus(1 * time.Second),
 	}
 }
 
@@ -232,9 +234,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	//paint.PaintOp{}.Add(gtx.Ops)
 
-	chain := node.Instance.Chain
-	our_height := chain.Get_Height()
-	best_height, _ := p2p.Best_Peer_Height()
+	n.nodeStatus.Update(gtx)
 
 	if n.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
@@ -265,7 +265,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					status := fmt.Sprintf("%d / %d", our_height, best_height)
+					status := fmt.Sprintf("%d / %d", n.nodeStatus.Height, n.nodeStatus.BestHeight)
 					label := material.Label(th, unit.Sp(16), status)
 					label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 					return label.Layout(gtx)

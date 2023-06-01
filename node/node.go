@@ -4,12 +4,16 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"time"
 
+	"gioui.org/layout"
+	"gioui.org/op"
 	"github.com/deroproject/derohe/block"
 	"github.com/deroproject/derohe/blockchain"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/utils"
 )
 
 type Node struct {
@@ -81,4 +85,86 @@ func (n *Node) Start() error {
 
 	globals.Cron.Start()
 	return nil
+}
+
+type NodeStatus struct {
+	Height          int64
+	BestHeight      int64
+	MemCount        int
+	RegCount        int
+	PeerCount       uint64
+	NetworkHashRate uint64
+
+	TimeOffset    time.Duration
+	TimeOffsetNTP time.Duration
+	TimeOffsetP2P time.Duration
+
+	startTime      time.Time
+	updateInterval time.Duration
+}
+
+func NewNodeStatus(updateInterval time.Duration) *NodeStatus {
+	return &NodeStatus{
+		startTime:      time.Now().Add(updateInterval),
+		updateInterval: updateInterval,
+	}
+}
+
+func (n *NodeStatus) Update(gtx layout.Context) {
+	elapsed := gtx.Now.Sub(n.startTime)
+
+	if elapsed < n.updateInterval {
+		return
+	}
+
+	n.startTime = gtx.Now
+	op.InvalidateOp{}.Add(gtx.Ops)
+
+	chain := Instance.Chain
+	n.Height = chain.Get_Height()
+	bestHeight, _ := p2p.Best_Peer_Height()
+	n.BestHeight = bestHeight
+	//topo_height := chain.Load_TOPO_HEIGHT()
+
+	n.MemCount = len(chain.Mempool.Mempool_List_TX())
+	n.RegCount = len(chain.Regpool.Regpool_List_TX())
+
+	//p2p.PeerList_Print()
+	n.PeerCount = p2p.Peer_Count()
+	//inc, out := p2p.Peer_Direction_Count()
+	n.NetworkHashRate = chain.Get_Network_HashRate()
+
+	n.TimeOffset = globals.GetOffset().Round(time.Millisecond)
+	n.TimeOffsetNTP = globals.GetOffsetNTP().Round(time.Millisecond)
+	n.TimeOffsetP2P = globals.GetOffsetP2P().Round(time.Millisecond)
+}
+
+type NodeSize struct {
+	Size int64
+
+	startTime      time.Time
+	updateInterval time.Duration
+}
+
+func NewNodeSize(updateInterval time.Duration) *NodeSize {
+	return &NodeSize{
+		Size:           0,
+		startTime:      time.Now().Add(updateInterval),
+		updateInterval: updateInterval,
+	}
+}
+
+func (n *NodeSize) Update(gtx layout.Context) {
+	elapsed := gtx.Now.Sub(n.startTime)
+
+	if elapsed < n.updateInterval {
+		return
+	}
+
+	n.startTime = gtx.Now
+	op.InvalidateOp{}.Add(gtx.Ops)
+
+	nodeDir := settings.Instance.NodeDir
+	size, _ := utils.GetFolderSize(nodeDir)
+	n.Size = size
 }

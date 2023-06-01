@@ -3,7 +3,6 @@ package page_node
 import (
 	"fmt"
 	"image/color"
-	"log"
 	"time"
 
 	"gioui.org/font"
@@ -13,12 +12,9 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/globals"
-	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/node"
 	"github.com/g45t345rt/g45w/router"
-	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/utils"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -30,7 +26,8 @@ type Page struct {
 
 	buttonShowCommand *components.Button
 	hubIcon           *widget.Icon
-	nodeSize          *NodeSize
+	nodeSize          *node.NodeSize
+	nodeStatus        *node.NodeStatus
 }
 
 var _ router.Container = &Page{}
@@ -57,7 +54,8 @@ func NewPage() *Page {
 		buttonShowCommand: buttonShowCommand,
 		hubIcon:           hubIcon,
 		firstEnter:        true,
-		nodeSize:          NewNodeSize(),
+		nodeSize:          node.NewNodeSize(10 * time.Second),
+		nodeStatus:        node.NewNodeStatus(1 * time.Second),
 	}
 }
 
@@ -68,30 +66,18 @@ func (p *Page) IsActive() bool {
 func (p *Page) Enter() {
 	app_instance.Current.BottomBar.SetActive("node")
 	p.isActive = true
-	p.nodeSize.active = true
 }
 
 func (p *Page) Leave() {
 	p.isActive = false
-	p.nodeSize.active = false
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 
-	chain := node.Instance.Chain
-	our_height := chain.Get_Height()
-	best_height, _ := p2p.Best_Peer_Height()
-	//topo_height := chain.Load_TOPO_HEIGHT()
-
-	mempool_tx_count := len(chain.Mempool.Mempool_List_TX())
-	regpool_tx_count := len(chain.Regpool.Regpool_List_TX())
-
-	//p2p.PeerList_Print()
-	peer_count := p2p.Peer_Count()
-	//inc, out := p2p.Peer_Direction_Count()
-	network_hash_rate := chain.Get_Network_HashRate()
+	p.nodeStatus.Update(gtx)
+	p.nodeSize.Update(gtx)
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -125,7 +111,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						status := fmt.Sprintf("%d / %d", our_height, best_height)
+						status := fmt.Sprintf("%d / %d", p.nodeStatus.Height, p.nodeStatus.BestHeight)
 						label := material.Label(th, unit.Sp(22), status)
 						label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 						return label.Layout(gtx)
@@ -138,7 +124,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						status := fmt.Sprintf("%d", peer_count)
+						status := fmt.Sprintf("%d", p.nodeStatus.PeerCount)
 						label := material.Label(th, unit.Sp(22), status)
 						label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 						return label.Layout(gtx)
@@ -151,7 +137,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						status := utils.FormatHashRate(network_hash_rate)
+						status := utils.FormatHashRate(p.nodeStatus.NetworkHashRate)
 						label := material.Label(th, unit.Sp(22), status)
 						label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 						return label.Layout(gtx)
@@ -159,17 +145,17 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(18), "TXp / Time Sync")
+						label := material.Label(th, unit.Sp(18), "TXp / Time Offset")
 						label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 100}
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						status := fmt.Sprintf("%d:%d / %s | %s | %s",
-							mempool_tx_count,
-							regpool_tx_count,
-							globals.GetOffset().Round(time.Millisecond).String(),
-							globals.GetOffsetNTP().Round(time.Millisecond).String(),
-							globals.GetOffsetP2P().Round(time.Millisecond).String(),
+							p.nodeStatus.MemCount,
+							p.nodeStatus.RegCount,
+							p.nodeStatus.TimeOffset.String(),
+							p.nodeStatus.TimeOffsetNTP.String(),
+							p.nodeStatus.TimeOffsetP2P.String(),
 						)
 
 						label := material.Label(th, unit.Sp(22), status)
@@ -184,7 +170,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						value := utils.FormatBytes(p.nodeSize.size)
+						value := utils.FormatBytes(p.nodeSize.Size)
 						label := material.Label(th, unit.Sp(22), value)
 						label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 						return label.Layout(gtx)
@@ -202,45 +188,4 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			return app_instance.Current.BottomBar.Layout(gtx, th)
 		}),
 	)
-}
-
-type NodeSize struct {
-	size   int64
-	active bool
-}
-
-func NewNodeSize() *NodeSize {
-	nodeSize := &NodeSize{
-		active: false,
-		size:   0,
-	}
-
-	go func() {
-		ticker := time.NewTicker(10 * time.Second)
-		for range ticker.C {
-			if nodeSize.active {
-				err := nodeSize.Calculate()
-				if err != nil {
-					log.Fatal(err)
-				}
-			}
-		}
-	}()
-
-	err := nodeSize.Calculate()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return nodeSize
-}
-
-func (n *NodeSize) Calculate() error {
-	nodeDir := settings.Instance.NodeDir
-	size, err := utils.GetFolderSize(nodeDir)
-	if err != nil {
-		return err
-	}
-
-	n.size = size
-	return nil
 }
