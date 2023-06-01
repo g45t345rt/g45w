@@ -3,7 +3,9 @@ package pages
 import (
 	"image/color"
 
+	"gioui.org/f32"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
@@ -141,23 +143,23 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			Spacing:   layout.SpaceBetween,
 			Alignment: layout.Middle,
 		}.Layout(gtx,
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.buttonSettings.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.buttonTxs.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.buttonWallet.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.buttonNode.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.buttonClose.Layout(gtx, th)
 			}),
 		)
@@ -175,16 +177,17 @@ func NewBottomBarButton(button *components.Button) *BottomBarButton {
 }
 
 func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	iconSize := unit.Dp(30)
-	activeIconSize := unit.Dp(45)
+	iconSize := unit.Dp(45)
+	gtx.Constraints.Min.X = gtx.Dp(iconSize)
+	gtx.Constraints.Min.Y = gtx.Dp(iconSize)
 
 	if b.button.Focused {
-		gtx.Constraints.Max.X = gtx.Dp(activeIconSize)
-		gtx.Constraints.Max.Y = gtx.Dp(activeIconSize)
 		b.button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 	} else {
-		gtx.Constraints.Max.X = gtx.Dp(iconSize)
-		gtx.Constraints.Max.Y = gtx.Dp(iconSize)
+		// important scale down instead of up to avoid blurry icon
+		scale := f32.Affine2D{}.Scale(f32.Pt(float32(iconSize)/2, float32(iconSize)/2), f32.Pt(.7, .7))
+		defer op.Affine(scale).Push(gtx.Ops).Pop()
+
 		b.button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	}
 

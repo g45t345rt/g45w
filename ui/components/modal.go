@@ -76,12 +76,16 @@ func NewModalAnimationDown() ModalAnimation {
 }
 
 func NewModalBackground() layout.Widget {
+	var img *Image
 	return func(gtx layout.Context) layout.Dimensions {
-		src := utils.NewImageColor(gtx.Constraints.Max, color.RGBA{A: 100})
-		image := Image{
-			Src: paint.NewImageOp(src),
+		if img == nil {
+			src := utils.NewImageColor(gtx.Constraints.Max, color.RGBA{A: 100})
+			img = &Image{
+				Src: paint.NewImageOp(src),
+			}
 		}
-		return image.Layout(gtx)
+
+		return img.Layout(gtx)
 	}
 }
 
