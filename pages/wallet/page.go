@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"time"
 
+	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -119,6 +120,7 @@ func (p *Page) Enter() {
 	p.header.LabelTitle.Text = "Wallet 0"
 	//p.header.WalletAddr = "derog54...g435450"
 
+	app_instance.Current.Window.Option(app.StatusColor(color.NRGBA{A: 255}))
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
 }

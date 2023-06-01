@@ -1,8 +1,10 @@
 package settings
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
+	"time"
 
 	"gioui.org/app"
 )
@@ -15,9 +17,10 @@ type Settings struct {
 
 var Instance *Settings
 
-var Version = "" // replaced by -ldflags
-var BuildTime = ""
-var GitVersion = ""
+// vars below are replaced by -ldflags during build
+var Version = "development"
+var BuildTime = fmt.Sprint(time.Now().Unix())
+var GitVersion = "development"
 
 func NewSettings() *Settings {
 	s := &Settings{}
