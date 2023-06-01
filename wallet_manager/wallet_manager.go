@@ -151,11 +151,7 @@ func (w *WalletManager) CreateWalletFromHexSeed(name string, password, hexSeed s
 	return w.saveWallet(name, wallet)
 }
 
-func (w *WalletManager) CreateWallet(name string, password string, confirmPassword string) error {
-	if password != confirmPassword {
-		return fmt.Errorf("password don't match")
-	}
-
+func (w *WalletManager) CreateWallet(name string, password string) error {
 	wallet, err := walletapi.Create_Encrypted_Wallet_Random_Memory(password)
 	if err != nil {
 		return err

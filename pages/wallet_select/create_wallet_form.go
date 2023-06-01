@@ -1,7 +1,6 @@
 package page_wallet_select
 
 import (
-	"fmt"
 	"image/color"
 
 	"gioui.org/layout"
@@ -13,7 +12,6 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
-	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -31,6 +29,8 @@ type PageCreateWalletForm struct {
 	txtPassword        *components.TextField
 	txtConfirmPassword *components.TextField
 	buttonCreate       *components.Button
+
+	modalError *components.Modal
 }
 
 var _ router.Container = &PageCreateWalletForm{}
@@ -69,6 +69,22 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
+	modalError := components.NewModal(components.ModalStyle{
+		CloseOnOutsideClick: false,
+		CloseOnInsideClick:  true,
+		Direction:           layout.N,
+		Inset:               layout.UniformInset(unit.Dp(10)),
+		Animation:           components.NewModalAnimationDown(),
+	})
+
+	router := app_instance.Current.Router
+	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+		modalError.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+			label := material.Label(th, unit.Sp(14), "test")
+			return label.Layout(gtx)
+		})
+	})
+
 	return &PageCreateWalletForm{
 		listStyle:      listStyle,
 		animationEnter: animationEnter,
@@ -78,6 +94,8 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 		txtPassword:        txtPassword,
 		txtConfirmPassword: txtConfirmPassword,
 		buttonCreate:       buttonCreate,
+
+		modalError: modalError,
 	}
 }
 
@@ -118,11 +136,12 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 	}
 
 	if p.buttonCreate.Clickable.Clicked() {
-		name := p.txtWalletName.EditorStyle.Editor.Text()
-		password := p.txtPassword.EditorStyle.Editor.Text()
-		confirmPassword := p.txtConfirmPassword.EditorStyle.Editor.Text()
-		err := wallet_manager.Instance.CreateWallet(name, password, confirmPassword)
-		fmt.Println(err)
+		//name := p.txtWalletName.EditorStyle.Editor.Text()
+		//password := p.txtPassword.EditorStyle.Editor.Text()
+		p.modalError.SetVisible(gtx, true)
+		//confirmPassword := p.txtConfirmPassword.EditorStyle.Editor.Text()
+		//err := wallet_manager.Instance.CreateWallet(name, password)
+		//fmt.Println(err)
 	}
 
 	widgets := []layout.Widget{

@@ -22,7 +22,14 @@ type Confirm struct {
 }
 
 func NewConfirm(prompt string, th *material.Theme, direction layout.Direction) *Confirm {
-	modal := NewModal(th, direction, layout.UniformInset(unit.Dp(10)), NewModalAnimationScaleBounce())
+	modal := NewModal(ModalStyle{
+		CloseOnOutsideClick: true,
+		CloseOnInsideClick:  false,
+		Direction:           direction,
+		Inset:               layout.UniformInset(unit.Dp(10)),
+		Animation:           NewModalAnimationScaleBounce(),
+		Background:          NewModalBackground(),
+	})
 
 	buttonYes := NewButton(ButtonStyle{
 		Rounded:         unit.Dp(5),

@@ -10,7 +10,6 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
@@ -41,7 +40,7 @@ func NewModalAnimationScaleBounce() ModalAnimation {
 	}
 }
 
-func NewModalAnimationDownUp() ModalAnimation {
+func NewModalAnimationUp() ModalAnimation {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.OutCubic),
 	))
@@ -58,24 +57,56 @@ func NewModalAnimationDownUp() ModalAnimation {
 	}
 }
 
+func NewModalAnimationDown() ModalAnimation {
+	animationEnter := animation.NewAnimation(false, gween.NewSequence(
+		gween.New(-1, 0, .25, ease.OutCubic),
+	))
+
+	animationLeave := animation.NewAnimation(false, gween.NewSequence(
+		gween.New(0, -1, .25, ease.InCubic),
+	))
+
+	return ModalAnimation{
+		animationEnter: animationEnter,
+		transformEnter: animation.TransformY,
+		animationLeave: animationLeave,
+		transformLeave: animation.TransformY,
+	}
+}
+
+func NewModalBackground() layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		src := utils.NewImageColor(gtx.Constraints.Max, color.RGBA{A: 100})
+		image := Image{
+			Src: paint.NewImageOp(src),
+		}
+		return image.Layout(gtx)
+	}
+}
+
+type ModalStyle struct {
+	CloseOnOutsideClick bool
+	CloseOnInsideClick  bool
+	Direction           layout.Direction
+	Inset               layout.Inset
+	Background          layout.Widget
+	Animation           ModalAnimation
+}
+
 type Modal struct {
+	ModalStyle   ModalStyle
 	visible      bool
 	clickableOut *widget.Clickable
 	clickableIn  *widget.Clickable
-	direction    layout.Direction
-	inset        layout.Inset
-	bg           *Image
-
-	animation ModalAnimation
 }
 
-func NewModal(th *material.Theme, direction layout.Direction, inset layout.Inset, modalAnimation ModalAnimation) *Modal {
+func NewModal(style ModalStyle) *Modal {
+	//	img := utils.NewImageColor(gtx.Constraints.Max, color.RGBA{A: 100})
 	return &Modal{
-		direction:    direction,
-		inset:        inset,
+		ModalStyle:   style,
+		visible:      false,
 		clickableOut: new(widget.Clickable),
 		clickableIn:  new(widget.Clickable),
-		animation:    modalAnimation,
 	}
 }
 
@@ -87,38 +118,40 @@ func (modal *Modal) SetVisible(gtx layout.Context, visible bool) {
 	if visible {
 		modal.visible = true
 
-		modal.animation.animationEnter.Start()
-		modal.animation.animationLeave.Reset()
+		modal.ModalStyle.Animation.animationEnter.Start()
+		modal.ModalStyle.Animation.animationLeave.Reset()
 	} else {
-		modal.animation.animationLeave.Start()
-		modal.animation.animationEnter.Reset()
+		modal.ModalStyle.Animation.animationLeave.Start()
+		modal.ModalStyle.Animation.animationEnter.Reset()
 	}
 
 	op.InvalidateOp{}.Add(gtx.Ops)
 }
 
-func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Context), widget layout.Widget) layout.Dimensions {
+func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Context), w layout.Widget) layout.Dimensions {
 	if !modal.visible {
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
 
-	animationEnter := modal.animation.animationEnter
-	transformEnter := modal.animation.transformEnter
-	animationLeave := modal.animation.animationLeave
-	transformLeave := modal.animation.transformLeave
+	animationEnter := modal.ModalStyle.Animation.animationEnter
+	transformEnter := modal.ModalStyle.Animation.transformEnter
+	animationLeave := modal.ModalStyle.Animation.animationLeave
+	transformLeave := modal.ModalStyle.Animation.transformLeave
 
-	if modal.clickableOut.Clicked() && !modal.clickableIn.Clicked() {
+	clickedOut := modal.clickableOut.Clicked()
+	clickedIn := modal.clickableIn.Clicked()
+
+	if modal.ModalStyle.CloseOnOutsideClick && clickedOut && !clickedIn {
 		animationLeave.Start()
 	}
 
-	if modal.bg == nil {
-		img := utils.NewImageColor(gtx.Constraints.Max, color.RGBA{R: 0, G: 0, B: 0, A: 100})
-		modal.bg = &Image{
-			Src: paint.NewImageOp(img),
-		}
+	if modal.ModalStyle.CloseOnInsideClick && clickedIn {
+		animationLeave.Start()
 	}
 
-	modal.bg.Layout(gtx)
+	if modal.ModalStyle.Background != nil {
+		modal.ModalStyle.Background(gtx)
+	}
 
 	{
 		if animationEnter != nil {
@@ -138,7 +171,6 @@ func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Contex
 
 			if state.Finished {
 				modal.visible = false
-				modal.bg = nil
 				op.InvalidateOp{}.Add(gtx.Ops)
 				return layout.Dimensions{Size: gtx.Constraints.Max}
 			}
@@ -146,10 +178,10 @@ func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Contex
 	}
 
 	return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return modal.inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return modal.direction.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return modal.ModalStyle.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return modal.ModalStyle.Direction.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				macro := op.Record(gtx.Ops)
-				dims := modal.clickableIn.Layout(gtx, widget)
+				dims := modal.clickableIn.Layout(gtx, w)
 				c := macro.Stop()
 
 				if beforeDraw != nil {

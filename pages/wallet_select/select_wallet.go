@@ -222,7 +222,15 @@ type CreateWalletSelectionModal struct {
 }
 
 func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionModal {
-	modal := components.NewModal(th, layout.S, layout.UniformInset(25), components.NewModalAnimationDownUp())
+	modal := components.NewModal(components.ModalStyle{
+		CloseOnOutsideClick: true,
+		CloseOnInsideClick:  false,
+		Direction:           layout.S,
+		Inset:               layout.UniformInset(25),
+		Animation:           components.NewModalAnimationUp(),
+		Background:          components.NewModalBackground(),
+	})
+
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -352,7 +360,14 @@ func NewWalletPasswordModal(th *material.Theme) *WalletPasswordModal {
 
 	iconLock, _ := widget.NewIcon(icons.ActionLock)
 
-	modal := components.NewModal(th, layout.Center, layout.UniformInset(25), components.NewModalAnimationScaleBounce())
+	modal := components.NewModal(components.ModalStyle{
+		CloseOnOutsideClick: true,
+		CloseOnInsideClick:  false,
+		Direction:           layout.Center,
+		Inset:               layout.UniformInset(25),
+		Animation:           components.NewModalAnimationScaleBounce(),
+		Background:          components.NewModalBackground(),
+	})
 
 	return &WalletPasswordModal{
 		editorStyle:        editorStyle,
