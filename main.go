@@ -4,7 +4,6 @@ import (
 	"image/color"
 	"log"
 	"os"
-	"time"
 
 	"eliasnaur.com/font/roboto/robotobold"
 	"eliasnaur.com/font/roboto/robotoregular"
@@ -132,23 +131,16 @@ func runApp() error {
 	th := app_instance.Current.Theme
 	explorer := app_instance.Current.Explorer
 
-	// 1s ticker to update node status and topbar...
-	ticker := time.NewTicker(1 * time.Second)
-
 	for {
-		select {
-		case e := <-window.Events():
-			explorer.ListenEvents(e)
-			switch e := e.(type) {
-			case system.DestroyEvent:
-				return e.Err
-			case system.FrameEvent:
-				gtx := layout.NewContext(&ops, e)
-				router.Layout(gtx, th)
-				e.Frame(gtx.Ops)
-			}
-		case <-ticker.C:
-			window.Invalidate()
+		e := <-window.Events()
+		explorer.ListenEvents(e)
+		switch e := e.(type) {
+		case system.DestroyEvent:
+			return e.Err
+		case system.FrameEvent:
+			gtx := layout.NewContext(&ops, e)
+			router.Layout(gtx, th)
+			e.Frame(gtx.Ops)
 		}
 	}
 }

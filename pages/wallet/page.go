@@ -236,7 +236,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	//paint.PaintOp{}.Add(gtx.Ops)
 
-	n.nodeStatus.Update(gtx)
+	n.nodeStatus.Active()
 
 	if n.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
@@ -267,7 +267,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					status := fmt.Sprintf("%d / %d", n.nodeStatus.Height, n.nodeStatus.BestHeight)
+					status := fmt.Sprintf("%d / %d - %dP", n.nodeStatus.Height, n.nodeStatus.BestHeight, n.nodeStatus.PeerCount)
 					label := material.Label(th, unit.Sp(16), status)
 					label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 					return label.Layout(gtx)

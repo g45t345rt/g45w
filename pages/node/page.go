@@ -76,8 +76,8 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 
-	p.nodeStatus.Update(gtx)
-	p.nodeSize.Update(gtx)
+	p.nodeStatus.Active()
+	p.nodeSize.Active()
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

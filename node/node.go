@@ -6,12 +6,11 @@ import (
 	"runtime"
 	"time"
 
-	"gioui.org/layout"
-	"gioui.org/op"
 	"github.com/deroproject/derohe/block"
 	"github.com/deroproject/derohe/blockchain"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/p2p"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
 )
@@ -99,27 +98,33 @@ type NodeStatus struct {
 	TimeOffsetNTP time.Duration
 	TimeOffsetP2P time.Duration
 
-	startTime      time.Time
-	updateInterval time.Duration
+	isActive bool
 }
 
-func NewNodeStatus(updateInterval time.Duration) *NodeStatus {
-	return &NodeStatus{
-		startTime:      time.Now().Add(-updateInterval),
-		updateInterval: updateInterval,
-	}
+func NewNodeStatus(d time.Duration) *NodeStatus {
+	nodeStatus := &NodeStatus{isActive: false}
+	ticker := time.NewTicker(d)
+
+	window := app_instance.Current.Window
+	go func() {
+		for range ticker.C {
+			if nodeStatus.isActive {
+				nodeStatus.update()
+				window.Invalidate()
+				nodeStatus.isActive = false
+			}
+		}
+	}()
+
+	nodeStatus.update()
+	return nodeStatus
 }
 
-func (n *NodeStatus) Update(gtx layout.Context) {
-	elapsed := gtx.Now.Sub(n.startTime)
+func (n *NodeStatus) Active() {
+	n.isActive = true
+}
 
-	if elapsed < n.updateInterval {
-		return
-	}
-
-	n.startTime = gtx.Now
-	op.InvalidateOp{}.Add(gtx.Ops)
-
+func (n *NodeStatus) update() {
 	chain := Instance.Chain
 	n.Height = chain.Get_Height()
 	bestHeight, _ := p2p.Best_Peer_Height()
@@ -142,28 +147,36 @@ func (n *NodeStatus) Update(gtx layout.Context) {
 type NodeSize struct {
 	Size int64
 
-	startTime      time.Time
-	updateInterval time.Duration
+	isActive bool
 }
 
-func NewNodeSize(updateInterval time.Duration) *NodeSize {
-	return &NodeSize{
-		Size:           0,
-		startTime:      time.Now().Add(-updateInterval),
-		updateInterval: updateInterval,
+func NewNodeSize(d time.Duration) *NodeSize {
+	ticker := time.NewTicker(d)
+	window := app_instance.Current.Window
+	nodedSize := &NodeSize{
+		Size:     0,
+		isActive: false,
 	}
+
+	go func() {
+		for range ticker.C {
+			if nodedSize.isActive {
+				nodedSize.update()
+				window.Invalidate()
+				nodedSize.isActive = false
+			}
+		}
+	}()
+
+	nodedSize.update()
+	return nodedSize
 }
 
-func (n *NodeSize) Update(gtx layout.Context) {
-	elapsed := gtx.Now.Sub(n.startTime)
+func (n *NodeSize) Active() {
+	n.isActive = true
+}
 
-	if elapsed < n.updateInterval {
-		return
-	}
-
-	n.startTime = gtx.Now
-	op.InvalidateOp{}.Add(gtx.Ops)
-
+func (n *NodeSize) update() {
 	nodeDir := settings.Instance.NodeDir
 	size, _ := utils.GetFolderSize(nodeDir)
 	n.Size = size
