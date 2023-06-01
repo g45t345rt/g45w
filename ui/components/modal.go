@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -94,16 +95,15 @@ type ModalStyle struct {
 }
 
 type Modal struct {
-	ModalStyle   ModalStyle
+	Style        ModalStyle
 	visible      bool
 	clickableOut *widget.Clickable
 	clickableIn  *widget.Clickable
 }
 
 func NewModal(style ModalStyle) *Modal {
-	//	img := utils.NewImageColor(gtx.Constraints.Max, color.RGBA{A: 100})
 	return &Modal{
-		ModalStyle:   style,
+		Style:        style,
 		visible:      false,
 		clickableOut: new(widget.Clickable),
 		clickableIn:  new(widget.Clickable),
@@ -118,11 +118,11 @@ func (modal *Modal) SetVisible(gtx layout.Context, visible bool) {
 	if visible {
 		modal.visible = true
 
-		modal.ModalStyle.Animation.animationEnter.Start()
-		modal.ModalStyle.Animation.animationLeave.Reset()
+		modal.Style.Animation.animationEnter.Start()
+		modal.Style.Animation.animationLeave.Reset()
 	} else {
-		modal.ModalStyle.Animation.animationLeave.Start()
-		modal.ModalStyle.Animation.animationEnter.Reset()
+		modal.Style.Animation.animationLeave.Start()
+		modal.Style.Animation.animationEnter.Reset()
 	}
 
 	op.InvalidateOp{}.Add(gtx.Ops)
@@ -133,24 +133,37 @@ func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Contex
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
 
-	animationEnter := modal.ModalStyle.Animation.animationEnter
-	transformEnter := modal.ModalStyle.Animation.transformEnter
-	animationLeave := modal.ModalStyle.Animation.animationLeave
-	transformLeave := modal.ModalStyle.Animation.transformLeave
+	animationEnter := modal.Style.Animation.animationEnter
+	transformEnter := modal.Style.Animation.transformEnter
+	animationLeave := modal.Style.Animation.animationLeave
+	transformLeave := modal.Style.Animation.transformLeave
 
 	clickedOut := modal.clickableOut.Clicked()
 	clickedIn := modal.clickableIn.Clicked()
 
-	if modal.ModalStyle.CloseOnOutsideClick && clickedOut && !clickedIn {
-		animationLeave.Start()
+	if modal.Style.CloseOnOutsideClick {
+		if clickedOut && !clickedIn {
+			animationLeave.Start()
+		}
+
+		// I think its weird for outside click to see the pointer
+		//if modal.clickableOut.Hovered() {
+		//	pointer.CursorPointer.Add(gtx.Ops)
+		//}
 	}
 
-	if modal.ModalStyle.CloseOnInsideClick && clickedIn {
-		animationLeave.Start()
+	if modal.Style.CloseOnInsideClick {
+		if clickedIn {
+			animationLeave.Start()
+		}
+
+		if modal.clickableIn.Hovered() {
+			pointer.CursorPointer.Add(gtx.Ops)
+		}
 	}
 
-	if modal.ModalStyle.Background != nil {
-		modal.ModalStyle.Background(gtx)
+	if modal.Style.Background != nil {
+		modal.Style.Background(gtx)
 	}
 
 	{
@@ -178,8 +191,8 @@ func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Contex
 	}
 
 	return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return modal.ModalStyle.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return modal.ModalStyle.Direction.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return modal.Style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return modal.Style.Direction.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				macro := op.Record(gtx.Ops)
 				dims := modal.clickableIn.Layout(gtx, w)
 				c := macro.Stop()

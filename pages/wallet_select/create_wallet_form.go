@@ -1,6 +1,7 @@
 package page_wallet_select
 
 import (
+	"fmt"
 	"image/color"
 
 	"gioui.org/layout"
@@ -12,6 +13,7 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -30,7 +32,8 @@ type PageCreateWalletForm struct {
 	txtConfirmPassword *components.TextField
 	buttonCreate       *components.Button
 
-	modalError *components.Modal
+	errorModal   *components.NotificationModal
+	successModal *components.NotificationModal
 }
 
 var _ router.Container = &PageCreateWalletForm{}
@@ -69,20 +72,13 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
-	modalError := components.NewModal(components.ModalStyle{
-		CloseOnOutsideClick: false,
-		CloseOnInsideClick:  true,
-		Direction:           layout.N,
-		Inset:               layout.UniformInset(unit.Dp(10)),
-		Animation:           components.NewModalAnimationDown(),
-	})
+	errorModal := components.NewNotificationErrorModal()
+	successModal := components.NewNotificationSuccessModal()
 
 	router := app_instance.Current.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		modalError.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
-			label := material.Label(th, unit.Sp(14), "test")
-			return label.Layout(gtx)
-		})
+		errorModal.Layout(gtx, th)
+		successModal.Layout(gtx, th)
 	})
 
 	return &PageCreateWalletForm{
@@ -95,7 +91,8 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 		txtConfirmPassword: txtConfirmPassword,
 		buttonCreate:       buttonCreate,
 
-		modalError: modalError,
+		errorModal:   errorModal,
+		successModal: successModal,
 	}
 }
 
@@ -136,10 +133,15 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 	}
 
 	if p.buttonCreate.Clickable.Clicked() {
-		//name := p.txtWalletName.EditorStyle.Editor.Text()
-		//password := p.txtPassword.EditorStyle.Editor.Text()
-		p.modalError.SetVisible(gtx, true)
-		//confirmPassword := p.txtConfirmPassword.EditorStyle.Editor.Text()
+		err := p.submitForm()
+		if err != nil {
+			p.errorModal.SetText("Error", err.Error())
+			p.errorModal.SetVisible(gtx, true)
+		} else {
+			p.successModal.SetText("Success", "New wallet created")
+			p.successModal.SetVisible(gtx, true)
+		}
+
 		//err := wallet_manager.Instance.CreateWallet(name, password)
 		//fmt.Println(err)
 	}
@@ -165,4 +167,37 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageCreateWalletForm) submitForm() error {
+	txtName := p.txtWalletName.EditorStyle.Editor
+	txtPassword := p.txtPassword.EditorStyle.Editor
+	txtConfirmPassword := p.txtConfirmPassword.EditorStyle.Editor
+
+	if txtName.Text() == "" {
+		return fmt.Errorf("enter wallet name")
+	}
+
+	if txtPassword.Text() == "" {
+		return fmt.Errorf("enter password")
+	}
+
+	if txtConfirmPassword.Text() == "" {
+		return fmt.Errorf("enter confirm password")
+	}
+
+	if txtPassword.Text() != txtConfirmPassword.Text() {
+		return fmt.Errorf("the confirm password does not match")
+	}
+
+	err := wallet_manager.Instance.CreateWallet(txtName.Text(), txtPassword.Text())
+	if err != nil {
+		return err
+	}
+
+	txtName.SetText("")
+	txtPassword.SetText("")
+	txtConfirmPassword.SetText("")
+
+	return nil
 }
