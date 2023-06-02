@@ -1,8 +1,11 @@
 package page_settings
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"strconv"
+	"time"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -75,7 +78,12 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return SettingsItem{Title: "Build Time"}.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(16), settings.BuildTime)
+				unix, _ := strconv.ParseUint(settings.BuildTime, 10, 64)
+				buildTime := time.Unix(int64(unix), 0)
+				label := material.Label(th, unit.Sp(16),
+					fmt.Sprintf("%s (%d)", buildTime.Local().String(), unix),
+				)
+
 				return label.Layout(gtx)
 			})
 		}),
