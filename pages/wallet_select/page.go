@@ -71,7 +71,7 @@ func NewPage() *Page {
 	th := app_instance.Current.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := pages.NewHeader(labelHeaderStyle, childRouter)
+	header := pages.NewHeader(labelHeaderStyle, childRouter, nil)
 
 	page_instance = &PageInstance{
 		router: childRouter,

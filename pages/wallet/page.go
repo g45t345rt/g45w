@@ -9,6 +9,7 @@ import (
 	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font"
+	"gioui.org/io/clipboard"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -41,6 +42,7 @@ type Page struct {
 	pageSendForm      *PageSendForm
 
 	childRouter *router.Router
+	infoModal   *components.NotificationModal
 }
 
 var _ router.Container = &Page{}
@@ -70,10 +72,19 @@ func NewPage() *Page {
 	childRouter.Add("sendForm", pageSendForm)
 	pageReceiveForm := NewPageReceiveForm()
 	childRouter.Add("receiveForm", pageReceiveForm)
+	pageSettings := NewPageSettings()
+	childRouter.Add("settings", pageSettings)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := pages.NewHeader(labelHeaderStyle, childRouter)
+
+	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
+	buttonSettings := components.NewButton(components.ButtonStyle{
+		Icon:      settingsIcon,
+		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+	})
+
+	header := pages.NewHeader(labelHeaderStyle, childRouter, buttonSettings)
 
 	page_instance = &PageInstance{
 		router: childRouter,
@@ -92,6 +103,14 @@ func NewPage() *Page {
 		HoverTextColor: &textHoverColor,
 	})
 
+	w := app_instance.Current.Window
+	infoModal := components.NewNotificationInfoModal(w)
+
+	router := app_instance.Current.Router
+	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+		infoModal.Layout(gtx, th)
+	})
+
 	return &Page{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -103,6 +122,7 @@ func NewPage() *Page {
 		pageBalanceTokens: pageBalanceTokens,
 		pageSendForm:      pageSendForm,
 		childRouter:       childRouter,
+		infoModal:         infoModal,
 	}
 }
 
@@ -137,6 +157,18 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.pageBalanceTokens.displayBalance.buttonReceive.Clickable.Clicked() {
 		p.childRouter.SetCurrent("receiveForm")
+	}
+
+	if p.header.ButtonRight.Clickable.Clicked() {
+		p.childRouter.SetCurrent("settings")
+	}
+
+	if p.buttonCopyAddr.Clickable.Clicked() {
+		clipboard.WriteOp{
+			Text: "derog54...g435450",
+		}.Add(gtx.Ops)
+		p.infoModal.SetText("Clipboard", "Addr copied to clipboard")
+		p.infoModal.SetVisible(true)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

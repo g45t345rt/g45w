@@ -16,9 +16,10 @@ type Header struct {
 	LabelTitle  material.LabelStyle
 	buttonBack  *components.Button
 	childRouter *router.Router
+	ButtonRight *components.Button
 }
 
-func NewHeader(labelTitle material.LabelStyle, childRouter *router.Router) *Header {
+func NewHeader(labelTitle material.LabelStyle, childRouter *router.Router, buttonRight *components.Button) *Header {
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 
@@ -33,6 +34,7 @@ func NewHeader(labelTitle material.LabelStyle, childRouter *router.Router) *Head
 		LabelTitle:  labelTitle,
 		buttonBack:  buttonBack,
 		childRouter: childRouter,
+		ButtonRight: buttonRight,
 	}
 }
 
@@ -74,6 +76,15 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 					return layout.Dimensions{}
 				}),
 			)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			if h.ButtonRight != nil {
+				gtx.Constraints.Max.X = gtx.Dp(25)
+				gtx.Constraints.Max.Y = gtx.Dp(25)
+				return h.ButtonRight.Layout(gtx, th)
+			}
+
+			return layout.Dimensions{}
 		}),
 	)
 }

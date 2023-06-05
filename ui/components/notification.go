@@ -74,6 +74,26 @@ func NewNotificationSuccessModal(w *app.Window) *NotificationModal {
 	)
 }
 
+func NewNotificationInfoModal(w *app.Window) *NotificationModal {
+	iconInfo, _ := widget.NewIcon(icons.ActionInfo)
+	return NewNotificationModal(w,
+		NotificationStyle{
+			BgColor:    color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+			TextColor:  color.NRGBA{A: 255},
+			Direction:  layout.N,
+			OuterInset: layout.UniformInset(unit.Dp(10)),
+			InnerInset: layout.Inset{
+				Top: unit.Dp(10), Bottom: unit.Dp(10),
+				Left: unit.Dp(15), Right: unit.Dp(15),
+			},
+			Rounded:    unit.Dp(10),
+			Icon:       iconInfo,
+			Animation:  NewModalAnimationDown(),
+			CloseAfter: 3 * time.Second,
+		},
+	)
+}
+
 func NewNotificationModal(w *app.Window, style NotificationStyle) *NotificationModal {
 	modalStyle := ModalStyle{
 		CloseOnOutsideClick: false,

@@ -38,6 +38,7 @@ type PageBalanceTokens struct {
 	displayBalance *DisplayBalance
 	tokenBar       *TokenBar
 	tokenItems     []*TokenListItem
+	buttonSettings *components.Button
 
 	listStyle material.ListStyle
 }
@@ -77,6 +78,12 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
+	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
+	buttonSettings := components.NewButton(components.ButtonStyle{
+		Icon:      settingsIcon,
+		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+	})
+
 	return &PageBalanceTokens{
 		displayBalance: NewDisplayBalance(th),
 		//tokensContainer: NewTokenContainer(th),
@@ -87,6 +94,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		listStyle:      listStyle,
+		buttonSettings: buttonSettings,
 	}
 }
 
@@ -146,13 +154,9 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		widgets = append(widgets, item.Layout)
 	}
 
-	//widgets = append(widgets, p.widgets...)
-
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
 	})
-
-	//return p.tokensContainer.Layout(gtx, th, p.tokenItems)
 
 	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return widgets[index](gtx)
