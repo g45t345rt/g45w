@@ -3,6 +3,7 @@ package components
 import (
 	"image/color"
 
+	"gioui.org/app"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/text"
@@ -21,14 +22,16 @@ type Confirm struct {
 	clickedNo  bool
 }
 
-func NewConfirm(prompt string, th *material.Theme, direction layout.Direction) *Confirm {
-	modal := NewModal(ModalStyle{
+func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layout.Direction) *Confirm {
+	modal := NewModal(w, ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           direction,
+		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		Rounded:             unit.Dp(10),
 		Inset:               layout.UniformInset(unit.Dp(10)),
 		Animation:           NewModalAnimationScaleBounce(),
-		Background:          NewModalBackground(),
+		Backdrop:            NewModalBackground(),
 	})
 
 	buttonYes := NewButton(ButtonStyle{
@@ -73,8 +76,8 @@ func (c *Confirm) ClickedNo() bool {
 	return c.clickedNo
 }
 
-func (c *Confirm) SetVisible(gtx layout.Context, visible bool) {
-	c.modal.SetVisible(gtx, visible)
+func (c *Confirm) SetVisible(visible bool) {
+	c.modal.SetVisible(visible)
 }
 
 func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -82,12 +85,10 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 	c.clickedNo = c.buttonNo.Clickable.Clicked()
 
 	if c.clickedYes || c.clickedNo {
-		c.SetVisible(gtx, false)
+		c.SetVisible(false)
 	}
 
-	return c.modal.Layout(gtx, func(gtx layout.Context) {
-
-	}, func(gtx layout.Context) layout.Dimensions {
+	return c.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

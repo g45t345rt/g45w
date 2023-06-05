@@ -85,7 +85,7 @@ func main() {
 		Window:    window,
 		Theme:     theme,
 		Router:    router,
-		BottomBar: pages.NewBottomBar(router, theme),
+		BottomBar: pages.NewBottomBar(window, router, theme),
 		Explorer:  expl,
 	}
 

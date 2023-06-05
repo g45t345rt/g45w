@@ -159,7 +159,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 						} else {
 							for _, item := range p.walletList.items {
 								if item.Clickable.Clicked() {
-									p.modalWalletPassword.modal.SetVisible(gtx, true)
+									p.modalWalletPassword.modal.SetVisible(true)
 								}
 							}
 
@@ -169,7 +169,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 					layout.Rigid(layout.Spacer{Height: unit.Dp(30)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						if p.buttonWalletCreate.Clickable.Clicked() {
-							p.modalCreateWalletSelection.modal.SetVisible(gtx, true)
+							p.modalCreateWalletSelection.modal.SetVisible(true)
 						}
 
 						return p.buttonWalletCreate.Layout(gtx, th)
@@ -222,13 +222,16 @@ type CreateWalletSelectionModal struct {
 }
 
 func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionModal {
-	modal := components.NewModal(components.ModalStyle{
+	w := app_instance.Current.Window
+	modal := components.NewModal(w, components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.S,
+		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		Rounded:             unit.Dp(10),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationUp(),
-		Background:          components.NewModalBackground(),
+		Backdrop:            components.NewModalBackground(),
 	})
 
 	list := new(widget.List)
@@ -277,7 +280,7 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 						page_instance.router.SetCurrent("create_wallet_hexseed_form")
 					}
 
-					c.modal.SetVisible(gtx, false)
+					c.modal.SetVisible(false)
 				}
 
 				return c.items[index].Layout(gtx, th)
@@ -360,13 +363,16 @@ func NewWalletPasswordModal(th *material.Theme) *WalletPasswordModal {
 
 	iconLock, _ := widget.NewIcon(icons.ActionLock)
 
-	modal := components.NewModal(components.ModalStyle{
+	w := app_instance.Current.Window
+	modal := components.NewModal(w, components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.Center,
+		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		Rounded:             unit.Dp(10),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationScaleBounce(),
-		Background:          components.NewModalBackground(),
+		Backdrop:            components.NewModalBackground(),
 	})
 
 	return &WalletPasswordModal{

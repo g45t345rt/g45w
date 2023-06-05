@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 
+	"gioui.org/app"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -94,7 +95,9 @@ type ModalStyle struct {
 	CloseOnInsideClick  bool
 	Direction           layout.Direction
 	Inset               layout.Inset
-	Background          layout.Widget
+	Rounded             unit.Dp
+	BgColor             color.NRGBA
+	Backdrop            layout.Widget
 	Animation           ModalAnimation
 }
 
@@ -103,11 +106,13 @@ type Modal struct {
 	visible      bool
 	clickableOut *widget.Clickable
 	clickableIn  *widget.Clickable
+	window       *app.Window
 }
 
-func NewModal(style ModalStyle) *Modal {
+func NewModal(w *app.Window, style ModalStyle) *Modal {
 	return &Modal{
 		Style:        style,
+		window:       w,
 		visible:      false,
 		clickableOut: new(widget.Clickable),
 		clickableIn:  new(widget.Clickable),
@@ -118,7 +123,7 @@ func (modal *Modal) Visible() bool {
 	return modal.visible
 }
 
-func (modal *Modal) SetVisible(gtx layout.Context, visible bool) {
+func (modal *Modal) SetVisible(visible bool) {
 	if visible {
 		modal.visible = true
 
@@ -129,10 +134,10 @@ func (modal *Modal) SetVisible(gtx layout.Context, visible bool) {
 		modal.Style.Animation.animationEnter.Reset()
 	}
 
-	op.InvalidateOp{}.Add(gtx.Ops)
+	modal.window.Invalidate()
 }
 
-func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Context), w layout.Widget) layout.Dimensions {
+func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Context), w layout.Widget) layout.Dimensions {
 	if !modal.visible {
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
@@ -166,8 +171,8 @@ func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Contex
 		}
 	}
 
-	if modal.Style.Background != nil {
-		modal.Style.Background(gtx)
+	if modal.Style.Backdrop != nil {
+		modal.Style.Backdrop(gtx)
 	}
 
 	{
@@ -189,32 +194,42 @@ func (modal *Modal) Layout(gtx layout.Context, beforeDraw func(gtx layout.Contex
 			if state.Finished {
 				modal.visible = false
 				op.InvalidateOp{}.Add(gtx.Ops)
-				return layout.Dimensions{Size: gtx.Constraints.Max}
+				//return layout.Dimensions{Size: gtx.Constraints.Max}
 			}
 		}
 	}
 
-	return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return modal.Style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return modal.Style.Direction.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				macro := op.Record(gtx.Ops)
-				dims := modal.clickableIn.Layout(gtx, w)
-				c := macro.Stop()
+	r := op.Record(gtx.Ops)
+	dims := modal.Style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return modal.Style.Direction.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			r := op.Record(gtx.Ops)
+			dims := modal.clickableIn.Layout(gtx, w)
+			c := r.Stop()
 
-				if beforeDraw != nil {
-					beforeDraw(gtx)
-				}
+			if beforeLayout != nil {
+				beforeLayout(gtx)
+			}
 
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-					clip.UniformRRect(
-						image.Rectangle{Max: dims.Size},
-						gtx.Dp(unit.Dp(10)),
-					).Op(gtx.Ops),
-				)
+			paint.FillShape(gtx.Ops, modal.Style.BgColor,
+				clip.UniformRRect(
+					image.Rectangle{Max: dims.Size},
+					gtx.Dp(modal.Style.Rounded),
+				).Op(gtx.Ops),
+			)
 
-				c.Add(gtx.Ops)
-				return dims
-			})
+			c.Add(gtx.Ops)
+			return dims
 		})
 	})
+	c := r.Stop()
+
+	if modal.Style.CloseOnOutsideClick {
+		return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			c.Add(gtx.Ops)
+			return dims
+		})
+	}
+
+	c.Add(gtx.Ops)
+	return dims
 }

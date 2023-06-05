@@ -72,8 +72,9 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
-	errorModal := components.NewNotificationErrorModal()
-	successModal := components.NewNotificationSuccessModal()
+	w := app_instance.Current.Window
+	errorModal := components.NewNotificationErrorModal(w)
+	successModal := components.NewNotificationSuccessModal(w)
 
 	router := app_instance.Current.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
@@ -136,10 +137,10 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 		err := p.submitForm()
 		if err != nil {
 			p.errorModal.SetText("Error", err.Error())
-			p.errorModal.SetVisible(gtx, true)
+			p.errorModal.SetVisible(true)
 		} else {
 			p.successModal.SetText("Success", "New wallet created")
-			p.successModal.SetVisible(gtx, true)
+			p.successModal.SetVisible(true)
 		}
 
 		//err := wallet_manager.Instance.CreateWallet(name, password)

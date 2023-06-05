@@ -3,6 +3,7 @@ package pages
 import (
 	"image/color"
 
+	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -27,7 +28,7 @@ type BottomBar struct {
 	confirmClose *components.Confirm
 }
 
-func NewBottomBar(router *router.Router, th *material.Theme) *BottomBar {
+func NewBottomBar(w *app.Window, router *router.Router, th *material.Theme) *BottomBar {
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255} //f32color.Hovered(textColor)
 
@@ -72,7 +73,7 @@ func NewBottomBar(router *router.Router, th *material.Theme) *BottomBar {
 		Animation:      components.NewButtonAnimationScale(animScale),
 	})
 
-	confirmClose := components.NewConfirm("Closing current wallet?", th, layout.Center)
+	confirmClose := components.NewConfirm(w, "Closing current wallet?", th, layout.Center)
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		confirmClose.Layout(gtx, th)
 	})
@@ -115,7 +116,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}.Op())
 
 	if b.buttonClose.button.Clickable.Clicked() {
-		b.confirmClose.SetVisible(gtx, true)
+		b.confirmClose.SetVisible(true)
 	}
 
 	if b.buttonNode.button.Clickable.Clicked() {

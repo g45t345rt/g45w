@@ -1,14 +1,12 @@
 package components
 
 import (
-	"image"
 	"image/color"
+	"time"
 
+	"gioui.org/app"
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -24,6 +22,7 @@ type NotificationStyle struct {
 	InnerInset layout.Inset
 	Rounded    unit.Dp
 	Animation  ModalAnimation
+	CloseAfter time.Duration
 }
 
 type NotificationModal struct {
@@ -32,11 +31,12 @@ type NotificationModal struct {
 	title    string
 	subtitle string
 	modal    *Modal
+	timer    *time.Timer
 }
 
-func NewNotificationErrorModal() *NotificationModal {
+func NewNotificationErrorModal(w *app.Window) *NotificationModal {
 	iconError, _ := widget.NewIcon(icons.AlertError)
-	return NewNotificationModal(
+	return NewNotificationModal(w,
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 255, A: 255},
 			TextColor:  color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -46,16 +46,17 @@ func NewNotificationErrorModal() *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:   unit.Dp(10),
-			Icon:      iconError,
-			Animation: NewModalAnimationDown(),
+			Rounded:    unit.Dp(10),
+			Icon:       iconError,
+			Animation:  NewModalAnimationDown(),
+			CloseAfter: 3 * time.Second,
 		},
 	)
 }
 
-func NewNotificationSuccessModal() *NotificationModal {
+func NewNotificationSuccessModal(w *app.Window) *NotificationModal {
 	iconSuccess, _ := widget.NewIcon(icons.ActionCheckCircle)
-	return NewNotificationModal(
+	return NewNotificationModal(w,
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 0, G: 255, B: 0, A: 255},
 			TextColor:  color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -65,28 +66,31 @@ func NewNotificationSuccessModal() *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:   unit.Dp(10),
-			Icon:      iconSuccess,
-			Animation: NewModalAnimationDown(),
+			Rounded:    unit.Dp(10),
+			Icon:       iconSuccess,
+			Animation:  NewModalAnimationDown(),
+			CloseAfter: 3 * time.Second,
 		},
 	)
 }
 
-func NewNotificationModal(style NotificationStyle) *NotificationModal {
+func NewNotificationModal(w *app.Window, style NotificationStyle) *NotificationModal {
 	modalStyle := ModalStyle{
 		CloseOnOutsideClick: false,
 		CloseOnInsideClick:  true,
+		BgColor:             style.BgColor,
+		Rounded:             style.Rounded,
 		Direction:           style.Direction,
 		Inset:               style.OuterInset,
 		Animation:           style.Animation,
 	}
 
-	modal := NewModal(modalStyle)
-
-	return &NotificationModal{
+	modal := NewModal(w, modalStyle)
+	notification := &NotificationModal{
 		Style: style,
 		modal: modal,
 	}
+	return notification
 }
 
 func (n *NotificationModal) SetText(title string, subtitle string) {
@@ -94,14 +98,23 @@ func (n *NotificationModal) SetText(title string, subtitle string) {
 	n.subtitle = subtitle
 }
 
-func (n *NotificationModal) SetVisible(gtx layout.Context, visible bool) {
-	n.modal.SetVisible(gtx, visible)
+func (n *NotificationModal) SetVisible(visible bool) {
+	if visible {
+		if n.timer != nil {
+			n.timer.Stop()
+		}
+
+		n.timer = time.AfterFunc(n.Style.CloseAfter, func() {
+			n.SetVisible(false)
+		})
+	}
+
+	n.modal.SetVisible(visible)
 }
 
 func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return n.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
-		r := op.Record(gtx.Ops)
-		dims := n.Style.InnerInset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return n.Style.InnerInset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					if n.Style.Icon != nil {
@@ -128,16 +141,5 @@ func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layou
 				}),
 			)
 		})
-		c := r.Stop()
-
-		rounded := gtx.Dp(n.Style.Rounded)
-		paint.FillShape(gtx.Ops, n.Style.BgColor, clip.RRect{
-			Rect: image.Rectangle{Max: dims.Size},
-			NW:   rounded, NE: rounded,
-			SE: rounded, SW: rounded,
-		}.Op(gtx.Ops))
-
-		c.Add(gtx.Ops)
-		return dims
 	})
 }
