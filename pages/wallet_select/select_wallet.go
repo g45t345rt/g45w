@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"sort"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -110,13 +111,19 @@ func (p *PageSelectWallet) Enter() {
 
 	theme := app_instance.Current.Theme
 	walletManager := wallet_manager.Instance
-	p.walletList.items = make([]WalletListItem, 0)
+
+	items := make([]WalletListItem, 0)
 	for _, wallet := range walletManager.Wallets {
-		p.walletList.items = append(p.walletList.items,
+		items = append(items,
 			NewWalletListItem(theme, wallet),
 		)
 	}
 
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].wallet.ID < items[j].wallet.ID
+	})
+
+	p.walletList.items = items
 	p.firstEnter = false
 }
 
