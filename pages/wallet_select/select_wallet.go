@@ -16,7 +16,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -38,7 +38,7 @@ type PageSelectWallet struct {
 	buttonWalletCreate *components.Button
 	walletList         *WalletList
 
-	modalWalletPassword        *pages.WalletPasswordModal
+	modalWalletPassword        *prefabs.PasswordModal
 	modalCreateWalletSelection *CreateWalletSelectionModal
 
 	currentWallet *wallet_manager.WalletInfo
@@ -71,8 +71,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 	//	router: childRouter,
 	//}
 
-	w := app_instance.Current.Window
-	modalWalletPassword := pages.NewWalletPasswordModal(w, theme)
+	modalWalletPassword := prefabs.NewPasswordModal()
 	modalCreateWalletSelection := NewCreateWalletSelectionModal(theme)
 
 	router := app_instance.Current.Router
@@ -253,11 +252,11 @@ func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionMod
 	seedIcon, _ := widget.NewIcon(icons.EditorShortText)
 
 	items := []*CreateWalletListItem{
-		NewCreateWalletListItem("Fast registration", fastIcon),
-		NewCreateWalletListItem("Create new wallet", newIcon),
-		NewCreateWalletListItem("Recover from Disk", diskIcon),
-		NewCreateWalletListItem("Recover from Seed", seedIcon),
-		NewCreateWalletListItem("Recover from Hex Seed", seedIcon),
+		NewCreateWalletListItem("Fast registration", fastIcon, "create_wallet_fastreg_form"),
+		NewCreateWalletListItem("Create new wallet", newIcon, "create_wallet_form"),
+		NewCreateWalletListItem("Recover from Disk", diskIcon, "create_wallet_disk_form"),
+		NewCreateWalletListItem("Recover from Seed", seedIcon, "create_wallet_seed_form"),
+		NewCreateWalletListItem("Recover from Hex Seed", seedIcon, "create_wallet_hexseed_form"),
 	}
 
 	return &CreateWalletSelectionModal{
@@ -275,19 +274,7 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return c.listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
 				if c.items[index].clickable.Clicked() {
-					switch index {
-					case 0:
-						page_instance.router.SetCurrent("create_wallet_fastreg_form")
-					case 1:
-						page_instance.router.SetCurrent("create_wallet_form")
-					case 2:
-						page_instance.router.SetCurrent("create_wallet_disk_form")
-					case 3:
-						page_instance.router.SetCurrent("create_wallet_seed_form")
-					case 4:
-						page_instance.router.SetCurrent("create_wallet_hexseed_form")
-					}
-
+					page_instance.router.SetCurrent(c.items[index].routerPath)
 					c.modal.SetVisible(false)
 				}
 
@@ -298,16 +285,18 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 }
 
 type CreateWalletListItem struct {
-	text      string
-	icon      *widget.Icon
-	clickable *widget.Clickable
+	text       string
+	routerPath string
+	icon       *widget.Icon
+	clickable  *widget.Clickable
 }
 
-func NewCreateWalletListItem(text string, icon *widget.Icon) *CreateWalletListItem {
+func NewCreateWalletListItem(text string, icon *widget.Icon, routerPath string) *CreateWalletListItem {
 	return &CreateWalletListItem{
-		text:      text,
-		icon:      icon,
-		clickable: new(widget.Clickable),
+		text:       text,
+		icon:       icon,
+		routerPath: routerPath,
+		clickable:  new(widget.Clickable),
 	}
 }
 

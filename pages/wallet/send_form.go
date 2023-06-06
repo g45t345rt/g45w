@@ -11,6 +11,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -28,7 +29,7 @@ type PageSendForm struct {
 	txtDstPort    *components.TextField
 	buttonBuildTx *components.Button
 
-	ringSizeSelector *RingSizeSelector
+	ringSizeSelector *prefabs.RingSizeSelector
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -75,13 +76,15 @@ func NewPageSendForm() *PageSendForm {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
+	ringSizeSelector := prefabs.NewRingSizeSelector("16")
+
 	return &PageSendForm{
 		txtAmount:        txtAmount,
 		txtWalletAddr:    txtWalletAddr,
 		txtComment:       txtComment,
 		txtDstPort:       txtDstPort,
 		buttonBuildTx:    buttonBuildTx,
-		ringSizeSelector: NewRingSizeSelector("16"),
+		ringSizeSelector: ringSizeSelector,
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
 		listStyle:        listStyle,
@@ -148,6 +151,9 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.txtWalletAddr.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			return p.ringSizeSelector.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			p.txtComment.EditorMinY = gtx.Dp(75)
 			return p.txtComment.Layout(gtx, th)
 		},
@@ -168,31 +174,4 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
-}
-
-type RingSizeSelector struct {
-	btn *components.Button
-}
-
-func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
-	btn := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
-		Text:            defaultSize,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-	})
-	btn.Label.Alignment = text.Middle
-	btn.Style.Font.Weight = font.Bold
-
-	//sizes := []string{"2", "4", "8", "16", "32", "64", "128", "256"}
-
-	return &RingSizeSelector{
-		btn: btn,
-	}
-}
-
-func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	return r.btn.Layout(gtx, th)
 }

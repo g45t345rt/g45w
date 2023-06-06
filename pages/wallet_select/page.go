@@ -13,7 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/tanema/gween"
@@ -25,7 +25,7 @@ type Page struct {
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
-	header         *pages.Header
+	header         *prefabs.Header
 
 	childRouter *router.Router
 }
@@ -34,7 +34,7 @@ var _ router.Container = &Page{}
 
 type PageInstance struct {
 	router *router.Router
-	header *pages.Header
+	header *prefabs.Header
 }
 
 var page_instance *PageInstance
@@ -71,7 +71,7 @@ func NewPage() *Page {
 	th := app_instance.Current.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := pages.NewHeader(labelHeaderStyle, childRouter, nil)
+	header := prefabs.NewHeader(labelHeaderStyle, childRouter, nil)
 
 	page_instance = &PageInstance{
 		router: childRouter,

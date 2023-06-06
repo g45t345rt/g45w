@@ -20,7 +20,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/node"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -37,7 +37,7 @@ type Page struct {
 	animationLeave *animation.Animation
 
 	nodeStatusBar  *NodeStatusBar
-	header         *pages.Header
+	header         *prefabs.Header
 	buttonCopyAddr *components.Button
 
 	pageBalanceTokens *PageBalanceTokens
@@ -51,7 +51,7 @@ var _ router.Container = &Page{}
 
 type PageInstance struct {
 	router *router.Router
-	header *pages.Header
+	header *prefabs.Header
 }
 
 var page_instance *PageInstance
@@ -86,7 +86,7 @@ func NewPage() *Page {
 		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 	})
 
-	header := pages.NewHeader(labelHeaderStyle, childRouter, buttonSettings)
+	header := prefabs.NewHeader(labelHeaderStyle, childRouter, buttonSettings)
 
 	page_instance = &PageInstance{
 		router: childRouter,

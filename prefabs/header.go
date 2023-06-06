@@ -1,4 +1,4 @@
-package pages
+package prefabs
 
 import (
 	"image/color"

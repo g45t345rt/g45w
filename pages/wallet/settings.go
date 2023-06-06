@@ -11,7 +11,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -25,7 +25,7 @@ type PageSettings struct {
 	isActive bool
 
 	buttonDeleteWallet  *components.Button
-	modalWalletPassword *pages.WalletPasswordModal
+	modalWalletPassword *prefabs.PasswordModal
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -52,8 +52,7 @@ func NewPageSettings() *PageSettings {
 	buttonDeleteWallet.Label.Alignment = text.Middle
 	buttonDeleteWallet.Style.Font.Weight = font.Bold
 
-	w := app_instance.Current.Window
-	modalWalletPassword := pages.NewWalletPasswordModal(w, th)
+	modalWalletPassword := prefabs.NewPasswordModal()
 
 	router := app_instance.Current.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {

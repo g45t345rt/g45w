@@ -1,15 +1,15 @@
-package pages
+package prefabs
 
 import (
 	"image/color"
 
-	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/tanema/gween"
@@ -17,7 +17,7 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type WalletPasswordModal struct {
+type PasswordModal struct {
 	editorStyle        material.EditorStyle
 	animationWrongPass *animation.Animation
 	iconLock           *widget.Icon
@@ -27,7 +27,8 @@ type WalletPasswordModal struct {
 	submitText string
 }
 
-func NewWalletPasswordModal(w *app.Window, th *material.Theme) *WalletPasswordModal {
+func NewPasswordModal() *PasswordModal {
+	th := app_instance.Current.Theme
 	editor := new(widget.Editor)
 	editor.SingleLine = true
 	editor.Submit = true
@@ -44,6 +45,7 @@ func NewWalletPasswordModal(w *app.Window, th *material.Theme) *WalletPasswordMo
 
 	iconLock, _ := widget.NewIcon(icons.ActionLock)
 
+	w := app_instance.Current.Window
 	modal := components.NewModal(w, components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
@@ -55,7 +57,7 @@ func NewWalletPasswordModal(w *app.Window, th *material.Theme) *WalletPasswordMo
 		Backdrop:            components.NewModalBackground(),
 	})
 
-	return &WalletPasswordModal{
+	return &PasswordModal{
 		editorStyle:        editorStyle,
 		Modal:              modal,
 		animationWrongPass: animationWrongPass,
@@ -63,7 +65,7 @@ func NewWalletPasswordModal(w *app.Window, th *material.Theme) *WalletPasswordMo
 	}
 }
 
-func (w *WalletPasswordModal) Submit() (bool, string) {
+func (w *PasswordModal) Submit() (bool, string) {
 	if w.submitted {
 		w.submitted = false
 		return true, w.submitText
@@ -72,11 +74,11 @@ func (w *WalletPasswordModal) Submit() (bool, string) {
 	return false, w.submitText
 }
 
-func (w *WalletPasswordModal) StartWrongPassAnimation() {
+func (w *PasswordModal) StartWrongPassAnimation() {
 	w.animationWrongPass.Start()
 }
 
-func (w *WalletPasswordModal) Layout(gtx layout.Context) layout.Dimensions {
+func (w *PasswordModal) Layout(gtx layout.Context) layout.Dimensions {
 	for _, e := range w.editorStyle.Editor.Events() {
 		e, ok := e.(widget.SubmitEvent)
 		if ok {
