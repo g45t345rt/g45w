@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 
-	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -17,6 +16,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -38,8 +38,10 @@ type PageSelectWallet struct {
 	buttonWalletCreate *components.Button
 	walletList         *WalletList
 
-	modalWalletPassword        *WalletPasswordModal
+	modalWalletPassword        *pages.WalletPasswordModal
 	modalCreateWalletSelection *CreateWalletSelectionModal
+
+	currentWallet *wallet_manager.WalletInfo
 }
 
 var _ router.Container = &PageSelectWallet{}
@@ -69,7 +71,8 @@ func NewPageSelectWallet() *PageSelectWallet {
 	//	router: childRouter,
 	//}
 
-	modalWalletPassword := NewWalletPasswordModal(theme)
+	w := app_instance.Current.Window
+	modalWalletPassword := pages.NewWalletPasswordModal(w, theme)
 	modalCreateWalletSelection := NewCreateWalletSelectionModal(theme)
 
 	router := app_instance.Current.Router
@@ -98,7 +101,7 @@ func (p *PageSelectWallet) IsActive() bool {
 }
 
 func (p *PageSelectWallet) Enter() {
-	page_instance.header.LabelTitle.Text = "Select Wallet"
+	page_instance.header.SetTitle("Select Wallet")
 	p.isActive = true
 
 	if !p.firstEnter {
@@ -111,9 +114,7 @@ func (p *PageSelectWallet) Enter() {
 	p.walletList.items = make([]WalletListItem, 0)
 	for _, wallet := range walletManager.Wallets {
 		p.walletList.items = append(p.walletList.items,
-			NewWalletListItem(theme,
-				fmt.Sprintf("Wallet [%s]", wallet.Name),
-				utils.ReduceString(wallet.Addr, 7, 7)),
+			NewWalletListItem(theme, wallet),
 		)
 	}
 
@@ -159,7 +160,8 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 						} else {
 							for _, item := range p.walletList.items {
 								if item.Clickable.Clicked() {
-									p.modalWalletPassword.modal.SetVisible(true)
+									p.currentWallet = item.wallet
+									p.modalWalletPassword.Modal.SetVisible(true)
 								}
 							}
 
@@ -182,9 +184,15 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	{
 		submitted, text := p.modalWalletPassword.Submit()
 		if submitted {
-			if text == "test" {
-				fmt.Println(text)
-				//page.router.SetPage("wallet")
+			memory, info, err := wallet_manager.Instance.OpenWallet(p.currentWallet.ID, text)
+			if err == nil {
+				wallet_manager.Instance.OpenedWallet = &wallet_manager.OpenedWallet{
+					Info:   info,
+					Memory: memory,
+				}
+
+				p.modalWalletPassword.Modal.SetVisible(false)
+				app_instance.Current.Router.SetCurrent("page_wallet")
 			} else {
 				p.modalWalletPassword.StartWrongPassAnimation()
 			}
@@ -334,106 +342,6 @@ func (c *CreateWalletListItem) Layout(gtx layout.Context, th *material.Theme) la
 	return dims
 }
 
-type WalletPasswordModal struct {
-	editorStyle material.EditorStyle
-
-	modal              *components.Modal
-	animationWrongPass *animation.Animation
-
-	iconLock *widget.Icon
-
-	submitted  bool
-	submitText string
-}
-
-func NewWalletPasswordModal(th *material.Theme) *WalletPasswordModal {
-	editor := new(widget.Editor)
-	editor.SingleLine = true
-	editor.Submit = true
-	editor.Mask = rune(42)
-	editor.Focus()
-	editorStyle := material.Editor(th, editor, "Enter password")
-	editorStyle.TextSize = unit.Sp(20)
-
-	animationWrongPass := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .05, ease.Linear),
-		gween.New(1, -1, .05, ease.Linear),
-		gween.New(-1, 0, .05, ease.Linear),
-	))
-
-	iconLock, _ := widget.NewIcon(icons.ActionLock)
-
-	w := app_instance.Current.Window
-	modal := components.NewModal(w, components.ModalStyle{
-		CloseOnOutsideClick: true,
-		CloseOnInsideClick:  false,
-		Direction:           layout.Center,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		Rounded:             unit.Dp(10),
-		Inset:               layout.UniformInset(25),
-		Animation:           components.NewModalAnimationScaleBounce(),
-		Backdrop:            components.NewModalBackground(),
-	})
-
-	return &WalletPasswordModal{
-		editorStyle:        editorStyle,
-		modal:              modal,
-		animationWrongPass: animationWrongPass,
-		iconLock:           iconLock,
-	}
-}
-
-func (w *WalletPasswordModal) Submit() (bool, string) {
-	if w.submitted {
-		w.submitted = false
-		return true, w.submitText
-	}
-
-	return false, w.submitText
-}
-
-func (w *WalletPasswordModal) StartWrongPassAnimation() {
-	w.animationWrongPass.Start()
-}
-
-func (w *WalletPasswordModal) Layout(gtx layout.Context) layout.Dimensions {
-	for _, e := range w.editorStyle.Editor.Events() {
-		e, ok := e.(widget.SubmitEvent)
-		if ok {
-			//w.animationWrongPass.Start()
-			w.editorStyle.Editor.SetText("")
-			w.submitText = e.Text
-			w.submitted = true
-		}
-	}
-
-	return w.modal.Layout(gtx,
-		func(gtx layout.Context) {
-			{
-				state := w.animationWrongPass.Update(gtx)
-				if state.Active {
-					transform := f32.Affine2D{}.Offset(f32.Pt(state.Value*15, 0))
-					op.Affine(transform).Add(gtx.Ops)
-				}
-			}
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return layout.UniformInset(unit.Dp(25)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Max.X = gtx.Dp(25)
-						gtx.Constraints.Max.Y = gtx.Dp(25)
-						return w.iconLock.Layout(gtx, color.NRGBA{R: 0, G: 0, B: 0, A: 255})
-					}),
-					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-					layout.Flexed(3, func(gtx layout.Context) layout.Dimensions {
-						return w.editorStyle.Layout(gtx)
-					}),
-				)
-			})
-		})
-}
-
 type WalletList struct {
 	listStyle material.ListStyle
 	items     []WalletListItem
@@ -474,22 +382,27 @@ func (l *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 }
 
 type WalletListItem struct {
-	name      material.LabelStyle
-	addr      material.LabelStyle
+	wallet    *wallet_manager.WalletInfo
+	lblName   material.LabelStyle
+	lblAddr   material.LabelStyle
 	Clickable *widget.Clickable
 
 	rounded unit.Dp
 }
 
-func NewWalletListItem(th *material.Theme, name string, addr string) WalletListItem {
-	namelbl := material.Label(th, unit.Sp(18), name)
-	namelbl.Font.Weight = font.Bold
-	addrlbl := material.Label(th, unit.Sp(15), addr)
-	addrlbl.Color.A = 200
+func NewWalletListItem(th *material.Theme, wallet *wallet_manager.WalletInfo) WalletListItem {
+	name := fmt.Sprintf("Wallet [%s]", wallet.Name)
+	addr := utils.ReduceAddr(wallet.Addr)
+
+	lblName := material.Label(th, unit.Sp(18), name)
+	lblName.Font.Weight = font.Bold
+	lblAddr := material.Label(th, unit.Sp(15), addr)
+	lblAddr.Color.A = 200
 
 	return WalletListItem{
-		name:      namelbl,
-		addr:      addrlbl,
+		wallet:    wallet,
+		lblName:   lblName,
+		lblAddr:   lblAddr,
 		Clickable: &widget.Clickable{},
 		rounded:   unit.Dp(12),
 	}
@@ -501,8 +414,8 @@ func (item *WalletListItem) Layout(gtx layout.Context, th *material.Theme) layou
 			return layout.Flex{Alignment: layout.Start}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-						layout.Rigid(item.name.Layout),
-						layout.Rigid(item.addr.Layout),
+						layout.Rigid(item.lblName.Layout),
+						layout.Rigid(item.lblAddr.Layout),
 					)
 				}),
 			)

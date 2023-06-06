@@ -32,6 +32,9 @@ type PageCreateWalletHexSeedForm struct {
 	txtPassword        *components.TextField
 	txtConfirmPassword *components.TextField
 	buttonCreate       *components.Button
+
+	successModal *components.NotificationModal
+	errorModal   *components.NotificationModal
 }
 
 var _ router.Container = &PageCreateWalletHexSeedForm{}
@@ -72,6 +75,16 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
+	w := app_instance.Current.Window
+	errorModal := components.NewNotificationErrorModal(w)
+	successModal := components.NewNotificationSuccessModal(w)
+
+	router := app_instance.Current.Router
+	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+		errorModal.Layout(gtx, th)
+		successModal.Layout(gtx, th)
+	})
+
 	return &PageCreateWalletHexSeedForm{
 		listStyle:      listStyle,
 		animationEnter: animationEnter,
@@ -82,11 +95,14 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 		txtPassword:        txtPassword,
 		txtConfirmPassword: txtConfirmPassword,
 		buttonCreate:       buttonCreate,
+
+		successModal: successModal,
+		errorModal:   errorModal,
 	}
 }
 
 func (p *PageCreateWalletHexSeedForm) Enter() {
-	page_instance.header.LabelTitle.Text = "Recover from Hex Seed"
+	page_instance.header.SetTitle("Recover from Hex Seed")
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -122,11 +138,14 @@ func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Th
 	}
 
 	if p.buttonCreate.Clickable.Clicked() {
-		name := p.txtWalletName.EditorStyle.Editor.Text()
-		password := p.txtPassword.EditorStyle.Editor.Text()
-		//confirmPassword := p.txtConfirmPassword.EditorStyle.Editor.Text()
-		err := wallet_manager.Instance.CreateWalletFromSeed(name, password, "")
-		fmt.Println(err)
+		err := p.submitForm()
+		if err != nil {
+			p.errorModal.SetText("Error", err.Error())
+			p.errorModal.SetVisible(true)
+		} else {
+			p.successModal.SetText("Success", "New wallet created")
+			p.successModal.SetVisible(true)
+		}
 	}
 
 	widgets := []layout.Widget{
@@ -153,4 +172,39 @@ func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Th
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageCreateWalletHexSeedForm) submitForm() error {
+	txtName := p.txtWalletName.EditorStyle.Editor
+	txtPassword := p.txtPassword.EditorStyle.Editor
+	txtConfirmPassword := p.txtConfirmPassword.EditorStyle.Editor
+	txtHexSeed := p.txtHexSeed.EditorStyle.Editor
+
+	if txtHexSeed.Text() == "" {
+		return fmt.Errorf("enter hex seed")
+	}
+
+	if txtName.Text() == "" {
+		return fmt.Errorf("enter wallet name")
+	}
+
+	if txtPassword.Text() == "" {
+		return fmt.Errorf("enter password")
+	}
+
+	if txtPassword.Text() != txtConfirmPassword.Text() {
+		return fmt.Errorf("the confirm password does not match")
+	}
+
+	err := wallet_manager.Instance.CreateWalletFromHexSeed(txtName.Text(), txtPassword.Text(), txtHexSeed.Text())
+	if err != nil {
+		return err
+	}
+
+	txtName.SetText("")
+	txtPassword.SetText("")
+	txtConfirmPassword.SetText("")
+	txtHexSeed.SetText("")
+
+	return nil
 }

@@ -14,6 +14,11 @@ import (
 	"github.com/g45t345rt/g45w/settings"
 )
 
+type OpenedWallet struct {
+	Info   *WalletInfo
+	Memory *walletapi.Wallet_Memory
+}
+
 type WalletInfo struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -25,7 +30,8 @@ type WalletInfo struct {
 var Instance *WalletManager
 
 type WalletManager struct {
-	Wallets map[string]*WalletInfo
+	Wallets      map[string]*WalletInfo
+	OpenedWallet *OpenedWallet
 }
 
 func NewWalletManager() *WalletManager {

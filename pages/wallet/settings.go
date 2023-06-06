@@ -11,9 +11,11 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -22,8 +24,8 @@ import (
 type PageSettings struct {
 	isActive bool
 
-	buttonDeleteWallet *components.Button
-	confirmDelete      *components.Confirm
+	buttonDeleteWallet  *components.Button
+	modalWalletPassword *pages.WalletPasswordModal
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -51,11 +53,11 @@ func NewPageSettings() *PageSettings {
 	buttonDeleteWallet.Style.Font.Weight = font.Bold
 
 	w := app_instance.Current.Window
-	confirmDelete := components.NewConfirm(w, "Are you sure?", th, layout.Center)
+	modalWalletPassword := pages.NewWalletPasswordModal(w, th)
 
 	router := app_instance.Current.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		confirmDelete.Layout(gtx, th)
+		modalWalletPassword.Layout(gtx)
 	})
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -72,11 +74,11 @@ func NewPageSettings() *PageSettings {
 	listStyle.AnchorStrategy = material.Overlay
 
 	return &PageSettings{
-		buttonDeleteWallet: buttonDeleteWallet,
-		animationEnter:     animationEnter,
-		animationLeave:     animationLeave,
-		listStyle:          listStyle,
-		confirmDelete:      confirmDelete,
+		buttonDeleteWallet:  buttonDeleteWallet,
+		animationEnter:      animationEnter,
+		animationLeave:      animationLeave,
+		listStyle:           listStyle,
+		modalWalletPassword: modalWalletPassword,
 	}
 }
 
@@ -97,7 +99,20 @@ func (p *PageSettings) Leave() {
 
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if p.buttonDeleteWallet.Clickable.Clicked() {
-		p.confirmDelete.SetVisible(true)
+		p.modalWalletPassword.Modal.SetVisible(true)
+	}
+
+	submitted, text := p.modalWalletPassword.Submit()
+	if submitted {
+		openedWallet := wallet_manager.Instance.OpenedWallet
+		err := wallet_manager.Instance.DeleteWallet(openedWallet.Info.ID, text)
+		if err == nil {
+			p.modalWalletPassword.Modal.SetVisible(false)
+			app_instance.Current.Router.SetCurrent("page_wallet_select")
+			//wallet_manager.Instance.OpenedWallet = nil
+		} else {
+			p.modalWalletPassword.StartWrongPassAnimation()
+		}
 	}
 
 	{

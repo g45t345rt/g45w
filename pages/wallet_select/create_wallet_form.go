@@ -98,7 +98,7 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 }
 
 func (p *PageCreateWalletForm) Enter() {
-	page_instance.header.LabelTitle.Text = "Create New Wallet"
+	page_instance.header.SetTitle("Create New Wallet")
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -181,10 +181,6 @@ func (p *PageCreateWalletForm) submitForm() error {
 
 	if txtPassword.Text() == "" {
 		return fmt.Errorf("enter password")
-	}
-
-	if txtConfirmPassword.Text() == "" {
-		return fmt.Errorf("enter confirm password")
 	}
 
 	if txtPassword.Text() != txtConfirmPassword.Text() {

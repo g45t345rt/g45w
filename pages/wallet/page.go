@@ -24,6 +24,8 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -135,14 +137,20 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
-	p.isActive = true
-	app_instance.Current.BottomBar.SetActive("wallet")
-	p.header.LabelTitle.Text = "Wallet 0"
-	//p.header.WalletAddr = "derog54...g435450"
+	openedWallet := wallet_manager.Instance.OpenedWallet
+	if openedWallet != nil {
+		p.isActive = true
+		app_instance.Current.BottomBar.SetActive("wallet")
+		p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 
-	app_instance.Current.Window.Option(app.StatusColor(color.NRGBA{A: 255}))
-	p.animationLeave.Reset()
-	p.animationEnter.Start()
+		w := app_instance.Current.Window
+		w.Option(app.StatusColor(color.NRGBA{A: 255}))
+
+		p.animationLeave.Reset()
+		p.animationEnter.Start()
+	} else {
+		app_instance.Current.Router.SetCurrent("page_wallet_select")
+	}
 }
 
 func (p *Page) Leave() {
@@ -151,6 +159,9 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	openedWallet := wallet_manager.Instance.OpenedWallet
+	walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
+
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
 		p.childRouter.SetCurrent("sendForm")
 	}
@@ -165,7 +176,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.buttonCopyAddr.Clickable.Clicked() {
 		clipboard.WriteOp{
-			Text: "derog54...g435450",
+			Text: walletAddr,
 		}.Add(gtx.Ops)
 		p.infoModal.SetText("Clipboard", "Addr copied to clipboard")
 		p.infoModal.SetVisible(true)
@@ -223,7 +234,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						return p.header.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									label := material.Label(th, unit.Sp(16), "derog54...g435450")
+									label := material.Label(th, unit.Sp(16), walletAddr)
 									label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
 									return label.Layout(gtx)
 								}),

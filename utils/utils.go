@@ -131,3 +131,7 @@ func ReduceString(s string, maxLeft, maxRight int) string {
 	end := s[len(s)-maxRight:]
 	return start + "..." + end
 }
+
+func ReduceAddr(addr string) string {
+	return ReduceString(addr, 7, 7)
+}

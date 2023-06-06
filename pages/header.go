@@ -38,6 +38,10 @@ func NewHeader(labelTitle material.LabelStyle, childRouter *router.Router, butto
 	}
 }
 
+func (h *Header) SetTitle(title string) {
+	h.LabelTitle.Text = title
+}
+
 func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout.Widget) layout.Dimensions {
 	if h.buttonBack.Clickable.Clicked() {
 		h.childRouter.SetCurrent(h.childRouter.Primary)

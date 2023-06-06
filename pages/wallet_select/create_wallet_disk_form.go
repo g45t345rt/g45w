@@ -77,7 +77,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 }
 
 func (p *PageCreateWalletDiskForm) Enter() {
-	page_instance.header.LabelTitle.Text = "Load from Disk"
+	page_instance.header.SetTitle("Load from Disk")
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()

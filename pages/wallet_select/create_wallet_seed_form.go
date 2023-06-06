@@ -32,6 +32,9 @@ type PageCreateWalletSeedForm struct {
 	txtPassword        *components.TextField
 	txtConfirmPassword *components.TextField
 	buttonCreate       *components.Button
+
+	successModal *components.NotificationModal
+	errorModal   *components.NotificationModal
 }
 
 var _ router.Container = &PageCreateWalletSeedForm{}
@@ -74,6 +77,16 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
+	w := app_instance.Current.Window
+	errorModal := components.NewNotificationErrorModal(w)
+	successModal := components.NewNotificationSuccessModal(w)
+
+	router := app_instance.Current.Router
+	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+		errorModal.Layout(gtx, th)
+		successModal.Layout(gtx, th)
+	})
+
 	return &PageCreateWalletSeedForm{
 		listStyle:      listStyle,
 		animationEnter: animationEnter,
@@ -84,11 +97,14 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 		txtPassword:        txtPassword,
 		txtConfirmPassword: txtConfirmPassword,
 		buttonCreate:       buttonCreate,
+
+		successModal: successModal,
+		errorModal:   errorModal,
 	}
 }
 
 func (p *PageCreateWalletSeedForm) Enter() {
-	page_instance.header.LabelTitle.Text = "Recover from Seed"
+	page_instance.header.SetTitle("Recover from Seed")
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -124,11 +140,14 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 	}
 
 	if p.buttonCreate.Clickable.Clicked() {
-		name := p.txtWalletName.EditorStyle.Editor.Text()
-		password := p.txtPassword.EditorStyle.Editor.Text()
-		//confirmPassword := p.txtConfirmPassword.EditorStyle.Editor.Text()
-		err := wallet_manager.Instance.CreateWalletFromSeed(name, password, "")
-		fmt.Println(err)
+		err := p.submitForm()
+		if err != nil {
+			p.errorModal.SetText("Error", err.Error())
+			p.errorModal.SetVisible(true)
+		} else {
+			p.successModal.SetText("Success", "New wallet created")
+			p.successModal.SetVisible(true)
+		}
 	}
 
 	widgets := []layout.Widget{
@@ -156,4 +175,39 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageCreateWalletSeedForm) submitForm() error {
+	txtName := p.txtWalletName.EditorStyle.Editor
+	txtPassword := p.txtPassword.EditorStyle.Editor
+	txtConfirmPassword := p.txtConfirmPassword.EditorStyle.Editor
+	txtSeed := p.txtSeed.EditorStyle.Editor
+
+	if txtSeed.Text() == "" {
+		return fmt.Errorf("enter seed")
+	}
+
+	if txtName.Text() == "" {
+		return fmt.Errorf("enter wallet name")
+	}
+
+	if txtPassword.Text() == "" {
+		return fmt.Errorf("enter password")
+	}
+
+	if txtPassword.Text() != txtConfirmPassword.Text() {
+		return fmt.Errorf("the confirm password does not match")
+	}
+
+	err := wallet_manager.Instance.CreateWalletFromSeed(txtName.Text(), txtPassword.Text(), txtSeed.Text())
+	if err != nil {
+		return err
+	}
+
+	txtName.SetText("")
+	txtPassword.SetText("")
+	txtConfirmPassword.SetText("")
+	txtSeed.SetText("")
+
+	return nil
 }
