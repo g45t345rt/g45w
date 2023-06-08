@@ -23,11 +23,12 @@ import (
 type PageSendForm struct {
 	isActive bool
 
-	txtAmount     *components.TextField
-	txtWalletAddr *components.TextField
-	txtComment    *components.TextField
-	txtDstPort    *components.TextField
-	buttonBuildTx *components.Button
+	txtAmount        *components.TextField
+	txtWalletAddr    *components.TextField
+	txtComment       *components.TextField
+	txtDstPort       *components.TextField
+	buttonBuildTx    *components.Button
+	accordionOptions *components.Accordion
 
 	ringSizeSelector *prefabs.RingSizeSelector
 
@@ -78,6 +79,26 @@ func NewPageSendForm() *PageSendForm {
 
 	ringSizeSelector := prefabs.NewRingSizeSelector("16")
 
+	buttonOptions := components.NewButton(components.ButtonStyle{
+		Rounded:         unit.Dp(5),
+		Text:            "OPTIONS",
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(14),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+	})
+	buttonOptions.Label.Alignment = text.Middle
+	buttonOptions.Style.Font.Weight = font.Bold
+	accordionOptions := components.NewAccordion(components.AccordionStyle{
+		Border: widget.Border{
+			CornerRadius: unit.Dp(5),
+			Color:        color.NRGBA{A: 255},
+			Width:        unit.Dp(2),
+		},
+		Inset:  layout.UniformInset(unit.Dp(10)),
+		Button: buttonOptions,
+	}, false)
+
 	return &PageSendForm{
 		txtAmount:        txtAmount,
 		txtWalletAddr:    txtWalletAddr,
@@ -88,6 +109,7 @@ func NewPageSendForm() *PageSendForm {
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
 		listStyle:        listStyle,
+		accordionOptions: accordionOptions,
 	}
 }
 
@@ -154,11 +176,19 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.ringSizeSelector.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.txtComment.EditorMinY = gtx.Dp(75)
-			return p.txtComment.Layout(gtx, th)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return p.txtDstPort.Layout(gtx, th)
+			return p.accordionOptions.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						p.txtComment.EditorMinY = gtx.Dp(75)
+						return p.txtComment.Layout(gtx, th)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return p.txtDstPort.Layout(gtx, th)
+					}),
+				)
+			})
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.buttonBuildTx.Layout(gtx, th)

@@ -33,7 +33,6 @@ func NewPasswordModal() *PasswordModal {
 	editor.SingleLine = true
 	editor.Submit = true
 	editor.Mask = rune(42)
-	editor.Focus()
 	editorStyle := material.Editor(th, editor, "Enter password")
 	editorStyle.TextSize = unit.Sp(20)
 
@@ -87,6 +86,10 @@ func (w *PasswordModal) Layout(gtx layout.Context) layout.Dimensions {
 			w.submitText = e.Text
 			w.submitted = true
 		}
+	}
+
+	if w.Modal.Visible() {
+		w.editorStyle.Editor.Focus()
 	}
 
 	return w.Modal.Layout(gtx,
