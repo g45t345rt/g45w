@@ -13,7 +13,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"github.com/g45t345rt/g45w/ui/animation"
-	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )
@@ -77,16 +76,10 @@ func NewModalAnimationDown() ModalAnimation {
 }
 
 func NewModalBackground() layout.Widget {
-	var img *Image
 	return func(gtx layout.Context) layout.Dimensions {
-		if img == nil {
-			src := utils.NewImageColor(gtx.Constraints.Max, color.RGBA{A: 100})
-			img = &Image{
-				Src: paint.NewImageOp(src),
-			}
-		}
-
-		return img.Layout(gtx)
+		paint.ColorOp{Color: color.NRGBA{A: 100}}.Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
+		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
 }
 
