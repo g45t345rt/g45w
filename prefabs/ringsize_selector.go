@@ -9,6 +9,7 @@ import (
 	"gioui.org/font"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/text"
@@ -142,10 +143,12 @@ func (l *ListSizeModal) Layout(gtx layout.Context, th *material.Theme, items []*
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
 			Left: unit.Dp(10), Right: unit.Dp(10),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Max.Y = gtx.Dp(200)
 			return l.listStyle.Layout(gtx, len(items), func(gtx layout.Context, index int) layout.Dimensions {
 				if items[index].clickable.Clicked() {
 					l.Value = items[index].value
 					l.changed = true
+					op.InvalidateOp{}.Add(gtx.Ops)
 				}
 
 				return items[index].Layout(gtx, th)

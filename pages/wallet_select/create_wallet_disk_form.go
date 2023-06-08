@@ -123,10 +123,10 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtWalletName.Layout(gtx, th)
+			return p.txtPassword.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtPassword.Layout(gtx, th)
+			return p.txtWalletName.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.buttonLoad.Layout(gtx, th)

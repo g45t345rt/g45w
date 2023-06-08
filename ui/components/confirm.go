@@ -88,22 +88,24 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 		c.SetVisible(false)
 	}
 
+	var lblSize layout.Dimensions
 	return c.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					label := material.Label(th, unit.Sp(18), c.Prompt)
-					return label.Layout(gtx)
+					lblSize = label.Layout(gtx)
+					return lblSize
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Min.X = lblSize.Size.X
 					return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return c.buttonYes.Layout(gtx, th)
-						}),
-						layout.Rigid(layout.Spacer{Width: unit.Dp(20)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return c.buttonNo.Layout(gtx, th)
+						}),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return c.buttonYes.Layout(gtx, th)
 						}),
 					)
 				}),

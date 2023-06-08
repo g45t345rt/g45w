@@ -14,6 +14,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -115,8 +116,15 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		Max: gtx.Constraints.Max,
 	}.Op())
 
-	if b.buttonClose.button.Clickable.Clicked() {
-		b.confirmClose.SetVisible(true)
+	if wallet_manager.Instance.OpenedWallet != nil {
+		if b.buttonClose.button.Clickable.Clicked() {
+			b.confirmClose.SetVisible(true)
+		}
+	}
+
+	if b.confirmClose.ClickedYes() {
+		b.router.SetCurrent("page_wallet_select")
+		wallet_manager.Instance.OpenedWallet = nil
 	}
 
 	if b.buttonNode.button.Clickable.Clicked() {
