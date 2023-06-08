@@ -129,10 +129,6 @@ func (p *PageSendForm) Leave() {
 }
 
 func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if p.buttonBuildTx.Clickable.Clicked() {
-
-	}
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -150,6 +146,10 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			p.isActive = false
 			op.InvalidateOp{}.Add(gtx.Ops)
 		}
+	}
+
+	if p.buttonBuildTx.Clickable.Clicked() {
+
 	}
 
 	widgets := []layout.Widget{

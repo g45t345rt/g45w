@@ -76,6 +76,8 @@ func NewPage() *Page {
 	childRouter.Add("receiveForm", pageReceiveForm)
 	pageSettings := NewPageSettings()
 	childRouter.Add("settings", pageSettings)
+	pageAddSCForm := NewPageAddSCForm()
+	childRouter.Add("addSCForm", pageAddSCForm)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
@@ -172,6 +174,10 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.pageBalanceTokens.displayBalance.buttonReceive.Clickable.Clicked() {
 		p.childRouter.SetCurrent("receiveForm")
+	}
+
+	if p.pageBalanceTokens.tokenBar.buttonAddToken.Clickable.Clicked() {
+		p.childRouter.SetCurrent("addSCForm")
 	}
 
 	if p.header.ButtonRight.Clickable.Clicked() {
