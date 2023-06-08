@@ -93,6 +93,7 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
+	app_instance.Current.BottomBar.SetActive("wallet")
 	p.isActive = true
 	p.animationLeave.Reset()
 	p.animationEnter.Start()

@@ -48,6 +48,7 @@ type Button struct {
 	Clickable *widget.Clickable
 	Label     *widget.Label
 	Focused   bool
+	Disabled  bool
 
 	animClickable    *widget.Clickable
 	hoverSwitchState bool
@@ -145,44 +146,46 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			backgroundColor := style.BackgroundColor
 			textColor := style.TextColor
 
-			if animClickable.Hovered() {
-				pointer.CursorPointer.Add(gtx.Ops)
-				if style.HoverBackgroundColor != nil {
-					backgroundColor = *style.HoverBackgroundColor // f32color.Hovered(backgroundColor)
+			if !btn.Disabled {
+				if animClickable.Hovered() {
+					pointer.CursorPointer.Add(gtx.Ops)
+					if style.HoverBackgroundColor != nil {
+						backgroundColor = *style.HoverBackgroundColor // f32color.Hovered(backgroundColor)
+					}
+
+					if style.HoverTextColor != nil {
+						textColor = *style.HoverTextColor
+					}
 				}
 
-				if style.HoverTextColor != nil {
-					textColor = *style.HoverTextColor
-				}
-			}
+				if animClickable.Hovered() && !btn.hoverSwitchState {
+					btn.hoverSwitchState = true
 
-			if animClickable.Hovered() && !btn.hoverSwitchState {
-				btn.hoverSwitchState = true
+					if animationEnter != nil {
+						animationEnter.Start()
+					}
 
-				if animationEnter != nil {
-					animationEnter.Start()
-				}
-
-				if animationLeave != nil {
-					animationLeave.Reset()
-				}
-			}
-
-			if !animClickable.Hovered() && btn.hoverSwitchState {
-				btn.hoverSwitchState = false
-
-				if animationLeave != nil {
-					animationLeave.Start()
+					if animationLeave != nil {
+						animationLeave.Reset()
+					}
 				}
 
-				if animationEnter != nil {
-					animationEnter.Reset()
-				}
-			}
+				if !animClickable.Hovered() && btn.hoverSwitchState {
+					btn.hoverSwitchState = false
 
-			if animClickable.Clicked() {
-				if animationClick != nil {
-					animationClick.Reset().Start()
+					if animationLeave != nil {
+						animationLeave.Start()
+					}
+
+					if animationEnter != nil {
+						animationEnter.Reset()
+					}
+				}
+
+				if animClickable.Clicked() {
+					if animationClick != nil {
+						animationClick.Reset().Start()
+					}
 				}
 			}
 

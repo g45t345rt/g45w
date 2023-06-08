@@ -160,6 +160,10 @@ func (p *Page) Leave() {
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	openedWallet := wallet_manager.Instance.OpenedWallet
+	if openedWallet == nil {
+		return layout.Dimensions{Size: gtx.Constraints.Max}
+	}
+
 	walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {

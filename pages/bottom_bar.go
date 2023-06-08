@@ -117,9 +117,12 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}.Op())
 
 	if wallet_manager.Instance.OpenedWallet != nil {
+		b.buttonClose.button.Disabled = false
 		if b.buttonClose.button.Clickable.Clicked() {
 			b.confirmClose.SetVisible(true)
 		}
+	} else {
+		b.buttonClose.button.Disabled = true
 	}
 
 	if b.confirmClose.ClickedYes() {
