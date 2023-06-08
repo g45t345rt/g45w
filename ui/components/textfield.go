@@ -65,6 +65,14 @@ func NewPasswordTextField(th *material.Theme, title string, hint string) *TextFi
 	}
 }
 
+func (t *TextField) Value() string {
+	return t.EditorStyle.Editor.Text()
+}
+
+func (t *TextField) SetValue(text string) {
+	t.EditorStyle.Editor.SetText(text)
+}
+
 func (t *TextField) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	for _, e := range t.EditorStyle.Editor.Events() {
 		e, ok := e.(widget.SubmitEvent)

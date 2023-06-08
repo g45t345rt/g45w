@@ -59,7 +59,7 @@ func FormatHashRate(hash_rate uint64) string {
 		hash_rate_string = fmt.Sprintf("%.3f MH/s", float64(hash_rate)/1000000.0)
 	case hash_rate > 1000:
 		hash_rate_string = fmt.Sprintf("%.3f KH/s", float64(hash_rate)/1000.0)
-	case hash_rate > 0:
+	default:
 		hash_rate_string = fmt.Sprintf("%d H/s", hash_rate)
 	}
 	return hash_rate_string
@@ -80,7 +80,7 @@ func FormatBytes(value int64) string {
 		bytes_string = fmt.Sprintf("%.2f MB", float64(value)/1048576)
 	case value > 1024:
 		bytes_string = fmt.Sprintf("%.2f KB", float64(value)/1024)
-	case value > 0:
+	default:
 		bytes_string = fmt.Sprintf("%d B", value)
 	}
 

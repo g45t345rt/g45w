@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/deroproject/derohe/cryptography/crypto"
@@ -425,41 +426,6 @@ func listNext(pList []*pt_t) {
 	}
 }
 
-func Search(onHash func(), onFound func(tx *transaction.Transaction, secret *big.Int)) {
-	ctx := randPt(255)
-	pList := listInit(ctx)
-
-	tmpPoint := randPt(255)
-
-	j := 0
-	for {
-		tp := newPt()
-		montDecode(tp.x, tmpPoint.x)
-		montDecode(tp.y, tmpPoint.y)
-		tp.secret.Set(tmpPoint.secret)
-
-		for i := 0; i < N; i++ {
-			txn := getRegistrationTX(pList[i], tp)
-			onHash()
-
-			hash := GetHash(txn)
-			if hash[0] == 0 && hash[1] == 0 && hash[2] == 0 {
-				if txn.IsRegistrationValid() {
-					fmt.Println("Found valid registration tx")
-					onFound(txn, pList[i].secret)
-					pList[i] = pointFactory(ctx)
-					break
-				}
-				fmt.Println("Found registration tx but invalid. Let's continue.")
-			}
-			j++
-		}
-
-		tmpPoint = pointFactory(tmpPoint)
-		time.Sleep(100 * time.Millisecond)
-	}
-}
-
 func getRegistrationTX(p, tp *pt_t) *transaction.Transaction {
 	var tx transaction.Transaction
 	tx.Version = 1
@@ -548,4 +514,107 @@ func GetHash(tx *transaction.Transaction) (result Hash) {
 
 	}
 	return
+}
+
+type Search struct {
+	Running bool
+	OnFound func(tx *transaction.Transaction, secret *big.Int)
+
+	hashRate  map[int]uint64
+	hashCount map[int]uint64
+	mutex     sync.Mutex
+}
+
+func NewSearch() *Search {
+	return &Search{
+		hashRate:  make(map[int]uint64),
+		hashCount: make(map[int]uint64),
+	}
+}
+
+func (s *Search) Start(workers int) {
+	s.Running = true
+	for i := 0; i < workers; i++ {
+		go s.run(i)
+	}
+}
+
+func (s *Search) Stop() {
+	s.Running = false
+}
+
+func (s *Search) HashRate() uint64 {
+	sum := uint64(0)
+	for _, v := range s.hashRate {
+		sum += v
+	}
+
+	return sum
+}
+
+func (s *Search) HashCount() uint64 {
+	sum := uint64(0)
+	for _, v := range s.hashCount {
+		sum += v
+	}
+
+	return sum
+}
+
+func (s *Search) run(wIndex int) {
+	ctx := randPt(255)
+	pList := listInit(ctx)
+	tmpPoint := randPt(255)
+	j := 0
+	start := time.Now()
+	count := uint64(0)
+	hashRate := uint64(0)
+
+	for {
+		if !s.Running {
+			s.mutex.Lock()
+			s.hashCount = make(map[int]uint64)
+			s.hashRate = make(map[int]uint64)
+			s.mutex.Unlock()
+
+			return
+		}
+
+		tp := newPt()
+		montDecode(tp.x, tmpPoint.x)
+		montDecode(tp.y, tmpPoint.y)
+		tp.secret.Set(tmpPoint.secret)
+
+		for i := 0; i < N; i++ {
+			tx := getRegistrationTX(pList[i], tp)
+			count++
+			hashRate++
+
+			if time.Now().Add(-1 * time.Second).After(start) {
+				s.mutex.Lock()
+				s.hashRate[wIndex] = hashRate
+				s.hashCount[wIndex] = count
+				s.mutex.Unlock()
+
+				start = time.Now()
+				hashRate = 0
+			}
+
+			hash := GetHash(tx)
+			if hash[0] == 0 && hash[1] == 0 && hash[2] == 0 {
+				if tx.IsRegistrationValid() {
+					//fmt.Println("Found valid registration tx")
+					s.Stop()
+					s.OnFound(tx, pList[i].secret)
+					//pList[i] = pointFactory(ctx)
+					break
+				}
+				//fmt.Println("Found registration tx but invalid. Let's continue.")
+			}
+			j++
+		}
+
+		tmpPoint = pointFactory(tmpPoint)
+		time.Sleep(100 * time.Millisecond)
+	}
 }
