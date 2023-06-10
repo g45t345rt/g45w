@@ -3,7 +3,6 @@ package pages
 import (
 	"image/color"
 
-	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -12,6 +11,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -29,7 +29,13 @@ type BottomBar struct {
 	confirmClose *components.Confirm
 }
 
-func NewBottomBar(w *app.Window, router *router.Router, th *material.Theme) *BottomBar {
+var BottomBarInstance *BottomBar
+
+func LoadBottomBarInstance() *BottomBar {
+	w := app_instance.Current.Window
+	router := app_instance.Current.Router
+	th := app_instance.Current.Theme
+
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255} //f32color.Hovered(textColor)
 
@@ -79,7 +85,7 @@ func NewBottomBar(w *app.Window, router *router.Router, th *material.Theme) *Bot
 		confirmClose.Layout(gtx, th)
 	})
 
-	return &BottomBar{
+	bottomBar := &BottomBar{
 		buttonWallet:   NewBottomBarButton(buttonWallet),
 		buttonTxs:      NewBottomBarButton(buttonTxs),
 		buttonSettings: NewBottomBarButton(buttonSettings),
@@ -88,9 +94,11 @@ func NewBottomBar(w *app.Window, router *router.Router, th *material.Theme) *Bot
 		confirmClose:   confirmClose,
 		router:         router,
 	}
+	BottomBarInstance = bottomBar
+	return bottomBar
 }
 
-func (b *BottomBar) SetActive(tag string) {
+func (b *BottomBar) SetButtonActive(tag string) {
 	b.buttonSettings.button.Focused = false
 	b.buttonClose.button.Focused = false
 	b.buttonWallet.button.Focused = false

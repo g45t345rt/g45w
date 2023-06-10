@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"time"
 
 	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/io/clipboard"
-	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -19,7 +17,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/node"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -36,7 +34,6 @@ type Page struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	nodeStatusBar  *NodeStatusBar
 	header         *prefabs.Header
 	buttonCopyAddr *components.Button
 
@@ -119,8 +116,7 @@ func NewPage() *Page {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		nodeStatusBar: NewNodeStatusBar(),
-		header:        header,
+		header: header,
 
 		buttonCopyAddr:    buttonCopyAddr,
 		pageBalanceTokens: pageBalanceTokens,
@@ -142,7 +138,7 @@ func (p *Page) Enter() {
 	openedWallet := wallet_manager.Instance.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
-		app_instance.Current.BottomBar.SetActive("wallet")
+		pages.BottomBarInstance.SetButtonActive("wallet")
 		p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 
 		w := app_instance.Current.Window
@@ -215,9 +211,9 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			}
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.nodeStatusBar.Layout(gtx, th)
-				}),
+				//layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				//	return app_instance.Current.NodeStatusBar.Layout(gtx, th)
+				//}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.RRect{
 						Rect: image.Rectangle{Max: gtx.Constraints.Max},
@@ -264,68 +260,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return app_instance.Current.BottomBar.Layout(gtx, th)
+			return pages.BottomBarInstance.Layout(gtx, th)
 		}),
 	)
-}
-
-type NodeStatusBar struct {
-	clickable  *widget.Clickable
-	nodeStatus *node.NodeStatus
-}
-
-func NewNodeStatusBar() *NodeStatusBar {
-	return &NodeStatusBar{
-		clickable:  new(widget.Clickable),
-		nodeStatus: node.NewNodeStatus(1 * time.Second),
-	}
-}
-
-func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	paint.FillShape(gtx.Ops, color.NRGBA{A: 255}, clip.Rect{
-		Max: gtx.Constraints.Max,
-	}.Op())
-
-	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
-	//paint.PaintOp{}.Add(gtx.Ops)
-
-	n.nodeStatus.Active()
-
-	if n.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
-	if n.clickable.Clicked() {
-		app_instance.Current.Router.SetCurrent("page_node")
-		op.InvalidateOp{}.Add(gtx.Ops)
-	}
-
-	return n.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Inset{
-			Top: unit.Dp(15), Bottom: unit.Dp(15),
-			Left: unit.Dp(10), Right: unit.Dp(10),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{
-				Alignment: layout.Middle,
-			}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					gtx.Constraints.Max.X = gtx.Dp(12)
-					gtx.Constraints.Max.Y = gtx.Dp(12)
-					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 0, B: 0, A: 255},
-						clip.Ellipse{
-							Max: gtx.Constraints.Max,
-						}.Op(gtx.Ops))
-
-					return layout.Dimensions{Size: gtx.Constraints.Max}
-				}),
-				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					status := fmt.Sprintf("%d / %d - %dP", n.nodeStatus.Height, n.nodeStatus.BestHeight, n.nodeStatus.PeerCount)
-					label := material.Label(th, unit.Sp(16), status)
-					label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-					return label.Layout(gtx)
-				}),
-			)
-		})
-	})
 }

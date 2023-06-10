@@ -13,6 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -93,7 +94,7 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
-	app_instance.Current.BottomBar.SetActive("wallet")
+	pages.BottomBarInstance.SetButtonActive("wallet")
 	p.isActive = true
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
@@ -151,7 +152,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return app_instance.Current.BottomBar.Layout(gtx, th)
+			return pages.BottomBarInstance.Layout(gtx, th)
 		}),
 	)
 }

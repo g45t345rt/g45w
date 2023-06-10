@@ -333,14 +333,11 @@ type TokenBar struct {
 }
 
 func NewTokenBar(th *material.Theme) *TokenBar {
-	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
-	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-
-	walletIcon, _ := widget.NewIcon(icons.ContentAddBox)
+	addIcon, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonAddToken := components.NewButton(components.ButtonStyle{
-		Icon:           walletIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
+		Icon:           addIcon,
+		TextColor:      color.NRGBA{A: 100},
+		HoverTextColor: &color.NRGBA{A: 255},
 		Animation:      components.NewButtonAnimationScale(.92),
 	})
 

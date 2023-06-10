@@ -15,9 +15,9 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"gioui.org/x/explorer"
+	expl "gioui.org/x/explorer"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/node"
+	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/pages"
 	page_node "github.com/g45t345rt/g45w/pages/node"
 	page_settings "github.com/g45t345rt/g45w/pages/settings"
@@ -40,10 +40,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = node.NewNode().Start()
+	err = node_manager.NewNodeManager().LoadNodes()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//err = node.NewNode().Start()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	// window
 	minSizeX := unit.Dp(375)
@@ -60,7 +65,7 @@ func main() {
 		app.NavigationColor(color.NRGBA{A: 0}),
 	)
 
-	expl := explorer.NewExplorer(window)
+	explorer := expl.NewExplorer(window)
 
 	// font
 	fontCollection, err := loadFontCollection()
@@ -80,14 +85,25 @@ func main() {
 	// main router
 	router := router.NewRouter()
 
-	// app instance to give guick access to every package
 	app_instance.Current = &app_instance.AppInstance{
-		Window:    window,
-		Theme:     theme,
-		Router:    router,
-		BottomBar: pages.NewBottomBar(window, router, theme),
-		Explorer:  expl,
+		Window:   window,
+		Theme:    theme,
+		Router:   router,
+		Explorer: explorer,
 	}
+
+	// app instance to give guick access to every package
+	app_instance.Window = window
+	app_instance.Theme = theme
+	app_instance.Router = router
+	app_instance.Explorer = explorer
+
+	// page instance (bottom_bar,node_status_bar)
+	//BottomBar: pages.NewBottomBar(window, router, theme),
+	//NodeStatusBar: pages:
+
+	pages.LoadBottomBarInstance()
+	pages.LoadNodeStatusBarInstance()
 
 	router.Add("page_settings", page_settings.NewPage())
 	router.Add("page_node", page_node.NewPage())

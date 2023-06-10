@@ -125,7 +125,12 @@ func (n *NodeStatus) Active() {
 }
 
 func (n *NodeStatus) update() {
+	if Instance == nil {
+		return
+	}
+
 	chain := Instance.Chain
+
 	n.Height = chain.Get_Height()
 	bestHeight, _ := p2p.Best_Peer_Height()
 	n.BestHeight = bestHeight
