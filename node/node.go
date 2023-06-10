@@ -105,7 +105,7 @@ func NewNodeStatus(d time.Duration) *NodeStatus {
 	nodeStatus := &NodeStatus{isActive: false}
 	ticker := time.NewTicker(d)
 
-	window := app_instance.Current.Window
+	window := app_instance.Window
 	go func() {
 		for range ticker.C {
 			if nodeStatus.isActive {
@@ -157,7 +157,7 @@ type NodeSize struct {
 
 func NewNodeSize(d time.Duration) *NodeSize {
 	ticker := time.NewTicker(d)
-	window := app_instance.Current.Window
+	window := app_instance.Window
 	nodedSize := &NodeSize{
 		Size:     0,
 		isActive: false,

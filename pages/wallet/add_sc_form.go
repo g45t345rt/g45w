@@ -34,7 +34,7 @@ type PageAddSCForm struct {
 var _ router.Container = &PageAddSCForm{}
 
 func NewPageAddSCForm() *PageAddSCForm {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),

@@ -40,7 +40,7 @@ type PageAddNodeForm struct {
 var _ router.Container = &PageAddNodeForm{}
 
 func NewPageAddNodeForm() *PageAddNodeForm {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
@@ -74,11 +74,11 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	txtHost := components.NewTextField(th, "Host", "node.dero.io")
 	txtPort := components.NewTextField(th, "Port", "10102")
 
-	w := app_instance.Current.Window
+	w := app_instance.Window
 	errorModal := components.NewNotificationErrorModal(w)
 	successModal := components.NewNotificationSuccessModal(w)
 
-	router := app_instance.Current.Router
+	router := app_instance.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		errorModal.Layout(gtx, th)
 		successModal.Layout(gtx, th)

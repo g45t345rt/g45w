@@ -48,7 +48,7 @@ type PageSelectWallet struct {
 var _ router.Container = &PageSelectWallet{}
 
 func NewPageSelectWallet() *PageSelectWallet {
-	theme := app_instance.Current.Theme
+	theme := app_instance.Theme
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .5, ease.OutCubic),
@@ -75,7 +75,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 	modalWalletPassword := prefabs.NewPasswordModal()
 	modalCreateWalletSelection := NewCreateWalletSelectionModal(theme)
 
-	router := app_instance.Current.Router
+	router := app_instance.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		modalWalletPassword.Layout(gtx)
 		modalCreateWalletSelection.Layout(gtx, th)
@@ -109,7 +109,7 @@ func (p *PageSelectWallet) Enter() {
 		p.animationEnter.Start()
 	}
 
-	theme := app_instance.Current.Theme
+	theme := app_instance.Theme
 	walletManager := wallet_manager.Instance
 
 	items := make([]WalletListItem, 0)
@@ -198,7 +198,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				}
 
 				p.modalWalletPassword.Modal.SetVisible(false)
-				app_instance.Current.Router.SetCurrent("page_wallet")
+				app_instance.Router.SetCurrent("page_wallet")
 			} else {
 				p.modalWalletPassword.StartWrongPassAnimation()
 			}
@@ -236,7 +236,7 @@ type CreateWalletSelectionModal struct {
 }
 
 func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionModal {
-	w := app_instance.Current.Window
+	w := app_instance.Window
 	modal := components.NewModal(w, components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,

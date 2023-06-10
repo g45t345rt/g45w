@@ -54,7 +54,7 @@ type PageInstance struct {
 var page_instance *PageInstance
 
 func NewPage() *Page {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
@@ -104,10 +104,10 @@ func NewPage() *Page {
 		HoverTextColor: &textHoverColor,
 	})
 
-	w := app_instance.Current.Window
+	w := app_instance.Window
 	infoModal := components.NewNotificationInfoModal(w)
 
-	router := app_instance.Current.Router
+	router := app_instance.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		infoModal.Layout(gtx, th)
 	})
@@ -141,13 +141,13 @@ func (p *Page) Enter() {
 		pages.BottomBarInstance.SetButtonActive("wallet")
 		p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 
-		w := app_instance.Current.Window
+		w := app_instance.Window
 		w.Option(app.StatusColor(color.NRGBA{A: 255}))
 
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
 	} else {
-		app_instance.Current.Router.SetCurrent("page_wallet_select")
+		app_instance.Router.SetCurrent("page_wallet_select")
 	}
 }
 
@@ -212,7 +212,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				//layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				//	return app_instance.Current.NodeStatusBar.Layout(gtx, th)
+				//	return app_instance.NodeStatusBar.Layout(gtx, th)
 				//}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.RRect{

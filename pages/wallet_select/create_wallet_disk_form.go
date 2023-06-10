@@ -34,7 +34,7 @@ type PageCreateWalletDiskForm struct {
 var _ router.Container = &PageCreateWalletDiskForm{}
 
 func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 	listStyle := material.List(th, list)
@@ -82,7 +82,7 @@ func (p *PageCreateWalletDiskForm) Enter() {
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
-	_, err := app_instance.Current.Explorer.ChooseFile()
+	_, err := app_instance.Explorer.ChooseFile()
 	if err != nil {
 		fmt.Println(err)
 	}

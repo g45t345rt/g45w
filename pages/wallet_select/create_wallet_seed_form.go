@@ -40,7 +40,7 @@ type PageCreateWalletSeedForm struct {
 var _ router.Container = &PageCreateWalletSeedForm{}
 
 func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 	listStyle := material.List(th, list)
@@ -77,11 +77,11 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
-	w := app_instance.Current.Window
+	w := app_instance.Window
 	errorModal := components.NewNotificationErrorModal(w)
 	successModal := components.NewNotificationSuccessModal(w)
 
-	router := app_instance.Current.Router
+	router := app_instance.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		errorModal.Layout(gtx, th)
 		successModal.Layout(gtx, th)

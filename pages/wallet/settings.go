@@ -36,7 +36,7 @@ type PageSettings struct {
 var _ router.Container = &PageSettings{}
 
 func NewPageSettings() *PageSettings {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteWallet := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),
@@ -54,7 +54,7 @@ func NewPageSettings() *PageSettings {
 
 	modalWalletPassword := prefabs.NewPasswordModal()
 
-	router := app_instance.Current.Router
+	router := app_instance.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		modalWalletPassword.Layout(gtx)
 	})
@@ -107,7 +107,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		err := wallet_manager.Instance.DeleteWallet(openedWallet.Info.ID, text)
 		if err == nil {
 			p.modalWalletPassword.Modal.SetVisible(false)
-			app_instance.Current.Router.SetCurrent("page_wallet_select")
+			app_instance.Router.SetCurrent("page_wallet_select")
 			//wallet_manager.Instance.OpenedWallet = nil
 		} else {
 			p.modalWalletPassword.StartWrongPassAnimation()

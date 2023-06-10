@@ -28,7 +28,7 @@ type PasswordModal struct {
 }
 
 func NewPasswordModal() *PasswordModal {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	editor := new(widget.Editor)
 	editor.SingleLine = true
 	editor.Submit = true
@@ -44,7 +44,7 @@ func NewPasswordModal() *PasswordModal {
 
 	iconLock, _ := widget.NewIcon(icons.ActionLock)
 
-	w := app_instance.Current.Window
+	w := app_instance.Window
 	modal := components.NewModal(w, components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,

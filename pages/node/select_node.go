@@ -49,7 +49,7 @@ func NewPageSelectNode() *PageSelectNode {
 		gween.New(0, -1, .5, ease.OutCubic),
 	))
 
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 	listStyle := material.List(th, list)

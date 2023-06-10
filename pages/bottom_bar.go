@@ -32,9 +32,9 @@ type BottomBar struct {
 var BottomBarInstance *BottomBar
 
 func LoadBottomBarInstance() *BottomBar {
-	w := app_instance.Current.Window
-	router := app_instance.Current.Router
-	th := app_instance.Current.Theme
+	w := app_instance.Window
+	router := app_instance.Router
+	th := app_instance.Theme
 
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255} //f32color.Hovered(textColor)

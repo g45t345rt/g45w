@@ -41,7 +41,7 @@ type PageSendForm struct {
 var _ router.Container = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),

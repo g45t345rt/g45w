@@ -40,7 +40,7 @@ type PageCreateWalletHexSeedForm struct {
 var _ router.Container = &PageCreateWalletHexSeedForm{}
 
 func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 	listStyle := material.List(th, list)
@@ -75,11 +75,11 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
-	w := app_instance.Current.Window
+	w := app_instance.Window
 	errorModal := components.NewNotificationErrorModal(w)
 	successModal := components.NewNotificationSuccessModal(w)
 
-	router := app_instance.Current.Router
+	router := app_instance.Router
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		errorModal.Layout(gtx, th)
 		successModal.Layout(gtx, th)

@@ -85,13 +85,6 @@ func main() {
 	// main router
 	router := router.NewRouter()
 
-	app_instance.Current = &app_instance.AppInstance{
-		Window:   window,
-		Theme:    theme,
-		Router:   router,
-		Explorer: explorer,
-	}
-
 	// app instance to give guick access to every package
 	app_instance.Window = window
 	app_instance.Theme = theme
@@ -142,10 +135,11 @@ func loadFontCollection() ([]font.FontFace, error) {
 
 func runApp() error {
 	var ops op.Ops
-	window := app_instance.Current.Window
-	router := app_instance.Current.Router
-	th := app_instance.Current.Theme
-	explorer := app_instance.Current.Explorer
+
+	window := app_instance.Window
+	router := app_instance.Router
+	th := app_instance.Theme
+	explorer := app_instance.Explorer
 
 	for {
 		e := <-window.Events()

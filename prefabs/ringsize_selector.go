@@ -51,9 +51,9 @@ func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 		items = append(items, NewListSizeItem(size))
 	}
 
-	w := app_instance.Current.Window
-	th := app_instance.Current.Theme
-	router := app_instance.Current.Router
+	w := app_instance.Window
+	th := app_instance.Theme
+	router := app_instance.Router
 	listSizeModal := NewListSizeModal(w, th)
 	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		listSizeModal.Layout(gtx, th, items)

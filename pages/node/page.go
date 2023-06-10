@@ -68,7 +68,7 @@ func NewPage() *Page {
 	pageIntegratedNode := NewPageIntegratedNode()
 	childRouter.Add("integratedNode", pageIntegratedNode)
 
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
 	header := prefabs.NewHeader(labelHeaderStyle, childRouter, nil)

@@ -46,7 +46,7 @@ type PageBalanceTokens struct {
 var _ router.Container = &PageBalanceTokens{}
 
 func NewPageBalanceTokens() *PageBalanceTokens {
-	th := app_instance.Current.Theme
+	th := app_instance.Theme
 
 	img, err := assets.GetImage("dero.jpg")
 	if err != nil {
@@ -532,7 +532,7 @@ type TokenListItem struct {
 
 func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Inset{Top: unit.Dp(0), Left: unit.Dp(30), Right: unit.Dp(30), Bottom: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		th := app_instance.Current.Theme
+		th := app_instance.Theme
 		m := op.Record(gtx.Ops)
 		dims := item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
