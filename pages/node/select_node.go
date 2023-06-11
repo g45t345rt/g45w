@@ -55,19 +55,8 @@ func NewPageSelectNode() *PageSelectNode {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	trustedNodeList := NewNodeList(th)
-	for _, nodeInfo := range node_manager.Instance.TrustedNodes {
-		trustedNodeList.items = append(trustedNodeList.items,
-			NewNodeListItem(th, nodeInfo),
-		)
-	}
-
-	userNodeList := NewNodeList(th)
-	for _, nodeInfo := range node_manager.Instance.UserNodes {
-		userNodeList.items = append(userNodeList.items,
-			NewNodeListItem(th, nodeInfo),
-		)
-	}
+	trustedNodeList := NewNodeList(th, "")
+	userNodeList := NewNodeList(th, "You didn't add any external nodes yet.")
 
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),
@@ -107,6 +96,20 @@ func (p *PageSelectNode) IsActive() bool {
 
 func (p *PageSelectNode) Enter() {
 	p.isActive = true
+
+	p.trustedNodeList.items = make([]NodeListItem, 0)
+	for _, nodeInfo := range node_manager.Instance.TrustedNodes {
+		p.trustedNodeList.items = append(p.trustedNodeList.items,
+			NewNodeListItem(nodeInfo),
+		)
+	}
+
+	p.userNodeList.items = make([]NodeListItem, 0)
+	for _, nodeInfo := range node_manager.Instance.UserNodes {
+		p.userNodeList.items = append(p.userNodeList.items,
+			NewNodeListItem(nodeInfo),
+		)
+	}
 
 	page_instance.header.SetTitle("Select Node")
 	p.animationLeave.Reset()
@@ -168,7 +171,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.userNodeList.Layout(gtx, th, "You didn't add any external nodes yet.")
+					return p.userNodeList.Layout(gtx, th)
 				}),
 			)
 		},
@@ -184,13 +187,20 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.trustedNodeList.Layout(gtx, th, "")
+					return p.trustedNodeList.Layout(gtx, th)
 				}),
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
 		},
+	}
+
+	for _, item := range p.userNodeList.items {
+		if item.Clickable.Clicked() {
+			page_instance.pageEditNodeForm.nodeInfo = item.nodeInfo
+			page_instance.childRouter.SetCurrent("editNodeForm")
+		}
 	}
 
 	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
@@ -202,11 +212,12 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 }
 
 type NodeList struct {
-	listStyle material.ListStyle
+	emptyText string
 	items     []NodeListItem
+	listStyle material.ListStyle
 }
 
-func NewNodeList(th *material.Theme) *NodeList {
+func NewNodeList(th *material.Theme, emptyText string) *NodeList {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -220,15 +231,16 @@ func NewNodeList(th *material.Theme) *NodeList {
 
 	return &NodeList{
 		listStyle: listStyle,
-		items:     []NodeListItem{},
+		emptyText: emptyText,
+		items:     make([]NodeListItem, 0),
 	}
 }
 
-func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText string) layout.Dimensions {
+func (l *NodeList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	r := op.Record(gtx.Ops)
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		if len(l.items) == 0 {
-			lbl := material.Label(th, unit.Sp(14), emptyText)
+			lbl := material.Label(th, unit.Sp(14), l.emptyText)
 			return lbl.Layout(gtx)
 		} else {
 			return l.listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
@@ -256,8 +268,7 @@ type NodeListItem struct {
 	rounded unit.Dp
 }
 
-func NewNodeListItem(th *material.Theme, nodeInfo node_manager.NodeInfo) NodeListItem {
-
+func NewNodeListItem(nodeInfo node_manager.NodeInfo) NodeListItem {
 	return NodeListItem{
 		nodeInfo:  nodeInfo,
 		Clickable: &widget.Clickable{},

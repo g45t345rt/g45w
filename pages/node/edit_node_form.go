@@ -22,16 +22,18 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type PageAddNodeForm struct {
+type PageEditNodeForm struct {
 	isActive bool
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonAddNode *components.Button
-	txtHost       *components.TextField
-	txtName       *components.TextField
-	txtPort       *components.TextField
+	buttonEditNode   *components.Button
+	buttonDeleteNode *components.Button
+	txtHost          *components.TextField
+	txtName          *components.TextField
+	txtPort          *components.TextField
+	nodeInfo         node_manager.NodeInfo
 
 	successModal *components.NotificationModal
 	errorModal   *components.NotificationModal
@@ -39,9 +41,9 @@ type PageAddNodeForm struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageAddNodeForm{}
+var _ router.Container = &PageEditNodeForm{}
 
-func NewPageAddNodeForm() *PageAddNodeForm {
+func NewPageEditNodeForm() *PageEditNodeForm {
 	th := app_instance.Theme
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -57,11 +59,11 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	addIcon, _ := widget.NewIcon(icons.ContentAdd)
-	buttonAddNode := components.NewButton(components.ButtonStyle{
+	saveIcon, _ := widget.NewIcon(icons.ContentSave)
+	buttonEditNode := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),
-		Text:            "ADD NODE",
-		Icon:            addIcon,
+		Text:            "SAVE",
+		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -69,8 +71,8 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
-	buttonAddNode.Label.Alignment = text.Middle
-	buttonAddNode.Style.Font.Weight = font.Bold
+	buttonEditNode.Label.Alignment = text.Middle
+	buttonEditNode.Style.Font.Weight = font.Bold
 
 	txtName := components.NewTextField(th, "Name", "Dero")
 	txtHost := components.NewTextField(th, "Host", "node.dero.io")
@@ -86,14 +88,30 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 		successModal.Layout(gtx, th)
 	})
 
-	return &PageAddNodeForm{
+	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
+	buttonDeleteNode := components.NewButton(components.ButtonStyle{
+		Rounded:         unit.Dp(5),
+		Text:            "DELETE WALLET",
+		Icon:            deleteIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 255, A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+	buttonDeleteNode.Label.Alignment = text.Middle
+	buttonDeleteNode.Style.Font.Weight = font.Bold
+
+	return &PageEditNodeForm{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonAddNode: buttonAddNode,
-		txtName:       txtName,
-		txtHost:       txtHost,
-		txtPort:       txtPort,
+		buttonEditNode:   buttonEditNode,
+		buttonDeleteNode: buttonDeleteNode,
+		txtName:          txtName,
+		txtHost:          txtHost,
+		txtPort:          txtPort,
 
 		errorModal:   errorModal,
 		successModal: successModal,
@@ -102,23 +120,27 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	}
 }
 
-func (p *PageAddNodeForm) IsActive() bool {
+func (p *PageEditNodeForm) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageAddNodeForm) Enter() {
+func (p *PageEditNodeForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle("Add Node")
+	page_instance.header.SetTitle("Edit Node")
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
+
+	p.txtHost.SetValue(p.nodeInfo.Host)
+	p.txtName.SetValue(p.nodeInfo.Name)
+	p.txtPort.SetValue(fmt.Sprint(p.nodeInfo.Port))
 }
 
-func (p *PageAddNodeForm) Leave() {
+func (p *PageEditNodeForm) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
 }
 
-func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -138,13 +160,24 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}
 	}
 
-	if p.buttonAddNode.Clickable.Clicked() {
+	if p.buttonEditNode.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			p.errorModal.SetText("Error", err.Error())
 			p.errorModal.SetVisible(true)
 		} else {
 			p.successModal.SetText("Success", "new noded added")
+			p.successModal.SetVisible(true)
+		}
+	}
+
+	if p.buttonDeleteNode.Clickable.Clicked() {
+		err := node_manager.Instance.DelNode(p.nodeInfo.ID)
+		if err != nil {
+			p.errorModal.SetText("Error", err.Error())
+			p.errorModal.SetVisible(true)
+		} else {
+			p.successModal.SetText("Success", "node deleted")
 			p.successModal.SetVisible(true)
 		}
 	}
@@ -160,7 +193,10 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return p.txtPort.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.buttonAddNode.Layout(gtx, th)
+			return p.buttonEditNode.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return p.buttonDeleteNode.Layout(gtx, th)
 		},
 	}
 
@@ -172,7 +208,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	})
 }
 
-func (p *PageAddNodeForm) submitForm() error {
+func (p *PageEditNodeForm) submitForm() error {
 	txtName := p.txtName.EditorStyle.Editor
 	txtHost := p.txtHost.EditorStyle.Editor
 	txtPort := p.txtPort.EditorStyle.Editor
@@ -194,7 +230,8 @@ func (p *PageAddNodeForm) submitForm() error {
 		return err
 	}
 
-	err = node_manager.Instance.AddNode(node_manager.NodeInfo{
+	err = node_manager.Instance.EditNode(node_manager.NodeInfo{
+		ID:   p.nodeInfo.ID,
 		Name: txtName.Text(),
 		Host: txtHost.Text(),
 		Port: port,

@@ -1,4 +1,4 @@
-package node
+package integrated_node
 
 import (
 	"io"
@@ -15,19 +15,19 @@ import (
 	"github.com/g45t345rt/g45w/utils"
 )
 
-type Node struct {
+type IntegratedNode struct {
 	Chain *blockchain.Blockchain
 }
 
-var Instance *Node
+var Instance *IntegratedNode
 
-func NewNode() *Node {
-	n := &Node{}
+func NewNode() *IntegratedNode {
+	n := &IntegratedNode{}
 	Instance = n
 	return n
 }
 
-func (n *Node) Start() error {
+func (n *IntegratedNode) Start() error {
 	nodeDir := settings.Instance.NodeDir
 
 	runtime.MemProfileRate = 0

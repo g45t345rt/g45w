@@ -33,12 +33,7 @@ type Page struct {
 
 var _ router.Container = &Page{}
 
-type PageInstance struct {
-	router *router.Router
-	header *prefabs.Header
-}
-
-var page_instance *PageInstance
+var page_instance *Page
 
 func NewPage() *Page {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -74,19 +69,17 @@ func NewPage() *Page {
 	labelHeaderStyle.Font.Weight = font.Bold
 	header := prefabs.NewHeader(labelHeaderStyle, childRouter, nil)
 
-	page_instance = &PageInstance{
-		router: childRouter,
-		header: header,
-	}
-
-	childRouter.SetPrimary("select_wallet")
-
-	return &Page{
+	page := &Page{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		childRouter:    childRouter,
 		header:         header,
 	}
+
+	page_instance = page
+	childRouter.SetPrimary("select_wallet")
+
+	return page
 }
 
 func (p *Page) IsActive() bool {

@@ -7,6 +7,7 @@ import (
 	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/text"
@@ -17,7 +18,10 @@ import (
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/tanema/gween"
+	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -29,20 +33,27 @@ type Page struct {
 	childRouter   *router.Router
 
 	pageSelectNode   *PageSelectNode
-	pageAddNodedForm *PageAddNodeForm
+	pageAddNodeForm  *PageAddNodeForm
+	pageEditNodeForm *PageEditNodeForm
 	header           *prefabs.Header
+
+	animationEnter *animation.Animation
+	animationLeave *animation.Animation
 }
 
 var _ router.Container = &Page{}
 
-type PageInstance struct {
-	router *router.Router
-	header *prefabs.Header
-}
-
-var page_instance *PageInstance
+var page_instance *Page
 
 func NewPage() *Page {
+	animationEnter := animation.NewAnimation(false, gween.NewSequence(
+		gween.New(1, 0, .5, ease.OutCubic),
+	))
+
+	animationLeave := animation.NewAnimation(false, gween.NewSequence(
+		gween.New(0, 1, .5, ease.OutCubic),
+	))
+
 	setIcon, _ := widget.NewIcon(icons.ActionSettings)
 	buttonSetNode := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),
@@ -65,6 +76,9 @@ func NewPage() *Page {
 	pageAddNodeForm := NewPageAddNodeForm()
 	childRouter.Add("addNodeForm", pageAddNodeForm)
 
+	pageEditNodeForm := NewPageEditNodeForm()
+	childRouter.Add("editNodeForm", pageEditNodeForm)
+
 	pageIntegratedNode := NewPageIntegratedNode()
 	childRouter.Add("integratedNode", pageIntegratedNode)
 
@@ -73,21 +87,22 @@ func NewPage() *Page {
 	labelHeaderStyle.Font.Weight = font.Bold
 	header := prefabs.NewHeader(labelHeaderStyle, childRouter, nil)
 
-	page_instance = &PageInstance{
-		router: childRouter,
-		header: header,
-	}
-
-	childRouter.SetPrimary("selectNode")
-
-	return &Page{
+	page := &Page{
 		buttonSetNode:    buttonSetNode,
 		firstEnter:       true,
 		childRouter:      childRouter,
 		pageSelectNode:   pageSelectNode,
-		pageAddNodedForm: pageAddNodeForm,
+		pageAddNodeForm:  pageAddNodeForm,
+		pageEditNodeForm: pageEditNodeForm,
 		header:           header,
+
+		animationEnter: animationEnter,
+		animationLeave: animationLeave,
 	}
+	page_instance = page
+	childRouter.SetPrimary("selectNode")
+
+	return page
 }
 
 func (p *Page) IsActive() bool {
@@ -97,10 +112,13 @@ func (p *Page) IsActive() bool {
 func (p *Page) Enter() {
 	pages.BottomBarInstance.SetButtonActive("node")
 	p.isActive = true
+	p.animationEnter.Start()
+	p.animationLeave.Reset()
 }
 
 func (p *Page) Leave() {
-	p.isActive = false
+	p.animationEnter.Reset()
+	p.animationLeave.Start()
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -120,6 +138,26 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.pageSelectNode.buttonSetIntegratedNode.Clickable.Clicked() {
 		p.childRouter.SetCurrent("integratedNode")
+	}
+
+	{
+		state := p.animationEnter.Update(gtx)
+		if state.Active {
+			defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
+		}
+	}
+
+	{
+		state := p.animationLeave.Update(gtx)
+
+		if state.Active {
+			defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
+		}
+
+		if state.Finished {
+			p.isActive = false
+			op.InvalidateOp{}.Add(gtx.Ops)
+		}
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

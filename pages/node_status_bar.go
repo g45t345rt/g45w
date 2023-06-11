@@ -13,12 +13,12 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/node"
+	"github.com/g45t345rt/g45w/integrated_node"
 )
 
 type NodeStatusBar struct {
 	clickable  *widget.Clickable
-	nodeStatus *node.NodeStatus
+	nodeStatus *integrated_node.NodeStatus
 }
 
 var NodeStatusBarInstance *NodeStatusBar
@@ -26,7 +26,7 @@ var NodeStatusBarInstance *NodeStatusBar
 func LoadNodeStatusBarInstance() *NodeStatusBar {
 	nodeStatusBar := &NodeStatusBar{
 		clickable:  new(widget.Clickable),
-		nodeStatus: node.NewNodeStatus(1 * time.Second),
+		nodeStatus: integrated_node.NewNodeStatus(1 * time.Second),
 	}
 	NodeStatusBarInstance = nodeStatusBar
 	return nodeStatusBar

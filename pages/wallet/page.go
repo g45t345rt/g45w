@@ -46,12 +46,7 @@ type Page struct {
 
 var _ router.Container = &Page{}
 
-type PageInstance struct {
-	router *router.Router
-	header *prefabs.Header
-}
-
-var page_instance *PageInstance
+var page_instance *Page
 
 func NewPage() *Page {
 	th := app_instance.Theme
@@ -87,13 +82,6 @@ func NewPage() *Page {
 
 	header := prefabs.NewHeader(labelHeaderStyle, childRouter, buttonSettings)
 
-	page_instance = &PageInstance{
-		router: childRouter,
-		header: header,
-	}
-
-	childRouter.SetPrimary("balanceTokens")
-
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 
@@ -112,7 +100,7 @@ func NewPage() *Page {
 		infoModal.Layout(gtx, th)
 	})
 
-	return &Page{
+	page := &Page{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
@@ -124,6 +112,9 @@ func NewPage() *Page {
 		childRouter:       childRouter,
 		infoModal:         infoModal,
 	}
+	page_instance = page
+	childRouter.SetPrimary("balanceTokens")
+	return page
 }
 
 func (p *Page) SetCurrent(tag string) {
@@ -211,9 +202,9 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			}
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				//layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				//	return app_instance.NodeStatusBar.Layout(gtx, th)
-				//}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return pages.NodeStatusBarInstance.Layout(gtx, th)
+				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.RRect{
 						Rect: image.Rectangle{Max: gtx.Constraints.Max},

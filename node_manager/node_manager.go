@@ -14,7 +14,7 @@ type NodeInfo struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	Host string `json:"host"`
-	Port uint   `json:"port"`
+	Port uint64 `json:"port"`
 }
 
 type NodeManager struct {
@@ -46,7 +46,7 @@ func (n *NodeManager) LoadNodes() error {
 	path := filepath.Join(nodeDir, "list.json")
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.WriteFile(path, []byte("{}"), os.ModeAppend)
+		err = os.WriteFile(path, []byte("{}"), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -69,16 +69,21 @@ func (n *NodeManager) LoadNodes() error {
 	return nil
 }
 
-func (n *NodeManager) AddNode(name string, host string, port uint) error {
+func (n *NodeManager) AddNode(info NodeInfo) error {
 	id := fmt.Sprint(time.Now().Unix())
 	nodeInfo := NodeInfo{
 		ID:   id,
-		Name: name,
-		Host: host,
-		Port: port,
+		Name: info.Name,
+		Host: info.Host,
+		Port: info.Port,
 	}
 
 	n.UserNodes[nodeInfo.ID] = nodeInfo
+	return n.saveNodes()
+}
+
+func (n *NodeManager) EditNode(info NodeInfo) error {
+	n.UserNodes[info.ID] = info
 	return n.saveNodes()
 }
 
@@ -99,7 +104,7 @@ func (n *NodeManager) saveNodes() error {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(nodeDir, "list.json"), data, os.ModeAppend)
+	err = os.WriteFile(filepath.Join(nodeDir, "list.json"), data, os.ModePerm)
 	if err != nil {
 		return err
 	}
