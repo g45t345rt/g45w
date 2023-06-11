@@ -108,7 +108,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		if err == nil {
 			p.modalWalletPassword.Modal.SetVisible(false)
 			app_instance.Router.SetCurrent("page_wallet_select")
-			//wallet_manager.Instance.OpenedWallet = nil
+			wallet_manager.Instance.OpenedWallet = nil
 		} else {
 			p.modalWalletPassword.StartWrongPassAnimation()
 		}

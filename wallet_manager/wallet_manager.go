@@ -24,7 +24,6 @@ type WalletInfo struct {
 	Name string `json:"name"`
 	Addr string `json:"addr"`
 	Data []byte `json:"data"`
-	Path string
 }
 
 var Instance *WalletManager
@@ -71,7 +70,6 @@ func (w *WalletManager) LoadWallets() error {
 			return err
 		}
 
-		walletInfo.Path = path
 		w.Wallets[walletInfo.ID] = walletInfo
 		return nil
 	})
@@ -111,7 +109,9 @@ func (w *WalletManager) DeleteWallet(id string, password string) error {
 		return err
 	}
 
-	err = os.Remove(walletInfo.Path)
+	walletsDir := settings.Instance.WalletsDir
+	path := filepath.Join(walletsDir, fmt.Sprintf("%s.json", walletInfo.ID))
+	err = os.Remove(path)
 	if err != nil {
 		return err
 	}

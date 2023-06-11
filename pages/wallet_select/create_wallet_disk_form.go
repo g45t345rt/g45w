@@ -3,6 +3,7 @@ package page_wallet_select
 import (
 	"fmt"
 	"image/color"
+	"os"
 
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -13,6 +14,7 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -29,6 +31,10 @@ type PageCreateWalletDiskForm struct {
 	txtWalletName *components.TextField
 	txtPassword   *components.TextField
 	buttonLoad    *components.Button
+	errorModal    *components.NotificationModal
+	successModal  *components.NotificationModal
+
+	walletPath string
 }
 
 var _ router.Container = &PageCreateWalletDiskForm{}
@@ -65,6 +71,16 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
+	w := app_instance.Window
+	errorModal := components.NewNotificationErrorModal(w)
+	successModal := components.NewNotificationSuccessModal(w)
+
+	router := app_instance.Router
+	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+		errorModal.Layout(gtx, th)
+		successModal.Layout(gtx, th)
+	})
+
 	return &PageCreateWalletDiskForm{
 		listStyle:      listStyle,
 		animationEnter: animationEnter,
@@ -73,6 +89,9 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 		txtWalletName: txtWalletName,
 		txtPassword:   txtPassword,
 		buttonLoad:    buttonLoad,
+
+		errorModal:   errorModal,
+		successModal: successModal,
 	}
 }
 
@@ -82,9 +101,15 @@ func (p *PageCreateWalletDiskForm) Enter() {
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
-	_, err := app_instance.Explorer.ChooseFile()
+	read, err := app_instance.Explorer.ChooseFile()
 	if err != nil {
 		fmt.Println(err)
+	}
+
+	switch f := read.(type) {
+	case *os.File:
+		p.walletPath = f.Name()
+	default:
 	}
 }
 
@@ -118,10 +143,21 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	}
 
 	if p.buttonLoad.Clickable.Clicked() {
-
+		err := p.submitForm()
+		if err != nil {
+			p.errorModal.SetText("Error", err.Error())
+			p.errorModal.SetVisible(true)
+		} else {
+			p.successModal.SetText("Success", "Wallet loaded successfully")
+			p.successModal.SetVisible(true)
+		}
 	}
 
 	widgets := []layout.Widget{
+		func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), p.walletPath)
+			return lbl.Layout(gtx)
+		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtPassword.Layout(gtx, th)
 		},
@@ -139,4 +175,20 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageCreateWalletDiskForm) submitForm() error {
+	txtName := p.txtWalletName.EditorStyle.Editor
+	txtPassword := p.txtPassword.EditorStyle.Editor
+
+	if txtName.Text() == "" {
+		return fmt.Errorf("enter wallet name")
+	}
+
+	err := wallet_manager.Instance.CreateWalletFromPath(txtName.Text(), txtPassword.Text(), p.walletPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
