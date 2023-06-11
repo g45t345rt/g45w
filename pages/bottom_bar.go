@@ -1,9 +1,12 @@
 package pages
 
 import (
+	"fmt"
+	"image"
 	"image/color"
 
 	"gioui.org/f32"
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -124,6 +127,8 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		Max: gtx.Constraints.Max,
 	}.Op())
 
+	BottomBarTopWallet{}.Layout(gtx, th)
+
 	if wallet_manager.Instance.OpenedWallet != nil {
 		b.buttonClose.button.Disabled = false
 		if b.buttonClose.button.Clickable.Clicked() {
@@ -212,4 +217,40 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 
 	return b.button.Layout(gtx, th)
+}
+
+type BottomBarTopWallet struct{}
+
+func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
+	openedWallet := wallet_manager.Instance.OpenedWallet
+	if openedWallet == nil {
+		return
+	}
+
+	layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		r := op.Record(gtx.Ops)
+		dims := layout.Inset{
+			Top: unit.Dp(6), Bottom: unit.Dp(6),
+			Left: unit.Dp(10), Right: unit.Dp(10),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(14), fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
+			lbl.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
+		})
+		c := r.Stop()
+
+		x := float32(gtx.Dp(unit.Dp(dims.Size.X) / 2))
+		y := float32(gtx.Dp(unit.Dp(dims.Size.Y) / 2))
+		offset := f32.Pt(-x, -y)
+		defer op.Affine(f32.Affine2D{}.Offset(offset)).Push(gtx.Ops).Pop()
+
+		paint.FillShape(gtx.Ops, color.NRGBA{A: 255}, clip.UniformRRect(
+			image.Rect(0, 0, dims.Size.X, dims.Size.Y),
+			gtx.Dp(5),
+		).Op(gtx.Ops))
+
+		c.Add(gtx.Ops)
+		return layout.Dimensions{}
+	})
 }
