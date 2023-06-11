@@ -14,6 +14,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -32,9 +33,6 @@ type PageAddNodeForm struct {
 	txtHost       *components.TextField
 	txtName       *components.TextField
 	txtPort       *components.TextField
-
-	successModal *components.NotificationModal
-	errorModal   *components.NotificationModal
 
 	listStyle material.ListStyle
 }
@@ -76,16 +74,6 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	txtHost := components.NewTextField(th, "Host", "node.dero.io")
 	txtPort := components.NewTextField(th, "Port", "10102")
 
-	w := app_instance.Window
-	errorModal := components.NewNotificationErrorModal(w)
-	successModal := components.NewNotificationSuccessModal(w)
-
-	router := app_instance.Router
-	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		errorModal.Layout(gtx, th)
-		successModal.Layout(gtx, th)
-	})
-
 	return &PageAddNodeForm{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -94,9 +82,6 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 		txtName:       txtName,
 		txtHost:       txtHost,
 		txtPort:       txtPort,
-
-		errorModal:   errorModal,
-		successModal: successModal,
 
 		listStyle: listStyle,
 	}
@@ -141,11 +126,11 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	if p.buttonAddNode.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			p.errorModal.SetText("Error", err.Error())
-			p.errorModal.SetVisible(true)
+			pages.ErrorModalInstance.SetText("Error", err.Error())
+			pages.ErrorModalInstance.SetVisible(true)
 		} else {
-			p.successModal.SetText("Success", "new noded added")
-			p.successModal.SetVisible(true)
+			pages.SuccessModalInstance.SetText("Success", "new noded added")
+			pages.SuccessModalInstance.SetVisible(true)
 		}
 	}
 

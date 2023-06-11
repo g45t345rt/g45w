@@ -14,6 +14,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -34,9 +35,6 @@ type PageEditNodeForm struct {
 	txtName          *components.TextField
 	txtPort          *components.TextField
 	nodeInfo         node_manager.NodeInfo
-
-	successModal *components.NotificationModal
-	errorModal   *components.NotificationModal
 
 	listStyle material.ListStyle
 }
@@ -78,16 +76,6 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	txtHost := components.NewTextField(th, "Host", "node.dero.io")
 	txtPort := components.NewTextField(th, "Port", "10102")
 
-	w := app_instance.Window
-	errorModal := components.NewNotificationErrorModal(w)
-	successModal := components.NewNotificationSuccessModal(w)
-
-	router := app_instance.Router
-	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		errorModal.Layout(gtx, th)
-		successModal.Layout(gtx, th)
-	})
-
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteNode := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),
@@ -112,9 +100,6 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 		txtName:          txtName,
 		txtHost:          txtHost,
 		txtPort:          txtPort,
-
-		errorModal:   errorModal,
-		successModal: successModal,
 
 		listStyle: listStyle,
 	}
@@ -163,22 +148,22 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	if p.buttonEditNode.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			p.errorModal.SetText("Error", err.Error())
-			p.errorModal.SetVisible(true)
+			pages.ErrorModalInstance.SetText("Error", err.Error())
+			pages.ErrorModalInstance.SetVisible(true)
 		} else {
-			p.successModal.SetText("Success", "new noded added")
-			p.successModal.SetVisible(true)
+			pages.SuccessModalInstance.SetText("Success", "new noded added")
+			pages.SuccessModalInstance.SetVisible(true)
 		}
 	}
 
 	if p.buttonDeleteNode.Clickable.Clicked() {
 		err := node_manager.Instance.DelNode(p.nodeInfo.ID)
 		if err != nil {
-			p.errorModal.SetText("Error", err.Error())
-			p.errorModal.SetVisible(true)
+			pages.ErrorModalInstance.SetText("Error", err.Error())
+			pages.ErrorModalInstance.SetVisible(true)
 		} else {
-			p.successModal.SetText("Success", "node deleted")
-			p.successModal.SetVisible(true)
+			pages.SuccessModalInstance.SetText("Success", "node deleted")
+			pages.SuccessModalInstance.SetVisible(true)
 		}
 	}
 

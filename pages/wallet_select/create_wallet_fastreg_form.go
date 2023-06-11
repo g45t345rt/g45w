@@ -20,6 +20,7 @@ import (
 	"github.com/deroproject/derohe/walletapi/mnemonics"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/fastreg"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -40,9 +41,6 @@ type PageCreateWalletFastRegForm struct {
 	txtThreadCount *components.TextField
 	buttonStart    *components.Button
 	buttonStop     *components.Button
-
-	successModal *components.NotificationModal
-	errorModal   *components.NotificationModal
 
 	fastRegSearch *fastreg.Search
 }
@@ -94,14 +92,6 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 	})
 
 	w := app_instance.Window
-	errorModal := components.NewNotificationErrorModal(w)
-	successModal := components.NewNotificationSuccessModal(w)
-
-	router := app_instance.Router
-	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		errorModal.Layout(gtx, th)
-		successModal.Layout(gtx, th)
-	})
 
 	fastRegSearch := fastreg.NewSearch()
 	fastRegSearch.OnFound = func(tx *transaction.Transaction, secret *big.Int) {
@@ -117,8 +107,8 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		}
 
 		fmt.Println(result)
-		successModal.SetText("Success", "New wallet created.")
-		successModal.SetVisible(true)
+		pages.SuccessModalInstance.SetText("Success", "New wallet created.")
+		pages.SuccessModalInstance.SetVisible(true)
 		w.Invalidate()
 	}
 
@@ -140,8 +130,6 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		buttonStart:    buttonStart,
 		buttonStop:     buttonStop,
 
-		successModal:  successModal,
-		errorModal:    errorModal,
 		fastRegSearch: fastRegSearch,
 	}
 }
@@ -186,8 +174,8 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 	if p.buttonStart.Clickable.Clicked() {
 		err := p.startRegistration()
 		if err != nil {
-			p.errorModal.SetText("Error", err.Error())
-			p.errorModal.SetVisible(true)
+			pages.ErrorModalInstance.SetText("Error", err.Error())
+			pages.ErrorModalInstance.SetVisible(true)
 		}
 	}
 

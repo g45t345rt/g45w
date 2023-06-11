@@ -91,12 +91,9 @@ func main() {
 	app_instance.Router = router
 	app_instance.Explorer = explorer
 
-	// page instance (bottom_bar,node_status_bar)
-	//BottomBar: pages.NewBottomBar(window, router, theme),
-	//NodeStatusBar: pages:
-
 	pages.LoadBottomBarInstance()
 	pages.LoadNodeStatusBarInstance()
+	pages.LoadNotificationsInstance()
 
 	router.Add("page_settings", page_settings.NewPage())
 	router.Add("page_node", page_node.NewPage())

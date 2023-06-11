@@ -10,6 +10,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -32,9 +33,6 @@ type PageCreateWalletSeedForm struct {
 	txtPassword        *components.TextField
 	txtConfirmPassword *components.TextField
 	buttonCreate       *components.Button
-
-	successModal *components.NotificationModal
-	errorModal   *components.NotificationModal
 }
 
 var _ router.Container = &PageCreateWalletSeedForm{}
@@ -77,16 +75,6 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
-	w := app_instance.Window
-	errorModal := components.NewNotificationErrorModal(w)
-	successModal := components.NewNotificationSuccessModal(w)
-
-	router := app_instance.Router
-	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		errorModal.Layout(gtx, th)
-		successModal.Layout(gtx, th)
-	})
-
 	return &PageCreateWalletSeedForm{
 		listStyle:      listStyle,
 		animationEnter: animationEnter,
@@ -97,9 +85,6 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 		txtPassword:        txtPassword,
 		txtConfirmPassword: txtConfirmPassword,
 		buttonCreate:       buttonCreate,
-
-		successModal: successModal,
-		errorModal:   errorModal,
 	}
 }
 
@@ -142,11 +127,11 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 	if p.buttonCreate.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			p.errorModal.SetText("Error", err.Error())
-			p.errorModal.SetVisible(true)
+			pages.ErrorModalInstance.SetText("Error", err.Error())
+			pages.ErrorModalInstance.SetVisible(true)
 		} else {
-			p.successModal.SetText("Success", "New wallet created")
-			p.successModal.SetVisible(true)
+			pages.SuccessModalInstance.SetText("Success", "New wallet created")
+			pages.SuccessModalInstance.SetVisible(true)
 		}
 	}
 
