@@ -13,6 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/integrated_node"
 )
 
@@ -47,7 +48,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if n.clickable.Clicked() {
-		//app_instance.Router.SetCurrent("page_node")
+		app_instance.Router.SetCurrent("page_node")
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
