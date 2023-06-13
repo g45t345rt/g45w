@@ -41,7 +41,7 @@ type Page struct {
 	animationLeave *animation.Animation
 }
 
-var _ router.Container = &Page{}
+var _ router.Page = &Page{}
 
 var page_instance *Page
 

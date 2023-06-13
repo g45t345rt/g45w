@@ -34,7 +34,7 @@ type PageCreateWalletForm struct {
 	buttonCreate       *components.Button
 }
 
-var _ router.Container = &PageCreateWalletForm{}
+var _ router.Page = &PageCreateWalletForm{}
 
 func NewPageCreateWalletForm() *PageCreateWalletForm {
 	th := app_instance.Theme

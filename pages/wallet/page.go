@@ -45,7 +45,7 @@ type Page struct {
 	infoModal   *components.NotificationModal
 }
 
-var _ router.Container = &Page{}
+var _ router.Page = &Page{}
 
 var page_instance *Page
 

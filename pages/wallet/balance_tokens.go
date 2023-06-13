@@ -43,7 +43,7 @@ type PageBalanceTokens struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageBalanceTokens{}
+var _ router.Page = &PageBalanceTokens{}
 
 func NewPageBalanceTokens() *PageBalanceTokens {
 	th := app_instance.Theme

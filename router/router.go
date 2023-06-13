@@ -8,17 +8,17 @@ import (
 )
 
 type Router struct {
-	Containers map[interface{}]Container // does not keep ordering with range (use drawOrder)
-	Current    interface{}
-	Primary    interface{}
-	drawOrder  []interface{}
+	Pages     map[interface{}]Page // does not keep ordering with range (use drawOrder)
+	Current   interface{}
+	Primary   interface{}
+	drawOrder []interface{}
 
 	layouts []func(gtx layout.Context, th *material.Theme)
 }
 
 func NewRouter() *Router {
 	return &Router{
-		Containers: make(map[interface{}]Container),
+		Pages: make(map[interface{}]Page),
 	}
 }
 
@@ -26,8 +26,8 @@ func (router *Router) IsPrimary() bool {
 	return router.Primary == router.Current
 }
 
-func (router *Router) Add(tag interface{}, container Container) {
-	router.Containers[tag] = container
+func (router *Router) Add(tag interface{}, page Page) {
+	router.Pages[tag] = page
 	router.drawOrder = append(router.drawOrder, tag)
 }
 
@@ -37,18 +37,18 @@ func (router *Router) SetPrimary(tag interface{}) {
 }
 
 func (router *Router) SetCurrent(tag interface{}) {
-	_, ok := router.Containers[tag]
+	_, ok := router.Pages[tag]
 	if ok {
 		if router.Current == tag {
 			return
 		}
 
 		if router.Current != nil {
-			router.Containers[router.Current].Leave()
+			router.Pages[router.Current].Leave()
 		}
 
 		router.Current = tag
-		router.Containers[router.Current].Enter()
+		router.Pages[router.Current].Enter()
 	} else {
 		log.Fatalf("container does not exists [%s]", tag)
 	}
@@ -60,7 +60,7 @@ func (router *Router) PushLayout(layout func(gtx layout.Context, th *material.Th
 
 func (router *Router) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	for _, tag := range router.drawOrder {
-		page := router.Containers[tag]
+		page := router.Pages[tag]
 		if page.IsActive() {
 			page.Layout(gtx, th)
 		}

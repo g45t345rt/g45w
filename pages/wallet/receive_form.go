@@ -37,7 +37,7 @@ type PageReceiveForm struct {
 	addrImage *components.Image
 }
 
-var _ router.Container = &PageReceiveForm{}
+var _ router.Page = &PageReceiveForm{}
 
 func NewPageReceiveForm() *PageReceiveForm {
 	th := app_instance.Theme

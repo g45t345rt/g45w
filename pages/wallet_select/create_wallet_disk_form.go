@@ -36,7 +36,7 @@ type PageCreateWalletDiskForm struct {
 	walletPath string
 }
 
-var _ router.Container = &PageCreateWalletDiskForm{}
+var _ router.Page = &PageCreateWalletDiskForm{}
 
 func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 	th := app_instance.Theme

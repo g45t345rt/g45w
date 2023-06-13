@@ -45,7 +45,7 @@ type PageCreateWalletFastRegForm struct {
 	fastRegSearch *fastreg.Search
 }
 
-var _ router.Container = &PageCreateWalletFastRegForm{}
+var _ router.Page = &PageCreateWalletFastRegForm{}
 
 func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 	th := app_instance.Theme

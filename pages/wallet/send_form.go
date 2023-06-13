@@ -38,7 +38,7 @@ type PageSendForm struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageSendForm{}
+var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
 	th := app_instance.Theme

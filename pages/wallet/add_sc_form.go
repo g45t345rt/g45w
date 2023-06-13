@@ -31,7 +31,7 @@ type PageAddSCForm struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageAddSCForm{}
+var _ router.Page = &PageAddSCForm{}
 
 func NewPageAddSCForm() *PageAddSCForm {
 	th := app_instance.Theme

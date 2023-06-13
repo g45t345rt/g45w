@@ -37,7 +37,7 @@ type PageAddNodeForm struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageAddNodeForm{}
+var _ router.Page = &PageAddNodeForm{}
 
 func NewPageAddNodeForm() *PageAddNodeForm {
 	th := app_instance.Theme

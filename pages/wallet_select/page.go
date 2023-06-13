@@ -32,7 +32,7 @@ type Page struct {
 	childRouter *router.Router
 }
 
-var _ router.Container = &Page{}
+var _ router.Page = &Page{}
 
 var page_instance *Page
 

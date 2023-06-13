@@ -33,7 +33,7 @@ type PageSettings struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageSettings{}
+var _ router.Page = &PageSettings{}
 
 func NewPageSettings() *PageSettings {
 	th := app_instance.Theme

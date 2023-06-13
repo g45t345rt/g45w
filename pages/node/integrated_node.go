@@ -29,7 +29,7 @@ type PageIntegratedNode struct {
 	nodeStatus *integrated_node.NodeStatus
 }
 
-var _ router.Container = &PageIntegratedNode{}
+var _ router.Page = &PageIntegratedNode{}
 
 func NewPageIntegratedNode() *PageIntegratedNode {
 	hubIcon, _ := widget.NewIcon(icons.HardwareDeviceHub)

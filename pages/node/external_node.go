@@ -24,7 +24,7 @@ type PageExternalNode struct {
 	hubIcon *widget.Icon
 }
 
-var _ router.Container = &PageExternalNode{}
+var _ router.Page = &PageExternalNode{}
 
 func NewPageExternalNode() *PageExternalNode {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(

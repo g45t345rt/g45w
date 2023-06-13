@@ -22,7 +22,7 @@ type Page struct {
 	isActive bool
 }
 
-var _ router.Container = &Page{}
+var _ router.Page = &Page{}
 
 func New() *Page {
 	return &Page{}

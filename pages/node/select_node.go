@@ -38,7 +38,7 @@ type PageSelectNode struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageSelectNode{}
+var _ router.Page = &PageSelectNode{}
 
 func NewPageSelectNode() *PageSelectNode {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(

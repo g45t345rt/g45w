@@ -39,7 +39,7 @@ type PageEditNodeForm struct {
 	listStyle material.ListStyle
 }
 
-var _ router.Container = &PageEditNodeForm{}
+var _ router.Page = &PageEditNodeForm{}
 
 func NewPageEditNodeForm() *PageEditNodeForm {
 	th := app_instance.Theme

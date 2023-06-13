@@ -45,7 +45,7 @@ type PageSelectWallet struct {
 	currentWallet *wallet_manager.WalletInfo
 }
 
-var _ router.Container = &PageSelectWallet{}
+var _ router.Page = &PageSelectWallet{}
 
 func NewPageSelectWallet() *PageSelectWallet {
 	theme := app_instance.Theme

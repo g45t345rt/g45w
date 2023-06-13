@@ -35,7 +35,7 @@ type PageCreateWalletHexSeedForm struct {
 	buttonCreate       *components.Button
 }
 
-var _ router.Container = &PageCreateWalletHexSeedForm{}
+var _ router.Page = &PageCreateWalletHexSeedForm{}
 
 func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 	th := app_instance.Theme
