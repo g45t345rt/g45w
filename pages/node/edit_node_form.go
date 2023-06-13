@@ -2,12 +2,15 @@ package page_node
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"strconv"
 
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -35,6 +38,8 @@ type PageEditNodeForm struct {
 	txtName          *components.TextField
 	txtPort          *components.TextField
 	nodeInfo         node_manager.NodeInfo
+
+	confirmDelete *components.Confirm
 
 	listStyle material.ListStyle
 }
@@ -91,6 +96,12 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonDeleteNode.Label.Alignment = text.Middle
 	buttonDeleteNode.Style.Font.Weight = font.Bold
 
+	w := app_instance.Window
+	confirmDelete := components.NewConfirm(w, "Are you sure?", th, layout.Center)
+	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+		confirmDelete.Layout(gtx, th)
+	})
+
 	return &PageEditNodeForm{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -100,6 +111,8 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 		txtName:          txtName,
 		txtHost:          txtHost,
 		txtPort:          txtPort,
+
+		confirmDelete: confirmDelete,
 
 		listStyle: listStyle,
 	}
@@ -151,12 +164,16 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "new noded added")
+			notification_modals.SuccessInstance.SetText("Success", "successfully saved")
 			notification_modals.SuccessInstance.SetVisible(true)
 		}
 	}
 
 	if p.buttonDeleteNode.Clickable.Clicked() {
+		p.confirmDelete.SetVisible(true)
+	}
+
+	if p.confirmDelete.ClickedYes() {
 		err := node_manager.Instance.DelNode(p.nodeInfo.ID)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -164,6 +181,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		} else {
 			notification_modals.SuccessInstance.SetText("Success", "node deleted")
 			notification_modals.SuccessInstance.SetVisible(true)
+			page_instance.childRouter.SetCurrent(PAGE_SELECT_NODE)
 		}
 	}
 
@@ -179,6 +197,14 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.buttonEditNode.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			max := image.Pt(gtx.Dp(unit.Dp(gtx.Constraints.Max.X)), 5)
+			paint.FillShape(gtx.Ops, color.NRGBA{A: 150}, clip.Rect{
+				Min: image.Pt(0, 0),
+				Max: max,
+			}.Op())
+			return layout.Dimensions{Size: max}
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.buttonDeleteNode.Layout(gtx, th)

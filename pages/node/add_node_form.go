@@ -131,6 +131,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		} else {
 			notification_modals.SuccessInstance.SetText("Success", "new noded added")
 			notification_modals.SuccessInstance.SetVisible(true)
+			page_instance.childRouter.SetCurrent(PAGE_SELECT_NODE)
 		}
 	}
 

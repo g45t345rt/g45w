@@ -26,6 +26,7 @@ import (
 )
 
 type PageSelectNode struct {
+	firstEnter              bool
 	isActive                bool
 	animationEnter          *animation.Animation
 	animationLeave          *animation.Animation
@@ -87,6 +88,7 @@ func NewPageSelectNode() *PageSelectNode {
 		userNodeList:            userNodeList,
 		buttonSetIntegratedNode: buttonSetIntegratedNode,
 		buttonAddNode:           buttonAddNode,
+		firstEnter:              true,
 	}
 }
 
@@ -98,9 +100,13 @@ func (p *PageSelectNode) Enter() {
 	p.isActive = true
 
 	page_instance.header.SetTitle("Select Node")
-	p.animationLeave.Reset()
-	p.animationEnter.Start()
+	if !p.firstEnter {
+		p.animationLeave.Reset()
+		p.animationEnter.Start()
+	}
+
 	p.Load()
+	p.firstEnter = false
 }
 
 func (p *PageSelectNode) Leave() {
