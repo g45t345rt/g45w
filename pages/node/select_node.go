@@ -208,7 +208,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	for _, item := range p.userNodeList.items {
 		if item.EditClicked() {
 			page_instance.pageEditNodeForm.nodeInfo = item.nodeInfo
-			page_instance.childRouter.SetCurrent(PAGE_EDIT_NODE_FORM)
+			page_instance.router.SetCurrent(PAGE_EDIT_NODE_FORM)
 		}
 	}
 

@@ -29,7 +29,7 @@ type Page struct {
 	header           *prefabs.Header
 	pageSelectWallet *PageSelectWallet
 
-	childRouter *router.Router
+	router *router.Router
 }
 
 var _ router.Page = &Page{}
@@ -54,41 +54,41 @@ func New() *Page {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
-	childRouter := router.NewRouter()
+	router := router.NewRouter()
 
 	pageSelectWallet := NewPageSelectWallet()
-	childRouter.Add(PAGE_SELECT_WALLET, pageSelectWallet)
+	router.Add(PAGE_SELECT_WALLET, pageSelectWallet)
 
 	pageCreateWalletForm := NewPageCreateWalletForm()
-	childRouter.Add(PAGE_CREATE_WALLET_FORM, pageCreateWalletForm)
+	router.Add(PAGE_CREATE_WALLET_FORM, pageCreateWalletForm)
 
 	pageCreateWalletSeedForm := NewPageCreateWalletSeedForm()
-	childRouter.Add(PAGE_CREATE_WALLET_SEED_FORM, pageCreateWalletSeedForm)
+	router.Add(PAGE_CREATE_WALLET_SEED_FORM, pageCreateWalletSeedForm)
 
 	pageCreateWalletHexSeedForm := NewPageCreateWalletHexSeedForm()
-	childRouter.Add(PAGE_CREATE_WALLET_HEXSEED_FORM, pageCreateWalletHexSeedForm)
+	router.Add(PAGE_CREATE_WALLET_HEXSEED_FORM, pageCreateWalletHexSeedForm)
 
 	pageCreateWalletFastRegForm := NewPageCreateWalletFastRegForm()
-	childRouter.Add(PAGE_CREATE_WALLET_FASTREG_FORM, pageCreateWalletFastRegForm)
+	router.Add(PAGE_CREATE_WALLET_FASTREG_FORM, pageCreateWalletFastRegForm)
 
 	pageCreateWalletDiskForm := NewPageCreateWalletDiskForm()
-	childRouter.Add(PAGE_CREATE_WALLET_DISK_FORM, pageCreateWalletDiskForm)
+	router.Add(PAGE_CREATE_WALLET_DISK_FORM, pageCreateWalletDiskForm)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, childRouter, nil)
+	header := prefabs.NewHeader(labelHeaderStyle, router, nil)
 
 	page := &Page{
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
-		childRouter:      childRouter,
+		router:           router,
 		header:           header,
 		pageSelectWallet: pageSelectWallet,
 	}
 
 	page_instance = page
-	childRouter.SetPrimary(PAGE_SELECT_WALLET)
+	router.SetPrimary(PAGE_SELECT_WALLET)
 
 	return page
 }
@@ -153,7 +153,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					})
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return p.childRouter.Layout(gtx, th)
+					return p.router.Layout(gtx, th)
 				}),
 			)
 		}),

@@ -15,11 +15,11 @@ import (
 type Header struct {
 	LabelTitle  material.LabelStyle
 	buttonBack  *components.Button
-	childRouter *router.Router
+	router      *router.Router
 	ButtonRight *components.Button
 }
 
-func NewHeader(labelTitle material.LabelStyle, childRouter *router.Router, buttonRight *components.Button) *Header {
+func NewHeader(labelTitle material.LabelStyle, router *router.Router, buttonRight *components.Button) *Header {
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 
@@ -33,7 +33,7 @@ func NewHeader(labelTitle material.LabelStyle, childRouter *router.Router, butto
 	return &Header{
 		LabelTitle:  labelTitle,
 		buttonBack:  buttonBack,
-		childRouter: childRouter,
+		router:      router,
 		ButtonRight: buttonRight,
 	}
 }
@@ -44,7 +44,7 @@ func (h *Header) SetTitle(title string) {
 
 func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout.Widget) layout.Dimensions {
 	if h.buttonBack.Clickable.Clicked() {
-		h.childRouter.SetCurrent(h.childRouter.Primary)
+		h.router.SetCurrent(h.router.Primary)
 	}
 
 	return layout.Flex{
@@ -52,7 +52,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 		Alignment: layout.Middle,
 	}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if !h.childRouter.IsPrimary() {
+			if !h.router.IsPrimary() {
 				gtx.Constraints.Min.X = gtx.Dp(30)
 				gtx.Constraints.Min.Y = gtx.Dp(30)
 			} else {
@@ -62,7 +62,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 			return h.buttonBack.Layout(gtx, th)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if !h.childRouter.IsPrimary() {
+			if !h.router.IsPrimary() {
 				return layout.Spacer{Width: unit.Dp(10)}.Layout(gtx)
 			}
 

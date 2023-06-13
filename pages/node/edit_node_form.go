@@ -181,7 +181,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		} else {
 			notification_modals.SuccessInstance.SetText("Success", "node deleted")
 			notification_modals.SuccessInstance.SetVisible(true)
-			page_instance.childRouter.SetCurrent(PAGE_SELECT_NODE)
+			page_instance.router.SetCurrent(PAGE_SELECT_NODE)
 		}
 	}
 

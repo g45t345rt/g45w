@@ -18,8 +18,7 @@ func LoadInstance() {
 	SuccessInstance = components.NewNotificationSuccessModal(w)
 	InfoInstance = components.NewNotificationInfoModal(w)
 
-	router := app_instance.Router
-	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		SuccessInstance.Layout(gtx, th)
 		ErrorInstance.Layout(gtx, th)
 		InfoInstance.Layout(gtx, th)

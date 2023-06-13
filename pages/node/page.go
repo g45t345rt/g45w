@@ -30,7 +30,7 @@ type Page struct {
 	firstEnter bool
 
 	buttonSetNode *components.Button
-	childRouter   *router.Router
+	router        *router.Router
 
 	pageSelectNode   *PageSelectNode
 	pageAddNodeForm  *PageAddNodeForm
@@ -76,28 +76,28 @@ func New() *Page {
 	buttonSetNode.Label.Alignment = text.Middle
 	buttonSetNode.Style.Font.Weight = font.Bold
 
-	childRouter := router.NewRouter()
+	router := router.NewRouter()
 	pageSelectNode := NewPageSelectNode()
-	childRouter.Add(PAGE_SELECT_NODE, pageSelectNode)
+	router.Add(PAGE_SELECT_NODE, pageSelectNode)
 
 	pageAddNodeForm := NewPageAddNodeForm()
-	childRouter.Add(PAGE_ADD_NODE_FORM, pageAddNodeForm)
+	router.Add(PAGE_ADD_NODE_FORM, pageAddNodeForm)
 
 	pageEditNodeForm := NewPageEditNodeForm()
-	childRouter.Add(PAGE_EDIT_NODE_FORM, pageEditNodeForm)
+	router.Add(PAGE_EDIT_NODE_FORM, pageEditNodeForm)
 
 	pageIntegratedNode := NewPageIntegratedNode()
-	childRouter.Add(PAGE_INTEGRATED_NODE, pageIntegratedNode)
+	router.Add(PAGE_INTEGRATED_NODE, pageIntegratedNode)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, childRouter, nil)
+	header := prefabs.NewHeader(labelHeaderStyle, router, nil)
 
 	page := &Page{
 		buttonSetNode:    buttonSetNode,
 		firstEnter:       true,
-		childRouter:      childRouter,
+		router:           router,
 		pageSelectNode:   pageSelectNode,
 		pageAddNodeForm:  pageAddNodeForm,
 		pageEditNodeForm: pageEditNodeForm,
@@ -107,7 +107,7 @@ func New() *Page {
 		animationLeave: animationLeave,
 	}
 	page_instance = page
-	childRouter.SetPrimary(PAGE_SELECT_NODE)
+	router.SetPrimary(PAGE_SELECT_NODE)
 
 	return page
 }
@@ -140,11 +140,11 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	paint.PaintOp{}.Add(gtx.Ops)
 
 	if p.pageSelectNode.buttonAddNode.Clickable.Clicked() {
-		p.childRouter.SetCurrent(PAGE_ADD_NODE_FORM)
+		p.router.SetCurrent(PAGE_ADD_NODE_FORM)
 	}
 
 	if p.pageSelectNode.buttonSetIntegratedNode.Clickable.Clicked() {
-		p.childRouter.SetCurrent(PAGE_INTEGRATED_NODE)
+		p.router.SetCurrent(PAGE_INTEGRATED_NODE)
 	}
 
 	{
@@ -177,7 +177,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			})
 		}),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return p.childRouter.Layout(gtx, th)
+			return p.router.Layout(gtx, th)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return bottom_bar.Instance.Layout(gtx, th)

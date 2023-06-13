@@ -41,8 +41,8 @@ type Page struct {
 	pageBalanceTokens *PageBalanceTokens
 	pageSendForm      *PageSendForm
 
-	childRouter *router.Router
-	infoModal   *components.NotificationModal
+	router    *router.Router
+	infoModal *components.NotificationModal
 }
 
 var _ router.Page = &Page{}
@@ -68,17 +68,17 @@ func New() *Page {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
-	childRouter := router.NewRouter()
+	router := router.NewRouter()
 	pageBalanceTokens := NewPageBalanceTokens()
-	childRouter.Add(PAGE_BALANCE_TOKENS, pageBalanceTokens)
+	router.Add(PAGE_BALANCE_TOKENS, pageBalanceTokens)
 	pageSendForm := NewPageSendForm()
-	childRouter.Add(PAGE_SEND_FORM, pageSendForm)
+	router.Add(PAGE_SEND_FORM, pageSendForm)
 	pageReceiveForm := NewPageReceiveForm()
-	childRouter.Add(PAGE_RECEIVE_FORM, pageReceiveForm)
+	router.Add(PAGE_RECEIVE_FORM, pageReceiveForm)
 	pageSettings := NewPageSettings()
-	childRouter.Add(PAGE_SETTINGS, pageSettings)
+	router.Add(PAGE_SETTINGS, pageSettings)
 	pageAddSCForm := NewPageAddSCForm()
-	childRouter.Add(PAGE_ADD_SC_FORM, pageAddSCForm)
+	router.Add(PAGE_ADD_SC_FORM, pageAddSCForm)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
@@ -89,7 +89,7 @@ func New() *Page {
 		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 	})
 
-	header := prefabs.NewHeader(labelHeaderStyle, childRouter, buttonSettings)
+	header := prefabs.NewHeader(labelHeaderStyle, router, buttonSettings)
 
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
@@ -104,8 +104,7 @@ func New() *Page {
 	w := app_instance.Window
 	infoModal := components.NewNotificationInfoModal(w)
 
-	router := app_instance.Router
-	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
+	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
 		infoModal.Layout(gtx, th)
 	})
 
@@ -118,16 +117,16 @@ func New() *Page {
 		buttonCopyAddr:    buttonCopyAddr,
 		pageBalanceTokens: pageBalanceTokens,
 		pageSendForm:      pageSendForm,
-		childRouter:       childRouter,
+		router:            router,
 		infoModal:         infoModal,
 	}
 	page_instance = page
-	childRouter.SetPrimary(PAGE_BALANCE_TOKENS)
+	router.SetPrimary(PAGE_BALANCE_TOKENS)
 	return page
 }
 
 func (p *Page) SetCurrent(tag string) {
-	p.childRouter.SetCurrent(tag)
+	p.router.SetCurrent(tag)
 }
 
 func (p *Page) IsActive() bool {
@@ -165,19 +164,19 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
-		p.childRouter.SetCurrent(PAGE_SEND_FORM)
+		p.router.SetCurrent(PAGE_SEND_FORM)
 	}
 
 	if p.pageBalanceTokens.displayBalance.buttonReceive.Clickable.Clicked() {
-		p.childRouter.SetCurrent(PAGE_RECEIVE_FORM)
+		p.router.SetCurrent(PAGE_RECEIVE_FORM)
 	}
 
 	if p.pageBalanceTokens.tokenBar.buttonAddToken.Clickable.Clicked() {
-		p.childRouter.SetCurrent(PAGE_ADD_SC_FORM)
+		p.router.SetCurrent(PAGE_ADD_SC_FORM)
 	}
 
 	if p.header.ButtonRight.Clickable.Clicked() {
-		p.childRouter.SetCurrent(PAGE_SETTINGS)
+		p.router.SetCurrent(PAGE_SETTINGS)
 	}
 
 	if p.buttonCopyAddr.Clickable.Clicked() {
@@ -255,7 +254,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					})
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return p.childRouter.Layout(gtx, th)
+					return p.router.Layout(gtx, th)
 				}),
 			)
 		}),
