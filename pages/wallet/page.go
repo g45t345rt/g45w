@@ -17,7 +17,8 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -48,7 +49,15 @@ var _ router.Container = &Page{}
 
 var page_instance *Page
 
-func NewPage() *Page {
+var (
+	PAGE_SETTINGS       = "page_settings"
+	PAGE_SEND_FORM      = "page_send_form"
+	PAGE_RECEIVE_FORM   = "page_receive_form"
+	PAGE_BALANCE_TOKENS = "page_balance_tokens"
+	PAGE_ADD_SC_FORM    = "page_add_sc_form"
+)
+
+func New() *Page {
 	th := app_instance.Theme
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -61,15 +70,15 @@ func NewPage() *Page {
 
 	childRouter := router.NewRouter()
 	pageBalanceTokens := NewPageBalanceTokens()
-	childRouter.Add("balanceTokens", pageBalanceTokens)
+	childRouter.Add(PAGE_BALANCE_TOKENS, pageBalanceTokens)
 	pageSendForm := NewPageSendForm()
-	childRouter.Add("sendForm", pageSendForm)
+	childRouter.Add(PAGE_SEND_FORM, pageSendForm)
 	pageReceiveForm := NewPageReceiveForm()
-	childRouter.Add("receiveForm", pageReceiveForm)
+	childRouter.Add(PAGE_RECEIVE_FORM, pageReceiveForm)
 	pageSettings := NewPageSettings()
-	childRouter.Add("settings", pageSettings)
+	childRouter.Add(PAGE_SETTINGS, pageSettings)
 	pageAddSCForm := NewPageAddSCForm()
-	childRouter.Add("addSCForm", pageAddSCForm)
+	childRouter.Add(PAGE_ADD_SC_FORM, pageAddSCForm)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
@@ -113,7 +122,7 @@ func NewPage() *Page {
 		infoModal:         infoModal,
 	}
 	page_instance = page
-	childRouter.SetPrimary("balanceTokens")
+	childRouter.SetPrimary(PAGE_BALANCE_TOKENS)
 	return page
 }
 
@@ -129,7 +138,7 @@ func (p *Page) Enter() {
 	openedWallet := wallet_manager.Instance.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
-		pages.BottomBarInstance.SetButtonActive("wallet")
+		bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 		p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 
 		w := app_instance.Window
@@ -138,7 +147,7 @@ func (p *Page) Enter() {
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
 	} else {
-		app_instance.Router.SetCurrent("page_wallet_select")
+		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 	}
 }
 
@@ -156,19 +165,19 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
-		p.childRouter.SetCurrent("sendForm")
+		p.childRouter.SetCurrent(PAGE_SEND_FORM)
 	}
 
 	if p.pageBalanceTokens.displayBalance.buttonReceive.Clickable.Clicked() {
-		p.childRouter.SetCurrent("receiveForm")
+		p.childRouter.SetCurrent(PAGE_RECEIVE_FORM)
 	}
 
 	if p.pageBalanceTokens.tokenBar.buttonAddToken.Clickable.Clicked() {
-		p.childRouter.SetCurrent("addSCForm")
+		p.childRouter.SetCurrent(PAGE_ADD_SC_FORM)
 	}
 
 	if p.header.ButtonRight.Clickable.Clicked() {
-		p.childRouter.SetCurrent("settings")
+		p.childRouter.SetCurrent(PAGE_SETTINGS)
 	}
 
 	if p.buttonCopyAddr.Clickable.Clicked() {
@@ -203,7 +212,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return pages.NodeStatusBarInstance.Layout(gtx, th)
+					return node_status_bar.Instance.Layout(gtx, th)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.RRect{
@@ -251,7 +260,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return pages.BottomBarInstance.Layout(gtx, th)
+			return bottom_bar.Instance.Layout(gtx, th)
 		}),
 	)
 }

@@ -33,7 +33,7 @@ type WalletManager struct {
 	OpenedWallet *OpenedWallet
 }
 
-func NewWalletManager() *WalletManager {
+func New() *WalletManager {
 	w := &WalletManager{
 		Wallets: make(map[string]*WalletInfo),
 	}
@@ -41,7 +41,7 @@ func NewWalletManager() *WalletManager {
 	return Instance
 }
 
-func (w *WalletManager) LoadWallets() error {
+func (w *WalletManager) Load() error {
 	walletsDir := settings.Instance.WalletsDir
 	w.Wallets = make(map[string]*WalletInfo)
 

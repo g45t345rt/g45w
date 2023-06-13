@@ -60,18 +60,6 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 	walletList := NewWalletList(theme)
 
-	//for i := 0; i < 20; i++ {
-	//walletList.items = append(walletList.items,
-	//	NewWalletListItem(theme, fmt.Sprintf("Wallet %d", i), "dero1qy...gr2j8u5"))
-	//}
-
-	//childRouter := router.NewRouter()
-	//childRouter.Add("create_wallet_form", NewPageCreateWalletForm())
-	//childRouter.Add("create_wallet_seed_form", NewPageCreateWalletSeedForm())
-	//page_instance = &PageInstance{
-	//	router: childRouter,
-	//}
-
 	modalWalletPassword := prefabs.NewPasswordModal()
 	modalCreateWalletSelection := NewCreateWalletSelectionModal(theme)
 
@@ -109,6 +97,16 @@ func (p *PageSelectWallet) Enter() {
 		p.animationEnter.Start()
 	}
 
+	p.firstEnter = false
+	p.Load()
+}
+
+func (p *PageSelectWallet) Leave() {
+	p.animationEnter.Reset()
+	p.animationLeave.Start()
+}
+
+func (p *PageSelectWallet) Load() {
 	theme := app_instance.Theme
 	walletManager := wallet_manager.Instance
 
@@ -124,12 +122,6 @@ func (p *PageSelectWallet) Enter() {
 	})
 
 	p.walletList.items = items
-	p.firstEnter = false
-}
-
-func (p *PageSelectWallet) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
 }
 
 func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -198,7 +190,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				}
 
 				p.modalWalletPassword.Modal.SetVisible(false)
-				app_instance.Router.SetCurrent("page_wallet")
+				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 			} else {
 				p.modalWalletPassword.StartWrongPassAnimation()
 			}
@@ -259,11 +251,11 @@ func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionMod
 	seedIcon, _ := widget.NewIcon(icons.EditorShortText)
 
 	items := []*CreateWalletListItem{
-		NewCreateWalletListItem("Fast registration", fastIcon, "create_wallet_fastreg_form"),
-		NewCreateWalletListItem("Create new wallet", newIcon, "create_wallet_form"),
-		NewCreateWalletListItem("Recover from Disk", diskIcon, "create_wallet_disk_form"),
-		NewCreateWalletListItem("Recover from Seed", seedIcon, "create_wallet_seed_form"),
-		NewCreateWalletListItem("Recover from Hex Seed", seedIcon, "create_wallet_hexseed_form"),
+		NewCreateWalletListItem("Fast registration", fastIcon, PAGE_CREATE_WALLET_FASTREG_FORM),
+		NewCreateWalletListItem("Create new wallet", newIcon, PAGE_CREATE_WALLET_FORM),
+		NewCreateWalletListItem("Recover from Disk", diskIcon, PAGE_CREATE_WALLET_DISK_FORM),
+		NewCreateWalletListItem("Recover from Seed", seedIcon, PAGE_CREATE_WALLET_SEED_FORM),
+		NewCreateWalletListItem("Recover from Hex Seed", seedIcon, PAGE_CREATE_WALLET_HEXSEED_FORM),
 	}
 
 	return &CreateWalletSelectionModal{

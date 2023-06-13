@@ -15,7 +15,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -45,7 +45,14 @@ var _ router.Container = &Page{}
 
 var page_instance *Page
 
-func NewPage() *Page {
+const (
+	PAGE_SELECT_NODE     = "page_select_node"
+	PAGE_ADD_NODE_FORM   = "page_add_node_form"
+	PAGE_EDIT_NODE_FORM  = "page_edit_node_form"
+	PAGE_INTEGRATED_NODE = "page_integrated_node"
+)
+
+func New() *Page {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
 	))
@@ -71,16 +78,16 @@ func NewPage() *Page {
 
 	childRouter := router.NewRouter()
 	pageSelectNode := NewPageSelectNode()
-	childRouter.Add("selectNode", pageSelectNode)
+	childRouter.Add(PAGE_SELECT_NODE, pageSelectNode)
 
 	pageAddNodeForm := NewPageAddNodeForm()
-	childRouter.Add("addNodeForm", pageAddNodeForm)
+	childRouter.Add(PAGE_ADD_NODE_FORM, pageAddNodeForm)
 
 	pageEditNodeForm := NewPageEditNodeForm()
-	childRouter.Add("editNodeForm", pageEditNodeForm)
+	childRouter.Add(PAGE_EDIT_NODE_FORM, pageEditNodeForm)
 
 	pageIntegratedNode := NewPageIntegratedNode()
-	childRouter.Add("integratedNode", pageIntegratedNode)
+	childRouter.Add(PAGE_INTEGRATED_NODE, pageIntegratedNode)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
@@ -100,7 +107,7 @@ func NewPage() *Page {
 		animationLeave: animationLeave,
 	}
 	page_instance = page
-	childRouter.SetPrimary("selectNode")
+	childRouter.SetPrimary(PAGE_SELECT_NODE)
 
 	return page
 }
@@ -110,7 +117,7 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
-	pages.BottomBarInstance.SetButtonActive("node")
+	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_NODE)
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -133,11 +140,11 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	paint.PaintOp{}.Add(gtx.Ops)
 
 	if p.pageSelectNode.buttonAddNode.Clickable.Clicked() {
-		p.childRouter.SetCurrent("addNodeForm")
+		p.childRouter.SetCurrent(PAGE_ADD_NODE_FORM)
 	}
 
 	if p.pageSelectNode.buttonSetIntegratedNode.Clickable.Clicked() {
-		p.childRouter.SetCurrent("integratedNode")
+		p.childRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 	}
 
 	{
@@ -173,7 +180,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			return p.childRouter.Layout(gtx, th)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return pages.BottomBarInstance.Layout(gtx, th)
+			return bottom_bar.Instance.Layout(gtx, th)
 		}),
 	)
 }

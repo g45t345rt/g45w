@@ -1,4 +1,4 @@
-package pages
+package bottom_bar
 
 import (
 	"fmt"
@@ -32,9 +32,17 @@ type BottomBar struct {
 	confirmClose *components.Confirm
 }
 
-var BottomBarInstance *BottomBar
+var Instance *BottomBar
 
-func LoadBottomBarInstance() *BottomBar {
+const (
+	BUTTON_WALLET   = "wallet"
+	BUTTON_NODE     = "node"
+	BUTTON_TXS      = "txs"
+	BUTTON_CLOSE    = "close"
+	BUTTON_SETTINGS = "settings"
+)
+
+func LoadInstance() *BottomBar {
 	w := app_instance.Window
 	router := app_instance.Router
 	th := app_instance.Theme
@@ -97,11 +105,11 @@ func LoadBottomBarInstance() *BottomBar {
 		confirmClose:   confirmClose,
 		router:         router,
 	}
-	BottomBarInstance = bottomBar
+	Instance = bottomBar
 	return bottomBar
 }
 
-func (b *BottomBar) SetButtonActive(tag string) {
+func (b *BottomBar) SetButtonActive(tag interface{}) {
 	b.buttonSettings.button.Focused = false
 	b.buttonClose.button.Focused = false
 	b.buttonWallet.button.Focused = false
@@ -109,15 +117,15 @@ func (b *BottomBar) SetButtonActive(tag string) {
 	b.buttonTxs.button.Focused = false
 
 	switch tag {
-	case "settings":
+	case BUTTON_SETTINGS:
 		b.buttonSettings.button.Focused = true
-	case "close":
+	case BUTTON_CLOSE:
 		b.buttonClose.button.Focused = true
-	case "wallet":
+	case BUTTON_WALLET:
 		b.buttonWallet.button.Focused = true
-	case "node":
+	case BUTTON_NODE:
 		b.buttonNode.button.Focused = true
-	case "txs":
+	case BUTTON_TXS:
 		b.buttonTxs.button.Focused = true
 	}
 }
@@ -139,24 +147,24 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}
 
 	if b.confirmClose.ClickedYes() {
-		b.router.SetCurrent("page_wallet_select")
+		b.router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 		wallet_manager.Instance.OpenedWallet = nil
 	}
 
 	if b.buttonNode.button.Clickable.Clicked() {
-		b.router.SetCurrent("page_node")
+		b.router.SetCurrent(app_instance.PAGE_NODE)
 	}
 
 	if b.buttonWallet.button.Clickable.Clicked() {
-		if b.router.Current == "page_wallet" {
-			b.router.SetCurrent("page_wallet_select")
+		if b.router.Current == app_instance.PAGE_WALLET {
+			b.router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 		} else {
-			b.router.SetCurrent("page_wallet")
+			b.router.SetCurrent(app_instance.PAGE_WALLET)
 		}
 	}
 
 	if b.buttonSettings.button.Clickable.Clicked() {
-		b.router.SetCurrent("page_settings")
+		b.router.SetCurrent(app_instance.PAGE_SETTINGS)
 	}
 
 	return layout.Inset{

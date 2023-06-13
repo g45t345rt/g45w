@@ -1,4 +1,4 @@
-package pages
+package node_status_bar
 
 import (
 	"fmt"
@@ -22,14 +22,14 @@ type NodeStatusBar struct {
 	nodeStatus *integrated_node.NodeStatus
 }
 
-var NodeStatusBarInstance *NodeStatusBar
+var Instance *NodeStatusBar
 
-func LoadNodeStatusBarInstance() *NodeStatusBar {
+func LoadInstance() *NodeStatusBar {
 	nodeStatusBar := &NodeStatusBar{
 		clickable:  new(widget.Clickable),
 		nodeStatus: integrated_node.NewNodeStatus(1 * time.Second),
 	}
-	NodeStatusBarInstance = nodeStatusBar
+	Instance = nodeStatusBar
 	return nodeStatusBar
 }
 
@@ -48,7 +48,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if n.clickable.Clicked() {
-		app_instance.Router.SetCurrent("page_node")
+		app_instance.Router.SetCurrent(app_instance.PAGE_NODE)
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 

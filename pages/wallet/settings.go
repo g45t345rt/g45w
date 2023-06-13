@@ -107,7 +107,8 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		err := wallet_manager.Instance.DeleteWallet(openedWallet.Info.ID, text)
 		if err == nil {
 			p.modalWalletPassword.Modal.SetVisible(false)
-			app_instance.Router.SetCurrent("page_wallet_select")
+			page_instance.childRouter.SetCurrent(PAGE_BALANCE_TOKENS)
+			app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 			wallet_manager.Instance.OpenedWallet = nil
 		} else {
 			p.modalWalletPassword.StartWrongPassAnimation()

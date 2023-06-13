@@ -11,7 +11,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -131,11 +131,11 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	if p.buttonLoad.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			pages.ErrorModalInstance.SetText("Error", err.Error())
-			pages.ErrorModalInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true)
 		} else {
-			pages.SuccessModalInstance.SetText("Success", "Wallet loaded successfully")
-			pages.SuccessModalInstance.SetVisible(true)
+			notification_modals.SuccessInstance.SetText("Success", "Wallet loaded successfully")
+			notification_modals.SuccessInstance.SetVisible(true)
 		}
 	}
 

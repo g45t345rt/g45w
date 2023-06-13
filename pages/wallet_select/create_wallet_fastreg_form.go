@@ -19,8 +19,8 @@ import (
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi/mnemonics"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/fastreg"
-	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -107,8 +107,8 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		}
 
 		fmt.Println(result)
-		pages.SuccessModalInstance.SetText("Success", "New wallet created.")
-		pages.SuccessModalInstance.SetVisible(true)
+		notification_modals.SuccessInstance.SetText("Success", "New wallet created.")
+		notification_modals.SuccessInstance.SetVisible(true)
 		w.Invalidate()
 	}
 
@@ -174,8 +174,8 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 	if p.buttonStart.Clickable.Clicked() {
 		err := p.startRegistration()
 		if err != nil {
-			pages.ErrorModalInstance.SetText("Error", err.Error())
-			pages.ErrorModalInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true)
 		}
 	}
 

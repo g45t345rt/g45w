@@ -13,7 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -24,9 +24,10 @@ import (
 type Page struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	header         *prefabs.Header
+	animationEnter   *animation.Animation
+	animationLeave   *animation.Animation
+	header           *prefabs.Header
+	pageSelectWallet *PageSelectWallet
 
 	childRouter *router.Router
 }
@@ -35,7 +36,16 @@ var _ router.Container = &Page{}
 
 var page_instance *Page
 
-func NewPage() *Page {
+const (
+	PAGE_CREATE_WALLET_SEED_FORM    = "page_create_wallet_seed_form"
+	PAGE_CREATE_WALLET_HEXSEED_FORM = "page_create_wallet_hexseed_form"
+	PAGE_CREATE_WALLET_FORM         = "page_create_wallet_form"
+	PAGE_CREATE_WALLET_FASTREG_FORM = "page_create_Wallet_fastreg_form"
+	PAGE_CREATE_WALLET_DISK_FORM    = "page_create_wallet_disk_form"
+	PAGE_SELECT_WALLET              = "page_select_wallet"
+)
+
+func New() *Page {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
 	))
@@ -47,22 +57,22 @@ func NewPage() *Page {
 	childRouter := router.NewRouter()
 
 	pageSelectWallet := NewPageSelectWallet()
-	childRouter.Add("select_wallet", pageSelectWallet)
+	childRouter.Add(PAGE_SELECT_WALLET, pageSelectWallet)
 
 	pageCreateWalletForm := NewPageCreateWalletForm()
-	childRouter.Add("create_wallet_form", pageCreateWalletForm)
+	childRouter.Add(PAGE_CREATE_WALLET_FORM, pageCreateWalletForm)
 
 	pageCreateWalletSeedForm := NewPageCreateWalletSeedForm()
-	childRouter.Add("create_wallet_seed_form", pageCreateWalletSeedForm)
+	childRouter.Add(PAGE_CREATE_WALLET_SEED_FORM, pageCreateWalletSeedForm)
 
 	pageCreateWalletHexSeedForm := NewPageCreateWalletHexSeedForm()
-	childRouter.Add("create_wallet_hexseed_form", pageCreateWalletHexSeedForm)
+	childRouter.Add(PAGE_CREATE_WALLET_HEXSEED_FORM, pageCreateWalletHexSeedForm)
 
 	pageCreateWalletFastRegForm := NewPageCreateWalletFastRegForm()
-	childRouter.Add("create_wallet_fastreg_form", pageCreateWalletFastRegForm)
+	childRouter.Add(PAGE_CREATE_WALLET_FASTREG_FORM, pageCreateWalletFastRegForm)
 
 	pageCreateWalletDiskForm := NewPageCreateWalletDiskForm()
-	childRouter.Add("create_wallet_disk_form", pageCreateWalletDiskForm)
+	childRouter.Add(PAGE_CREATE_WALLET_DISK_FORM, pageCreateWalletDiskForm)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
@@ -70,14 +80,15 @@ func NewPage() *Page {
 	header := prefabs.NewHeader(labelHeaderStyle, childRouter, nil)
 
 	page := &Page{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		childRouter:    childRouter,
-		header:         header,
+		animationEnter:   animationEnter,
+		animationLeave:   animationLeave,
+		childRouter:      childRouter,
+		header:           header,
+		pageSelectWallet: pageSelectWallet,
 	}
 
 	page_instance = page
-	childRouter.SetPrimary("select_wallet")
+	childRouter.SetPrimary(PAGE_SELECT_WALLET)
 
 	return page
 }
@@ -87,10 +98,12 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
-	pages.BottomBarInstance.SetButtonActive("wallet")
+	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 	p.isActive = true
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
+
+	p.pageSelectWallet.Load()
 }
 
 func (p *Page) Leave() {
@@ -145,7 +158,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return pages.BottomBarInstance.Layout(gtx, th)
+			return bottom_bar.Instance.Layout(gtx, th)
 		}),
 	)
 }

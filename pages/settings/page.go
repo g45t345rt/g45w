@@ -13,7 +13,7 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 )
@@ -24,7 +24,7 @@ type Page struct {
 
 var _ router.Container = &Page{}
 
-func NewPage() *Page {
+func New() *Page {
 	return &Page{}
 }
 
@@ -33,7 +33,7 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
-	pages.BottomBarInstance.SetButtonActive("settings")
+	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_SETTINGS)
 	p.isActive = true
 }
 
@@ -91,7 +91,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			return layout.Dimensions{Size: gtx.Constraints.Max}
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return pages.BottomBarInstance.Layout(gtx, th)
+			return bottom_bar.Instance.Layout(gtx, th)
 		}),
 	)
 }

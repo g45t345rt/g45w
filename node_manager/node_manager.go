@@ -25,7 +25,7 @@ type NodeManager struct {
 
 var Instance *NodeManager
 
-func NewNodeManager() *NodeManager {
+func New() *NodeManager {
 	nodeManager := &NodeManager{
 		UserNodes: make(map[string]NodeInfo),
 		TrustedNodes: []NodeInfo{
@@ -40,7 +40,7 @@ func NewNodeManager() *NodeManager {
 	return nodeManager
 }
 
-func (n *NodeManager) LoadNodes() error {
+func (n *NodeManager) Load() error {
 	nodeDir := settings.Instance.NodeDir
 
 	path := filepath.Join(nodeDir, "list.json")

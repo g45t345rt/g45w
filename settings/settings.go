@@ -22,13 +22,13 @@ var Version = "development"
 var BuildTime = fmt.Sprint(time.Now().Unix())
 var GitVersion = "development"
 
-func NewSettings() *Settings {
+func New() *Settings {
 	s := &Settings{}
 	Instance = s
 	return s
 }
 
-func (s *Settings) LoadSettings() error {
+func (s *Settings) Load() error {
 	dataDir, err := app.DataDir()
 	if err != nil {
 		log.Fatal(err)

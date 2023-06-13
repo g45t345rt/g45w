@@ -97,6 +97,18 @@ func (p *PageSelectNode) IsActive() bool {
 func (p *PageSelectNode) Enter() {
 	p.isActive = true
 
+	page_instance.header.SetTitle("Select Node")
+	p.animationLeave.Reset()
+	p.animationEnter.Start()
+	p.Load()
+}
+
+func (p *PageSelectNode) Leave() {
+	p.animationEnter.Reset()
+	p.animationLeave.Start()
+}
+
+func (p *PageSelectNode) Load() {
 	p.trustedNodeList.items = make([]NodeListItem, 0)
 	for _, nodeInfo := range node_manager.Instance.TrustedNodes {
 		p.trustedNodeList.items = append(p.trustedNodeList.items,
@@ -110,15 +122,6 @@ func (p *PageSelectNode) Enter() {
 			NewNodeListItem(nodeInfo),
 		)
 	}
-
-	page_instance.header.SetTitle("Select Node")
-	p.animationLeave.Reset()
-	p.animationEnter.Start()
-}
-
-func (p *PageSelectNode) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
 }
 
 func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -199,7 +202,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	for _, item := range p.userNodeList.items {
 		if item.EditClicked() {
 			page_instance.pageEditNodeForm.nodeInfo = item.nodeInfo
-			page_instance.childRouter.SetCurrent("editNodeForm")
+			page_instance.childRouter.SetCurrent(PAGE_EDIT_NODE_FORM)
 		}
 	}
 

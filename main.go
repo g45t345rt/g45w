@@ -17,8 +17,10 @@ import (
 	"gioui.org/widget/material"
 	expl "gioui.org/x/explorer"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/containers/node_status_bar"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/node_manager"
-	"github.com/g45t345rt/g45w/pages"
 	page_node "github.com/g45t345rt/g45w/pages/node"
 	page_settings "github.com/g45t345rt/g45w/pages/settings"
 	page_wallet "github.com/g45t345rt/g45w/pages/wallet"
@@ -29,18 +31,58 @@ import (
 	"github.com/g45t345rt/g45w/wallet_manager"
 )
 
+func loadFontCollection() ([]font.FontFace, error) {
+	robotoRegular, err := opentype.Parse(robotoregular.TTF)
+	if err != nil {
+		return nil, err
+	}
+
+	robotoBold, err := opentype.Parse(robotobold.TTF)
+	if err != nil {
+		return nil, err
+	}
+
+	fontCollection := []font.FontFace{}
+	//gofont.Collection()
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: robotoRegular})
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: robotoBold})
+	return fontCollection, nil
+}
+
+func runApp() error {
+	var ops op.Ops
+
+	window := app_instance.Window
+	th := app_instance.Theme
+	router := app_instance.Router
+	explorer := app_instance.Explorer
+
+	for {
+		e := <-window.Events()
+		explorer.ListenEvents(e)
+		switch e := e.(type) {
+		case system.DestroyEvent:
+			return e.Err
+		case system.FrameEvent:
+			gtx := layout.NewContext(&ops, e)
+			router.Layout(gtx, th)
+			e.Frame(gtx.Ops)
+		}
+	}
+}
+
 func main() {
-	err := settings.NewSettings().LoadSettings()
+	err := settings.New().Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = wallet_manager.NewWalletManager().LoadWallets()
+	err = wallet_manager.New().Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = node_manager.NewNodeManager().LoadNodes()
+	err = node_manager.New().Load()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,15 +133,15 @@ func main() {
 	app_instance.Router = router
 	app_instance.Explorer = explorer
 
-	pages.LoadBottomBarInstance()
-	pages.LoadNodeStatusBarInstance()
-	pages.LoadNotificationsInstance()
+	bottom_bar.LoadInstance()
+	node_status_bar.LoadInstance()
+	notification_modals.LoadInstance()
 
-	router.Add("page_settings", page_settings.NewPage())
-	router.Add("page_node", page_node.NewPage())
-	router.Add("page_wallet", page_wallet.NewPage())
-	router.Add("page_wallet_select", page_wallet_select.NewPage())
-	router.SetPrimary("page_wallet_select")
+	router.Add(app_instance.PAGE_SETTINGS, page_settings.New())
+	router.Add(app_instance.PAGE_NODE, page_node.New())
+	router.Add(app_instance.PAGE_WALLET, page_wallet.New())
+	router.Add(app_instance.PAGE_WALLET_SELECT, page_wallet_select.New())
+	router.SetPrimary(app_instance.PAGE_WALLET_SELECT)
 
 	go func() {
 		err := runApp()
@@ -110,44 +152,4 @@ func main() {
 	}()
 
 	app.Main()
-}
-
-func loadFontCollection() ([]font.FontFace, error) {
-	robotoRegular, err := opentype.Parse(robotoregular.TTF)
-	if err != nil {
-		return nil, err
-	}
-
-	robotoBold, err := opentype.Parse(robotobold.TTF)
-	if err != nil {
-		return nil, err
-	}
-
-	fontCollection := []font.FontFace{}
-	//gofont.Collection()
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: robotoRegular})
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: robotoBold})
-	return fontCollection, nil
-}
-
-func runApp() error {
-	var ops op.Ops
-
-	window := app_instance.Window
-	router := app_instance.Router
-	th := app_instance.Theme
-	explorer := app_instance.Explorer
-
-	for {
-		e := <-window.Events()
-		explorer.ListenEvents(e)
-		switch e := e.(type) {
-		case system.DestroyEvent:
-			return e.Err
-		case system.FrameEvent:
-			gtx := layout.NewContext(&ops, e)
-			router.Layout(gtx, th)
-			e.Frame(gtx.Ops)
-		}
-	}
 }
