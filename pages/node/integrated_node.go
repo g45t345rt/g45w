@@ -8,7 +8,6 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/router"
@@ -16,7 +15,6 @@ import (
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
-	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageIntegratedNode struct {
@@ -24,7 +22,6 @@ type PageIntegratedNode struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	hubIcon    *widget.Icon
 	nodeSize   *integrated_node.NodeSize
 	nodeStatus *integrated_node.NodeStatus
 }
@@ -32,8 +29,6 @@ type PageIntegratedNode struct {
 var _ router.Page = &PageIntegratedNode{}
 
 func NewPageIntegratedNode() *PageIntegratedNode {
-	hubIcon, _ := widget.NewIcon(icons.HardwareDeviceHub)
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
 	))
@@ -45,7 +40,6 @@ func NewPageIntegratedNode() *PageIntegratedNode {
 	return &PageIntegratedNode{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
-		hubIcon:        hubIcon,
 		nodeSize:       integrated_node.NewNodeSize(10 * time.Second),
 		nodeStatus:     integrated_node.NewNodeStatus(1 * time.Second),
 	}

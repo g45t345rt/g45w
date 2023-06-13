@@ -7,7 +7,6 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -20,8 +19,6 @@ type PageExternalNode struct {
 	isActive       bool
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
-
-	hubIcon *widget.Icon
 }
 
 var _ router.Page = &PageExternalNode{}
