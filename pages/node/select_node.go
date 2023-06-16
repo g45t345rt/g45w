@@ -1,9 +1,9 @@
 package page_node
 
 import (
-	"fmt"
 	"image"
 	"image/color"
+	"sort"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -15,7 +15,9 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -32,9 +34,9 @@ type PageSelectNode struct {
 	animationLeave          *animation.Animation
 	buttonSetIntegratedNode *components.Button
 	buttonAddNode           *components.Button
+	connecting              bool
 
-	trustedNodeList *NodeList
-	userNodeList    *NodeList
+	nodeList *NodeList
 
 	listStyle material.ListStyle
 }
@@ -56,8 +58,7 @@ func NewPageSelectNode() *PageSelectNode {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	trustedNodeList := NewNodeList(th, "")
-	userNodeList := NewNodeList(th, "You didn't add any external nodes yet.")
+	nodeList := NewNodeList(th, "You didn't add any remote nodes yet.")
 
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),
@@ -84,8 +85,7 @@ func NewPageSelectNode() *PageSelectNode {
 		animationLeave: animationLeave,
 		listStyle:      listStyle,
 
-		trustedNodeList:         trustedNodeList,
-		userNodeList:            userNodeList,
+		nodeList:                nodeList,
 		buttonSetIntegratedNode: buttonSetIntegratedNode,
 		buttonAddNode:           buttonAddNode,
 		firstEnter:              true,
@@ -115,19 +115,18 @@ func (p *PageSelectNode) Leave() {
 }
 
 func (p *PageSelectNode) Load() {
-	p.trustedNodeList.items = make([]NodeListItem, 0)
-	for _, nodeInfo := range node_manager.Instance.TrustedNodes {
-		p.trustedNodeList.items = append(p.trustedNodeList.items,
+	items := make([]NodeListItem, 0)
+	for _, nodeInfo := range node_manager.Instance.NodeState.Nodes {
+		items = append(items,
 			NewNodeListItem(nodeInfo),
 		)
 	}
 
-	p.userNodeList.items = make([]NodeListItem, 0)
-	for _, nodeInfo := range node_manager.Instance.UserNodes {
-		p.userNodeList.items = append(p.userNodeList.items,
-			NewNodeListItem(nodeInfo),
-		)
-	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].conn.ID < items[j].conn.ID
+	})
+
+	p.nodeList.items = items
 }
 
 func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -158,7 +157,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			return layout.Spacer{Height: unit.Dp(5)}.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), "Always use Integrated Node or your own external node for full privacy and trust.")
+			lbl := material.Label(th, unit.Sp(14), "Always use Integrated Node or your own remote node for full privacy and trust.")
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -169,34 +168,20 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(20), "Your Nodes")
+							lbl := material.Label(th, unit.Sp(20), "Remote Nodes")
 							lbl.Font.Weight = font.Bold
 							return lbl.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							gtx.Constraints.Min.X = gtx.Dp(30)
+							gtx.Constraints.Min.Y = gtx.Dp(30)
 							return p.buttonAddNode.Layout(gtx, th)
 						}),
 					)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.userNodeList.Layout(gtx, th)
-				}),
-			)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(20), "Trusted Nodes")
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.trustedNodeList.Layout(gtx, th)
+					return p.nodeList.Layout(gtx, th)
 				}),
 			)
 		},
@@ -205,10 +190,19 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		},
 	}
 
-	for _, item := range p.userNodeList.items {
+	if p.buttonSetIntegratedNode.Clickable.Clicked() {
+		node_manager.Instance.SelectNode(node_manager.INTEGRATED_NODE_ID, true)
+		page_instance.router.SetCurrent(PAGE_INTEGRATED_NODE)
+	}
+
+	for _, item := range p.nodeList.items {
 		if item.EditClicked() {
-			page_instance.pageEditNodeForm.nodeInfo = item.nodeInfo
+			page_instance.pageEditNodeForm.nodeConn = item.conn
 			page_instance.router.SetCurrent(PAGE_EDIT_NODE_FORM)
+		}
+
+		if item.SelectClicked() {
+			p.connect(item.conn)
 		}
 	}
 
@@ -218,6 +212,26 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageSelectNode) connect(conn node_manager.NodeConnection) {
+	if p.connecting {
+		return
+	}
+
+	p.connecting = true
+	go func() {
+		err := walletapi.Connect(conn.Endpoint)
+		p.connecting = false
+
+		if err != nil {
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true)
+		} else {
+			node_manager.Instance.SelectNode(conn.ID, true)
+			page_instance.router.SetCurrent(PAGE_REMOTE_NODE)
+		}
+	}()
 }
 
 type NodeList struct {
@@ -271,16 +285,16 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 }
 
 type NodeListItem struct {
-	nodeInfo           node_manager.NodeInfo
+	conn               node_manager.NodeConnection
 	clickable          *widget.Clickable
 	nodeListItemSelect *NodeListItemSelect
 
 	rounded unit.Dp
 }
 
-func NewNodeListItem(nodeInfo node_manager.NodeInfo) NodeListItem {
+func NewNodeListItem(conn node_manager.NodeConnection) NodeListItem {
 	return NodeListItem{
-		nodeInfo:           nodeInfo,
+		conn:               conn,
 		clickable:          &widget.Clickable{},
 		nodeListItemSelect: NewNodeListSelect(),
 		rounded:            unit.Dp(12),
@@ -302,20 +316,14 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(18), item.nodeInfo.Name)
+							lbl := material.Label(th, unit.Sp(18), item.conn.Name)
 							lbl.Font.Weight = font.Bold
 							return lbl.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(15), item.nodeInfo.Host)
-									lbl.Color.A = 200
-									return lbl.Layout(gtx)
-								}),
-								layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(15), fmt.Sprintf("Port: %d", item.nodeInfo.Port))
+									lbl := material.Label(th, unit.Sp(15), item.conn.Endpoint)
 									lbl.Color.A = 200
 									return lbl.Layout(gtx)
 								}),

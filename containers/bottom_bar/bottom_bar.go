@@ -241,15 +241,16 @@ func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
 			Top: unit.Dp(6), Bottom: unit.Dp(6),
 			Left: unit.Dp(10), Right: unit.Dp(10),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
+			walletName := openedWallet.Info.Name
+			lbl := material.Label(th, unit.Sp(14), fmt.Sprintf("Wallet [%s]", walletName))
 			lbl.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)
 		})
 		c := r.Stop()
 
-		x := float32(gtx.Dp(unit.Dp(dims.Size.X) / 2))
-		y := float32(gtx.Dp(unit.Dp(dims.Size.Y) / 2))
+		x := float32(dims.Size.X / 2)
+		y := float32(dims.Size.Y / 2)
 		offset := f32.Pt(-x, -y)
 		defer op.Affine(f32.Affine2D{}.Offset(offset)).Push(gtx.Ops).Pop()
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/deroproject/derohe/block"
 	"github.com/deroproject/derohe/blockchain"
+	derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/app_instance"
@@ -16,12 +17,13 @@ import (
 )
 
 type IntegratedNode struct {
-	Chain *blockchain.Blockchain
+	Chain     *blockchain.Blockchain
+	RPCServer *derodrpc.RPCServer
 }
 
 var Instance *IntegratedNode
 
-func NewNode() *IntegratedNode {
+func Instantiate() *IntegratedNode {
 	n := &IntegratedNode{}
 	Instance = n
 	return n
@@ -82,8 +84,20 @@ func (n *IntegratedNode) Start() error {
 		p2p.Broadcast_MiniBlock(mbl, peerid)
 	}
 
+	n.RPCServer, err = derodrpc.RPCServer_Start(params)
+	if err != nil {
+		return err
+	}
+
 	globals.Cron.Start()
 	return nil
+}
+
+func (n *IntegratedNode) Stop() {
+	n.RPCServer.RPCServer_Stop()
+	p2p.P2P_Shutdown()
+	n.Chain.Shutdown()
+	globals.Cron.Stop()
 }
 
 type NodeStatus struct {
@@ -91,7 +105,8 @@ type NodeStatus struct {
 	BestHeight      int64
 	MemCount        int
 	RegCount        int
-	PeerCount       uint64
+	PeerInCount     uint64
+	PeerOutCount    uint64
 	NetworkHashRate uint64
 
 	TimeOffset    time.Duration
@@ -130,6 +145,9 @@ func (n *NodeStatus) update() {
 	}
 
 	chain := Instance.Chain
+	if chain == nil {
+		return
+	}
 
 	n.Height = chain.Get_Height()
 	bestHeight, _ := p2p.Best_Peer_Height()
@@ -140,8 +158,11 @@ func (n *NodeStatus) update() {
 	n.RegCount = len(chain.Regpool.Regpool_List_TX())
 
 	//p2p.PeerList_Print()
-	n.PeerCount = p2p.Peer_Count()
-	//inc, out := p2p.Peer_Direction_Count()
+	//n.PeerCount = p2p.Peer_Count()
+	in, out := p2p.Peer_Direction_Count()
+	n.PeerInCount = in
+	n.PeerOutCount = out
+
 	n.NetworkHashRate = chain.Get_Network_HashRate()
 
 	n.TimeOffset = globals.GetOffset().Round(time.Millisecond)

@@ -15,19 +15,23 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/integrated_node"
+	"github.com/g45t345rt/g45w/node_manager"
+	page_node "github.com/g45t345rt/g45w/pages/node"
 )
 
 type NodeStatusBar struct {
-	clickable  *widget.Clickable
-	nodeStatus *integrated_node.NodeStatus
+	clickable            *widget.Clickable
+	integratedNodeStatus *integrated_node.NodeStatus
+	remoteNodeInfo       *page_node.RemoteNodeInfo
 }
 
 var Instance *NodeStatusBar
 
 func LoadInstance() *NodeStatusBar {
 	nodeStatusBar := &NodeStatusBar{
-		clickable:  new(widget.Clickable),
-		nodeStatus: integrated_node.NewNodeStatus(1 * time.Second),
+		clickable:            new(widget.Clickable),
+		integratedNodeStatus: integrated_node.NewNodeStatus(1 * time.Second),
+		remoteNodeInfo:       page_node.NewRemoteNodeInfo(3 * time.Second),
 	}
 	Instance = nodeStatusBar
 	return nodeStatusBar
@@ -41,7 +45,24 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	//paint.PaintOp{}.Add(gtx.Ops)
 
-	n.nodeStatus.Active()
+	currentNode := node_manager.Instance.NodeState.Current
+	status := "unassigned node"
+	if currentNode != "" {
+		if currentNode == node_manager.INTEGRATED_NODE_ID {
+			n.integratedNodeStatus.Active()
+
+			height := n.integratedNodeStatus.Height
+			bestHeight := n.integratedNodeStatus.BestHeight
+			out := n.integratedNodeStatus.PeerOutCount
+			status = fmt.Sprintf("%d / %d - %dP (%s)", height, bestHeight, out, "Integrated")
+		} else {
+			n.remoteNodeInfo.Active()
+			nodeConn := node_manager.Instance.NodeState.Nodes[currentNode]
+			height := n.remoteNodeInfo.Result.Height
+			out := n.remoteNodeInfo.Result.Outgoing_connections_count
+			status = fmt.Sprintf("%d - %dP (%s)", height, out, nodeConn.Name)
+		}
+	}
 
 	if n.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
@@ -72,7 +93,6 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					status := fmt.Sprintf("%d / %d - %dP", n.nodeStatus.Height, n.nodeStatus.BestHeight, n.nodeStatus.PeerCount)
 					label := material.Label(th, unit.Sp(16), status)
 					label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 					return label.Layout(gtx)

@@ -20,6 +20,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/node_manager"
 	page_node "github.com/g45t345rt/g45w/pages/node"
 	page_settings "github.com/g45t345rt/g45w/pages/settings"
@@ -72,25 +73,22 @@ func runApp() error {
 }
 
 func main() {
-	err := settings.New().Load()
+	err := settings.Instantiate().Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = wallet_manager.New().Load()
+	err = wallet_manager.Instantiate().Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = node_manager.New().Load()
+	integrated_node.Instantiate()
+
+	err = node_manager.Instantiate().Load()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	//err = node.NewNode().Start()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
 
 	// window
 	minSizeX := unit.Dp(375)

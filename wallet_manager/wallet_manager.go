@@ -33,7 +33,7 @@ type WalletManager struct {
 	OpenedWallet *OpenedWallet
 }
 
-func New() *WalletManager {
+func Instantiate() *WalletManager {
 	w := &WalletManager{
 		Wallets: make(map[string]*WalletInfo),
 	}

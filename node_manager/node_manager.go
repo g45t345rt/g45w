@@ -7,35 +7,39 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/deroproject/derohe/walletapi"
+	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/settings"
 )
 
-type NodeInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Host string `json:"host"`
-	Port uint64 `json:"port"`
+type NodeConnection struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Endpoint string `json:"endpoint"`
 }
 
+type NodeState struct {
+	Nodes   map[string]NodeConnection `json:"nodes"`
+	Current string                    `json:"current"`
+}
+
+const INTEGRATED_NODE_ID = "integrated"
+const NODE_STATE_FILE = "node_state.json"
+
 type NodeManager struct {
-	UserNodes    map[string]NodeInfo
-	TrustedNodes []NodeInfo
-	Current      *NodeInfo // use integrated node if nil
+	NodeState NodeState
 }
 
 var Instance *NodeManager
 
-func New() *NodeManager {
-	nodeManager := &NodeManager{
-		UserNodes: make(map[string]NodeInfo),
-		TrustedNodes: []NodeInfo{
-			{ID: "deronfts", Name: "DeroNFTs", Host: "74.208.54.173", Port: 50404},
-			{ID: "foundation", Name: "Foundation", Host: "ams.foundation.org", Port: 11011},
-			{ID: "my_srv_cloud", Name: "MySrvCloud", Host: "213.171.208.37", Port: 18089},
-			{ID: "derostats", Name: "DeroStats", Host: "163.172.26.245", Port: 10505},
-		},
-	}
+var TrustedNodes = map[string]NodeConnection{
+	"deronfts":     {ID: "deronfts", Name: "DeroNFTs", Endpoint: "wss://node.deronfts.com/ws"},
+	"my_srv_cloud": {ID: "my_srv_cloud", Name: "MySrvCloud", Endpoint: "wss://dero-node.mysrv.cloud/ws"},
+	"derostats":    {ID: "derostats", Name: "DeroStats", Endpoint: "ws://derostats.io:10102/ws"},
+}
 
+func Instantiate() *NodeManager {
+	nodeManager := &NodeManager{}
 	Instance = nodeManager
 	return nodeManager
 }
@@ -43,10 +47,19 @@ func New() *NodeManager {
 func (n *NodeManager) Load() error {
 	nodeDir := settings.Instance.NodeDir
 
-	path := filepath.Join(nodeDir, "list.json")
+	path := filepath.Join(nodeDir, NODE_STATE_FILE)
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.WriteFile(path, []byte("{}"), os.ModePerm)
+		nodeState := NodeState{
+			Nodes: TrustedNodes,
+		}
+
+		data, err := json.Marshal(nodeState)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(path, data, os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -59,52 +72,92 @@ func (n *NodeManager) Load() error {
 		return err
 	}
 
-	var nodes map[string]NodeInfo
-	err = json.Unmarshal(data, &nodes)
+	var nodeState NodeState
+	err = json.Unmarshal(data, &nodeState)
 	if err != nil {
 		return err
 	}
 
-	n.UserNodes = nodes
+	n.NodeState = nodeState
+	n.SelectNode(n.NodeState.Current, false)
 	return nil
 }
 
-func (n *NodeManager) AddNode(info NodeInfo) error {
+func (n *NodeManager) AddNode(conn NodeConnection) error {
 	id := fmt.Sprint(time.Now().Unix())
-	nodeInfo := NodeInfo{
-		ID:   id,
-		Name: info.Name,
-		Host: info.Host,
-		Port: info.Port,
-	}
-
-	n.UserNodes[nodeInfo.ID] = nodeInfo
-	return n.saveNodes()
+	conn.ID = id
+	n.NodeState.Nodes[id] = conn
+	return n.saveState()
 }
 
-func (n *NodeManager) EditNode(info NodeInfo) error {
-	n.UserNodes[info.ID] = info
-	return n.saveNodes()
+func (n *NodeManager) EditNode(conn NodeConnection) error {
+	n.NodeState.Nodes[conn.ID] = conn
+	return n.saveState()
 }
 
 func (n *NodeManager) DelNode(id string) error {
-	delete(n.UserNodes, id)
-	return n.saveNodes()
+	delete(n.NodeState.Nodes, id)
+	return n.saveState()
 }
 
-func (n *NodeManager) ClearNodes() error {
-	n.UserNodes = make(map[string]NodeInfo)
-	return n.saveNodes()
+func (n *NodeManager) ReloadTrustedNodes() error {
+	for _, node := range TrustedNodes {
+		n.NodeState.Nodes[node.ID] = node
+	}
+
+	return n.saveState()
 }
 
-func (n *NodeManager) saveNodes() error {
+func (n *NodeManager) SelectNode(id string, save bool) error {
+	if id != INTEGRATED_NODE_ID {
+		_, ok := n.NodeState.Nodes[id]
+		if !ok {
+			return fmt.Errorf("node id does not exists")
+		}
+	}
+
+	if id == INTEGRATED_NODE_ID {
+		err := integrated_node.Instance.Start()
+		if err != nil {
+			return err
+		}
+
+		err = walletapi.Connect("ws://127.0.0.1:10102/ws")
+		if err != nil {
+			return err
+		}
+	} else {
+		nodeConn := n.NodeState.Nodes[id]
+		err := walletapi.Connect(nodeConn.Endpoint)
+		if err != nil {
+			return err
+		}
+	}
+
+	if n.NodeState.Current == INTEGRATED_NODE_ID {
+		integrated_node.Instance.Stop()
+	}
+
+	n.NodeState.Current = id
+
+	if save {
+		err := n.saveState()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (n *NodeManager) saveState() error {
 	nodeDir := settings.Instance.NodeDir
-	data, err := json.Marshal(n.UserNodes)
+	data, err := json.Marshal(n.NodeState)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(nodeDir, "list.json"), data, os.ModePerm)
+	err = os.WriteFile(filepath.Join(nodeDir, NODE_STATE_FILE), data, os.ModePerm)
 	if err != nil {
 		return err
 	}

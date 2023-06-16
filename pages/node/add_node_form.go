@@ -3,7 +3,6 @@ package page_node
 import (
 	"fmt"
 	"image/color"
-	"strconv"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -12,6 +11,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/node_manager"
@@ -30,9 +30,9 @@ type PageAddNodeForm struct {
 	animationLeave *animation.Animation
 
 	buttonAddNode *components.Button
-	txtHost       *components.TextField
+	txtEndpoint   *components.TextField
 	txtName       *components.TextField
-	txtPort       *components.TextField
+	submitting    bool
 
 	listStyle material.ListStyle
 }
@@ -70,9 +70,8 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	buttonAddNode.Label.Alignment = text.Middle
 	buttonAddNode.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField(th, "Name", "Dero")
-	txtHost := components.NewTextField(th, "Host", "node.dero.io")
-	txtPort := components.NewTextField(th, "Port", "10102")
+	txtName := components.NewTextField(th, "Name", "Dero NFTs")
+	txtEndpoint := components.NewTextField(th, "Host", "wss://node.deronfts.com/ws")
 
 	return &PageAddNodeForm{
 		animationEnter: animationEnter,
@@ -80,8 +79,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 
 		buttonAddNode: buttonAddNode,
 		txtName:       txtName,
-		txtHost:       txtHost,
-		txtPort:       txtPort,
+		txtEndpoint:   txtEndpoint,
 
 		listStyle: listStyle,
 	}
@@ -124,15 +122,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 
 	if p.buttonAddNode.Clickable.Clicked() {
-		err := p.submitForm()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
-		} else {
-			notification_modals.SuccessInstance.SetText("Success", "new noded added")
-			notification_modals.SuccessInstance.SetVisible(true)
-			page_instance.router.SetCurrent(PAGE_SELECT_NODE)
-		}
+		p.submitForm()
 	}
 
 	widgets := []layout.Widget{
@@ -140,10 +130,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return p.txtName.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtHost.Layout(gtx, th)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return p.txtPort.Layout(gtx, th)
+			return p.txtEndpoint.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.buttonAddNode.Layout(gtx, th)
@@ -158,36 +145,51 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	})
 }
 
-func (p *PageAddNodeForm) submitForm() error {
-	txtName := p.txtName.EditorStyle.Editor
-	txtHost := p.txtHost.EditorStyle.Editor
-	txtPort := p.txtPort.EditorStyle.Editor
-
-	if txtName.Text() == "" {
-		return fmt.Errorf("enter name")
+func (p *PageAddNodeForm) submitForm() {
+	if p.submitting {
+		return
 	}
 
-	if txtHost.Text() == "" {
-		return fmt.Errorf("enter host")
-	}
+	p.submitting = true
 
-	if txtPort.Text() == "" {
-		return fmt.Errorf("enter port")
-	}
+	go func() {
+		setError := func(err error) {
+			p.submitting = false
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true)
+		}
 
-	port, err := strconv.ParseUint(txtPort.Text(), 10, 64)
-	if err != nil {
-		return err
-	}
+		txtName := p.txtName.EditorStyle.Editor
+		txtEndpoint := p.txtEndpoint.EditorStyle.Editor
 
-	err = node_manager.Instance.AddNode(node_manager.NodeInfo{
-		Name: txtName.Text(),
-		Host: txtHost.Text(),
-		Port: port,
-	})
-	if err != nil {
-		return err
-	}
+		if txtName.Text() == "" {
+			setError(fmt.Errorf("enter name"))
+			return
+		}
 
-	return nil
+		if txtEndpoint.Text() == "" {
+			setError(fmt.Errorf("enter endpoint"))
+			return
+		}
+
+		_, err := walletapi.TestConnect(txtEndpoint.Text())
+		if err != nil {
+			setError(err)
+			return
+		}
+
+		err = node_manager.Instance.AddNode(node_manager.NodeConnection{
+			Name:     txtName.Text(),
+			Endpoint: txtEndpoint.Text(),
+		})
+		if err != nil {
+			setError(err)
+			return
+		}
+
+		p.submitting = false
+		notification_modals.SuccessInstance.SetText("Success", "new noded added")
+		notification_modals.SuccessInstance.SetVisible(true)
+		page_instance.router.SetCurrent(PAGE_SELECT_NODE)
+	}()
 }

@@ -17,11 +17,13 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -34,7 +36,7 @@ type PageBalanceTokens struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	notRegistered  *NotRegistered
+	alertBox       *AlertBox
 	displayBalance *DisplayBalance
 	tokenBar       *TokenBar
 	tokenItems     []*TokenListItem
@@ -86,9 +88,8 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 
 	return &PageBalanceTokens{
 		displayBalance: NewDisplayBalance(th),
-		//tokensContainer: NewTokenContainer(th),
 		tokenBar:       NewTokenBar(th),
-		notRegistered:  NewNotRegistered(),
+		alertBox:       NewAlertBox(),
 		tokenItems:     tokenItems,
 		firstEnter:     true,
 		animationEnter: animationEnter,
@@ -138,9 +139,24 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		}
 	}
 
+	if walletapi.Connected {
+		wallet := wallet_manager.Instance.OpenedWallet.Memory
+		isRegistered := wallet.IsRegistered()
+
+		if !isRegistered {
+			p.alertBox.SetText("This wallet is not registered on the blockchain.")
+			p.alertBox.SetVisible(true)
+		} else {
+			p.alertBox.SetVisible(false)
+		}
+	} else {
+		p.alertBox.SetText("Wallet is not connected to a node.")
+		p.alertBox.SetVisible(true)
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.notRegistered.Layout(gtx, th)
+			return p.alertBox.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.displayBalance.Layout(gtx, th)
@@ -163,18 +179,32 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	})
 }
 
-type NotRegistered struct {
+type AlertBox struct {
 	iconWarning *widget.Icon
+	visible     bool
+	text        string
 }
 
-func NewNotRegistered() *NotRegistered {
+func NewAlertBox() *AlertBox {
 	iconWarning, _ := widget.NewIcon(icons.AlertWarning)
-	return &NotRegistered{
+	return &AlertBox{
 		iconWarning: iconWarning,
 	}
 }
 
-func (n *NotRegistered) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (n *AlertBox) SetText(value string) {
+	n.text = value
+}
+
+func (n *AlertBox) SetVisible(visible bool) {
+	n.visible = visible
+}
+
+func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if !n.visible {
+		return layout.Dimensions{}
+	}
+
 	border := widget.Border{Color: color.NRGBA{A: 100}, CornerRadius: unit.Dp(5), Width: unit.Dp(1)}
 
 	return layout.Inset{
@@ -189,7 +219,7 @@ func (n *NotRegistered) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(14), "This wallet is not registered on the blockchain.")
+						label := material.Label(th, unit.Sp(14), n.text)
 						label.Color = color.NRGBA{A: 200}
 						return label.Layout(gtx)
 					}),

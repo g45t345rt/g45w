@@ -22,7 +22,7 @@ var Version = "development"
 var BuildTime = fmt.Sprint(time.Now().Unix())
 var GitVersion = "development"
 
-func New() *Settings {
+func Instantiate() *Settings {
 	s := &Settings{}
 	Instance = s
 	return s

@@ -16,6 +16,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -35,6 +36,7 @@ type Page struct {
 	pageSelectNode   *PageSelectNode
 	pageAddNodeForm  *PageAddNodeForm
 	pageEditNodeForm *PageEditNodeForm
+	pageRemoteNode   *PageRemoteNode
 	header           *prefabs.Header
 
 	animationEnter *animation.Animation
@@ -50,6 +52,7 @@ const (
 	PAGE_ADD_NODE_FORM   = "page_add_node_form"
 	PAGE_EDIT_NODE_FORM  = "page_edit_node_form"
 	PAGE_INTEGRATED_NODE = "page_integrated_node"
+	PAGE_REMOTE_NODE     = "page_remote_node"
 )
 
 func New() *Page {
@@ -89,6 +92,9 @@ func New() *Page {
 	pageIntegratedNode := NewPageIntegratedNode()
 	router.Add(PAGE_INTEGRATED_NODE, pageIntegratedNode)
 
+	pageRemoteNode := NewPageRemoteNode()
+	router.Add(PAGE_REMOTE_NODE, pageRemoteNode)
+
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
@@ -101,6 +107,7 @@ func New() *Page {
 		pageSelectNode:   pageSelectNode,
 		pageAddNodeForm:  pageAddNodeForm,
 		pageEditNodeForm: pageEditNodeForm,
+		pageRemoteNode:   pageRemoteNode,
 		header:           header,
 
 		animationEnter: animationEnter,
@@ -121,6 +128,15 @@ func (p *Page) Enter() {
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
+
+	currentNode := node_manager.Instance.NodeState.Current
+	if currentNode != "" {
+		if currentNode == node_manager.INTEGRATED_NODE_ID {
+			p.router.SetCurrent(PAGE_INTEGRATED_NODE)
+		} else {
+			p.router.SetCurrent(PAGE_REMOTE_NODE)
+		}
+	}
 }
 
 func (p *Page) Leave() {
@@ -141,10 +157,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.pageSelectNode.buttonAddNode.Clickable.Clicked() {
 		p.router.SetCurrent(PAGE_ADD_NODE_FORM)
-	}
-
-	if p.pageSelectNode.buttonSetIntegratedNode.Clickable.Clicked() {
-		p.router.SetCurrent(PAGE_INTEGRATED_NODE)
 	}
 
 	{

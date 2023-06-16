@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"strconv"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -15,6 +14,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/node_manager"
@@ -34,10 +34,10 @@ type PageEditNodeForm struct {
 
 	buttonEditNode   *components.Button
 	buttonDeleteNode *components.Button
-	txtHost          *components.TextField
+	txtEndpoint      *components.TextField
 	txtName          *components.TextField
-	txtPort          *components.TextField
-	nodeInfo         node_manager.NodeInfo
+	nodeConn         node_manager.NodeConnection
+	submitting       bool
 
 	confirmDelete *components.Confirm
 
@@ -77,9 +77,8 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonEditNode.Label.Alignment = text.Middle
 	buttonEditNode.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField(th, "Name", "Dero")
-	txtHost := components.NewTextField(th, "Host", "node.dero.io")
-	txtPort := components.NewTextField(th, "Port", "10102")
+	txtName := components.NewTextField(th, "Name", "Dero NFTs")
+	txtEndpoint := components.NewTextField(th, "Host", "wss://node.deronfts.com/ws")
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteNode := components.NewButton(components.ButtonStyle{
@@ -109,8 +108,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 		buttonEditNode:   buttonEditNode,
 		buttonDeleteNode: buttonDeleteNode,
 		txtName:          txtName,
-		txtHost:          txtHost,
-		txtPort:          txtPort,
+		txtEndpoint:      txtEndpoint,
 
 		confirmDelete: confirmDelete,
 
@@ -128,9 +126,8 @@ func (p *PageEditNodeForm) Enter() {
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
-	p.txtHost.SetValue(p.nodeInfo.Host)
-	p.txtName.SetValue(p.nodeInfo.Name)
-	p.txtPort.SetValue(fmt.Sprint(p.nodeInfo.Port))
+	p.txtEndpoint.SetValue(p.nodeConn.Endpoint)
+	p.txtName.SetValue(p.nodeConn.Name)
 }
 
 func (p *PageEditNodeForm) Leave() {
@@ -159,14 +156,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.buttonEditNode.Clickable.Clicked() {
-		err := p.submitForm()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
-		} else {
-			notification_modals.SuccessInstance.SetText("Success", "successfully saved")
-			notification_modals.SuccessInstance.SetVisible(true)
-		}
+		p.submitForm()
 	}
 
 	if p.buttonDeleteNode.Clickable.Clicked() {
@@ -174,7 +164,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.confirmDelete.ClickedYes() {
-		err := node_manager.Instance.DelNode(p.nodeInfo.ID)
+		err := node_manager.Instance.DelNode(p.nodeConn.ID)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true)
@@ -190,10 +180,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 			return p.txtName.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtHost.Layout(gtx, th)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return p.txtPort.Layout(gtx, th)
+			return p.txtEndpoint.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.buttonEditNode.Layout(gtx, th)
@@ -219,37 +206,53 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	})
 }
 
-func (p *PageEditNodeForm) submitForm() error {
-	txtName := p.txtName.EditorStyle.Editor
-	txtHost := p.txtHost.EditorStyle.Editor
-	txtPort := p.txtPort.EditorStyle.Editor
-
-	if txtName.Text() == "" {
-		return fmt.Errorf("enter name")
+func (p *PageEditNodeForm) submitForm() {
+	if p.submitting {
+		return
 	}
 
-	if txtHost.Text() == "" {
-		return fmt.Errorf("enter host")
-	}
+	p.submitting = true
 
-	if txtPort.Text() == "" {
-		return fmt.Errorf("enter port")
-	}
+	go func() {
+		setError := func(err error) {
+			p.submitting = false
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true)
+		}
 
-	port, err := strconv.ParseUint(txtPort.Text(), 10, 64)
-	if err != nil {
-		return err
-	}
+		txtName := p.txtName.EditorStyle.Editor
+		txtEnpoint := p.txtEndpoint.EditorStyle.Editor
 
-	err = node_manager.Instance.EditNode(node_manager.NodeInfo{
-		ID:   p.nodeInfo.ID,
-		Name: txtName.Text(),
-		Host: txtHost.Text(),
-		Port: port,
-	})
-	if err != nil {
-		return err
-	}
+		if txtName.Text() == "" {
+			setError(fmt.Errorf("enter name"))
+			return
+		}
 
-	return nil
+		if txtEnpoint.Text() == "" {
+			setError(fmt.Errorf("enter endpoint"))
+			return
+		}
+
+		_, err := walletapi.TestConnect(txtEnpoint.Text())
+		if err != nil {
+			setError(err)
+			return
+		}
+
+		err = node_manager.Instance.EditNode(node_manager.NodeConnection{
+			ID:       p.nodeConn.ID,
+			Name:     txtName.Text(),
+			Endpoint: txtEnpoint.Text(),
+		})
+		if err != nil {
+			setError(err)
+			return
+		}
+
+		p.submitting = false
+		notification_modals.SuccessInstance.SetText("Success", "data saved")
+		notification_modals.SuccessInstance.SetVisible(true)
+		page_instance.router.SetCurrent(PAGE_SELECT_NODE)
+	}()
+
 }
