@@ -30,7 +30,11 @@ type Image struct {
 	Scale float32
 
 	Transform func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D
-	Rounded   unit.Dp
+
+	RNW unit.Dp
+	RNE unit.Dp
+	RSW unit.Dp
+	RSE unit.Dp
 }
 
 func (im Image) Layout(gtx layout.Context) layout.Dimensions {
@@ -52,7 +56,11 @@ func (im Image) Layout(gtx layout.Context) layout.Dimensions {
 	//defer op.Affine(f32.Affine2D{}.Offset(layout.FPt(offsetPt).Mul(-1))).Push(gtx.Ops).Pop()
 	dims, trans := im.Fit.scale(gtx.Constraints, im.Position, layout.Dimensions{Size: image.Pt(w, h)})
 
-	defer clip.UniformRRect(image.Rectangle{Max: dims.Size}, gtx.Dp(im.Rounded)).Push(gtx.Ops).Pop()
+	defer clip.RRect{
+		Rect: image.Rectangle{Max: dims.Size},
+		NW:   gtx.Dp(im.RNW), NE: gtx.Dp(im.RNE),
+		SE: gtx.Dp(im.RSE), SW: gtx.Dp(im.RSW),
+	}.Push(gtx.Ops).Pop()
 
 	if im.Transform != nil {
 		trans = im.Transform(dims, trans)

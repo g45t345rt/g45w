@@ -103,7 +103,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	submitted, text := p.modalWalletPassword.Submit()
 	if submitted {
 		openedWallet := wallet_manager.Instance.OpenedWallet
-		err := wallet_manager.Instance.DeleteWallet(openedWallet.Info.ID, text)
+		err := wallet_manager.Instance.DeleteWallet(openedWallet.Info.Addr, text)
 		if err == nil {
 			p.modalWalletPassword.Modal.SetVisible(false)
 			page_instance.router.SetCurrent(PAGE_BALANCE_TOKENS)

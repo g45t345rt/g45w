@@ -39,9 +39,8 @@ var TrustedNodes = map[string]NodeConnection{
 }
 
 func Instantiate() *NodeManager {
-	nodeManager := &NodeManager{}
-	Instance = nodeManager
-	return nodeManager
+	Instance = &NodeManager{}
+	return Instance
 }
 
 func (n *NodeManager) Load() error {

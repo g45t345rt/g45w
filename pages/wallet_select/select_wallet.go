@@ -17,6 +17,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -117,7 +118,7 @@ func (p *PageSelectWallet) Load() {
 	}
 
 	sort.Slice(items, func(i, j int) bool {
-		return items[i].wallet.ID < items[j].wallet.ID
+		return items[i].wallet.Timestamp < items[j].wallet.Timestamp
 	})
 
 	p.walletList.items = items
@@ -181,17 +182,23 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	{
 		submitted, text := p.modalWalletPassword.Submit()
 		if submitted {
-			memory, info, err := wallet_manager.Instance.OpenWallet(p.currentWallet.ID, text)
+			walletMemory, walletInfo, err := wallet_manager.Instance.OpenWallet(p.currentWallet.Addr, text)
 			if err == nil {
 				wallet_manager.Instance.OpenedWallet = &wallet_manager.OpenedWallet{
-					Info:   info,
-					Memory: memory,
+					Info:   walletInfo,
+					Memory: walletMemory,
 				}
 
 				p.modalWalletPassword.Modal.SetVisible(false)
 				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 			} else {
-				p.modalWalletPassword.StartWrongPassAnimation()
+				if err.Error() == "Invalid Password" {
+					p.modalWalletPassword.StartWrongPassAnimation()
+				} else {
+					//p.modalWalletPassword.Modal.SetVisible(false)
+					notification_modals.ErrorInstance.SetText("Error", err.Error())
+					notification_modals.ErrorInstance.SetVisible(true)
+				}
 			}
 		}
 	}

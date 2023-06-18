@@ -24,9 +24,8 @@ type IntegratedNode struct {
 var Instance *IntegratedNode
 
 func Instantiate() *IntegratedNode {
-	n := &IntegratedNode{}
-	Instance = n
-	return n
+	Instance = &IntegratedNode{}
+	return Instance
 }
 
 func (n *IntegratedNode) Start() error {

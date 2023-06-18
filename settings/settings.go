@@ -23,9 +23,8 @@ var BuildTime = fmt.Sprint(time.Now().Unix())
 var GitVersion = "development"
 
 func Instantiate() *Settings {
-	s := &Settings{}
-	Instance = s
-	return s
+	Instance = &Settings{}
+	return Instance
 }
 
 func (s *Settings) Load() error {

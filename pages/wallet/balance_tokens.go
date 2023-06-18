@@ -359,7 +359,8 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 }
 
 type TokenBar struct {
-	buttonAddToken *components.Button
+	buttonAddToken  *components.Button
+	buttonListToken *components.Button
 }
 
 func NewTokenBar(th *material.Theme) *TokenBar {
@@ -371,8 +372,17 @@ func NewTokenBar(th *material.Theme) *TokenBar {
 		Animation:      components.NewButtonAnimationScale(.92),
 	})
 
+	listIcon, _ := widget.NewIcon(icons.ActionViewList)
+	buttonListToken := components.NewButton(components.ButtonStyle{
+		Icon:           listIcon,
+		TextColor:      color.NRGBA{A: 100},
+		HoverTextColor: &color.NRGBA{A: 255},
+		Animation:      components.NewButtonAnimationScale(.92),
+	})
+
 	return &TokenBar{
-		buttonAddToken: buttonAddToken,
+		buttonAddToken:  buttonAddToken,
+		buttonListToken: buttonListToken,
 	}
 }
 
@@ -390,15 +400,21 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*Token
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						labelTokens := material.Label(th, unit.Sp(16), "YOUR TOKENS")
+						labelTokens := material.Label(th, unit.Sp(17), "YOUR TOKENS")
 						labelTokens.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
 						labelTokens.Font.Weight = font.Bold
 						return labelTokens.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Min.X = gtx.Dp(30)
-						gtx.Constraints.Min.Y = gtx.Dp(30)
+						gtx.Constraints.Min.X = gtx.Dp(35)
+						gtx.Constraints.Min.Y = gtx.Dp(35)
 						return t.buttonAddToken.Layout(gtx, th)
+					}),
+					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						gtx.Constraints.Min.X = gtx.Dp(35)
+						gtx.Constraints.Min.Y = gtx.Dp(35)
+						return t.buttonListToken.Layout(gtx, th)
 					}),
 				)
 			}),
@@ -467,9 +483,12 @@ type TokenImageItem struct {
 
 func NewTokenImageItem(src image.Image) *TokenImageItem {
 	image := &components.Image{
-		Src:     paint.NewImageOp(src),
-		Rounded: unit.Dp(10),
-		Fit:     components.Cover,
+		Src: paint.NewImageOp(src),
+		Fit: components.Cover,
+		RNW: unit.Dp(10),
+		RNE: unit.Dp(10),
+		RSW: unit.Dp(10),
+		RSE: unit.Dp(10),
 	}
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(

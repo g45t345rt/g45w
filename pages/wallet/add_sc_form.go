@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"context"
 	"image/color"
 
 	"gioui.org/font"
@@ -10,10 +11,15 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/rpc"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/sc"
+	"github.com/g45t345rt/g45w/token_manager"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -27,6 +33,7 @@ type PageAddSCForm struct {
 
 	buttonCheckSC *components.Button
 	txtSCID       *components.TextField
+	tokenManager  *token_manager.TokenManager
 
 	listStyle material.ListStyle
 }
@@ -85,6 +92,8 @@ func (p *PageAddSCForm) Enter() {
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
+	addr := wallet_manager.Instance.OpenedWallet.Info.Addr
+	p.tokenManager = token_manager.New(addr)
 }
 
 func (p *PageAddSCForm) Leave() {
@@ -112,6 +121,10 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
+	if p.buttonCheckSC.Clickable.Clicked() {
+		p.fetch(p.txtSCID.Value())
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtSCID.Layout(gtx, th)
@@ -127,4 +140,19 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageAddSCForm) fetch(scId string) (scType sc.SCType, result *rpc.GetSC_Result, err error) {
+	err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+		SCID:      scId,
+		Variables: true,
+		Code:      true,
+	}, &result)
+	if err != nil {
+		return sc.UNKNOWN_TYPE, nil, err
+	}
+
+	scType = sc.CheckType(result.Code)
+
+	return scType, result, nil
 }

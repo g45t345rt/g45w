@@ -7,7 +7,7 @@ go 1.19
 require (
 	eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d
 	gioui.org v0.0.0-20230526230622-e3ef98dda382
-	github.com/deroproject/derohe v0.0.0-00010101000000-000000000000
+	github.com/deroproject/derohe v0.0.0-20220610090545-ec5da1c381a9
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1
 	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1
@@ -40,7 +40,7 @@ require (
 	github.com/go-text/typesetting v0.0.0-20230413204129-b4f0492bf7ae // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.6.0 // indirect
-	github.com/klauspost/compress v1.10.3 // indirect
+	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
 	github.com/klauspost/reedsolomon v1.11.7 // indirect
 	github.com/lesismal/llib v1.1.12 // indirect
@@ -59,8 +59,8 @@ require (
 	github.com/valyala/histogram v1.2.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xtaci/kcp-go/v5 v5.6.2 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.8.0
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95 // indirect

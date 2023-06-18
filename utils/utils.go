@@ -1,14 +1,20 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"image"
 	"image/color"
+	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
 
 	"gioui.org/gpu/headless"
 	"gioui.org/layout"
+	"github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/deroproject/derohe/rpc"
 )
 
 // From gio material theme
@@ -134,4 +140,69 @@ func ReduceString(s string, maxLeft, maxRight int) string {
 
 func ReduceAddr(addr string) string {
 	return ReduceString(addr, 7, 7)
+}
+
+func CopyFile(src string, dest string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	var destFile *os.File
+	_, err = os.Stat(dest)
+	if err != nil {
+		if os.IsNotExist(err) {
+			destFile, err = os.Create(dest)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		destFile, err = os.Open(dest)
+		if err != nil {
+			return err
+		}
+	}
+
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, srcFile)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DecodeString(value string) (string, error) {
+	bytes, err := hex.DecodeString(value)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func DecodeAddress(value string) (string, error) {
+	p := new(crypto.Point)
+	key, err := hex.DecodeString(value)
+	if err != nil {
+		return "", err
+	}
+
+	err = p.DecodeCompressed(key)
+	if err != nil {
+		return "", err
+	}
+
+	return rpc.NewAddressFromKeys(p).String(), nil
+}
+
+func HashSHA256(value string) string {
+	hash := sha256.New()
+	hash.Write([]byte(value))
+	hashSum := hash.Sum(nil)
+	return hex.EncodeToString(hashSum)
 }

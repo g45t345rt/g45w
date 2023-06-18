@@ -20,10 +20,11 @@ type OpenedWallet struct {
 }
 
 type WalletInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Addr string `json:"addr"`
-	Data []byte `json:"data"`
+	Name      string `json:"name"`
+	Addr      string `json:"addr"`
+	Data      []byte `json:"data"`
+	Timestamp int64  `json:"timestamp"`
+	ListOrder int64  `json:"order"` // save item list ordering
 }
 
 var Instance *WalletManager
@@ -34,10 +35,9 @@ type WalletManager struct {
 }
 
 func Instantiate() *WalletManager {
-	w := &WalletManager{
+	Instance = &WalletManager{
 		Wallets: make(map[string]*WalletInfo),
 	}
-	Instance = w
 	return Instance
 }
 
@@ -50,40 +50,41 @@ func (w *WalletManager) Load() error {
 		return err
 	}
 
-	err = filepath.WalkDir(walletsDir, func(path string, d fs.DirEntry, err error) error {
+	return filepath.Walk(walletsDir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if d.IsDir() {
+		if walletsDir == path {
 			return nil
 		}
 
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
+		if info.IsDir() {
+			addr := info.Name()
+
+			path := filepath.Join(walletsDir, addr, "wallet.json")
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			walletInfo := &WalletInfo{}
+			err = json.Unmarshal(data, walletInfo)
+			if err != nil {
+				return err
+			}
+
+			w.Wallets[walletInfo.Addr] = walletInfo
 		}
 
-		walletInfo := &WalletInfo{}
-		err = json.Unmarshal(data, walletInfo)
-		if err != nil {
-			return err
-		}
-
-		w.Wallets[walletInfo.ID] = walletInfo
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func (w *WalletManager) GetWalletInfo(id string) (*WalletInfo, error) {
-	walletInfo, ok := w.Wallets[id]
+func (w *WalletManager) GetWalletInfo(addr string) (*WalletInfo, error) {
+	walletInfo, ok := w.Wallets[addr]
 	if !ok {
-		return nil, fmt.Errorf("wallet [%s] does not exists", id)
+		return nil, fmt.Errorf("wallet [%s] does not exists", addr)
 	}
 
 	return walletInfo, nil
@@ -103,20 +104,20 @@ func (w *WalletManager) OpenWallet(id string, password string) (*walletapi.Walle
 	return wallet, walletInfo, nil
 }
 
-func (w *WalletManager) DeleteWallet(id string, password string) error {
-	_, walletInfo, err := w.OpenWallet(id, password)
+func (w *WalletManager) DeleteWallet(addr string, password string) error {
+	_, _, err := w.OpenWallet(addr, password)
 	if err != nil {
 		return err
 	}
 
 	walletsDir := settings.Instance.WalletsDir
-	path := filepath.Join(walletsDir, fmt.Sprintf("%s.json", walletInfo.ID))
+	path := filepath.Join(walletsDir, addr)
 	err = os.Remove(path)
 	if err != nil {
 		return err
 	}
 
-	delete(w.Wallets, id)
+	delete(w.Wallets, addr)
 	return nil
 }
 
@@ -169,12 +170,12 @@ func (w *WalletManager) CreateWallet(name string, password string) error {
 func (w *WalletManager) saveWallet(name string, wallet *walletapi.Wallet_Memory) error {
 	walletData := wallet.Get_Encrypted_Wallet()
 
-	id := fmt.Sprint(time.Now().Unix())
+	addr := wallet.GetAddress().String()
 	walletInfo := &WalletInfo{
-		ID:   id,
-		Name: name,
-		Addr: wallet.GetAddress().String(),
-		Data: walletData,
+		Name:      name,
+		Addr:      addr,
+		Data:      walletData,
+		Timestamp: time.Now().Unix(),
 	}
 
 	data, err := json.Marshal(walletInfo)
@@ -188,9 +189,18 @@ func (w *WalletManager) saveWallet(name string, wallet *walletapi.Wallet_Memory)
 		return err
 	}
 
-	walletPath := filepath.Join(walletsDir, fmt.Sprintf("%s.json", id))
-	err = os.WriteFile(walletPath, data, fs.ModePerm)
+	path := filepath.Join(walletsDir, addr)
+	err = os.Mkdir(path, fs.ModePerm)
+	if err != nil {
+		return err
+	}
 
-	w.Wallets[id] = walletInfo
-	return err
+	path = filepath.Join(walletsDir, addr, "wallet.json")
+	err = os.WriteFile(path, data, fs.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	w.Wallets[addr] = walletInfo
+	return nil
 }

@@ -44,21 +44,21 @@ func (p *Page) Leave() {
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return SettingsItem{Title: "App Dir"}.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
+			return SettingsItem{Title: "App Directory"}.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
 				dir := settings.Instance.AppDir
 				label := material.Label(th, unit.Sp(16), dir)
 				return label.Layout(gtx)
 			})
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return SettingsItem{Title: "Node Dir"}.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
+			return SettingsItem{Title: "Node Directory"}.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
 				dir := settings.Instance.NodeDir
 				label := material.Label(th, unit.Sp(16), dir)
 				return label.Layout(gtx)
 			})
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return SettingsItem{Title: "Wallets Dir"}.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
+			return SettingsItem{Title: "Wallets Directory"}.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
 				dir := settings.Instance.WalletsDir
 				label := material.Label(th, unit.Sp(16), dir)
 				return label.Layout(gtx)
