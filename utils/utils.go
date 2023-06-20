@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"io"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -136,6 +137,20 @@ func ReduceString(s string, maxLeft, maxRight int) string {
 	start := s[:maxLeft]
 	end := s[len(s)-maxRight:]
 	return start + "..." + end
+}
+
+type ShiftNumber struct {
+	Number   uint64
+	Decimals int
+}
+
+func (s ShiftNumber) Value() float64 {
+	return float64(s.Number) / math.Pow(10, float64(s.Decimals))
+}
+
+func (s ShiftNumber) Format() string {
+	v := fmt.Sprintf("%%.%df", s.Decimals)
+	return fmt.Sprintf(v, s.Value())
 }
 
 func ReduceAddr(addr string) string {

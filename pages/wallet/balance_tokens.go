@@ -24,6 +24,7 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -235,8 +236,6 @@ type DisplayBalance struct {
 	buttonSend        *components.Button
 	buttonReceive     *components.Button
 	buttonHideBalance *components.Button
-	labelTitle        material.LabelStyle
-	labelAmount       material.LabelStyle
 
 	hideBalanceIcon *widget.Icon
 	showBalanceIcon *widget.Icon
@@ -244,12 +243,6 @@ type DisplayBalance struct {
 }
 
 func NewDisplayBalance(th *material.Theme) *DisplayBalance {
-	labelTitle := material.Label(th, unit.Sp(14), "Available Balance")
-	labelTitle.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
-
-	labelAmount := material.Label(th, unit.Sp(34), "--")
-	labelAmount.Font.Weight = font.Bold
-
 	sendIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
 	buttonSend := components.NewButton(components.ButtonStyle{
 		Rounded:         unit.Dp(5),
@@ -288,8 +281,6 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 	})
 
 	return &DisplayBalance{
-		labelTitle:        labelTitle,
-		labelAmount:       labelAmount,
 		buttonSend:        buttonSend,
 		buttonReceive:     buttonReceive,
 		buttonHideBalance: buttonHideBalance,
@@ -305,16 +296,22 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return d.labelTitle.Layout(gtx)
+				lblTitle := material.Label(th, unit.Sp(14), "Available Balance")
+				lblTitle.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+
+				return lblTitle.Layout(gtx)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						dims := d.labelAmount.Layout(gtx)
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						amount := utils.ShiftNumber{Number: 100000, Decimals: 5}.Format()
+						lblAmount := material.Label(th, unit.Sp(34), amount)
+						lblAmount.Font.Weight = font.Bold
+						dims := lblAmount.Layout(gtx)
 
 						if d.hiddenBalance {
-							paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 255}, clip.Rect{
+							paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{
 								Max: dims.Size,
 							}.Op())
 						}
