@@ -114,8 +114,7 @@ func New() *Page {
 		animationLeave: animationLeave,
 	}
 	page_instance = page
-	router.SetPrimary(PAGE_SELECT_NODE)
-
+	router.Primary = PAGE_SELECT_NODE
 	return page
 }
 
@@ -136,6 +135,8 @@ func (p *Page) Enter() {
 		} else {
 			p.router.SetCurrent(PAGE_REMOTE_NODE)
 		}
+	} else {
+		p.router.SetCurrent(PAGE_SELECT_NODE)
 	}
 }
 

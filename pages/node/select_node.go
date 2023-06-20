@@ -27,7 +27,6 @@ import (
 )
 
 type PageSelectNode struct {
-	firstEnter              bool
 	isActive                bool
 	animationEnter          *animation.Animation
 	animationLeave          *animation.Animation
@@ -35,8 +34,7 @@ type PageSelectNode struct {
 	buttonAddNode           *components.Button
 	connecting              bool
 
-	nodeList *NodeList
-
+	nodeList  *NodeList
 	listStyle material.ListStyle
 }
 
@@ -87,7 +85,6 @@ func NewPageSelectNode() *PageSelectNode {
 		nodeList:                nodeList,
 		buttonSetIntegratedNode: buttonSetIntegratedNode,
 		buttonAddNode:           buttonAddNode,
-		firstEnter:              true,
 	}
 }
 
@@ -99,13 +96,10 @@ func (p *PageSelectNode) Enter() {
 	p.isActive = true
 
 	page_instance.header.SetTitle("Select Node")
-	if !p.firstEnter {
-		p.animationLeave.Reset()
-		p.animationEnter.Start()
-	}
+	p.animationLeave.Reset()
+	p.animationEnter.Start()
 
 	p.Load()
-	p.firstEnter = false
 }
 
 func (p *PageSelectNode) Leave() {
@@ -231,6 +225,7 @@ func (p *PageSelectNode) connect(conn node_manager.NodeConnection) {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
+			page_instance.pageRemoteNode.useAnimationEnter = true
 			page_instance.router.SetCurrent(PAGE_REMOTE_NODE)
 			app_instance.Window.Invalidate()
 		}

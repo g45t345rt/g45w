@@ -53,10 +53,8 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 	))
 
 	txtWalletName := components.NewTextField(th, "Wallet Name", "")
-	txtPassword := components.NewTextField(th, "Password", "")
-	txtPassword.EditorStyle.Editor.Mask = rune(42)
-	txtConfirmPassword := components.NewTextField(th, "Confirm Password", "")
-	txtConfirmPassword.EditorStyle.Editor.Mask = rune(42)
+	txtPassword := components.NewPasswordTextField(th, "Password", "")
+	txtConfirmPassword := components.NewPasswordTextField(th, "Confirm Password", "")
 
 	txtHexSeed := components.NewTextField(th, "Hex Seed", "Enter hex seed of 64 chars")
 
@@ -160,10 +158,10 @@ func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Th
 }
 
 func (p *PageCreateWalletHexSeedForm) submitForm() error {
-	txtName := p.txtWalletName.EditorStyle.Editor
-	txtPassword := p.txtPassword.EditorStyle.Editor
-	txtConfirmPassword := p.txtConfirmPassword.EditorStyle.Editor
-	txtHexSeed := p.txtHexSeed.EditorStyle.Editor
+	txtName := p.txtWalletName.Editor()
+	txtPassword := p.txtPassword.Editor()
+	txtConfirmPassword := p.txtConfirmPassword.Editor()
+	txtHexSeed := p.txtHexSeed.Editor()
 
 	if txtHexSeed.Text() == "" {
 		return fmt.Errorf("enter hex seed")

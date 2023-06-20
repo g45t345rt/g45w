@@ -53,14 +53,12 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 	))
 
 	txtWalletName := components.NewTextField(th, "Wallet Name", "")
-	txtPassword := components.NewTextField(th, "Password", "")
-	txtPassword.EditorStyle.Editor.Mask = rune(42)
-	txtConfirmPassword := components.NewTextField(th, "Confirm Password", "")
-	txtConfirmPassword.EditorStyle.Editor.Mask = rune(42)
+	txtPassword := components.NewPasswordTextField(th, "Password", "")
+	txtConfirmPassword := components.NewPasswordTextField(th, "Confirm Password", "")
 
 	txtSeed := components.NewTextField(th, "Seed", "Enter 25 word seed phrase")
-	txtSeed.EditorStyle.Editor.SingleLine = false
-	txtSeed.EditorStyle.Editor.Submit = false
+	txtSeed.Editor().SingleLine = false
+	txtSeed.Editor().Submit = false
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
@@ -137,7 +135,7 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			p.txtSeed.EditorMinY = gtx.Dp(125)
+			p.txtSeed.Input.EditorMinY = gtx.Dp(125)
 			return p.txtSeed.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -163,10 +161,10 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 }
 
 func (p *PageCreateWalletSeedForm) submitForm() error {
-	txtName := p.txtWalletName.EditorStyle.Editor
-	txtPassword := p.txtPassword.EditorStyle.Editor
-	txtConfirmPassword := p.txtConfirmPassword.EditorStyle.Editor
-	txtSeed := p.txtSeed.EditorStyle.Editor
+	txtName := p.txtWalletName.Editor()
+	txtPassword := p.txtPassword.Editor()
+	txtConfirmPassword := p.txtConfirmPassword.Editor()
+	txtSeed := p.txtSeed.Editor()
 
 	if txtSeed.Text() == "" {
 		return fmt.Errorf("enter seed")

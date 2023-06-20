@@ -159,8 +159,8 @@ func (p *PageAddNodeForm) submitForm() {
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
-		txtName := p.txtName.EditorStyle.Editor
-		txtEndpoint := p.txtEndpoint.EditorStyle.Editor
+		txtName := p.txtName.Editor()
+		txtEndpoint := p.txtEndpoint.Editor()
 
 		if txtName.Text() == "" {
 			setError(fmt.Errorf("enter name"))

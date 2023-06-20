@@ -95,7 +95,7 @@ func (n *IntegratedNode) Start() error {
 
 func (n *IntegratedNode) Stop() {
 	n.RPCServer.RPCServer_Stop()
-	p2p.P2P_Shutdown()
+	p2p.P2P_Shutdown() // does not close process_outgoing_connection? :(
 	n.Chain.Shutdown()
 	globals.Cron.Stop()
 	metrics.Set.UnregisterAllMetrics()

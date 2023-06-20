@@ -32,11 +32,12 @@ type PageSendForm struct {
 
 	SCID             string
 	txtAmount        *components.TextField
-	txtWalletAddr    *components.TextField
+	txtWalletAddr    *components.Input
 	txtComment       *components.TextField
 	txtDstPort       *components.TextField
 	buttonBuildTx    *components.Button
 	accordionOptions *components.Accordion
+	buttonContacts   *components.Button
 
 	ringSizeSelector *prefabs.RingSizeSelector
 
@@ -66,10 +67,10 @@ func NewPageSendForm() *PageSendForm {
 	buttonBuildTx.Style.Font.Weight = font.Bold
 
 	txtAmount := components.NewTextField(th, "Amount", "")
-	txtWalletAddr := components.NewTextField(th, "Wallet Addr / Name", "")
+	txtWalletAddr := components.NewInput(th, "")
 	txtComment := components.NewTextField(th, "Comment", "The comment is natively encrypted.")
-	txtComment.EditorStyle.Editor.SingleLine = false
-	txtComment.EditorStyle.Editor.Submit = false
+	txtComment.Editor().SingleLine = false
+	txtComment.Editor().Submit = false
 	txtDstPort := components.NewTextField(th, "Destination Port", "")
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -107,6 +108,16 @@ func NewPageSendForm() *PageSendForm {
 		Button: buttonOptions,
 	}, false)
 
+	contactIcon, _ := widget.NewIcon(icons.SocialPerson)
+	buttonContacts := components.NewButton(components.ButtonStyle{
+		Rounded:         unit.Dp(5),
+		Icon:            contactIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+
 	return &PageSendForm{
 		txtAmount:        txtAmount,
 		txtWalletAddr:    txtWalletAddr,
@@ -118,6 +129,7 @@ func NewPageSendForm() *PageSendForm {
 		animationLeave:   animationLeave,
 		listStyle:        listStyle,
 		accordionOptions: accordionOptions,
+		buttonContacts:   buttonContacts,
 	}
 }
 
@@ -192,7 +204,25 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.txtAmount.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtWalletAddr.Layout(gtx, th)
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(20), "Wallet Addr / Name")
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							return p.txtWalletAddr.Layout(gtx, th)
+						}),
+						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return p.buttonContacts.Layout(gtx, th)
+						}),
+					)
+				}),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.ringSizeSelector.Layout(gtx, th)
@@ -202,7 +232,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						p.txtComment.EditorMinY = gtx.Dp(75)
+						p.txtComment.Input.EditorMinY = gtx.Dp(75)
 						return p.txtComment.Layout(gtx, th)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),

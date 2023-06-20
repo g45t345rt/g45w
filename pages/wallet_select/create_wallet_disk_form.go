@@ -54,8 +54,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 	))
 
 	txtWalletName := components.NewTextField(th, "Wallet Name", "")
-	txtPassword := components.NewTextField(th, "Password", "")
-	txtPassword.EditorStyle.Editor.Mask = rune(42)
+	txtPassword := components.NewPasswordTextField(th, "Password", "")
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonLoad := components.NewButton(components.ButtonStyle{
@@ -164,8 +163,8 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 }
 
 func (p *PageCreateWalletDiskForm) submitForm() error {
-	txtName := p.txtWalletName.EditorStyle.Editor
-	txtPassword := p.txtPassword.EditorStyle.Editor
+	txtName := p.txtWalletName.Editor()
+	txtPassword := p.txtPassword.Editor()
 
 	if txtName.Text() == "" {
 		return fmt.Errorf("enter wallet name")

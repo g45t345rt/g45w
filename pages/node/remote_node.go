@@ -25,7 +25,9 @@ import (
 )
 
 type PageRemoteNode struct {
-	isActive       bool
+	isActive          bool
+	useAnimationEnter bool
+
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
@@ -58,8 +60,11 @@ func (p *PageRemoteNode) Enter() {
 	p.isActive = true
 
 	page_instance.header.SetTitle("Remote Node")
-	p.animationLeave.Reset()
-	p.animationEnter.Start()
+
+	if p.useAnimationEnter {
+		p.animationLeave.Reset()
+		p.animationEnter.Start()
+	}
 }
 
 func (p *PageRemoteNode) Leave() {

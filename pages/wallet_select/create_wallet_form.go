@@ -52,10 +52,8 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 	))
 
 	txtWalletName := components.NewTextField(th, "Wallet Name", "")
-	txtPassword := components.NewTextField(th, "Password", "")
-	txtPassword.EditorStyle.Editor.Mask = rune(42)
-	txtConfirmPassword := components.NewTextField(th, "Confirm Password", "")
-	txtConfirmPassword.EditorStyle.Editor.Mask = rune(42)
+	txtPassword := components.NewPasswordTextField(th, "Password", "")
+	txtConfirmPassword := components.NewPasswordTextField(th, "Confirm Password", "")
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
@@ -153,9 +151,9 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 }
 
 func (p *PageCreateWalletForm) submitForm() error {
-	txtName := p.txtWalletName.EditorStyle.Editor
-	txtPassword := p.txtPassword.EditorStyle.Editor
-	txtConfirmPassword := p.txtConfirmPassword.EditorStyle.Editor
+	txtName := p.txtWalletName.Editor()
+	txtPassword := p.txtPassword.Editor()
+	txtConfirmPassword := p.txtConfirmPassword.Editor()
 
 	if txtName.Text() == "" {
 		return fmt.Errorf("enter wallet name")
