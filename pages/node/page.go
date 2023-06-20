@@ -155,10 +155,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	defer clip.Rect(dr).Push(gtx.Ops).Pop()
 	paint.PaintOp{}.Add(gtx.Ops)
 
-	if p.pageSelectNode.buttonAddNode.Clickable.Clicked() {
-		p.router.SetCurrent(PAGE_ADD_NODE_FORM)
-	}
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -177,6 +173,10 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			p.isActive = false
 			op.InvalidateOp{}.Add(gtx.Ops)
 		}
+	}
+
+	if p.pageSelectNode.buttonAddNode.Clickable.Clicked() {
+		p.router.SetCurrent(PAGE_ADD_NODE_FORM)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

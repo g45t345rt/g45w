@@ -10,6 +10,7 @@ import (
 	"github.com/deroproject/derohe/blockchain"
 	derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
 	"github.com/deroproject/derohe/globals"
+	"github.com/deroproject/derohe/metrics"
 	"github.com/deroproject/derohe/p2p"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/settings"
@@ -97,6 +98,7 @@ func (n *IntegratedNode) Stop() {
 	p2p.P2P_Shutdown()
 	n.Chain.Shutdown()
 	globals.Cron.Stop()
+	metrics.Set.UnregisterAllMetrics()
 }
 
 type NodeStatus struct {

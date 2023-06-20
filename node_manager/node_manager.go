@@ -131,10 +131,10 @@ func (n *NodeManager) SelectNode(id string, save bool) error {
 		if err != nil {
 			return err
 		}
-	}
 
-	if n.NodeState.Current == INTEGRATED_NODE_ID {
-		integrated_node.Instance.Stop()
+		if n.NodeState.Current == INTEGRATED_NODE_ID {
+			integrated_node.Instance.Stop()
+		}
 	}
 
 	n.NodeState.Current = id
