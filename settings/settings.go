@@ -1,8 +1,9 @@
 package settings
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -10,9 +11,11 @@ import (
 )
 
 type Settings struct {
-	AppDir     string
-	NodeDir    string
-	WalletsDir string
+	AppDir     string `json:"-"`
+	NodeDir    string `json:"-"`
+	WalletsDir string `json:"-"`
+
+	HideBalance bool `json:"hide_balance"`
 }
 
 var Instance *Settings
@@ -30,7 +33,7 @@ func Instantiate() *Settings {
 func (s *Settings) Load() error {
 	dataDir, err := app.DataDir()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	appDir := filepath.Join(dataDir, "g45w")
@@ -40,9 +43,31 @@ func (s *Settings) Load() error {
 	s.AppDir = appDir
 	s.NodeDir = nodeDir
 	s.WalletsDir = walletsDir
+
+	path := filepath.Join(s.AppDir, "settings.json")
+
+	_, err = os.Stat(path)
+	if err == nil {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(data, &s)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func (s *Settings) Save() {
+func (s *Settings) Save() error {
+	data, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
 
+	path := filepath.Join(s.AppDir, "settings.json")
+	return os.WriteFile(path, data, os.ModePerm)
 }

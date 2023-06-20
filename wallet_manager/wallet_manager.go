@@ -20,11 +20,11 @@ type OpenedWallet struct {
 }
 
 type WalletInfo struct {
-	Name      string `json:"name"`
-	Addr      string `json:"addr"`
-	Data      []byte `json:"data"`
-	Timestamp int64  `json:"timestamp"`
-	ListOrder int64  `json:"order"` // save item list ordering
+	Name string `json:"name"`
+	Addr string `json:"addr"`
+	//Data      []byte `json:"data"`
+	Timestamp int64 `json:"timestamp"`
+	ListOrder int   `json:"order"` // save item list ordering
 }
 
 var Instance *WalletManager
@@ -62,7 +62,7 @@ func (w *WalletManager) Load() error {
 		if info.IsDir() {
 			addr := info.Name()
 
-			path := filepath.Join(walletsDir, addr, "wallet.json")
+			path := filepath.Join(walletsDir, addr, "info.json")
 			data, err := os.ReadFile(path)
 			if err != nil {
 				return err
@@ -90,13 +90,20 @@ func (w *WalletManager) GetWalletInfo(addr string) (*WalletInfo, error) {
 	return walletInfo, nil
 }
 
-func (w *WalletManager) OpenWallet(id string, password string) (*walletapi.Wallet_Memory, *WalletInfo, error) {
-	walletInfo, err := w.GetWalletInfo(id)
+func (w *WalletManager) OpenWallet(addr string, password string) (*walletapi.Wallet_Memory, *WalletInfo, error) {
+	walletInfo, err := w.GetWalletInfo(addr)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	wallet, err := walletapi.Open_Encrypted_Wallet_Memory(password, walletInfo.Data)
+	walletsDir := settings.Instance.WalletsDir
+	path := filepath.Join(walletsDir, addr, "wallet.db")
+	walletData, err := os.ReadFile(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	wallet, err := walletapi.Open_Encrypted_Wallet_Memory(password, walletData)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -127,7 +134,7 @@ func (w *WalletManager) CreateWalletFromPath(name string, password string, path 
 		return err
 	}
 
-	return w.saveWallet(name, wallet.Wallet_Memory)
+	return w.saveWallet(wallet.Wallet_Memory, name)
 }
 
 func (w *WalletManager) CreateWalletFromSeed(name string, password string, seed string) error {
@@ -136,7 +143,7 @@ func (w *WalletManager) CreateWalletFromSeed(name string, password string, seed 
 		return err
 	}
 
-	return w.saveWallet(name, wallet)
+	return w.saveWallet(wallet, name)
 }
 
 func (w *WalletManager) CreateWalletFromHexSeed(name string, password, hexSeed string) error {
@@ -155,7 +162,7 @@ func (w *WalletManager) CreateWalletFromHexSeed(name string, password, hexSeed s
 		return err
 	}
 
-	return w.saveWallet(name, wallet)
+	return w.saveWallet(wallet, name)
 }
 
 func (w *WalletManager) CreateWallet(name string, password string) error {
@@ -164,43 +171,83 @@ func (w *WalletManager) CreateWallet(name string, password string) error {
 		return err
 	}
 
-	return w.saveWallet(name, wallet)
+	return w.saveWallet(wallet, name)
 }
 
-func (w *WalletManager) saveWallet(name string, wallet *walletapi.Wallet_Memory) error {
-	walletData := wallet.Get_Encrypted_Wallet()
+func (w *WalletManager) RenameWallet(addr string, newName string) error {
+	walletInfo := w.Wallets[addr]
+	walletInfo.Name = newName
+	return w.saveWalletInfo(addr, walletInfo)
+}
 
+func (w *WalletManager) OrderWallet(addr string, newOrder int) error {
+	walletInfo := w.Wallets[addr]
+	walletInfo.ListOrder = newOrder
+	return w.saveWalletInfo(addr, walletInfo)
+}
+
+func (w *WalletManager) saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
 	addr := wallet.GetAddress().String()
 	walletInfo := &WalletInfo{
-		Name:      name,
 		Addr:      addr,
-		Data:      walletData,
+		Name:      name,
 		Timestamp: time.Now().Unix(),
 	}
 
+	err := w.saveWalletInfo(addr, walletInfo)
+	if err != nil {
+		return err
+	}
+
+	err = w.saveWalletData(wallet)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *WalletManager) saveWalletInfo(addr string, walletInfo *WalletInfo) error {
 	data, err := json.Marshal(walletInfo)
 	if err != nil {
 		return err
 	}
 
 	walletsDir := settings.Instance.WalletsDir
-	err = os.MkdirAll(walletsDir, fs.ModePerm)
-	if err != nil {
-		return err
-	}
 
 	path := filepath.Join(walletsDir, addr)
-	err = os.Mkdir(path, fs.ModePerm)
+	err = os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	path = filepath.Join(walletsDir, addr, "wallet.json")
+	path = filepath.Join(walletsDir, addr, "info.json")
 	err = os.WriteFile(path, data, fs.ModePerm)
 	if err != nil {
 		return err
 	}
 
 	w.Wallets[addr] = walletInfo
+	return nil
+}
+
+func (w *WalletManager) saveWalletData(wallet *walletapi.Wallet_Memory) error {
+	walletData := wallet.Get_Encrypted_Wallet()
+	addr := wallet.GetAddress().String()
+
+	walletsDir := settings.Instance.WalletsDir
+
+	path := filepath.Join(walletsDir, addr)
+	err := os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	path = filepath.Join(walletsDir, addr, "wallet.db")
+	err = os.WriteFile(path, walletData, fs.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

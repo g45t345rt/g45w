@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gioui.org/font"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -146,6 +147,10 @@ type TxListItem struct {
 }
 
 func (item *TxListItem) Layout(gtx layout.Context) layout.Dimensions {
+	if item.Clickable.Hovered() {
+		pointer.CursorPointer.Add(gtx.Ops)
+	}
+
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(10),
 		Right: unit.Dp(30), Left: unit.Dp(30),

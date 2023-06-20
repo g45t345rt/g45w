@@ -6,11 +6,14 @@ import (
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -25,6 +28,8 @@ type PageSettings struct {
 	isActive bool
 
 	buttonDeleteWallet  *components.Button
+	txtWalletName       *components.TextField
+	buttonSave          *components.Button
 	modalWalletPassword *prefabs.PasswordModal
 
 	animationEnter *animation.Animation
@@ -52,6 +57,21 @@ func NewPageSettings() *PageSettings {
 	buttonDeleteWallet.Label.Alignment = text.Middle
 	buttonDeleteWallet.Style.Font.Weight = font.Bold
 
+	saveIcon, _ := widget.NewIcon(icons.ContentSave)
+	buttonSave := components.NewButton(components.ButtonStyle{
+		Rounded:         unit.Dp(5),
+		Text:            "SAVE CHANGES",
+		Icon:            saveIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+	buttonSave.Label.Alignment = text.Middle
+	buttonSave.Style.Font.Weight = font.Bold
+
 	modalWalletPassword := prefabs.NewPasswordModal()
 
 	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
@@ -71,12 +91,16 @@ func NewPageSettings() *PageSettings {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
+	txtWalletName := components.NewTextField(th, "Name", "")
+
 	return &PageSettings{
 		buttonDeleteWallet:  buttonDeleteWallet,
 		animationEnter:      animationEnter,
 		animationLeave:      animationLeave,
 		listStyle:           listStyle,
 		modalWalletPassword: modalWalletPassword,
+		txtWalletName:       txtWalletName,
+		buttonSave:          buttonSave,
 	}
 }
 
@@ -85,6 +109,9 @@ func (p *PageSettings) IsActive() bool {
 }
 
 func (p *PageSettings) Enter() {
+	walletName := wallet_manager.Instance.OpenedWallet.Info.Name
+	p.txtWalletName.SetValue(walletName)
+
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -98,6 +125,17 @@ func (p *PageSettings) Leave() {
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if p.buttonDeleteWallet.Clickable.Clicked() {
 		p.modalWalletPassword.Modal.SetVisible(true)
+	}
+
+	if p.buttonSave.Clickable.Clicked() {
+		err := p.submitForm()
+		if err != nil {
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true)
+		} else {
+			notification_modals.SuccessInstance.SetText("Success", "Changes applied successfully")
+			notification_modals.SuccessInstance.SetVisible(true)
+		}
 	}
 
 	submitted, text := p.modalWalletPassword.Submit()
@@ -135,6 +173,20 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
+			return p.txtWalletName.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return p.buttonSave.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Max.Y = gtx.Dp(5)
+			paint.FillShape(gtx.Ops, color.NRGBA{A: 150}, clip.Rect{
+				Max: gtx.Constraints.Max,
+			}.Op())
+
+			return layout.Dimensions{Size: gtx.Constraints.Max}
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			return p.buttonDeleteWallet.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -148,4 +200,19 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageSettings) submitForm() error {
+	walletInfo := wallet_manager.Instance.OpenedWallet.Info
+	newWalletName := p.txtWalletName.Value()
+	if walletInfo.Name != newWalletName {
+		err := wallet_manager.Instance.RenameWallet(walletInfo.Addr, newWalletName)
+		if err != nil {
+			return err
+		}
+
+		wallet_manager.Instance.OpenedWallet.Info.Name = newWalletName
+	}
+
+	return nil
 }

@@ -40,6 +40,7 @@ type Page struct {
 
 	pageBalanceTokens *PageBalanceTokens
 	pageSendForm      *PageSendForm
+	pageSCToken       *PageSCToken
 
 	router    *router.Router
 	infoModal *components.NotificationModal
@@ -56,6 +57,7 @@ var (
 	PAGE_BALANCE_TOKENS = "page_balance_tokens"
 	PAGE_ADD_SC_FORM    = "page_add_sc_form"
 	PAGE_TXS            = "page_txs"
+	PAGE_SC_TOKEN       = "page_sc_token"
 )
 
 func New() *Page {
@@ -82,6 +84,8 @@ func New() *Page {
 	router.Add(PAGE_ADD_SC_FORM, pageAddSCForm)
 	pageTxs := NewPageTxs()
 	router.Add(PAGE_TXS, pageTxs)
+	pageSCToken := NewPageSCToken()
+	router.Add(PAGE_SC_TOKEN, pageSCToken)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
@@ -120,8 +124,10 @@ func New() *Page {
 		buttonCopyAddr:    buttonCopyAddr,
 		pageBalanceTokens: pageBalanceTokens,
 		pageSendForm:      pageSendForm,
-		router:            router,
-		infoModal:         infoModal,
+		pageSCToken:       pageSCToken,
+
+		router:    router,
+		infoModal: infoModal,
 	}
 	page_instance = page
 	router.SetPrimary(PAGE_BALANCE_TOKENS)

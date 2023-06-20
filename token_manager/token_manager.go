@@ -16,7 +16,7 @@ type TokenInfo struct {
 	SCID      string    `json:"scid"`
 	Type      sc.SCType `json:"type"`
 	JsonData  string    `json:"data"`
-	ListOrder int64     `json:"order"`
+	ListOrder int       `json:"order"`
 }
 
 type TokenManager struct {

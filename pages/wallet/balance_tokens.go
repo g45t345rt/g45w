@@ -22,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/utils"
@@ -171,6 +172,10 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 	for _, item := range p.tokenItems {
 		widgets = append(widgets, item.Layout)
+
+		if item.Clickable.Clicked() {
+			page_instance.router.SetCurrent(PAGE_SC_TOKEN)
+		}
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -239,7 +244,6 @@ type DisplayBalance struct {
 
 	hideBalanceIcon *widget.Icon
 	showBalanceIcon *widget.Icon
-	hiddenBalance   bool
 }
 
 func NewDisplayBalance(th *material.Theme) *DisplayBalance {
@@ -310,7 +314,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 						lblAmount.Font.Weight = font.Bold
 						dims := lblAmount.Layout(gtx)
 
-						if d.hiddenBalance {
+						if settings.Instance.HideBalance {
 							paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{
 								Max: dims.Size,
 							}.Op())
@@ -323,14 +327,15 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 						gtx.Constraints.Max.Y = gtx.Dp(50)
 						gtx.Constraints.Max.X = gtx.Dp(50)
 
-						if d.hiddenBalance {
+						if settings.Instance.HideBalance {
 							d.buttonHideBalance.Style.Icon = d.showBalanceIcon
 						} else {
 							d.buttonHideBalance.Style.Icon = d.hideBalanceIcon
 						}
 
 						if d.buttonHideBalance.Clickable.Clicked() {
-							d.hiddenBalance = !d.hiddenBalance
+							settings.Instance.HideBalance = !settings.Instance.HideBalance
+							settings.Instance.Save()
 							op.InvalidateOp{}.Add(gtx.Ops)
 						}
 
@@ -529,6 +534,10 @@ type TokenListItem struct {
 }
 
 func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
+	if item.Clickable.Hovered() {
+		pointer.CursorPointer.Add(gtx.Ops)
+	}
+
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(10),
 		Right: unit.Dp(30), Left: unit.Dp(30),
