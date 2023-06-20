@@ -14,6 +14,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/token_manager"
@@ -122,7 +123,11 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if p.buttonCheckSC.Clickable.Clicked() {
-		p.fetch(p.txtSCID.Value())
+		err := p.submitForm()
+		if err != nil {
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true)
+		}
 	}
 
 	widgets := []layout.Widget{
@@ -142,7 +147,16 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	})
 }
 
-func (p *PageAddSCForm) fetch(scId string) (scType sc.SCType, result *rpc.GetSC_Result, err error) {
+func (p *PageAddSCForm) submitForm() error {
+	_, _, err := p.fetchSmartContract(p.txtSCID.Value())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *PageAddSCForm) fetchSmartContract(scId string) (scType sc.SCType, result *rpc.GetSC_Result, err error) {
 	err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
 		SCID:      scId,
 		Variables: true,

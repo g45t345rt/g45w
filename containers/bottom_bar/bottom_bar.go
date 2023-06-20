@@ -22,13 +22,13 @@ import (
 )
 
 type BottomBar struct {
-	buttonWallet   *BottomBarButton
-	buttonTxs      *BottomBarButton
-	buttonSettings *BottomBarButton
-	buttonClose    *BottomBarButton
-	buttonNode     *BottomBarButton
-	router         *router.Router
+	ButtonWallet   *BottomBarButton
+	ButtonTxs      *BottomBarButton
+	ButtonSettings *BottomBarButton
+	ButtonClose    *BottomBarButton
+	ButtonNode     *BottomBarButton
 
+	router       *router.Router
 	confirmClose *components.Confirm
 }
 
@@ -97,11 +97,11 @@ func LoadInstance() *BottomBar {
 	})
 
 	bottomBar := &BottomBar{
-		buttonWallet:   NewBottomBarButton(buttonWallet),
-		buttonTxs:      NewBottomBarButton(buttonTxs),
-		buttonSettings: NewBottomBarButton(buttonSettings),
-		buttonClose:    NewBottomBarButton(buttonClose),
-		buttonNode:     NewBottomBarButton(buttonNode),
+		ButtonWallet:   NewBottomBarButton(buttonWallet),
+		ButtonTxs:      NewBottomBarButton(buttonTxs),
+		ButtonSettings: NewBottomBarButton(buttonSettings),
+		ButtonClose:    NewBottomBarButton(buttonClose),
+		ButtonNode:     NewBottomBarButton(buttonNode),
 		confirmClose:   confirmClose,
 		router:         router,
 	}
@@ -110,23 +110,23 @@ func LoadInstance() *BottomBar {
 }
 
 func (b *BottomBar) SetButtonActive(tag interface{}) {
-	b.buttonSettings.button.Focused = false
-	b.buttonClose.button.Focused = false
-	b.buttonWallet.button.Focused = false
-	b.buttonNode.button.Focused = false
-	b.buttonTxs.button.Focused = false
+	b.ButtonSettings.Button.Focused = false
+	b.ButtonClose.Button.Focused = false
+	b.ButtonWallet.Button.Focused = false
+	b.ButtonNode.Button.Focused = false
+	b.ButtonTxs.Button.Focused = false
 
 	switch tag {
 	case BUTTON_SETTINGS:
-		b.buttonSettings.button.Focused = true
+		b.ButtonSettings.Button.Focused = true
 	case BUTTON_CLOSE:
-		b.buttonClose.button.Focused = true
+		b.ButtonClose.Button.Focused = true
 	case BUTTON_WALLET:
-		b.buttonWallet.button.Focused = true
+		b.ButtonWallet.Button.Focused = true
 	case BUTTON_NODE:
-		b.buttonNode.button.Focused = true
+		b.ButtonNode.Button.Focused = true
 	case BUTTON_TXS:
-		b.buttonTxs.button.Focused = true
+		b.ButtonTxs.Button.Focused = true
 	}
 }
 
@@ -138,12 +138,12 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	BottomBarTopWallet{}.Layout(gtx, th)
 
 	if wallet_manager.Instance.OpenedWallet != nil {
-		b.buttonClose.button.Disabled = false
-		if b.buttonClose.button.Clickable.Clicked() {
+		b.ButtonClose.Button.Disabled = false
+		if b.ButtonClose.Button.Clickable.Clicked() {
 			b.confirmClose.SetVisible(true)
 		}
 	} else {
-		b.buttonClose.button.Disabled = true
+		b.ButtonClose.Button.Disabled = true
 	}
 
 	if b.confirmClose.ClickedYes() {
@@ -151,11 +151,11 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		wallet_manager.Instance.OpenedWallet = nil
 	}
 
-	if b.buttonNode.button.Clickable.Clicked() {
+	if b.ButtonNode.Button.Clickable.Clicked() {
 		b.router.SetCurrent(app_instance.PAGE_NODE)
 	}
 
-	if b.buttonWallet.button.Clickable.Clicked() {
+	if b.ButtonWallet.Button.Clickable.Clicked() {
 		if b.router.Current == app_instance.PAGE_WALLET {
 			b.router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 		} else {
@@ -163,7 +163,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		}
 	}
 
-	if b.buttonSettings.button.Clickable.Clicked() {
+	if b.ButtonSettings.Button.Clickable.Clicked() {
 		b.router.SetCurrent(app_instance.PAGE_SETTINGS)
 	}
 
@@ -177,35 +177,35 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			Alignment: layout.Middle,
 		}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return b.buttonSettings.Layout(gtx, th)
+				return b.ButtonSettings.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return b.buttonTxs.Layout(gtx, th)
+				return b.ButtonTxs.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return b.buttonWallet.Layout(gtx, th)
+				return b.ButtonWallet.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return b.buttonNode.Layout(gtx, th)
+				return b.ButtonNode.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return b.buttonClose.Layout(gtx, th)
+				return b.ButtonClose.Layout(gtx, th)
 			}),
 		)
 	})
 }
 
 type BottomBarButton struct {
-	button *components.Button
+	Button *components.Button
 }
 
 func NewBottomBarButton(button *components.Button) *BottomBarButton {
 	return &BottomBarButton{
-		button: button,
+		Button: button,
 	}
 }
 
@@ -214,17 +214,17 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 	gtx.Constraints.Min.X = gtx.Dp(iconSize)
 	gtx.Constraints.Min.Y = gtx.Dp(iconSize)
 
-	if b.button.Focused {
-		b.button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+	if b.Button.Focused {
+		b.Button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 	} else {
 		// important scale down instead of up to avoid blurry icon
 		scale := f32.Affine2D{}.Scale(f32.Pt(float32(iconSize)/2, float32(iconSize)/2), f32.Pt(.7, .7))
 		defer op.Affine(scale).Push(gtx.Ops).Pop()
 
-		b.button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 100}
+		b.Button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	}
 
-	return b.button.Layout(gtx, th)
+	return b.Button.Layout(gtx, th)
 }
 
 type BottomBarTopWallet struct{}

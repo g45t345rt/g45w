@@ -82,7 +82,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if h.ButtonRight != nil {
+			if h.router.IsPrimary() && h.ButtonRight != nil {
 				gtx.Constraints.Max.X = gtx.Dp(25)
 				gtx.Constraints.Max.Y = gtx.Dp(25)
 				return h.ButtonRight.Layout(gtx, th)

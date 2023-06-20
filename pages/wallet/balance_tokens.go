@@ -20,6 +20,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
+	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -111,6 +112,7 @@ func (p *PageBalanceTokens) Enter() {
 		p.animationLeave.Reset()
 	}
 
+	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 	p.firstEnter = false
 }
 
@@ -346,7 +348,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 						gtx.Constraints.Max.Y = gtx.Dp(40)
 						return d.buttonSend.Layout(gtx, th)
 					}),
-					layout.Rigid(layout.Spacer{Width: unit.Dp(20)}.Layout),
+					layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Max.Y = gtx.Dp(40)
 
@@ -420,56 +422,6 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*Token
 			}),
 		)
 	})
-}
-
-type TokenList struct {
-	listStyle material.ListStyle
-}
-
-func NewTokenList(th *material.Theme) *TokenList {
-	list := new(widget.List)
-	list.Axis = layout.Vertical
-
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
-	//listStyle.Indicator.MinorWidth = unit.Dp(10)
-	//listStyle.Indicator.CornerRadius = unit.Dp(5)
-	//black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-	//listStyle.Indicator.Color = black
-	//listStyle.Indicator.HoverColor = f32color.Hovered(black)
-
-	return &TokenList{
-		listStyle: listStyle,
-	}
-}
-
-func (l *TokenList) Layout(gtx layout.Context, th *material.Theme, items []TokenListItem) layout.Dimensions {
-	return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return l.listStyle.Layout(gtx, len(items), func(gtx layout.Context, i int) layout.Dimensions {
-			return items[i].Layout(gtx)
-		})
-	})
-
-	//childs := []layout.FlexChild{}
-	//for _, item := range items {
-	//	childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-	//		return item.Layout(gtx, th)
-	//	}))
-	//}
-
-	//return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
-
-	/*
-		bounds := image.Rect(0, 0, d.Size.X, d.Size.Y)
-		rectPath := clip.UniformRRect(bounds, 10).Path(gtx.Ops)
-		paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-			clip.Stroke{
-				Path:  rectPath,
-				Width: 4,
-			}.Op(),
-		)*/
-
-	//return d
 }
 
 type TokenImageItem struct {
@@ -580,7 +532,10 @@ type TokenListItem struct {
 }
 
 func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
-	return layout.Inset{Top: unit.Dp(0), Left: unit.Dp(30), Right: unit.Dp(30), Bottom: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+	return layout.Inset{
+		Top: unit.Dp(0), Bottom: unit.Dp(10),
+		Right: unit.Dp(30), Left: unit.Dp(30),
+	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		th := app_instance.Theme
 		m := op.Record(gtx.Ops)
 		dims := item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

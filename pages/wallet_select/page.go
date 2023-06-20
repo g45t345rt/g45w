@@ -122,6 +122,10 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	defer clip.Rect(dr).Push(gtx.Ops).Pop()
 	paint.PaintOp{}.Add(gtx.Ops)
 
+	if bottom_bar.Instance.ButtonWallet.Button.Clickable.Clicked() {
+		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
+	}
+
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			{

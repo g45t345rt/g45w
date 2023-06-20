@@ -122,6 +122,12 @@ func (t *TokenManager) DelFolder(name string) error {
 	return os.RemoveAll(folderPath)
 }
 
+func (t *TokenManager) RenameFolder(name string, newName string) error {
+	oldPath := filepath.Join(t.tokensFolder(), name)
+	newPath := filepath.Join(t.tokensFolder(), newName)
+	return os.Rename(oldPath, newPath)
+}
+
 func (t *TokenManager) ImportTokensFromWallet(walletAddr string) error {
 	walletDir := settings.Instance.WalletsDir
 	tokensFolder := filepath.Join(walletDir, walletAddr)

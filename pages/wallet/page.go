@@ -55,6 +55,7 @@ var (
 	PAGE_RECEIVE_FORM   = "page_receive_form"
 	PAGE_BALANCE_TOKENS = "page_balance_tokens"
 	PAGE_ADD_SC_FORM    = "page_add_sc_form"
+	PAGE_TXS            = "page_txs"
 )
 
 func New() *Page {
@@ -79,6 +80,8 @@ func New() *Page {
 	router.Add(PAGE_SETTINGS, pageSettings)
 	pageAddSCForm := NewPageAddSCForm()
 	router.Add(PAGE_ADD_SC_FORM, pageAddSCForm)
+	pageTxs := NewPageTxs()
+	router.Add(PAGE_TXS, pageTxs)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
@@ -137,7 +140,13 @@ func (p *Page) Enter() {
 	openedWallet := wallet_manager.Instance.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
-		bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
+
+		if p.router.Current == PAGE_TXS {
+			bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_TXS)
+		} else {
+			bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
+		}
+
 		p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 
 		w := app_instance.Window
@@ -177,6 +186,10 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.header.ButtonRight.Clickable.Clicked() {
 		p.router.SetCurrent(PAGE_SETTINGS)
+	}
+
+	if bottom_bar.Instance.ButtonTxs.Button.Clickable.Clicked() {
+		p.router.SetCurrent(PAGE_TXS)
 	}
 
 	if p.buttonCopyAddr.Clickable.Clicked() {

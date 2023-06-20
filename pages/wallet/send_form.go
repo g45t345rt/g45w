@@ -1,20 +1,27 @@
 package page_wallet
 
 import (
+	"image"
 	"image/color"
+	"strconv"
 
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -23,6 +30,7 @@ import (
 type PageSendForm struct {
 	isActive bool
 
+	SCID             string
 	txtAmount        *components.TextField
 	txtWalletAddr    *components.TextField
 	txtComment       *components.TextField
@@ -154,17 +162,31 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					labelTitle := material.Label(th, unit.Sp(18), "Send DERO")
-					return labelTitle.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					labelTokenId := material.Label(th, unit.Sp(14), "00000...00000")
-					labelTokenId.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
-					return labelTokenId.Layout(gtx)
-				}),
-			)
+
+			r := op.Record(gtx.Ops)
+			dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), "Send DERO")
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(14), "00000...00000")
+						lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+						return lbl.Layout(gtx)
+					}),
+				)
+			})
+			c := r.Stop()
+
+			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+				image.Rectangle{Max: dims.Size},
+				gtx.Dp(10),
+			).Op(gtx.Ops))
+
+			c.Add(gtx.Ops)
+			return dims
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtAmount.Layout(gtx, th)
@@ -204,4 +226,49 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+func (p *PageSendForm) submitForm() error {
+	wallet := wallet_manager.Instance.OpenedWallet.Memory
+
+	destination := p.txtWalletAddr.Value()
+
+	var arguments rpc.Arguments
+
+	comment := p.txtComment.Value()
+	if len(comment) > 0 {
+		arguments = append(arguments, rpc.Argument{Name: rpc.RPC_COMMENT, DataType: rpc.DataString, Value: comment})
+	}
+
+	destPortString := p.txtDstPort.Value()
+	if len(destPortString) > 0 {
+		destPort, err := strconv.ParseUint(destPortString, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		arguments = append(arguments, rpc.Argument{Name: rpc.RPC_DESTINATION_PORT, DataType: rpc.DataUint64, Value: destPort})
+	}
+
+	scId := crypto.HashHexToHash(p.SCID)
+	transfers := []rpc.Transfer{
+		{SCID: scId, Destination: destination, Amount: 0, Payload_RPC: arguments},
+	}
+
+	ringsize, err := strconv.ParseUint(p.ringSizeSelector.Value, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	tx, err := wallet.TransferPayload0(transfers, ringsize, false, rpc.Arguments{}, 0, false)
+	if err != nil {
+		return err
+	}
+
+	err = wallet.SendTransaction(tx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

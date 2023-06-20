@@ -139,7 +139,7 @@ func ReduceString(s string, maxLeft, maxRight int) string {
 }
 
 func ReduceAddr(addr string) string {
-	return ReduceString(addr, 7, 7)
+	return ReduceString(addr, 0, 10)
 }
 
 func CopyFile(src string, dest string) error {
