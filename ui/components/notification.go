@@ -22,7 +22,6 @@ type NotificationStyle struct {
 	InnerInset layout.Inset
 	Rounded    unit.Dp
 	Animation  ModalAnimation
-	CloseAfter time.Duration
 }
 
 type NotificationModal struct {
@@ -46,10 +45,9 @@ func NewNotificationErrorModal(w *app.Window) *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:    unit.Dp(10),
-			Icon:       iconError,
-			Animation:  NewModalAnimationDown(),
-			CloseAfter: 3 * time.Second,
+			Rounded:   unit.Dp(10),
+			Icon:      iconError,
+			Animation: NewModalAnimationDown(),
 		},
 	)
 }
@@ -66,10 +64,9 @@ func NewNotificationSuccessModal(w *app.Window) *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:    unit.Dp(10),
-			Icon:       iconSuccess,
-			Animation:  NewModalAnimationDown(),
-			CloseAfter: 3 * time.Second,
+			Rounded:   unit.Dp(10),
+			Icon:      iconSuccess,
+			Animation: NewModalAnimationDown(),
 		},
 	)
 }
@@ -86,10 +83,9 @@ func NewNotificationInfoModal(w *app.Window) *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:    unit.Dp(10),
-			Icon:       iconInfo,
-			Animation:  NewModalAnimationDown(),
-			CloseAfter: 3 * time.Second,
+			Rounded:   unit.Dp(10),
+			Icon:      iconInfo,
+			Animation: NewModalAnimationDown(),
 		},
 	)
 }
@@ -118,15 +114,17 @@ func (n *NotificationModal) SetText(title string, subtitle string) {
 	n.subtitle = subtitle
 }
 
-func (n *NotificationModal) SetVisible(visible bool) {
+func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
 	if visible {
 		if n.timer != nil {
 			n.timer.Stop()
 		}
 
-		n.timer = time.AfterFunc(n.Style.CloseAfter, func() {
-			n.SetVisible(false)
-		})
+		if closeAfter > 0 {
+			n.timer = time.AfterFunc(closeAfter, func() {
+				n.SetVisible(false, 0)
+			})
+		}
 	}
 
 	n.modal.SetVisible(visible)

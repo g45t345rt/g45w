@@ -2,7 +2,6 @@ package page_wallet
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 	"log"
 	"strings"
@@ -89,8 +88,7 @@ func (p *PageReceiveForm) Enter() {
 		log.Fatal(err)
 	}
 
-	img, format, err := image.Decode(bytes.NewBuffer(imgBytes))
-	fmt.Println(format)
+	img, _, err := image.Decode(bytes.NewBuffer(imgBytes))
 	if err != nil {
 		log.Fatal(err)
 	}

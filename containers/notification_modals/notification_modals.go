@@ -1,6 +1,8 @@
 package notification_modals
 
 import (
+	"time"
+
 	"gioui.org/layout"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
@@ -10,6 +12,7 @@ import (
 var SuccessInstance *components.NotificationModal
 var ErrorInstance *components.NotificationModal
 var InfoInstance *components.NotificationModal
+var CLOSE_AFTER_DEFAULT = 3 * time.Second
 
 func LoadInstance() {
 	w := app_instance.Window

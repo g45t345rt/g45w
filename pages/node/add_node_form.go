@@ -156,7 +156,7 @@ func (p *PageAddNodeForm) submitForm() {
 		setError := func(err error) {
 			p.submitting = false
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
 		txtName := p.txtName.EditorStyle.Editor
@@ -189,7 +189,7 @@ func (p *PageAddNodeForm) submitForm() {
 
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText("Success", "new noded added")
-		notification_modals.SuccessInstance.SetVisible(true)
+		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.router.SetCurrent(PAGE_SELECT_NODE)
 	}()
 }

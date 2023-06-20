@@ -15,7 +15,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/node_manager"
@@ -221,15 +220,19 @@ func (p *PageSelectNode) connect(conn node_manager.NodeConnection) {
 
 	p.connecting = true
 	go func() {
-		err := walletapi.Connect(conn.Endpoint)
+		notification_modals.InfoInstance.SetText("Connecting...", conn.Endpoint)
+		notification_modals.InfoInstance.SetVisible(true, 0)
+		err := node_manager.Instance.SelectNode(conn.ID, true)
 		p.connecting = false
+		notification_modals.InfoInstance.SetVisible(false, 0)
 
 		if err != nil {
+			notification_modals.InfoInstance.SetVisible(false, 0)
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			node_manager.Instance.SelectNode(conn.ID, true)
 			page_instance.router.SetCurrent(PAGE_REMOTE_NODE)
+			app_instance.Window.Invalidate()
 		}
 	}()
 }

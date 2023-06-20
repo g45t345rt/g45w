@@ -197,7 +197,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				} else {
 					//p.modalWalletPassword.Modal.SetVisible(false)
 					notification_modals.ErrorInstance.SetText("Error", err.Error())
-					notification_modals.ErrorInstance.SetVisible(true)
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 				}
 			}
 		}

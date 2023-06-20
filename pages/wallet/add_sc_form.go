@@ -126,7 +126,7 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
 

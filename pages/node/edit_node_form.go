@@ -167,10 +167,10 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		err := node_manager.Instance.DelNode(p.nodeConn.ID)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText("Success", "node deleted")
-			notification_modals.SuccessInstance.SetVisible(true)
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.router.SetCurrent(PAGE_SELECT_NODE)
 		}
 	}
@@ -217,7 +217,7 @@ func (p *PageEditNodeForm) submitForm() {
 		setError := func(err error) {
 			p.submitting = false
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
 		txtName := p.txtName.EditorStyle.Editor
@@ -251,7 +251,7 @@ func (p *PageEditNodeForm) submitForm() {
 
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText("Success", "data saved")
-		notification_modals.SuccessInstance.SetVisible(true)
+		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.router.SetCurrent(PAGE_SELECT_NODE)
 	}()
 

@@ -19,6 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -153,8 +154,6 @@ func (p *Page) Enter() {
 			bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 		}
 
-		p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
-
 		w := app_instance.Window
 		w.Option(app.StatusColor(color.NRGBA{A: 255}))
 
@@ -176,6 +175,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
 
+	p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 	walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
@@ -203,7 +203,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			Text: walletAddr,
 		}.Add(gtx.Ops)
 		p.infoModal.SetText("Clipboard", "Addr copied to clipboard")
-		p.infoModal.SetVisible(true)
+		p.infoModal.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

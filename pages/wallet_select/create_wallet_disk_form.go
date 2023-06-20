@@ -132,10 +132,10 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText("Success", "Wallet loaded successfully")
-			notification_modals.SuccessInstance.SetVisible(true)
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
 
