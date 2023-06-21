@@ -119,7 +119,7 @@ func (w *WalletManager) DeleteWallet(addr string, password string) error {
 
 	walletsDir := settings.Instance.WalletsDir
 	path := filepath.Join(walletsDir, addr)
-	err = os.Remove(path)
+	err = os.RemoveAll(path)
 	if err != nil {
 		return err
 	}

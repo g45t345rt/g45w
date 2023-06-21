@@ -114,8 +114,11 @@ func NewPageSendForm() *PageSendForm {
 		Icon:            contactIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Inset: layout.Inset{
+			Top: unit.Dp(14), Bottom: unit.Dp(13),
+			Left: unit.Dp(12), Right: unit.Dp(12),
+		},
+		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	return &PageSendForm{
@@ -170,6 +173,10 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	if p.buttonBuildTx.Clickable.Clicked() {
 
+	}
+
+	if p.buttonContacts.Clickable.Clicked() {
+		page_instance.router.SetCurrent(PAGE_CONTACTS)
 	}
 
 	widgets := []layout.Widget{

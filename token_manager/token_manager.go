@@ -20,18 +20,18 @@ type TokenInfo struct {
 }
 
 type TokenManager struct {
-	Addr string
+	WalletAddr string
 }
 
 var MAIN_FOLDER = "__main__"
 
-func New(addr string) *TokenManager {
-	return &TokenManager{Addr: addr}
+func New(walletAddr string) *TokenManager {
+	return &TokenManager{WalletAddr: walletAddr}
 }
 
 func (t *TokenManager) tokensFolder() string {
 	walletDir := settings.Instance.WalletsDir
-	tokensPath := filepath.Join(walletDir, t.Addr, "tokens")
+	tokensPath := filepath.Join(walletDir, t.WalletAddr, "tokens")
 	return tokensPath
 }
 

@@ -121,6 +121,7 @@ func main() {
 		ContrastBg: utils.HexColor(0x3f51b5),
 		ContrastFg: utils.HexColor(0xffffff),
 	})
+	theme.FingerSize = 48
 
 	// main router
 	router := router.NewRouter()

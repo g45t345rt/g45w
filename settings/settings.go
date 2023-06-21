@@ -2,10 +2,8 @@ package settings
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"gioui.org/app"
 )
@@ -22,7 +20,7 @@ var Instance *Settings
 
 // vars below are replaced by -ldflags during build
 var Version = "development"
-var BuildTime = fmt.Sprint(time.Now().Unix())
+var BuildTime = ""
 var GitVersion = "development"
 
 func Instantiate() *Settings {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"time"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -15,51 +14,37 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
-	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type PageTxs struct {
+type PageContacts struct {
 	isActive bool
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	txItems []*TxListItem
+	contactItems []*ContactListItem
 
 	listStyle material.ListStyle
 }
 
-var _ router.Page = &PageTxs{}
+var _ router.Page = &PageContacts{}
 
-func NewPageTxs() *PageTxs {
+func NewPageContacts() *PageContacts {
 	th := app_instance.Theme
 
-	txItems := []*TxListItem{}
-
-	upIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
-	downIcon, _ := widget.NewIcon(icons.NavigationArrowDownward)
+	contactItems := []*ContactListItem{}
 
 	for i := 0; i < 10; i++ {
-		icon := upIcon
-		if i%2 == 0 {
-			icon = downIcon
-		}
-
-		txItems = append(txItems, &TxListItem{
-			asset:     fmt.Sprintf("DERO (%s)", utils.ReduceString(crypto.ZEROHASH.String(), 4, 4)),
-			date:      time.Now().Format("2006-01-02"),
+		contactItems = append(contactItems, &ContactListItem{
+			name:      fmt.Sprintf("asd %d", i),
 			addr:      "dero1qy4egwhfjxtt96pdlkkc3d99yqkewkvljf50unqh5vz7xepl8w6yyqgklpjsz",
-			amount:    "342.35546",
 			Clickable: new(widget.Clickable),
-			Icon:      icon,
 		})
 	}
 
@@ -76,32 +61,31 @@ func NewPageTxs() *PageTxs {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	return &PageTxs{
-		txItems:        txItems,
+	return &PageContacts{
+		contactItems:   contactItems,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		listStyle:      listStyle,
 	}
 }
 
-func (p *PageTxs) IsActive() bool {
+func (p *PageContacts) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageTxs) Enter() {
+func (p *PageContacts) Enter() {
 	p.isActive = true
 
-	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_TXS)
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
 
-func (p *PageTxs) Leave() {
+func (p *PageContacts) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
 }
 
-func (p *PageTxs) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -121,9 +105,14 @@ func (p *PageTxs) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 		}
 	}
 
-	widgets := []layout.Widget{}
+	widgets := []layout.Widget{
+		func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(14), "You didn't add any contacts yet.")
+			return lbl.Layout(gtx)
+		},
+	}
 
-	for _, item := range p.txItems {
+	for _, item := range p.contactItems {
 		widgets = append(widgets, item.Layout)
 	}
 
@@ -136,17 +125,14 @@ func (p *PageTxs) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 	})
 }
 
-type TxListItem struct {
-	asset  string
-	addr   string
-	amount string
-	date   string
+type ContactListItem struct {
+	name string
+	addr string
 
 	Clickable *widget.Clickable
-	Icon      *widget.Icon
 }
 
-func (item *TxListItem) Layout(gtx layout.Context) layout.Dimensions {
+func (item *ContactListItem) Layout(gtx layout.Context) layout.Dimensions {
 	if item.Clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
@@ -162,47 +148,22 @@ func (item *TxListItem) Layout(gtx layout.Context) layout.Dimensions {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+				return layout.Flex{
+					Axis:      layout.Horizontal,
+					Alignment: layout.Middle,
+				}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Max.X = gtx.Dp(50)
-						gtx.Constraints.Max.Y = gtx.Dp(50)
-						return item.Icon.Layout(gtx, color.NRGBA{A: 255})
-					}),
-					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{
-							Axis:      layout.Horizontal,
-							Alignment: layout.Middle,
-						}.Layout(gtx,
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										addr := utils.ReduceAddr(item.addr)
-										label := material.Label(th, unit.Sp(18), addr)
-										label.Font.Weight = font.Bold
-										return label.Layout(gtx)
-									}),
-									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										label := material.Label(th, unit.Sp(14), item.date)
-										label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
-										return label.Layout(gtx)
-									}),
-								)
+								label := material.Label(th, unit.Sp(18), item.name)
+								label.Font.Weight = font.Bold
+								return label.Layout(gtx)
 							}),
-							layout.Flexed(1, layout.Spacer{}.Layout),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										label := material.Label(th, unit.Sp(18), item.amount)
-										label.Font.Weight = font.Bold
-										return label.Layout(gtx)
-									}),
-									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										label := material.Label(th, unit.Sp(14), item.asset)
-										label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
-										return label.Layout(gtx)
-									}),
-								)
+								addr := utils.ReduceAddr(item.addr)
+								label := material.Label(th, unit.Sp(14), addr)
+								label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+								return label.Layout(gtx)
 							}),
 						)
 					}),

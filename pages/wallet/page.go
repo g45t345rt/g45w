@@ -60,6 +60,7 @@ var (
 	PAGE_TXS             = "page_txs"
 	PAGE_SC_TOKEN        = "page_sc_token"
 	PAGE_REGISTER_WALLET = "page_register_wallet"
+	PAGE_CONTACTS        = "page_contacts"
 )
 
 func New() *Page {
@@ -90,6 +91,8 @@ func New() *Page {
 	router.Add(PAGE_SC_TOKEN, pageSCToken)
 	pageRegisterWallet := NewPageRegisterWallet()
 	router.Add(PAGE_REGISTER_WALLET, pageRegisterWallet)
+	pageContacts := NewPageContacts()
+	router.Add(PAGE_CONTACTS, pageContacts)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold

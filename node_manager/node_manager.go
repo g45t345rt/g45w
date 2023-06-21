@@ -46,8 +46,13 @@ func Instantiate() *NodeManager {
 func (n *NodeManager) Load() error {
 	nodeDir := settings.Instance.NodeDir
 
+	err := os.MkdirAll(nodeDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	path := filepath.Join(nodeDir, NODE_STATE_FILE)
-	_, err := os.Stat(path)
+	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
 		nodeState := NodeState{
 			Nodes: TrustedNodes,

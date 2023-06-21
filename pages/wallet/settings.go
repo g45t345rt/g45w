@@ -148,7 +148,12 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 			wallet_manager.Instance.OpenedWallet = nil
 		} else {
-			p.modalWalletPassword.StartWrongPassAnimation()
+			if err.Error() == "Invalid Password" {
+				p.modalWalletPassword.StartWrongPassAnimation()
+			} else {
+				notification_modals.ErrorInstance.SetText("Error", err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			}
 		}
 	}
 

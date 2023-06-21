@@ -17,6 +17,7 @@ The most notable difference in technology is that this wallet uses Gio UI instea
 - Manage Dero tokens and NFTs.
 - Easily send payments and receive with QR code.
 - Fast registration implemented (by pieswap).
+- Keep list of contacts.
 
 ## Screenshots
 
