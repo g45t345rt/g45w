@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/node_manager"
 	page_node "github.com/g45t345rt/g45w/pages/node"
+	"github.com/g45t345rt/g45w/wallet_manager"
 )
 
 type NodeStatusBar struct {
@@ -47,20 +48,39 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	currentNode := node_manager.Instance.NodeState.Current
 	status := "unassigned node"
+
+	statusDotColor := color.NRGBA{R: 255, G: 0, B: 255, A: 255}
+
 	if currentNode != "" {
 		if currentNode == node_manager.INTEGRATED_NODE_ID {
 			n.integratedNodeStatus.Active()
 
-			height := n.integratedNodeStatus.Height
-			bestHeight := n.integratedNodeStatus.BestHeight
+			//height := n.integratedNodeStatus.Height
+			//bestHeight := n.integratedNodeStatus.BestHeight
+			wallet := wallet_manager.Instance.OpenedWallet.Memory
+			walletHeight := wallet.Get_Height()
+			daemonHeight := wallet.Get_Daemon_Height()
 			out := n.integratedNodeStatus.PeerOutCount
-			status = fmt.Sprintf("%d / %d - %dP (%s)", height, bestHeight, out, "Integrated")
+
+			if walletHeight < daemonHeight {
+				statusDotColor = color.NRGBA{R: 255, G: 255, B: 0, A: 255}
+			}
+
+			status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, "Integrated")
 		} else {
 			n.remoteNodeInfo.Active()
+
 			nodeConn := node_manager.Instance.NodeState.Nodes[currentNode]
-			height := n.remoteNodeInfo.Result.Height
+			wallet := wallet_manager.Instance.OpenedWallet.Memory
+			walletHeight := wallet.Get_Height()
+			daemonHeight := wallet.Get_Daemon_Height()
 			out := n.remoteNodeInfo.Result.Outgoing_connections_count
-			status = fmt.Sprintf("%d - %dP (%s)", height, out, nodeConn.Name)
+
+			if walletHeight < daemonHeight {
+				statusDotColor = color.NRGBA{R: 255, G: 255, B: 0, A: 255}
+			}
+
+			status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, nodeConn.Name)
 		}
 	}
 
@@ -82,22 +102,32 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				Alignment: layout.Middle,
 			}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					gtx.Constraints.Max.X = gtx.Dp(12)
-					gtx.Constraints.Max.Y = gtx.Dp(12)
-					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 0, B: 0, A: 255},
-						clip.Ellipse{
-							Max: gtx.Constraints.Max,
-						}.Op(gtx.Ops))
-
-					return layout.Dimensions{Size: gtx.Constraints.Max}
+					return StatusDot{
+						Color: statusDotColor,
+					}.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(16), status)
-					label.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-					return label.Layout(gtx)
+					lbl := material.Label(th, unit.Sp(16), status)
+					lbl.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+					return lbl.Layout(gtx)
 				}),
 			)
 		})
 	})
+}
+
+type StatusDot struct {
+	Color color.NRGBA
+}
+
+func (s StatusDot) Layout(gtx layout.Context) layout.Dimensions {
+	gtx.Constraints.Max.X = gtx.Dp(12)
+	gtx.Constraints.Max.Y = gtx.Dp(12)
+	paint.FillShape(gtx.Ops, s.Color,
+		clip.Ellipse{
+			Max: gtx.Constraints.Max,
+		}.Op(gtx.Ops))
+
+	return layout.Dimensions{Size: gtx.Constraints.Max}
 }

@@ -2,10 +2,14 @@ package page_wallet_select
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -20,6 +24,14 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
+type RegResult struct {
+	TxID     string
+	TxHex    string
+	Addr     string
+	WordSeed string
+	HexSeed  string
+}
+
 type PageCreateWalletForm struct {
 	isActive bool
 
@@ -32,6 +44,8 @@ type PageCreateWalletForm struct {
 	txtPassword        *components.TextField
 	txtConfirmPassword *components.TextField
 	buttonCreate       *components.Button
+
+	regResultContainer *RegResultContainer
 }
 
 var _ router.Page = &PageCreateWalletForm{}
@@ -129,6 +143,13 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
+			if p.regResultContainer != nil {
+				return p.regResultContainer.Layout(gtx, th)
+			}
+
+			return layout.Dimensions{}
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			return p.txtWalletName.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -177,4 +198,89 @@ func (p *PageCreateWalletForm) submitForm() error {
 	txtConfirmPassword.SetText("")
 
 	return nil
+}
+
+type RegResultContainer struct {
+	addrEditor     *widget.Editor
+	wordSeedEditor *widget.Editor
+	hexSeedEditor  *widget.Editor
+}
+
+func NewRegResultContainer(result *RegResult) *RegResultContainer {
+	addrEditor := new(widget.Editor)
+	addrEditor.SetText(result.Addr)
+
+	wordSeedEditor := new(widget.Editor)
+	wordSeedEditor.SetText(result.WordSeed)
+
+	hexSeedEditor := new(widget.Editor)
+	hexSeedEditor.SetText(result.HexSeed)
+
+	return &RegResultContainer{
+		addrEditor:     addrEditor,
+		wordSeedEditor: wordSeedEditor,
+		hexSeedEditor:  hexSeedEditor,
+	}
+}
+
+func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(14), "The registration process found the POW solution. You can now create your wallet and send the registration transaction.")
+			return lbl.Layout(gtx)
+		}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			r := op.Record(gtx.Ops)
+			dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), "Address")
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Editor(th, item.addrEditor, "")
+						lbl.TextSize = unit.Sp(14)
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), "Word Seed")
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Editor(th, item.wordSeedEditor, "")
+						lbl.TextSize = unit.Sp(14)
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), "Hex Seed")
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Editor(th, item.hexSeedEditor, "")
+						lbl.TextSize = unit.Sp(14)
+						return lbl.Layout(gtx)
+					}),
+				)
+			})
+			c := r.Stop()
+
+			paint.FillShape(
+				gtx.Ops,
+				color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+				clip.UniformRRect(
+					image.Rectangle{Max: dims.Size},
+					gtx.Dp(10),
+				).Op(gtx.Ops),
+			)
+
+			c.Add(gtx.Ops)
+			return dims
+		}),
+	)
 }

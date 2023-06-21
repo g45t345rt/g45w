@@ -24,10 +24,12 @@ import (
 type Page struct {
 	isActive bool
 
-	animationEnter   *animation.Animation
-	animationLeave   *animation.Animation
-	header           *prefabs.Header
-	pageSelectWallet *PageSelectWallet
+	animationEnter *animation.Animation
+	animationLeave *animation.Animation
+	header         *prefabs.Header
+
+	pageSelectWallet     *PageSelectWallet
+	pageCreateWalletForm *PageCreateWalletForm
 
 	router *router.Router
 }
@@ -80,11 +82,12 @@ func New() *Page {
 	header := prefabs.NewHeader(labelHeaderStyle, router, nil)
 
 	page := &Page{
-		animationEnter:   animationEnter,
-		animationLeave:   animationLeave,
-		router:           router,
-		header:           header,
-		pageSelectWallet: pageSelectWallet,
+		animationEnter:       animationEnter,
+		animationLeave:       animationLeave,
+		router:               router,
+		header:               header,
+		pageSelectWallet:     pageSelectWallet,
+		pageCreateWalletForm: pageCreateWalletForm,
 	}
 
 	page_instance = page

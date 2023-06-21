@@ -1,13 +1,10 @@
-package page_wallet_select
+package page_wallet
 
 import (
-	"encoding/hex"
 	"fmt"
 	"image/color"
 	"math"
-	"math/big"
 	"strconv"
-	"time"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -15,9 +12,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/transaction"
-	"github.com/deroproject/derohe/walletapi/mnemonics"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/registration"
@@ -25,12 +19,13 @@ import (
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type PageCreateWalletFastRegForm struct {
+type PageRegisterWallet struct {
 	isActive bool
 
 	animationEnter *animation.Animation
@@ -42,12 +37,12 @@ type PageCreateWalletFastRegForm struct {
 	buttonStart    *components.Button
 	buttonStop     *components.Button
 
-	fastReg *registration.FastReg
+	normalReg *registration.NormalReg
 }
 
-var _ router.Page = &PageCreateWalletFastRegForm{}
+var _ router.Page = &PageRegisterWallet{}
 
-func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
+func NewPageRegisterWallet() *PageRegisterWallet {
 	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -55,11 +50,11 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 	listStyle.AnchorStrategy = material.Overlay
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
+		gween.New(1, 0, .25, ease.Linear),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
+		gween.New(0, 1, .25, ease.Linear),
 	))
 
 	txtThreadCount := components.NewTextField(th, "Worker Count", "")
@@ -91,36 +86,9 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 
-	w := app_instance.Window
+	normalReg := registration.NewNormalReg()
 
-	fastReg := registration.NewFastReg()
-	fastReg.OnFound = func(tx *transaction.Transaction, secret *big.Int) {
-		addr, _ := rpc.NewAddressFromCompressedKeys(tx.MinerAddress[:])
-		wordSeed := mnemonics.Key_To_Words(secret, "english")
-
-		result := &RegResult{
-			TxID:     tx.GetHash().String(),
-			TxHex:    hex.EncodeToString(tx.Serialize()),
-			Addr:     addr.String(),
-			WordSeed: wordSeed,
-			HexSeed:  secret.Text(16),
-		}
-
-		page_instance.pageCreateWalletForm.regResultContainer = NewRegResultContainer(result)
-		page_instance.router.SetCurrent(PAGE_CREATE_WALLET_FORM)
-		w.Invalidate()
-	}
-
-	ticker := time.NewTicker(1 * time.Second)
-	go func() {
-		for range ticker.C {
-			if fastReg.Running {
-				w.Invalidate()
-			}
-		}
-	}()
-
-	return &PageCreateWalletFastRegForm{
+	return &PageRegisterWallet{
 		listStyle:      listStyle,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -129,28 +97,26 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		buttonStart:    buttonStart,
 		buttonStop:     buttonStop,
 
-		fastReg: fastReg,
+		normalReg: normalReg,
 	}
 }
 
-func (p *PageCreateWalletFastRegForm) Enter() {
-	page_instance.header.SetTitle("Fast Registration")
+func (p *PageRegisterWallet) Enter() {
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
 
-func (p *PageCreateWalletFastRegForm) Leave() {
+func (p *PageRegisterWallet) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
-	p.fastReg.Stop()
 }
 
-func (p *PageCreateWalletFastRegForm) IsActive() bool {
+func (p *PageRegisterWallet) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -179,7 +145,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 	}
 
 	if p.buttonStop.Clickable.Clicked() {
-		p.fastReg.Stop()
+		p.normalReg.Stop()
 	}
 
 	widgets := []layout.Widget{
@@ -211,7 +177,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 					target := float64(3)
 
 					// https://bitcoin.stackexchange.com/questions/114580/finding-hash-with-11-leading-zeroes
-					value := 1 - math.Pow(1-math.Pow(16, -(target*2)), float64(p.fastReg.HashCount()))
+					value := 1 - math.Pow(1-math.Pow(16, -(target*2)), float64(p.normalReg.HashCount()))
 					return components.ProgressBar{
 						Value:   float32(value),
 						Color:   color.NRGBA{A: 255},
@@ -222,8 +188,8 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					hashRate := utils.FormatHashRate(p.fastReg.HashRate())
-					status := fmt.Sprintf("%d | %s", p.fastReg.HashCount(), hashRate)
+					hashRate := utils.FormatHashRate(p.normalReg.HashRate())
+					status := fmt.Sprintf("%d | %s", p.normalReg.HashCount(), hashRate)
 					label := material.Label(th, unit.Sp(16), status)
 					label.Font.Weight = font.Bold
 					return label.Layout(gtx)
@@ -231,7 +197,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			if p.fastReg.Running {
+			if p.normalReg.Running {
 				return p.buttonStop.Layout(gtx, th)
 			}
 
@@ -247,12 +213,13 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 	})
 }
 
-func (p *PageCreateWalletFastRegForm) startRegistration() error {
+func (p *PageRegisterWallet) startRegistration() error {
 	threadCount, err := strconv.ParseUint(p.txtThreadCount.Value(), 10, 64)
 	if err != nil {
 		return err
 	}
 
-	p.fastReg.Start(int(threadCount))
+	wallet := wallet_manager.Instance.OpenedWallet.Memory
+	p.normalReg.Start(int(threadCount), wallet)
 	return nil
 }

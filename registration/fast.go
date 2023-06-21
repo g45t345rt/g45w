@@ -1,6 +1,6 @@
 /* Credit to Pieswap */
 
-package fastreg
+package registration
 
 import (
 	"crypto/rand"
@@ -516,34 +516,37 @@ func GetHash(tx *transaction.Transaction) (result Hash) {
 	return
 }
 
-type Search struct {
+type FastReg struct {
 	Running bool
 	OnFound func(tx *transaction.Transaction, secret *big.Int)
 
 	hashRate  map[int]uint64
 	hashCount map[int]uint64
-	mutex     sync.Mutex
+	mutex     sync.RWMutex
 }
 
-func NewSearch() *Search {
-	return &Search{
+func NewFastReg() *FastReg {
+	return &FastReg{
 		hashRate:  make(map[int]uint64),
 		hashCount: make(map[int]uint64),
 	}
 }
 
-func (s *Search) Start(workers int) {
+func (s *FastReg) Start(workers int) {
 	s.Running = true
 	for i := 0; i < workers; i++ {
 		go s.run(i)
 	}
 }
 
-func (s *Search) Stop() {
+func (s *FastReg) Stop() {
 	s.Running = false
 }
 
-func (s *Search) HashRate() uint64 {
+func (s *FastReg) HashRate() uint64 {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
 	sum := uint64(0)
 	for _, v := range s.hashRate {
 		sum += v
@@ -552,7 +555,10 @@ func (s *Search) HashRate() uint64 {
 	return sum
 }
 
-func (s *Search) HashCount() uint64 {
+func (s *FastReg) HashCount() uint64 {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
 	sum := uint64(0)
 	for _, v := range s.hashCount {
 		sum += v
@@ -561,11 +567,11 @@ func (s *Search) HashCount() uint64 {
 	return sum
 }
 
-func (s *Search) run(wIndex int) {
+func (s *FastReg) run(wIndex int) {
 	ctx := randPt(255)
 	pList := listInit(ctx)
 	tmpPoint := randPt(255)
-	j := 0
+
 	start := time.Now()
 	count := uint64(0)
 	hashRate := uint64(0)
@@ -603,15 +609,11 @@ func (s *Search) run(wIndex int) {
 			hash := GetHash(tx)
 			if hash[0] == 0 && hash[1] == 0 && hash[2] == 0 {
 				if tx.IsRegistrationValid() {
-					//fmt.Println("Found valid registration tx")
 					s.Stop()
 					s.OnFound(tx, pList[i].secret)
-					//pList[i] = pointFactory(ctx)
 					break
 				}
-				//fmt.Println("Found registration tx but invalid. Let's continue.")
 			}
-			j++
 		}
 
 		tmpPoint = pointFactory(tmpPoint)

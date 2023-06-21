@@ -52,13 +52,14 @@ var _ router.Page = &Page{}
 var page_instance *Page
 
 var (
-	PAGE_SETTINGS       = "page_settings"
-	PAGE_SEND_FORM      = "page_send_form"
-	PAGE_RECEIVE_FORM   = "page_receive_form"
-	PAGE_BALANCE_TOKENS = "page_balance_tokens"
-	PAGE_ADD_SC_FORM    = "page_add_sc_form"
-	PAGE_TXS            = "page_txs"
-	PAGE_SC_TOKEN       = "page_sc_token"
+	PAGE_SETTINGS        = "page_settings"
+	PAGE_SEND_FORM       = "page_send_form"
+	PAGE_RECEIVE_FORM    = "page_receive_form"
+	PAGE_BALANCE_TOKENS  = "page_balance_tokens"
+	PAGE_ADD_SC_FORM     = "page_add_sc_form"
+	PAGE_TXS             = "page_txs"
+	PAGE_SC_TOKEN        = "page_sc_token"
+	PAGE_REGISTER_WALLET = "page_register_wallet"
 )
 
 func New() *Page {
@@ -87,6 +88,8 @@ func New() *Page {
 	router.Add(PAGE_TXS, pageTxs)
 	pageSCToken := NewPageSCToken()
 	router.Add(PAGE_SC_TOKEN, pageSCToken)
+	pageRegisterWallet := NewPageRegisterWallet()
+	router.Add(PAGE_REGISTER_WALLET, pageRegisterWallet)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold

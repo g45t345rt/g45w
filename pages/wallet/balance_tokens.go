@@ -44,6 +44,7 @@ type PageBalanceTokens struct {
 	tokenBar       *TokenBar
 	tokenItems     []*TokenListItem
 	buttonSettings *components.Button
+	buttonRegister *components.Button
 
 	listStyle material.ListStyle
 }
@@ -89,6 +90,18 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 	})
 
+	buttonRegister := components.NewButton(components.ButtonStyle{
+		Rounded:         unit.Dp(5),
+		Text:            "REGISTER WALLET",
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(14),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+	buttonRegister.Label.Alignment = text.Middle
+	buttonRegister.Style.Font.Weight = font.Bold
+
 	return &PageBalanceTokens{
 		displayBalance: NewDisplayBalance(th),
 		tokenBar:       NewTokenBar(th),
@@ -99,6 +112,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		animationLeave: animationLeave,
 		listStyle:      listStyle,
 		buttonSettings: buttonSettings,
+		buttonRegister: buttonRegister,
 	}
 }
 
@@ -158,9 +172,30 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		p.alertBox.SetVisible(true)
 	}
 
+	if p.buttonRegister.Clickable.Clicked() {
+		page_instance.router.SetCurrent(PAGE_REGISTER_WALLET)
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			return p.alertBox.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			if walletapi.Connected {
+				wallet := wallet_manager.Instance.OpenedWallet.Memory
+				isRegistered := wallet.IsRegistered()
+
+				if !isRegistered {
+					return layout.Inset{
+						Top: unit.Dp(0), Bottom: unit.Dp(20),
+						Left: unit.Dp(30), Right: unit.Dp(30),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return p.buttonRegister.Layout(gtx, th)
+					})
+				}
+			}
+
+			return layout.Dimensions{}
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.displayBalance.Layout(gtx, th)
