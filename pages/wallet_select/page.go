@@ -91,7 +91,7 @@ func New() *Page {
 	}
 
 	page_instance = page
-	router.SetPrimary(PAGE_SELECT_WALLET)
+	router.SetCurrent(PAGE_SELECT_WALLET)
 
 	return page
 }

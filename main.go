@@ -140,7 +140,7 @@ func main() {
 	router.Add(app_instance.PAGE_NODE, page_node.New())
 	router.Add(app_instance.PAGE_WALLET, page_wallet.New())
 	router.Add(app_instance.PAGE_WALLET_SELECT, page_wallet_select.New())
-	router.SetPrimary(app_instance.PAGE_WALLET_SELECT)
+	router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 
 	go func() {
 		err := runApp()

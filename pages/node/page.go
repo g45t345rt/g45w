@@ -114,7 +114,6 @@ func New() *Page {
 		animationLeave: animationLeave,
 	}
 	page_instance = page
-	router.Primary = PAGE_SELECT_NODE
 	return page
 }
 

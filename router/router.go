@@ -5,35 +5,35 @@ import (
 
 	"gioui.org/layout"
 	"gioui.org/widget/material"
+	"github.com/olebedev/emitter"
 )
 
-type Router struct {
-	Pages     map[interface{}]Page // does not keep ordering with range (use drawOrder)
-	Current   interface{}
-	Primary   interface{}
-	drawOrder []interface{}
+type OnNavigate func(tag interface{})
 
-	layouts []func(gtx layout.Context, th *material.Theme)
+var EVENT_CHANGE = "change"
+
+type Router struct {
+	Pages   map[interface{}]Page // does not keep ordering with range (use drawOrder)
+	Current interface{}
+	Event   *emitter.Emitter
+
+	drawOrder []interface{}
+	layouts   []func(gtx layout.Context, th *material.Theme)
 }
 
 func NewRouter() *Router {
+	event := &emitter.Emitter{}
+	event.Use("*", emitter.Void)
 	return &Router{
-		Pages: make(map[interface{}]Page),
+		Event:     event,
+		drawOrder: make([]interface{}, 0),
+		Pages:     make(map[interface{}]Page),
 	}
-}
-
-func (router *Router) IsPrimary() bool {
-	return router.Primary == router.Current
 }
 
 func (router *Router) Add(tag interface{}, page Page) {
 	router.Pages[tag] = page
 	router.drawOrder = append(router.drawOrder, tag)
-}
-
-func (router *Router) SetPrimary(tag interface{}) {
-	router.Primary = tag
-	router.SetCurrent(tag)
 }
 
 func (router *Router) SetCurrent(tag interface{}) {
@@ -47,6 +47,7 @@ func (router *Router) SetCurrent(tag interface{}) {
 			router.Pages[router.Current].Leave()
 		}
 
+		router.Event.Emit(EVENT_CHANGE, tag)
 		router.Current = tag
 		router.Pages[router.Current].Enter()
 	} else {

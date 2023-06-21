@@ -137,7 +137,7 @@ func New() *Page {
 		infoModal: infoModal,
 	}
 	page_instance = page
-	router.SetPrimary(PAGE_BALANCE_TOKENS)
+	router.SetCurrent(PAGE_BALANCE_TOKENS)
 	return page
 }
 

@@ -9,17 +9,21 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/olebedev/emitter"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type Header struct {
 	LabelTitle  material.LabelStyle
-	buttonBack  *components.Button
-	router      *router.Router
 	ButtonRight *components.Button
+
+	buttonBack *components.Button
+	router     *router.Router
+
+	history []interface{}
 }
 
-func NewHeader(labelTitle material.LabelStyle, router *router.Router, buttonRight *components.Button) *Header {
+func NewHeader(labelTitle material.LabelStyle, r *router.Router, buttonRight *components.Button) *Header {
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 
@@ -30,29 +34,44 @@ func NewHeader(labelTitle material.LabelStyle, router *router.Router, buttonRigh
 		HoverTextColor: &textHoverColor,
 	})
 
-	return &Header{
+	header := &Header{
 		LabelTitle:  labelTitle,
 		buttonBack:  buttonBack,
-		router:      router,
+		router:      r,
 		ButtonRight: buttonRight,
+		history:     make([]interface{}, 0),
 	}
+
+	r.Event.On(router.EVENT_CHANGE, func(e *emitter.Event) {
+		header.history = append(header.history, e.Args[0])
+	})
+
+	return header
 }
 
 func (h *Header) SetTitle(title string) {
 	h.LabelTitle.Text = title
 }
 
+func (h *Header) back() {
+	tag := h.history[len(h.history)-2]
+	h.router.SetCurrent(tag)
+	h.history = h.history[:len(h.history)-2]
+}
+
 func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout.Widget) layout.Dimensions {
 	if h.buttonBack.Clickable.Clicked() {
-		h.router.SetCurrent(h.router.Primary)
+		h.back()
 	}
+
+	showBackButton := len(h.history) > 1
 
 	return layout.Flex{
 		Axis:      layout.Horizontal,
 		Alignment: layout.Middle,
 	}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if !h.router.IsPrimary() {
+			if showBackButton {
 				gtx.Constraints.Min.X = gtx.Dp(30)
 				gtx.Constraints.Min.Y = gtx.Dp(30)
 			} else {
@@ -62,7 +81,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 			return h.buttonBack.Layout(gtx, th)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if !h.router.IsPrimary() {
+			if showBackButton {
 				return layout.Spacer{Width: unit.Dp(10)}.Layout(gtx)
 			}
 
@@ -82,7 +101,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if h.router.IsPrimary() && h.ButtonRight != nil {
+			if !showBackButton && h.ButtonRight != nil {
 				gtx.Constraints.Max.X = gtx.Dp(25)
 				gtx.Constraints.Max.Y = gtx.Dp(25)
 				return h.ButtonRight.Layout(gtx, th)
