@@ -172,7 +172,7 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 		if animationEnter != nil {
 			state := animationEnter.Update(gtx)
 			if state.Active {
-				transformEnter(gtx, state.Value).Add(gtx.Ops)
+				defer transformEnter(gtx, state.Value).Push(gtx.Ops).Pop()
 			}
 		}
 	}
@@ -181,7 +181,7 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 		if animationLeave != nil {
 			state := animationLeave.Update(gtx)
 			if state.Active {
-				transformLeave(gtx, state.Value).Add(gtx.Ops)
+				defer transformLeave(gtx, state.Value).Push(gtx.Ops).Pop()
 			}
 
 			if state.Finished {

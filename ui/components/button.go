@@ -120,7 +120,7 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 				if animationEnter != nil {
 					state := animationEnter.Update(gtx)
 					if state.Active {
-						transformEnter(gtx, state.Value).Add(gtx.Ops)
+						defer transformEnter(gtx, state.Value).Push(gtx.Ops).Pop()
 					}
 				}
 			}
@@ -129,7 +129,7 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 				if animationLeave != nil {
 					state := animationLeave.Update(gtx)
 					if state.Active {
-						transformLeave(gtx, state.Value).Add(gtx.Ops)
+						defer transformLeave(gtx, state.Value).Push(gtx.Ops).Pop()
 					}
 				}
 			}
@@ -138,7 +138,7 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 				if animationClick != nil {
 					state := animationClick.Update(gtx)
 					if state.Active {
-						transformClick(gtx, state.Value).Add(gtx.Ops)
+						defer transformClick(gtx, state.Value).Push(gtx.Ops).Pop()
 					}
 				}
 			}

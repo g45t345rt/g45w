@@ -49,7 +49,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	currentNode := node_manager.Instance.NodeState.Current
 	status := "unassigned node"
 
-	statusDotColor := color.NRGBA{R: 255, G: 0, B: 255, A: 255}
+	statusDotColor := color.NRGBA{R: 255, G: 0, B: 0, A: 255}
 
 	if currentNode != "" {
 		if currentNode == node_manager.INTEGRATED_NODE_ID {
@@ -64,6 +64,8 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 			if walletHeight < daemonHeight {
 				statusDotColor = color.NRGBA{R: 255, G: 255, B: 0, A: 255}
+			} else {
+				statusDotColor = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
 			}
 
 			status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, "Integrated")
@@ -78,6 +80,8 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 			if walletHeight < daemonHeight {
 				statusDotColor = color.NRGBA{R: 255, G: 255, B: 0, A: 255}
+			} else {
+				statusDotColor = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
 			}
 
 			status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, nodeConn.Name)

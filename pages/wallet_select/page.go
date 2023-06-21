@@ -134,7 +134,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			{
 				state := p.animationEnter.Update(gtx)
 				if state.Active {
-					animation.TransformY(gtx, state.Value).Add(gtx.Ops)
+					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
 				}
 			}
 
@@ -146,7 +146,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				}
 
 				if state.Active {
-					animation.TransformY(gtx, state.Value).Add(gtx.Ops)
+					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
 				}
 			}
 
