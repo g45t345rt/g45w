@@ -192,6 +192,6 @@ func (p *PageCreateWalletSeedForm) submitForm() error {
 	txtConfirmPassword.SetText("")
 	txtSeed.SetText("")
 
-	page_instance.router.SetCurrent(PAGE_SELECT_WALLET)
+	page_instance.pageRouter.SetCurrent(PAGE_SELECT_WALLET)
 	return nil
 }

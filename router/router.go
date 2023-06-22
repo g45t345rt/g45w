@@ -2,13 +2,25 @@ package router
 
 import (
 	"log"
+	"sort"
 
 	"gioui.org/layout"
 	"gioui.org/widget/material"
 	"github.com/olebedev/emitter"
 )
 
-type OnNavigate func(tag interface{})
+type LayoutFunc func(gtx layout.Context, th *material.Theme)
+
+type KeyLayout struct {
+	DrawIndex int
+	Layout    LayoutFunc
+}
+
+type SortKeyLayout []KeyLayout
+
+func (k SortKeyLayout) Len() int           { return len(k) }
+func (k SortKeyLayout) Swap(i, j int)      { k[i], k[j] = k[j], k[i] }
+func (k SortKeyLayout) Less(i, j int) bool { return k[i].DrawIndex < k[j].DrawIndex }
 
 var EVENT_CHANGE = "change"
 
@@ -17,8 +29,8 @@ type Router struct {
 	Current interface{}
 	Event   *emitter.Emitter
 
-	drawOrder []interface{}
-	layouts   []func(gtx layout.Context, th *material.Theme)
+	drawOrder  []interface{}
+	keyLayouts []KeyLayout
 }
 
 func NewRouter() *Router {
@@ -55,8 +67,9 @@ func (router *Router) SetCurrent(tag interface{}) {
 	}
 }
 
-func (router *Router) PushLayout(layout func(gtx layout.Context, th *material.Theme)) {
-	router.layouts = append(router.layouts, layout)
+func (router *Router) AddLayout(keyLayout KeyLayout) {
+	router.keyLayouts = append(router.keyLayouts, keyLayout)
+	sort.Sort(SortKeyLayout(router.keyLayouts))
 }
 
 func (router *Router) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -67,8 +80,8 @@ func (router *Router) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
-	for _, layout := range router.layouts {
-		layout(gtx, th)
+	for _, keyLayout := range router.keyLayouts {
+		keyLayout.Layout(gtx, th)
 	}
 
 	return layout.Dimensions{Size: gtx.Constraints.Max}

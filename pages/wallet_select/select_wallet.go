@@ -64,9 +64,12 @@ func NewPageSelectWallet() *PageSelectWallet {
 	modalWalletPassword := prefabs.NewPasswordModal()
 	modalCreateWalletSelection := NewCreateWalletSelectionModal(theme)
 
-	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		modalWalletPassword.Layout(gtx)
-		modalCreateWalletSelection.Layout(gtx, th)
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			modalWalletPassword.Layout(gtx)
+			modalCreateWalletSelection.Layout(gtx, th)
+		},
 	})
 
 	return &PageSelectWallet{
@@ -279,7 +282,7 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return c.listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
 				if c.items[index].clickable.Clicked() {
-					page_instance.router.SetCurrent(c.items[index].routerPath)
+					page_instance.pageRouter.SetCurrent(c.items[index].routerPath)
 					c.modal.SetVisible(false)
 				}
 

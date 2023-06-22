@@ -124,23 +124,23 @@ func main() {
 	theme.FingerSize = 48
 
 	// main router
-	router := router.NewRouter()
+	appRouter := router.NewRouter()
 
 	// app instance to give guick access to every package
 	app_instance.Window = window
 	app_instance.Theme = theme
-	app_instance.Router = router
+	app_instance.Router = appRouter
 	app_instance.Explorer = explorer
 
 	bottom_bar.LoadInstance()
 	node_status_bar.LoadInstance()
 	notification_modals.LoadInstance()
 
-	router.Add(app_instance.PAGE_SETTINGS, page_settings.New())
-	router.Add(app_instance.PAGE_NODE, page_node.New())
-	router.Add(app_instance.PAGE_WALLET, page_wallet.New())
-	router.Add(app_instance.PAGE_WALLET_SELECT, page_wallet_select.New())
-	router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+	appRouter.Add(app_instance.PAGE_SETTINGS, page_settings.New())
+	appRouter.Add(app_instance.PAGE_NODE, page_node.New())
+	appRouter.Add(app_instance.PAGE_WALLET, page_wallet.New())
+	appRouter.Add(app_instance.PAGE_WALLET_SELECT, page_wallet_select.New())
+	appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 
 	go func() {
 		err := runApp()

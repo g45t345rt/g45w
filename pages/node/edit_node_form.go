@@ -97,8 +97,11 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 
 	w := app_instance.Window
 	confirmDelete := components.NewConfirm(w, "Are you sure?", th, layout.Center)
-	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		confirmDelete.Layout(gtx, th)
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			confirmDelete.Layout(gtx, th)
+		},
 	})
 
 	return &PageEditNodeForm{
@@ -171,7 +174,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		} else {
 			notification_modals.SuccessInstance.SetText("Success", "node deleted")
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			page_instance.router.SetCurrent(PAGE_SELECT_NODE)
+			page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 		}
 	}
 
@@ -252,7 +255,7 @@ func (p *PageEditNodeForm) submitForm() {
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText("Success", "data saved")
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		page_instance.router.SetCurrent(PAGE_SELECT_NODE)
+		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}()
 
 }

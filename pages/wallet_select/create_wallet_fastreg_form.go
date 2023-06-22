@@ -107,7 +107,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		}
 
 		page_instance.pageCreateWalletForm.regResultContainer = NewRegResultContainer(result)
-		page_instance.router.SetCurrent(PAGE_CREATE_WALLET_FORM)
+		page_instance.pageRouter.SetCurrent(PAGE_CREATE_WALLET_FORM)
 		w.Invalidate()
 	}
 

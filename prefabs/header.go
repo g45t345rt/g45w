@@ -15,10 +15,11 @@ import (
 
 type Header struct {
 	LabelTitle  material.LabelStyle
+	Subtitle    layout.Widget
 	ButtonRight *components.Button
 
-	buttonBack *components.Button
-	router     *router.Router
+	buttonGoBack *components.Button
+	router       *router.Router
 
 	history []interface{}
 }
@@ -28,18 +29,18 @@ func NewHeader(labelTitle material.LabelStyle, r *router.Router, buttonRight *co
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 
 	walletIcon, _ := widget.NewIcon(icons.NavigationArrowBack)
-	buttonBack := components.NewButton(components.ButtonStyle{
+	buttonGoBack := components.NewButton(components.ButtonStyle{
 		Icon:           walletIcon,
 		TextColor:      textColor,
 		HoverTextColor: &textHoverColor,
 	})
 
 	header := &Header{
-		LabelTitle:  labelTitle,
-		buttonBack:  buttonBack,
-		router:      r,
-		ButtonRight: buttonRight,
-		history:     make([]interface{}, 0),
+		LabelTitle:   labelTitle,
+		buttonGoBack: buttonGoBack,
+		router:       r,
+		ButtonRight:  buttonRight,
+		history:      make([]interface{}, 0),
 	}
 
 	r.Event.On(router.EVENT_CHANGE, func(e *emitter.Event) {
@@ -53,15 +54,15 @@ func (h *Header) SetTitle(title string) {
 	h.LabelTitle.Text = title
 }
 
-func (h *Header) back() {
+func (h *Header) goBack() {
 	tag := h.history[len(h.history)-2]
 	h.router.SetCurrent(tag)
 	h.history = h.history[:len(h.history)-2]
 }
 
-func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout.Widget) layout.Dimensions {
-	if h.buttonBack.Clickable.Clicked() {
-		h.back()
+func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if h.buttonGoBack.Clickable.Clicked() {
+		h.goBack()
 	}
 
 	showBackButton := len(h.history) > 1
@@ -78,7 +79,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 				gtx.Constraints.Max.X = 0
 				gtx.Constraints.Max.Y = 0
 			}
-			return h.buttonBack.Layout(gtx, th)
+			return h.buttonGoBack.Layout(gtx, th)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			if showBackButton {
@@ -93,8 +94,8 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, subWidget layout
 					return h.LabelTitle.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					if subWidget != nil {
-						return subWidget(gtx)
+					if h.Subtitle != nil {
+						return h.Subtitle(gtx)
 					}
 					return layout.Dimensions{}
 				}),

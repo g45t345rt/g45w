@@ -74,8 +74,11 @@ func NewPageSettings() *PageSettings {
 
 	modalWalletPassword := prefabs.NewPasswordModal()
 
-	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		modalWalletPassword.Layout(gtx)
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			modalWalletPassword.Layout(gtx)
+		},
 	})
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -144,7 +147,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		err := wallet_manager.Instance.DeleteWallet(openedWallet.Info.Addr, text)
 		if err == nil {
 			p.modalWalletPassword.Modal.SetVisible(false)
-			page_instance.router.SetCurrent(PAGE_BALANCE_TOKENS)
+			page_instance.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 			app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 			wallet_manager.Instance.OpenedWallet = nil
 		} else {

@@ -31,7 +31,7 @@ type Page struct {
 	pageSelectWallet     *PageSelectWallet
 	pageCreateWalletForm *PageCreateWalletForm
 
-	router *router.Router
+	pageRouter *router.Router
 }
 
 var _ router.Page = &Page{}
@@ -56,42 +56,42 @@ func New() *Page {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
-	router := router.NewRouter()
+	pageRouter := router.NewRouter()
 
 	pageSelectWallet := NewPageSelectWallet()
-	router.Add(PAGE_SELECT_WALLET, pageSelectWallet)
+	pageRouter.Add(PAGE_SELECT_WALLET, pageSelectWallet)
 
 	pageCreateWalletForm := NewPageCreateWalletForm()
-	router.Add(PAGE_CREATE_WALLET_FORM, pageCreateWalletForm)
+	pageRouter.Add(PAGE_CREATE_WALLET_FORM, pageCreateWalletForm)
 
 	pageCreateWalletSeedForm := NewPageCreateWalletSeedForm()
-	router.Add(PAGE_CREATE_WALLET_SEED_FORM, pageCreateWalletSeedForm)
+	pageRouter.Add(PAGE_CREATE_WALLET_SEED_FORM, pageCreateWalletSeedForm)
 
 	pageCreateWalletHexSeedForm := NewPageCreateWalletHexSeedForm()
-	router.Add(PAGE_CREATE_WALLET_HEXSEED_FORM, pageCreateWalletHexSeedForm)
+	pageRouter.Add(PAGE_CREATE_WALLET_HEXSEED_FORM, pageCreateWalletHexSeedForm)
 
 	pageCreateWalletFastRegForm := NewPageCreateWalletFastRegForm()
-	router.Add(PAGE_CREATE_WALLET_FASTREG_FORM, pageCreateWalletFastRegForm)
+	pageRouter.Add(PAGE_CREATE_WALLET_FASTREG_FORM, pageCreateWalletFastRegForm)
 
 	pageCreateWalletDiskForm := NewPageCreateWalletDiskForm()
-	router.Add(PAGE_CREATE_WALLET_DISK_FORM, pageCreateWalletDiskForm)
+	pageRouter.Add(PAGE_CREATE_WALLET_DISK_FORM, pageCreateWalletDiskForm)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, router, nil)
+	header := prefabs.NewHeader(labelHeaderStyle, pageRouter, nil)
 
 	page := &Page{
 		animationEnter:       animationEnter,
 		animationLeave:       animationLeave,
-		router:               router,
+		pageRouter:           pageRouter,
 		header:               header,
 		pageSelectWallet:     pageSelectWallet,
 		pageCreateWalletForm: pageCreateWalletForm,
 	}
 
 	page_instance = page
-	router.SetCurrent(PAGE_SELECT_WALLET)
+	pageRouter.SetCurrent(PAGE_SELECT_WALLET)
 
 	return page
 }
@@ -156,11 +156,11 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						Top: unit.Dp(30), Bottom: unit.Dp(30),
 						Left: unit.Dp(30), Right: unit.Dp(30),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return p.header.Layout(gtx, th, nil)
+						return p.header.Layout(gtx, th)
 					})
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return p.router.Layout(gtx, th)
+					return p.pageRouter.Layout(gtx, th)
 				}),
 			)
 		}),

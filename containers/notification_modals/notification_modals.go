@@ -6,6 +6,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
 )
 
@@ -21,9 +22,12 @@ func LoadInstance() {
 	SuccessInstance = components.NewNotificationSuccessModal(w)
 	InfoInstance = components.NewNotificationInfoModal(w)
 
-	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		SuccessInstance.Layout(gtx, th)
-		ErrorInstance.Layout(gtx, th)
-		InfoInstance.Layout(gtx, th)
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 100,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			SuccessInstance.Layout(gtx, th)
+			ErrorInstance.Layout(gtx, th)
+			InfoInstance.Layout(gtx, th)
+		},
 	})
 }

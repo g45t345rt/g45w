@@ -31,7 +31,7 @@ type Page struct {
 	firstEnter bool
 
 	buttonSetNode *components.Button
-	router        *router.Router
+	pageRouter    *router.Router
 
 	pageSelectNode   *PageSelectNode
 	pageAddNodeForm  *PageAddNodeForm
@@ -79,31 +79,31 @@ func New() *Page {
 	buttonSetNode.Label.Alignment = text.Middle
 	buttonSetNode.Style.Font.Weight = font.Bold
 
-	router := router.NewRouter()
+	pageRouter := router.NewRouter()
 	pageSelectNode := NewPageSelectNode()
-	router.Add(PAGE_SELECT_NODE, pageSelectNode)
+	pageRouter.Add(PAGE_SELECT_NODE, pageSelectNode)
 
 	pageAddNodeForm := NewPageAddNodeForm()
-	router.Add(PAGE_ADD_NODE_FORM, pageAddNodeForm)
+	pageRouter.Add(PAGE_ADD_NODE_FORM, pageAddNodeForm)
 
 	pageEditNodeForm := NewPageEditNodeForm()
-	router.Add(PAGE_EDIT_NODE_FORM, pageEditNodeForm)
+	pageRouter.Add(PAGE_EDIT_NODE_FORM, pageEditNodeForm)
 
 	pageIntegratedNode := NewPageIntegratedNode()
-	router.Add(PAGE_INTEGRATED_NODE, pageIntegratedNode)
+	pageRouter.Add(PAGE_INTEGRATED_NODE, pageIntegratedNode)
 
 	pageRemoteNode := NewPageRemoteNode()
-	router.Add(PAGE_REMOTE_NODE, pageRemoteNode)
+	pageRouter.Add(PAGE_REMOTE_NODE, pageRemoteNode)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, router, nil)
+	header := prefabs.NewHeader(labelHeaderStyle, pageRouter, nil)
 
 	page := &Page{
 		buttonSetNode:    buttonSetNode,
 		firstEnter:       true,
-		router:           router,
+		pageRouter:       pageRouter,
 		pageSelectNode:   pageSelectNode,
 		pageAddNodeForm:  pageAddNodeForm,
 		pageEditNodeForm: pageEditNodeForm,
@@ -130,12 +130,12 @@ func (p *Page) Enter() {
 	currentNode := node_manager.Instance.NodeState.Current
 	if currentNode != "" {
 		if currentNode == node_manager.INTEGRATED_NODE_ID {
-			p.router.SetCurrent(PAGE_INTEGRATED_NODE)
+			p.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 		} else {
-			p.router.SetCurrent(PAGE_REMOTE_NODE)
+			p.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 		}
 	} else {
-		p.router.SetCurrent(PAGE_SELECT_NODE)
+		p.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}
 }
 
@@ -176,7 +176,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	}
 
 	if p.pageSelectNode.buttonAddNode.Clickable.Clicked() {
-		p.router.SetCurrent(PAGE_ADD_NODE_FORM)
+		p.pageRouter.SetCurrent(PAGE_ADD_NODE_FORM)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -185,11 +185,11 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				Top: unit.Dp(30), Bottom: unit.Dp(20),
 				Left: unit.Dp(30), Right: unit.Dp(30),
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return p.header.Layout(gtx, th, nil)
+				return p.header.Layout(gtx, th)
 			})
 		}),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return p.router.Layout(gtx, th)
+			return p.pageRouter.Layout(gtx, th)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return bottom_bar.Instance.Layout(gtx, th)

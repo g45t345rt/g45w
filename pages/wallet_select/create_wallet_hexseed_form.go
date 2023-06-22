@@ -189,6 +189,6 @@ func (p *PageCreateWalletHexSeedForm) submitForm() error {
 	txtConfirmPassword.SetText("")
 	txtHexSeed.SetText("")
 
-	page_instance.router.SetCurrent(PAGE_SELECT_WALLET)
+	page_instance.pageRouter.SetCurrent(PAGE_SELECT_WALLET)
 	return nil
 }

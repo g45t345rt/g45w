@@ -190,6 +190,6 @@ func (p *PageAddNodeForm) submitForm() {
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText("Success", "new noded added")
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		page_instance.router.SetCurrent(PAGE_SELECT_NODE)
+		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}()
 }

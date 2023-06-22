@@ -17,6 +17,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
@@ -55,8 +56,11 @@ func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 	th := app_instance.Theme
 
 	listSizeModal := NewListSizeModal(w, th)
-	app_instance.Router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		listSizeModal.Layout(gtx, th, items)
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			listSizeModal.Layout(gtx, th, items)
+		},
 	})
 
 	r := &RingSizeSelector{

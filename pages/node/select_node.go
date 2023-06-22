@@ -185,13 +185,13 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	if p.buttonSetIntegratedNode.Clickable.Clicked() {
 		node_manager.Instance.SelectNode(node_manager.INTEGRATED_NODE_ID, true)
-		page_instance.router.SetCurrent(PAGE_INTEGRATED_NODE)
+		page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 	}
 
 	for _, item := range p.nodeList.items {
 		if item.EditClicked() {
 			page_instance.pageEditNodeForm.nodeConn = item.conn
-			page_instance.router.SetCurrent(PAGE_EDIT_NODE_FORM)
+			page_instance.pageRouter.SetCurrent(PAGE_EDIT_NODE_FORM)
 		}
 
 		if item.SelectClicked() {
@@ -226,7 +226,7 @@ func (p *PageSelectNode) connect(conn node_manager.NodeConnection) {
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			page_instance.pageRemoteNode.useAnimationEnter = true
-			page_instance.router.SetCurrent(PAGE_REMOTE_NODE)
+			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 			app_instance.Window.Invalidate()
 		}
 	}()

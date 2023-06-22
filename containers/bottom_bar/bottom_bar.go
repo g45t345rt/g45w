@@ -28,7 +28,7 @@ type BottomBar struct {
 	ButtonClose    *BottomBarButton
 	ButtonNode     *BottomBarButton
 
-	router       *router.Router
+	appRouter    *router.Router
 	confirmClose *components.Confirm
 }
 
@@ -44,7 +44,7 @@ const (
 
 func LoadInstance() *BottomBar {
 	w := app_instance.Window
-	router := app_instance.Router
+	appRouter := app_instance.Router
 	th := app_instance.Theme
 
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
@@ -92,8 +92,11 @@ func LoadInstance() *BottomBar {
 	})
 
 	confirmClose := components.NewConfirm(w, "Closing current wallet?", th, layout.Center)
-	router.PushLayout(func(gtx layout.Context, th *material.Theme) {
-		confirmClose.Layout(gtx, th)
+	appRouter.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			confirmClose.Layout(gtx, th)
+		},
 	})
 
 	bottomBar := &BottomBar{
@@ -103,7 +106,7 @@ func LoadInstance() *BottomBar {
 		ButtonClose:    NewBottomBarButton(buttonClose),
 		ButtonNode:     NewBottomBarButton(buttonNode),
 		confirmClose:   confirmClose,
-		router:         router,
+		appRouter:      appRouter,
 	}
 	Instance = bottomBar
 	return bottomBar
@@ -147,24 +150,24 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}
 
 	if b.confirmClose.ClickedYes() {
-		b.router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+		b.appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 		wallet_manager.Instance.OpenedWallet = nil
 	}
 
 	if b.ButtonNode.Button.Clickable.Clicked() {
-		b.router.SetCurrent(app_instance.PAGE_NODE)
+		b.appRouter.SetCurrent(app_instance.PAGE_NODE)
 	}
 
 	if b.ButtonWallet.Button.Clickable.Clicked() {
-		if b.router.Current == app_instance.PAGE_WALLET {
-			b.router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+		if b.appRouter.Current == app_instance.PAGE_WALLET {
+			b.appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 		} else {
-			b.router.SetCurrent(app_instance.PAGE_WALLET)
+			b.appRouter.SetCurrent(app_instance.PAGE_WALLET)
 		}
 	}
 
 	if b.ButtonSettings.Button.Clickable.Clicked() {
-		b.router.SetCurrent(app_instance.PAGE_SETTINGS)
+		b.appRouter.SetCurrent(app_instance.PAGE_SETTINGS)
 	}
 
 	return layout.Inset{

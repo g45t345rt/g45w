@@ -176,7 +176,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	if p.buttonContacts.Clickable.Clicked() {
-		page_instance.router.SetCurrent(PAGE_CONTACTS)
+		page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 	}
 
 	widgets := []layout.Widget{
