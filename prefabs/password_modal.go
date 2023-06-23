@@ -50,7 +50,7 @@ func NewPasswordModal() *PasswordModal {
 		CloseOnInsideClick:  false,
 		Direction:           layout.Center,
 		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		Rounded:             unit.Dp(10),
+		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationScaleBounce(),
 		Backdrop:            components.NewModalBackground(),

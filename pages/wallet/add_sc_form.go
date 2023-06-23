@@ -59,7 +59,7 @@ func NewPageAddSCForm() *PageAddSCForm {
 
 	checkIcon, _ := widget.NewIcon(icons.ActionSearch)
 	buttonCheckSC := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "CHECK SC",
 		Icon:            checkIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

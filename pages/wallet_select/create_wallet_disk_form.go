@@ -58,7 +58,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonLoad := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "LOAD WALLET",
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

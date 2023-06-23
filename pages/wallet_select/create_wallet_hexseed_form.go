@@ -60,7 +60,7 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "RECOVER WALLET",
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

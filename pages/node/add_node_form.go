@@ -57,7 +57,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "ADD NODE",
 		Icon:            addIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

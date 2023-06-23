@@ -28,14 +28,14 @@ func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layo
 		CloseOnInsideClick:  false,
 		Direction:           direction,
 		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		Rounded:             unit.Dp(10),
+		Rounded:             UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(unit.Dp(10)),
 		Animation:           NewModalAnimationScaleBounce(),
 		Backdrop:            NewModalBackground(),
 	})
 
 	buttonYes := NewButton(ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         UniformRounded(unit.Dp(5)),
 		Text:            "YES",
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -47,7 +47,7 @@ func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layo
 	buttonYes.Style.Font.Weight = font.Bold
 
 	buttonNo := NewButton(ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         UniformRounded(unit.Dp(5)),
 		Text:            "NO",
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},

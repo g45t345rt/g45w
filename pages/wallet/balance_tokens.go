@@ -94,7 +94,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	})
 
 	buttonRegister := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "REGISTER WALLET",
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -331,7 +331,7 @@ type DisplayBalance struct {
 func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 	sendIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
 	buttonSend := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "SEND",
 		Icon:            sendIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -346,7 +346,7 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 
 	receiveIcon, _ := widget.NewIcon(icons.NavigationArrowDownward)
 	buttonReceive := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "RECEIVE",
 		Icon:            receiveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

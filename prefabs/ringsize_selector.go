@@ -33,7 +33,7 @@ type RingSizeSelector struct {
 func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 	tuneIcon, _ := widget.NewIcon(icons.ActionTrackChanges)
 	buttonSelect := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(16),
@@ -120,7 +120,7 @@ func NewListSizeModal(w *app.Window, th *material.Theme) *ListSizeModal {
 		CloseOnInsideClick:  false,
 		Direction:           layout.S,
 		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		Rounded:             unit.Dp(10),
+		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationUp(),
 		Backdrop:            components.NewModalBackground(),

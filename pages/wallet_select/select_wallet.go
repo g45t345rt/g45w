@@ -213,7 +213,7 @@ func NewWalletCreateButton() *components.Button {
 	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
 
 	var buttonStyle = components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "NEW WALLET",
 		Icon:            addIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -243,7 +243,7 @@ func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionMod
 		CloseOnInsideClick:  false,
 		Direction:           layout.S,
 		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		Rounded:             unit.Dp(10),
+		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationUp(),
 		Backdrop:            components.NewModalBackground(),

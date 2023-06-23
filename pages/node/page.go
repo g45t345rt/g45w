@@ -66,7 +66,7 @@ func New() *Page {
 
 	setIcon, _ := widget.NewIcon(icons.ActionSettings)
 	buttonSetNode := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "SELECT NODE",
 		Icon:            setIcon,
 		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},

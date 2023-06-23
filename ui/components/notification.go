@@ -20,7 +20,7 @@ type NotificationStyle struct {
 	Direction  layout.Direction
 	OuterInset layout.Inset
 	InnerInset layout.Inset
-	Rounded    unit.Dp
+	Rounded    Rounded
 	Animation  ModalAnimation
 }
 
@@ -45,7 +45,7 @@ func NewNotificationErrorModal(w *app.Window) *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:   unit.Dp(10),
+			Rounded:   UniformRounded(unit.Dp(10)),
 			Icon:      iconError,
 			Animation: NewModalAnimationDown(),
 		},
@@ -64,7 +64,7 @@ func NewNotificationSuccessModal(w *app.Window) *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:   unit.Dp(10),
+			Rounded:   UniformRounded(unit.Dp(10)),
 			Icon:      iconSuccess,
 			Animation: NewModalAnimationDown(),
 		},
@@ -83,7 +83,7 @@ func NewNotificationInfoModal(w *app.Window) *NotificationModal {
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			},
-			Rounded:   unit.Dp(10),
+			Rounded:   UniformRounded(unit.Dp(10)),
 			Icon:      iconInfo,
 			Animation: NewModalAnimationDown(),
 		},

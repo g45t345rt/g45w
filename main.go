@@ -20,6 +20,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/node_manager"
 	page_node "github.com/g45t345rt/g45w/pages/node"
@@ -135,6 +136,8 @@ func main() {
 	bottom_bar.LoadInstance()
 	node_status_bar.LoadInstance()
 	notification_modals.LoadInstance()
+	recent_txs_modal.LoadInstance()
+	recent_txs_modal.Instance.SetVisible(true)
 
 	appRouter.Add(app_instance.PAGE_SETTINGS, page_settings.New())
 	appRouter.Add(app_instance.PAGE_NODE, page_node.New())

@@ -44,7 +44,7 @@ func NewPageSettings() *PageSettings {
 	th := app_instance.Theme
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteWallet := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "DELETE WALLET",
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -59,7 +59,7 @@ func NewPageSettings() *PageSettings {
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonSave := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "SAVE CHANGES",
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

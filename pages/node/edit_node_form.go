@@ -64,7 +64,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonEditNode := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "SAVE",
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -82,7 +82,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteNode := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "DELETE NODE",
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

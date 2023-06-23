@@ -31,7 +31,7 @@ type ButtonAnimation struct {
 type ButtonStyle struct {
 	TextColor            color.NRGBA
 	BackgroundColor      color.NRGBA
-	Rounded              unit.Dp
+	Rounded              Rounded
 	Text                 string
 	TextSize             unit.Sp
 	Inset                layout.Inset
@@ -215,7 +215,14 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 
 			bounds := image.Rectangle{Max: dims.Size}
 			paint.FillShape(gtx.Ops, backgroundColor,
-				clip.UniformRRect(bounds, gtx.Dp(btn.Style.Rounded)).Op(gtx.Ops))
+				clip.RRect{
+					Rect: bounds,
+					SE:   gtx.Dp(style.Rounded.SE),
+					SW:   gtx.Dp(style.Rounded.SW),
+					NE:   gtx.Dp(style.Rounded.NE),
+					NW:   gtx.Dp(style.Rounded.NW),
+				}.Op(gtx.Ops),
+			)
 
 			m.Add(gtx.Ops)
 			return dims

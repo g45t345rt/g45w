@@ -17,6 +17,19 @@ import (
 	"github.com/tanema/gween/ease"
 )
 
+type Rounded struct {
+	NW unit.Dp
+	NE unit.Dp
+	SW unit.Dp
+	SE unit.Dp
+}
+
+func UniformRounded(r unit.Dp) Rounded {
+	return Rounded{
+		NW: r, NE: r, SW: r, SE: r,
+	}
+}
+
 type ModalAnimation struct {
 	animationEnter *animation.Animation
 	transformEnter animation.TransformFunc
@@ -88,7 +101,7 @@ type ModalStyle struct {
 	CloseOnInsideClick  bool
 	Direction           layout.Direction
 	Inset               layout.Inset
-	Rounded             unit.Dp
+	Rounded             Rounded
 	BgColor             color.NRGBA
 	Backdrop            layout.Widget
 	Animation           ModalAnimation
@@ -204,10 +217,13 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 			}
 
 			paint.FillShape(gtx.Ops, modal.Style.BgColor,
-				clip.UniformRRect(
-					image.Rectangle{Max: dims.Size},
-					gtx.Dp(modal.Style.Rounded),
-				).Op(gtx.Ops),
+				clip.RRect{
+					Rect: image.Rectangle{Max: dims.Size},
+					SE:   gtx.Dp(modal.Style.Rounded.SE),
+					SW:   gtx.Dp(modal.Style.Rounded.SW),
+					NW:   gtx.Dp(modal.Style.Rounded.NW),
+					NE:   gtx.Dp(modal.Style.Rounded.NE),
+				}.Op(gtx.Ops),
 			)
 
 			c.Add(gtx.Ops)

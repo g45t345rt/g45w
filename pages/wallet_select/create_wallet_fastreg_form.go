@@ -67,7 +67,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonStart := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "START",
 		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -80,7 +80,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "STOP",
 		Icon:            stopIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},

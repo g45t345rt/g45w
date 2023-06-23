@@ -53,7 +53,7 @@ func NewPageSendForm() *PageSendForm {
 	th := app_instance.Theme
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "BUILD TRANSACTION",
 		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -89,7 +89,7 @@ func NewPageSendForm() *PageSendForm {
 	ringSizeSelector := prefabs.NewRingSizeSelector("16")
 
 	buttonOptions := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "OPTIONS",
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -110,7 +110,7 @@ func NewPageSendForm() *PageSendForm {
 
 	contactIcon, _ := widget.NewIcon(icons.SocialPerson)
 	buttonContacts := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            contactIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},

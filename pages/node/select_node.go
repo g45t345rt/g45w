@@ -58,7 +58,7 @@ func NewPageSelectNode() *PageSelectNode {
 	nodeList := NewNodeList(th, "You didn't add any remote nodes yet.")
 
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "Use Integrated Node",
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -364,7 +364,7 @@ type NodeListItemSelect struct {
 
 func NewNodeListSelect() *NodeListItemSelect {
 	buttonSelect := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "SELECT",
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -376,7 +376,7 @@ func NewNodeListSelect() *NodeListItemSelect {
 	buttonSelect.Style.Font.Weight = font.Bold
 
 	buttonEdit := components.NewButton(components.ButtonStyle{
-		Rounded:         unit.Dp(5),
+		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Text:            "EDIT",
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
