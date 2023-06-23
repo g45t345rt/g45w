@@ -15,6 +15,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -168,6 +169,10 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	if b.ButtonSettings.Button.Clickable.Clicked() {
 		b.appRouter.SetCurrent(app_instance.PAGE_SETTINGS)
+	}
+
+	if b.ButtonTxs.Button.Clickable.Clicked() {
+		recent_txs_modal.Instance.SetVisible(true)
 	}
 
 	return layout.Inset{

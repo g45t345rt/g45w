@@ -3,6 +3,7 @@ package recent_txs_modal
 import (
 	"image/color"
 
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -58,15 +59,25 @@ func (r *RecentTxsModal) SetVisible(visible bool) {
 func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 	r.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			openedWallet := wallet_manager.Instance.OpenedWallet
-			if openedWallet == nil {
-				lbl := material.Label(th, unit.Sp(14), "Wallet is not connected.")
-				return lbl.Layout(gtx)
-			} else {
-				return r.listStyle.Layout(gtx, 0, func(gtx layout.Context, index int) layout.Dimensions {
-					return layout.Dimensions{}
-				})
-			}
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(18), "Recent Transactions")
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					openedWallet := wallet_manager.Instance.OpenedWallet
+					if openedWallet == nil {
+						lbl := material.Label(th, unit.Sp(14), "No wallet opened.")
+						return lbl.Layout(gtx)
+					} else {
+						return r.listStyle.Layout(gtx, 0, func(gtx layout.Context, index int) layout.Dimensions {
+							return layout.Dimensions{}
+						})
+					}
+				}),
+			)
 		})
 	})
 }

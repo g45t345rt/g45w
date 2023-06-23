@@ -137,7 +137,6 @@ func main() {
 	node_status_bar.LoadInstance()
 	notification_modals.LoadInstance()
 	recent_txs_modal.LoadInstance()
-	recent_txs_modal.Instance.SetVisible(true)
 
 	appRouter.Add(app_instance.PAGE_SETTINGS, page_settings.New())
 	appRouter.Add(app_instance.PAGE_NODE, page_node.New())

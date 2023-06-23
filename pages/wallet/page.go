@@ -178,9 +178,9 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 		p.pageRouter.SetCurrent(PAGE_SETTINGS)
 	}
 
-	if bottom_bar.Instance.ButtonTxs.Button.Clickable.Clicked() {
-		p.pageRouter.SetCurrent(PAGE_TXS)
-	}
+	//if bottom_bar.Instance.ButtonTxs.Button.Clickable.Clicked() {
+	//	p.pageRouter.SetCurrent(PAGE_TXS)
+	//}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
