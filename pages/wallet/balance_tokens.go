@@ -8,6 +8,7 @@ import (
 
 	"gioui.org/f32"
 	"gioui.org/font"
+	"gioui.org/io/clipboard"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -21,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -45,6 +47,7 @@ type PageBalanceTokens struct {
 	tokenItems     []*TokenListItem
 	buttonSettings *components.Button
 	buttonRegister *components.Button
+	buttonCopyAddr *components.Button
 
 	listStyle material.ListStyle
 }
@@ -102,6 +105,16 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	buttonRegister.Label.Alignment = text.Middle
 	buttonRegister.Style.Font.Weight = font.Bold
 
+	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
+	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+
+	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
+	buttonCopyAddr := components.NewButton(components.ButtonStyle{
+		Icon:           copyIcon,
+		TextColor:      textColor,
+		HoverTextColor: &textHoverColor,
+	})
+
 	return &PageBalanceTokens{
 		displayBalance: NewDisplayBalance(th),
 		tokenBar:       NewTokenBar(th),
@@ -113,6 +126,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		listStyle:      listStyle,
 		buttonSettings: buttonSettings,
 		buttonRegister: buttonRegister,
+		buttonCopyAddr: buttonCopyAddr,
 	}
 }
 
@@ -128,8 +142,41 @@ func (p *PageBalanceTokens) Enter() {
 		p.animationLeave.Reset()
 	}
 
+	p.SetWalletHeader()
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 	p.firstEnter = false
+}
+
+func (p *PageBalanceTokens) SetWalletHeader() {
+	openedWallet := wallet_manager.Instance.OpenedWallet
+	page_instance.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
+
+	th := app_instance.Theme
+	page_instance.header.Subtitle = func(gtx layout.Context) layout.Dimensions {
+		walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
+
+		if p.buttonCopyAddr.Clickable.Clicked() {
+			clipboard.WriteOp{
+				Text: walletAddr,
+			}.Add(gtx.Ops)
+			notification_modals.InfoInstance.SetText("Clipboard", "Addr copied to clipboard")
+			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
+
+		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				label := material.Label(th, unit.Sp(16), walletAddr)
+				label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
+				return label.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Max.X = gtx.Dp(18)
+				gtx.Constraints.Max.Y = gtx.Dp(18)
+				return p.buttonCopyAddr.Layout(gtx, th)
+			}),
+		)
+	}
 }
 
 func (p *PageBalanceTokens) Leave() {

@@ -91,6 +91,8 @@ func (p *PageAddSCForm) IsActive() bool {
 
 func (p *PageAddSCForm) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle("Add Smart Contract")
+	page_instance.header.Subtitle = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 	addr := wallet_manager.Instance.OpenedWallet.Info.Addr

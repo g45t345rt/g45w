@@ -179,7 +179,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				version := p.nodeInfo.Result.Version
-				label := material.Label(th, unit.Sp(22), version)
+				label := material.Label(th, unit.Sp(16), version)
 				label.Color = color.NRGBA{A: 255}
 				return label.Layout(gtx)
 			}),

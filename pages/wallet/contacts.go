@@ -49,11 +49,11 @@ func NewPageContacts() *PageContacts {
 	}
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
+		gween.New(-1, 0, .25, ease.Linear),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
+		gween.New(0, -1, .25, ease.Linear),
 	))
 
 	list := new(widget.List)
@@ -75,7 +75,8 @@ func (p *PageContacts) IsActive() bool {
 
 func (p *PageContacts) Enter() {
 	p.isActive = true
-
+	page_instance.header.SetTitle("Contacts")
+	page_instance.header.Subtitle = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }

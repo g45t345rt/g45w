@@ -1,14 +1,12 @@
 package page_wallet
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 
 	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font"
-	"gioui.org/io/clipboard"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -19,12 +17,10 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
-	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -44,7 +40,6 @@ type Page struct {
 	pageSCToken       *PageSCToken
 
 	pageRouter *router.Router
-	infoModal  *components.NotificationModal
 }
 
 var _ router.Page = &Page{}
@@ -105,33 +100,7 @@ func New() *Page {
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
 
-	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
-	buttonSettings := components.NewButton(components.ButtonStyle{
-		Icon:      settingsIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-	})
-
-	header := prefabs.NewHeader(labelHeaderStyle, pageRouter, buttonSettings)
-
-	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
-	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-
-	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
-	buttonCopyAddr := components.NewButton(components.ButtonStyle{
-		Icon:           copyIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
-	})
-
-	w := app_instance.Window
-	infoModal := components.NewNotificationInfoModal(w)
-
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			infoModal.Layout(gtx, th)
-		},
-	})
+	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
 
 	page := &Page{
 		animationEnter: animationEnter,
@@ -139,21 +108,14 @@ func New() *Page {
 
 		header: header,
 
-		buttonCopyAddr:    buttonCopyAddr,
 		pageBalanceTokens: pageBalanceTokens,
 		pageSendForm:      pageSendForm,
 		pageSCToken:       pageSCToken,
 
 		pageRouter: pageRouter,
-		infoModal:  infoModal,
 	}
 	page_instance = page
-	pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 	return page
-}
-
-func (p *Page) SetCurrent(tag string) {
-	p.pageRouter.SetCurrent(tag)
 }
 
 func (p *Page) IsActive() bool {
@@ -161,10 +123,17 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
+	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
+	buttonSettings := components.NewButton(components.ButtonStyle{
+		Icon:      settingsIcon,
+		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+	})
+
+	p.header.ButtonRight = buttonSettings
+
 	openedWallet := wallet_manager.Instance.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
-
 		if p.pageRouter.Current == PAGE_TXS {
 			bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_TXS)
 		} else {
@@ -176,6 +145,7 @@ func (p *Page) Enter() {
 
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
+		p.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 	} else {
 		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 	}
@@ -191,9 +161,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	if openedWallet == nil {
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
-
-	p.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
-	walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
 		p.pageRouter.SetCurrent(PAGE_SEND_FORM)
@@ -213,14 +180,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if bottom_bar.Instance.ButtonTxs.Button.Clickable.Clicked() {
 		p.pageRouter.SetCurrent(PAGE_TXS)
-	}
-
-	if p.buttonCopyAddr.Clickable.Clicked() {
-		clipboard.WriteOp{
-			Text: walletAddr,
-		}.Add(gtx.Ops)
-		p.infoModal.SetText("Clipboard", "Addr copied to clipboard")
-		p.infoModal.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -272,22 +231,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						Left: unit.Dp(30), Right: unit.Dp(30),
 						Top: unit.Dp(30), Bottom: unit.Dp(20),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						p.header.Subtitle = func(gtx layout.Context) layout.Dimensions {
-							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									label := material.Label(th, unit.Sp(16), walletAddr)
-									label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
-									return label.Layout(gtx)
-								}),
-								layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									gtx.Constraints.Max.X = gtx.Dp(18)
-									gtx.Constraints.Max.Y = gtx.Dp(18)
-									return p.buttonCopyAddr.Layout(gtx, th)
-								}),
-							)
-						}
-
 						return p.header.Layout(gtx, th)
 					})
 				}),

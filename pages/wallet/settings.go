@@ -112,8 +112,11 @@ func (p *PageSettings) IsActive() bool {
 }
 
 func (p *PageSettings) Enter() {
-	walletName := wallet_manager.Instance.OpenedWallet.Info.Name
+	openedWallet := wallet_manager.Instance.OpenedWallet
+	walletName := openedWallet.Info.Name
 	p.txtWalletName.SetValue(walletName)
+	page_instance.header.SetTitle("Settings")
+	page_instance.header.Subtitle = nil
 
 	p.isActive = true
 	p.animationEnter.Start()

@@ -79,7 +79,7 @@ func New() *Page {
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, pageRouter, nil)
+	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
 
 	page := &Page{
 		animationEnter:       animationEnter,
@@ -91,8 +91,6 @@ func New() *Page {
 	}
 
 	page_instance = page
-	pageRouter.SetCurrent(PAGE_SELECT_WALLET)
-
 	return page
 }
 
@@ -107,6 +105,7 @@ func (p *Page) Enter() {
 	p.animationEnter.Start()
 
 	p.pageSelectWallet.Load()
+	p.pageRouter.SetCurrent(PAGE_SELECT_WALLET)
 }
 
 func (p *Page) Leave() {

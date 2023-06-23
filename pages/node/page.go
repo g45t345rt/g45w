@@ -98,7 +98,7 @@ func New() *Page {
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, pageRouter, nil)
+	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
 
 	page := &Page{
 		buttonSetNode:    buttonSetNode,
@@ -129,6 +129,10 @@ func (p *Page) Enter() {
 
 	currentNode := node_manager.Instance.NodeState.Current
 	if currentNode != "" {
+		if p.pageRouter.Current == nil {
+			p.header.AddHistory(PAGE_SELECT_NODE)
+		}
+
 		if currentNode == node_manager.INTEGRATED_NODE_ID {
 			p.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 		} else {

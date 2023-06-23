@@ -20,11 +20,10 @@ type Header struct {
 
 	buttonGoBack *components.Button
 	router       *router.Router
-
-	history []interface{}
+	history      []interface{}
 }
 
-func NewHeader(labelTitle material.LabelStyle, r *router.Router, buttonRight *components.Button) *Header {
+func NewHeader(labelTitle material.LabelStyle, r *router.Router) *Header {
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 
@@ -39,7 +38,6 @@ func NewHeader(labelTitle material.LabelStyle, r *router.Router, buttonRight *co
 		LabelTitle:   labelTitle,
 		buttonGoBack: buttonGoBack,
 		router:       r,
-		ButtonRight:  buttonRight,
 		history:      make([]interface{}, 0),
 	}
 
@@ -54,7 +52,11 @@ func (h *Header) SetTitle(title string) {
 	h.LabelTitle.Text = title
 }
 
-func (h *Header) goBack() {
+func (h *Header) AddHistory(tag interface{}) {
+	h.history = append(h.history, tag)
+}
+
+func (h *Header) GoBack() {
 	tag := h.history[len(h.history)-2]
 	h.router.SetCurrent(tag)
 	h.history = h.history[:len(h.history)-2]
@@ -62,7 +64,7 @@ func (h *Header) goBack() {
 
 func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if h.buttonGoBack.Clickable.Clicked() {
-		h.goBack()
+		h.GoBack()
 	}
 
 	showBackButton := len(h.history) > 1
@@ -102,7 +104,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimension
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if !showBackButton && h.ButtonRight != nil {
+			if h.ButtonRight != nil {
 				gtx.Constraints.Max.X = gtx.Dp(25)
 				gtx.Constraints.Max.Y = gtx.Dp(25)
 				return h.ButtonRight.Layout(gtx, th)
