@@ -61,10 +61,11 @@ func (p *PageRemoteNode) Enter() {
 
 	page_instance.header.SetTitle("Remote Node")
 
-	if p.useAnimationEnter {
-		p.animationLeave.Reset()
-		p.animationEnter.Start()
-	}
+	//if p.useAnimationEnter {
+	p.animationLeave.Reset()
+	p.animationEnter.Start()
+	//p.useAnimationEnter = false
+	//}
 }
 
 func (p *PageRemoteNode) Leave() {

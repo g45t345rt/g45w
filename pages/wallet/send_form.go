@@ -142,9 +142,9 @@ func (p *PageSendForm) IsActive() bool {
 
 func (p *PageSendForm) Enter() {
 	p.isActive = true
-	page_instance.pageBalanceTokens.SetWalletHeader()
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
+	page_instance.pageBalanceTokens.ResetWalletHeader()
 }
 
 func (p *PageSendForm) Leave() {

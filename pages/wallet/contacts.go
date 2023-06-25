@@ -17,9 +17,11 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
+	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageContacts struct {
@@ -30,7 +32,8 @@ type PageContacts struct {
 
 	contactItems []*ContactListItem
 
-	listStyle material.ListStyle
+	listStyle        material.ListStyle
+	buttonAddContact *components.Button
 }
 
 var _ router.Page = &PageContacts{}
@@ -61,11 +64,19 @@ func NewPageContacts() *PageContacts {
 	listStyle := material.List(th, list)
 	listStyle.AnchorStrategy = material.Overlay
 
+	addIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
+	buttonAddContact := components.NewButton(components.ButtonStyle{
+		Icon:      addIcon,
+		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		Animation: components.NewButtonAnimationScale(.98),
+	})
+
 	return &PageContacts{
-		contactItems:   contactItems,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		listStyle:      listStyle,
+		contactItems:     contactItems,
+		animationEnter:   animationEnter,
+		animationLeave:   animationLeave,
+		listStyle:        listStyle,
+		buttonAddContact: buttonAddContact,
 	}
 }
 
@@ -77,6 +88,8 @@ func (p *PageContacts) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle("Contacts")
 	page_instance.header.Subtitle = nil
+	page_instance.header.ButtonRight = p.buttonAddContact
+
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
@@ -106,12 +119,16 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	widgets := []layout.Widget{
-		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), "You didn't add any contacts yet.")
-			return lbl.Layout(gtx)
-		},
-	}
+	widgets := []layout.Widget{}
+
+	//if len(p.contactItems) == 0 {
+	return layout.Inset{
+		Left: unit.Dp(30), Right: unit.Dp(30),
+	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		lbl := material.Label(th, unit.Sp(16), "You didn't add any contacts yet.")
+		return lbl.Layout(gtx)
+	})
+	//}
 
 	for _, item := range p.contactItems {
 		widgets = append(widgets, item.Layout)

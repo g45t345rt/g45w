@@ -12,7 +12,6 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
@@ -20,11 +19,9 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
-	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
-	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type Page struct {
@@ -32,8 +29,7 @@ type Page struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	header         *prefabs.Header
-	buttonCopyAddr *components.Button
+	header *prefabs.Header
 
 	pageBalanceTokens *PageBalanceTokens
 	pageSendForm      *PageSendForm
@@ -123,14 +119,6 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
-	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
-	buttonSettings := components.NewButton(components.ButtonStyle{
-		Icon:      settingsIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-	})
-
-	p.header.ButtonRight = buttonSettings
-
 	openedWallet := wallet_manager.Instance.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
@@ -172,10 +160,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	if p.pageBalanceTokens.tokenBar.buttonAddToken.Clickable.Clicked() {
 		p.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
-	}
-
-	if p.header.ButtonRight.Clickable.Clicked() {
-		p.pageRouter.SetCurrent(PAGE_SETTINGS)
 	}
 
 	//if bottom_bar.Instance.ButtonTxs.Button.Clickable.Clicked() {

@@ -157,6 +157,10 @@ func ReduceAddr(addr string) string {
 	return ReduceString(addr, 0, 10)
 }
 
+func ReduceTxId(txId string) string {
+	return ReduceString(txId, 5, 5)
+}
+
 func CopyFile(src string, dest string) error {
 	srcFile, err := os.Open(src)
 	if err != nil {

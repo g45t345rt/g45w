@@ -1,7 +1,9 @@
 package recent_txs_modal
 
 import (
+	"fmt"
 	"image/color"
+	"time"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -11,6 +13,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 )
 
@@ -69,15 +72,62 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					openedWallet := wallet_manager.Instance.OpenedWallet
 					if openedWallet == nil {
-						lbl := material.Label(th, unit.Sp(14), "No wallet opened.")
+						lbl := material.Label(th, unit.Sp(14), "Wallet is not opened.")
 						return lbl.Layout(gtx)
 					} else {
-						return r.listStyle.Layout(gtx, 0, func(gtx layout.Context, index int) layout.Dimensions {
-							return layout.Dimensions{}
+						txItems := []TxItem{
+							{
+								TxId:          "b0a555db9dcac8d7bb2d9ccc27ade33f81ed6e4a283c50e28d77eb208cfa7ff2",
+								Confirmations: 5,
+								Date:          time.Now(),
+								Status:        "Checking transaction...",
+							},
+						}
+
+						return r.listStyle.Layout(gtx, len(txItems), func(gtx layout.Context, index int) layout.Dimensions {
+							return txItems[index].Layout(gtx, th)
 						})
 					}
 				}),
 			)
 		})
 	})
+}
+
+type TxItem struct {
+	TxId          string
+	Confirmations uint64
+	Date          time.Time
+	Status        string
+}
+
+func (tx *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					txId := utils.ReduceTxId(tx.TxId)
+					lbl := material.Label(th, unit.Sp(14), txId)
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), tx.Status)
+					return lbl.Layout(gtx)
+				}),
+			)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					confirmations := fmt.Sprintf("%d confirmations", tx.Confirmations)
+					lbl := material.Label(th, unit.Sp(14), confirmations)
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), tx.Date.Format("2006-01-02"))
+					return lbl.Layout(gtx)
+				}),
+			)
+		}),
+	)
 }

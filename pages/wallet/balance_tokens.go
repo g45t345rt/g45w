@@ -91,6 +91,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	buttonSettings := components.NewButton(components.ButtonStyle{
 		Icon:      settingsIcon,
 		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		Animation: components.NewButtonAnimationScale(.98),
 	})
 
 	buttonRegister := components.NewButton(components.ButtonStyle{
@@ -142,16 +143,18 @@ func (p *PageBalanceTokens) Enter() {
 		p.animationLeave.Reset()
 	}
 
-	p.SetWalletHeader()
+	p.ResetWalletHeader()
+	page_instance.header.ButtonRight = p.buttonSettings
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 	p.firstEnter = false
 }
 
-func (p *PageBalanceTokens) SetWalletHeader() {
+func (p *PageBalanceTokens) ResetWalletHeader() {
 	openedWallet := wallet_manager.Instance.OpenedWallet
 	page_instance.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 
 	th := app_instance.Theme
+	page_instance.header.ButtonRight = nil
 	page_instance.header.Subtitle = func(gtx layout.Context) layout.Dimensions {
 		walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
 
@@ -182,6 +185,7 @@ func (p *PageBalanceTokens) SetWalletHeader() {
 func (p *PageBalanceTokens) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
+	page_instance.header.ButtonRight = nil
 }
 
 func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -202,6 +206,10 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			p.isActive = false
 			op.InvalidateOp{}.Add(gtx.Ops)
 		}
+	}
+
+	if p.buttonSettings.Clickable.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_SETTINGS)
 	}
 
 	if walletapi.Connected {
