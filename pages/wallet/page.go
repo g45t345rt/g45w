@@ -14,6 +14,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/contact_manager"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -34,6 +35,9 @@ type Page struct {
 	pageBalanceTokens *PageBalanceTokens
 	pageSendForm      *PageSendForm
 	pageSCToken       *PageSCToken
+	pageContactForm   *PageContactForm
+
+	contactManager *contact_manager.ContactManager
 
 	pageRouter *router.Router
 }
@@ -52,6 +56,7 @@ var (
 	PAGE_SC_TOKEN        = "page_sc_token"
 	PAGE_REGISTER_WALLET = "page_register_wallet"
 	PAGE_CONTACTS        = "page_contacts"
+	PAGE_CONTACT_FORM    = "page_contact_form"
 )
 
 func New() *Page {
@@ -93,6 +98,9 @@ func New() *Page {
 	pageContacts := NewPageContacts()
 	pageRouter.Add(PAGE_CONTACTS, pageContacts)
 
+	pageContactForm := NewPageContactForm()
+	pageRouter.Add(PAGE_CONTACT_FORM, pageContactForm)
+
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
 
@@ -107,6 +115,7 @@ func New() *Page {
 		pageBalanceTokens: pageBalanceTokens,
 		pageSendForm:      pageSendForm,
 		pageSCToken:       pageSCToken,
+		pageContactForm:   pageContactForm,
 
 		pageRouter: pageRouter,
 	}
@@ -130,6 +139,10 @@ func (p *Page) Enter() {
 
 		w := app_instance.Window
 		w.Option(app.StatusColor(color.NRGBA{A: 255}))
+
+		addr := openedWallet.Info.Addr
+		p.contactManager = contact_manager.NewContactManager(addr)
+		p.contactManager.Load()
 
 		p.animationLeave.Reset()
 		p.animationEnter.Start()

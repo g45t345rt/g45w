@@ -34,6 +34,7 @@ type PageSendForm struct {
 	txtAmount        *components.TextField
 	txtWalletAddr    *components.Input
 	txtComment       *components.TextField
+	txtDescription   *components.TextField
 	txtDstPort       *components.TextField
 	buttonBuildTx    *components.Button
 	accordionOptions *components.Accordion
@@ -71,6 +72,9 @@ func NewPageSendForm() *PageSendForm {
 	txtComment := components.NewTextField(th, "Comment", "The comment is natively encrypted.")
 	txtComment.Editor().SingleLine = false
 	txtComment.Editor().Submit = false
+	txtDescription := components.NewTextField(th, "Description", "Saved locally in your wallet.")
+	txtDescription.Editor().SingleLine = false
+	txtDescription.Editor().Submit = false
 	txtDstPort := components.NewTextField(th, "Destination Port", "")
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -126,6 +130,7 @@ func NewPageSendForm() *PageSendForm {
 		txtWalletAddr:    txtWalletAddr,
 		txtComment:       txtComment,
 		txtDstPort:       txtDstPort,
+		txtDescription:   txtDescription,
 		buttonBuildTx:    buttonBuildTx,
 		ringSizeSelector: ringSizeSelector,
 		animationEnter:   animationEnter,
@@ -230,6 +235,33 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 						}),
 					)
 				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					addr := p.txtWalletAddr.Editor().Text()
+					contact, ok := page_instance.contactManager.Contacts[addr]
+
+					if ok {
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										lbl := material.Label(th, unit.Sp(16), "Addr matching contact:")
+										return lbl.Layout(gtx)
+									}),
+									layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+
+										lbl := material.Label(th, unit.Sp(16), contact.Name)
+										lbl.Font.Weight = font.Bold
+										return lbl.Layout(gtx)
+									}),
+								)
+							}),
+						)
+					}
+
+					return layout.Dimensions{}
+				}),
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -246,6 +278,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return p.txtDstPort.Layout(gtx, th)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						p.txtDescription.Input.EditorMinY = gtx.Dp(75)
+						return p.txtDescription.Layout(gtx, th)
 					}),
 				)
 			})

@@ -18,6 +18,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -189,12 +190,12 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	for _, item := range p.nodeList.items {
-		if item.EditClicked() {
+		if item.listItemSelect.EditClicked() {
 			page_instance.pageEditNodeForm.nodeConn = item.conn
 			page_instance.pageRouter.SetCurrent(PAGE_EDIT_NODE_FORM)
 		}
 
-		if item.SelectClicked() {
+		if item.listItemSelect.SelectClicked() {
 			p.connect(item.conn)
 		}
 	}
@@ -283,28 +284,20 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 }
 
 type NodeListItem struct {
-	conn               node_manager.NodeConnection
-	clickable          *widget.Clickable
-	nodeListItemSelect *NodeListItemSelect
+	conn           node_manager.NodeConnection
+	clickable      *widget.Clickable
+	listItemSelect *prefabs.ListItemSelectEdit
 
 	rounded unit.Dp
 }
 
 func NewNodeListItem(conn node_manager.NodeConnection) NodeListItem {
 	return NodeListItem{
-		conn:               conn,
-		clickable:          &widget.Clickable{},
-		nodeListItemSelect: NewNodeListSelect(),
-		rounded:            unit.Dp(12),
+		conn:           conn,
+		clickable:      &widget.Clickable{},
+		listItemSelect: prefabs.NewListItemSelectEdit(),
+		rounded:        unit.Dp(12),
 	}
-}
-
-func (item *NodeListItem) EditClicked() bool {
-	return item.nodeListItemSelect.buttonEdit.Clickable.Clicked()
-}
-
-func (item *NodeListItem) SelectClicked() bool {
-	return item.nodeListItemSelect.buttonSelect.Clickable.Clicked()
 }
 
 func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -332,8 +325,8 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 			)
 		})
 
-		buttonEditHovered := item.nodeListItemSelect.buttonEdit.Clickable.Hovered()
-		buttonSelectHovered := item.nodeListItemSelect.buttonSelect.Clickable.Hovered()
+		buttonEditHovered := item.listItemSelect.ButtonEdit.Clickable.Hovered()
+		buttonSelectHovered := item.listItemSelect.ButtonSelect.Clickable.Hovered()
 		if item.clickable.Hovered() && !buttonEditHovered && !buttonSelectHovered {
 			pointer.CursorPointer.Add(gtx.Ops)
 			paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
@@ -344,114 +337,12 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 			)
 		}
 
-		item.nodeListItemSelect.Layout(gtx, th)
+		item.listItemSelect.Layout(gtx, th)
 
 		if item.clickable.Clicked() && !buttonEditHovered && !buttonSelectHovered {
-			item.nodeListItemSelect.Toggle()
+			item.listItemSelect.Toggle()
 		}
 
 		return dims
-	})
-}
-
-type NodeListItemSelect struct {
-	buttonSelect   *components.Button
-	buttonEdit     *components.Button
-	visible        bool
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-}
-
-func NewNodeListSelect() *NodeListItemSelect {
-	buttonSelect := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "SELECT",
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-	})
-	buttonSelect.Label.Alignment = text.Middle
-	buttonSelect.Style.Font.Weight = font.Bold
-
-	buttonEdit := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "EDIT",
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-	})
-	buttonEdit.Label.Alignment = text.Middle
-	buttonEdit.Style.Font.Weight = font.Bold
-
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .15, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .15, ease.Linear),
-	))
-
-	return &NodeListItemSelect{
-		buttonEdit:     buttonEdit,
-		buttonSelect:   buttonSelect,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-	}
-}
-
-func (n *NodeListItemSelect) Toggle() {
-	n.SetVisible(!n.visible)
-}
-
-func (n *NodeListItemSelect) SetVisible(visible bool) {
-	if visible {
-		n.visible = true
-		n.animationEnter.Start()
-		n.animationLeave.Reset()
-	} else {
-		n.animationEnter.Reset()
-		n.animationLeave.Start()
-	}
-}
-
-func (n *NodeListItemSelect) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if !n.visible {
-		return layout.Dimensions{}
-	}
-
-	{
-		state := n.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := n.animationLeave.Update(gtx)
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			n.visible = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
-
-	return layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return n.buttonSelect.Layout(gtx, th)
-			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return n.buttonEdit.Layout(gtx, th)
-			}),
-		)
 	})
 }

@@ -23,6 +23,7 @@ type ContactManager struct {
 
 func NewContactManager(walletAddr string) *ContactManager {
 	return &ContactManager{
+		Contacts:   make(map[string]Contact),
 		WalletAddr: walletAddr,
 	}
 }
@@ -46,7 +47,7 @@ func (c *ContactManager) Load() error {
 	return nil
 }
 
-func (c *ContactManager) AddContact(newContact Contact) error {
+func (c *ContactManager) SetContact(newContact Contact) error {
 	c.Contacts[newContact.Addr] = newContact
 	return c.saveContacts()
 }

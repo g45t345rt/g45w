@@ -13,7 +13,8 @@ type Settings struct {
 	NodeDir    string `json:"-"`
 	WalletsDir string `json:"-"`
 
-	HideBalance bool `json:"hide_balance"`
+	HideBalance  bool `json:"hide_balance"`
+	SendRingSize int  `json:"send_ring_size"`
 }
 
 var Instance *Settings
