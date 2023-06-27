@@ -404,7 +404,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 						lblAmount.Font.Weight = font.Bold
 						dims := lblAmount.Layout(gtx)
 
-						if settings.Instance.HideBalance {
+						if settings.App.HideBalance {
 							paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{
 								Max: dims.Size,
 							}.Op())
@@ -417,15 +417,15 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 						gtx.Constraints.Max.Y = gtx.Dp(50)
 						gtx.Constraints.Max.X = gtx.Dp(50)
 
-						if settings.Instance.HideBalance {
+						if settings.App.HideBalance {
 							d.buttonHideBalance.Style.Icon = d.showBalanceIcon
 						} else {
 							d.buttonHideBalance.Style.Icon = d.hideBalanceIcon
 						}
 
 						if d.buttonHideBalance.Clickable.Clicked() {
-							settings.Instance.HideBalance = !settings.Instance.HideBalance
-							settings.Instance.Save()
+							settings.App.HideBalance = !settings.App.HideBalance
+							settings.Save()
 							op.InvalidateOp{}.Add(gtx.Ops)
 						}
 

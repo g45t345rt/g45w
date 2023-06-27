@@ -52,6 +52,6 @@ type Lang struct {
 }
 
 func (l Lang) String() string {
-	lang := settings.Instance.Language
+	lang := settings.App.Language
 	return GetValue(lang, l.key)
 }

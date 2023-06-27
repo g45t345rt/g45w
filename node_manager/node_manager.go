@@ -44,7 +44,7 @@ func Instantiate() *NodeManager {
 }
 
 func (n *NodeManager) Load() error {
-	nodeDir := settings.Instance.NodeDir
+	nodeDir := settings.NodeDir
 
 	err := os.MkdirAll(nodeDir, os.ModePerm)
 	if err != nil {
@@ -155,7 +155,7 @@ func (n *NodeManager) SelectNode(id string, save bool) error {
 }
 
 func (n *NodeManager) saveState() error {
-	nodeDir := settings.Instance.NodeDir
+	nodeDir := settings.NodeDir
 	data, err := json.Marshal(n.NodeState)
 	if err != nil {
 		return err

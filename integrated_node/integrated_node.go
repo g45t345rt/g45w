@@ -30,7 +30,7 @@ func Instantiate() *IntegratedNode {
 }
 
 func (n *IntegratedNode) Start() error {
-	nodeDir := settings.Instance.NodeDir
+	nodeDir := settings.NodeDir
 
 	runtime.MemProfileRate = 0
 	globals.Arguments = make(map[string]interface{})
@@ -204,7 +204,7 @@ func (n *NodeSize) Active() {
 }
 
 func (n *NodeSize) update() {
-	nodeDir := settings.Instance.NodeDir
+	nodeDir := settings.NodeDir
 	size, _ := utils.GetFolderSize(nodeDir)
 	n.Size = size
 }

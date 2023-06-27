@@ -30,7 +30,7 @@ func New(walletAddr string) *TokenManager {
 }
 
 func (t *TokenManager) tokensFolder() string {
-	walletDir := settings.Instance.WalletsDir
+	walletDir := settings.WalletsDir
 	tokensPath := filepath.Join(walletDir, t.WalletAddr, "tokens")
 	return tokensPath
 }
@@ -129,7 +129,7 @@ func (t *TokenManager) RenameFolder(name string, newName string) error {
 }
 
 func (t *TokenManager) ImportTokensFromWallet(walletAddr string) error {
-	walletDir := settings.Instance.WalletsDir
+	walletDir := settings.WalletsDir
 	tokensFolder := filepath.Join(walletDir, walletAddr)
 
 	files, err := os.ReadDir(tokensFolder)

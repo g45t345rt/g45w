@@ -75,7 +75,7 @@ func runApp() error {
 }
 
 func main() {
-	err := settings.Instantiate().Load()
+	err := settings.Load()
 	if err != nil {
 		log.Fatal(err)
 	}

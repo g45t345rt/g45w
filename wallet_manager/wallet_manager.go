@@ -42,7 +42,7 @@ func Instantiate() *WalletManager {
 }
 
 func (w *WalletManager) Load() error {
-	walletsDir := settings.Instance.WalletsDir
+	walletsDir := settings.WalletsDir
 	w.Wallets = make(map[string]*WalletInfo)
 
 	err := os.MkdirAll(walletsDir, os.ModePerm)
@@ -96,7 +96,7 @@ func (w *WalletManager) OpenWallet(addr string, password string) (*walletapi.Wal
 		return nil, nil, err
 	}
 
-	walletsDir := settings.Instance.WalletsDir
+	walletsDir := settings.WalletsDir
 	path := filepath.Join(walletsDir, addr, "wallet.db")
 	walletData, err := os.ReadFile(path)
 	if err != nil {
@@ -117,7 +117,7 @@ func (w *WalletManager) DeleteWallet(addr string, password string) error {
 		return err
 	}
 
-	walletsDir := settings.Instance.WalletsDir
+	walletsDir := settings.WalletsDir
 	path := filepath.Join(walletsDir, addr)
 	err = os.RemoveAll(path)
 	if err != nil {
@@ -213,7 +213,7 @@ func (w *WalletManager) saveWalletInfo(addr string, walletInfo *WalletInfo) erro
 		return err
 	}
 
-	walletsDir := settings.Instance.WalletsDir
+	walletsDir := settings.WalletsDir
 
 	path := filepath.Join(walletsDir, addr)
 	err = os.MkdirAll(path, os.ModePerm)
@@ -235,7 +235,7 @@ func (w *WalletManager) saveWalletData(wallet *walletapi.Wallet_Memory) error {
 	walletData := wallet.Get_Encrypted_Wallet()
 	addr := wallet.GetAddress().String()
 
-	walletsDir := settings.Instance.WalletsDir
+	walletsDir := settings.WalletsDir
 
 	path := filepath.Join(walletsDir, addr)
 	err := os.MkdirAll(path, os.ModePerm)

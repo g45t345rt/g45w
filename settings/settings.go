@@ -8,29 +8,26 @@ import (
 	"gioui.org/app"
 )
 
-type Settings struct {
-	AppDir     string `json:"-"`
-	NodeDir    string `json:"-"`
-	WalletsDir string `json:"-"`
-
+type AppSettings struct {
 	Language     string `json:"language"`
 	HideBalance  bool   `json:"hide_balance"`
 	SendRingSize int    `json:"send_ring_size"`
 }
 
-var Instance *Settings
+var (
+	AppDir     string
+	NodeDir    string
+	WalletsDir string
+)
+
+var App AppSettings
 
 // vars below are replaced by -ldflags during build
 var Version = "development"
 var BuildTime = ""
 var GitVersion = "development"
 
-func Instantiate() *Settings {
-	Instance = &Settings{}
-	return Instance
-}
-
-func (s *Settings) Load() error {
+func Load() error {
 	dataDir, err := app.DataDir()
 	if err != nil {
 		return err
@@ -40,11 +37,11 @@ func (s *Settings) Load() error {
 	nodeDir := filepath.Join(appDir, "node")
 	walletsDir := filepath.Join(appDir, "wallets")
 
-	s.AppDir = appDir
-	s.NodeDir = nodeDir
-	s.WalletsDir = walletsDir
+	AppDir = appDir
+	NodeDir = nodeDir
+	WalletsDir = walletsDir
 
-	path := filepath.Join(s.AppDir, "settings.json")
+	path := filepath.Join(AppDir, "settings.json")
 
 	_, err = os.Stat(path)
 	if err == nil {
@@ -53,7 +50,7 @@ func (s *Settings) Load() error {
 			return err
 		}
 
-		err = json.Unmarshal(data, &s)
+		err = json.Unmarshal(data, &App)
 		if err != nil {
 			return err
 		}
@@ -62,12 +59,12 @@ func (s *Settings) Load() error {
 	return nil
 }
 
-func (s *Settings) Save() error {
-	data, err := json.Marshal(s)
+func Save() error {
+	data, err := json.Marshal(App)
 	if err != nil {
 		return err
 	}
 
-	path := filepath.Join(s.AppDir, "settings.json")
+	path := filepath.Join(AppDir, "settings.json")
 	return os.WriteFile(path, data, os.ModePerm)
 }

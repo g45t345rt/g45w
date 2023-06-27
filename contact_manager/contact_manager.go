@@ -29,7 +29,7 @@ func NewContactManager(walletAddr string) *ContactManager {
 }
 
 func (c *ContactManager) contactsPath() string {
-	walletDir := settings.Instance.WalletsDir
+	walletDir := settings.WalletsDir
 	return filepath.Join(walletDir, c.WalletAddr, "contacts.json")
 }
 
