@@ -78,7 +78,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonEditNode.Style.Font.Weight = font.Bold
 
 	txtName := components.NewTextField(th, "Name", "Dero NFTs")
-	txtEndpoint := components.NewTextField(th, "Host", "wss://node.deronfts.com/ws")
+	txtEndpoint := components.NewTextField(th, "Endpoint", "wss://node.deronfts.com/ws")
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteNode := components.NewButton(components.ButtonStyle{

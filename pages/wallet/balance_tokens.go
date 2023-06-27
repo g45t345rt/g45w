@@ -156,8 +156,7 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 	th := app_instance.Theme
 	page_instance.header.ButtonRight = nil
 	page_instance.header.Subtitle = func(gtx layout.Context) layout.Dimensions {
-		walletAddr := utils.ReduceAddr(openedWallet.Info.Addr)
-
+		walletAddr := openedWallet.Info.Addr
 		if p.buttonCopyAddr.Clickable.Clicked() {
 			clipboard.WriteOp{
 				Text: walletAddr,
@@ -168,6 +167,7 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				walletAddr := utils.ReduceAddr(walletAddr)
 				label := material.Label(th, unit.Sp(16), walletAddr)
 				label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
 				return label.Layout(gtx)

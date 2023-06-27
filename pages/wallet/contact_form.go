@@ -33,11 +33,12 @@ type PageContactForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonCreate *components.Button
-	buttonDelete *components.Button
-	txtName      *components.TextField
-	txtAddr      *components.TextField
-	txtNote      *components.TextField
+	buttonCreate  *components.Button
+	buttonDelete  *components.Button
+	txtName       *components.TextField
+	txtAddr       *components.TextField
+	txtNote       *components.TextField
+	confirmDelete *components.Confirm
 
 	contact *contact_manager.Contact
 
@@ -98,15 +99,25 @@ func NewPageContactForm() *PageContactForm {
 	txtNote.Editor().SingleLine = false
 	txtNote.Editor().Submit = false
 
+	w := app_instance.Window
+	confirmDelete := components.NewConfirm(w, "Are you sure?", th, layout.Center)
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			confirmDelete.Layout(gtx, th)
+		},
+	})
+
 	return &PageContactForm{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonCreate: buttonCreate,
-		buttonDelete: buttonDelete,
-		txtName:      txtName,
-		txtAddr:      txtAddr,
-		txtNote:      txtNote,
+		buttonCreate:  buttonCreate,
+		buttonDelete:  buttonDelete,
+		txtName:       txtName,
+		txtAddr:       txtAddr,
+		txtNote:       txtNote,
+		confirmDelete: confirmDelete,
 
 		listStyle: listStyle,
 	}
@@ -175,6 +186,10 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 
 	if p.buttonDelete.Clickable.Clicked() {
+		p.confirmDelete.SetVisible(true)
+	}
+
+	if p.confirmDelete.ClickedYes() {
 		err := page_instance.contactManager.DelContact(p.contact.Addr)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())

@@ -71,7 +71,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	buttonAddNode.Style.Font.Weight = font.Bold
 
 	txtName := components.NewTextField(th, "Name", "Dero NFTs")
-	txtEndpoint := components.NewTextField(th, "Host", "wss://node.deronfts.com/ws")
+	txtEndpoint := components.NewTextField(th, "Endpoint", "wss://node.deronfts.com/ws")
 
 	return &PageAddNodeForm{
 		animationEnter: animationEnter,
