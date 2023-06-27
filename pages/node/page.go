@@ -127,7 +127,7 @@ func (p *Page) Enter() {
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
-	currentNode := node_manager.Instance.NodeState.Current
+	currentNode := node_manager.CurrentNode
 	if currentNode != "" {
 		if p.pageRouter.Current == nil {
 			p.header.AddHistory(PAGE_SELECT_NODE)

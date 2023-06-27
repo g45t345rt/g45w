@@ -110,7 +110,7 @@ func (p *PageSelectNode) Leave() {
 
 func (p *PageSelectNode) Load() {
 	items := make([]NodeListItem, 0)
-	for _, nodeInfo := range node_manager.Instance.NodeState.Nodes {
+	for _, nodeInfo := range node_manager.Nodes {
 		items = append(items,
 			NewNodeListItem(nodeInfo),
 		)
@@ -185,7 +185,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonSetIntegratedNode.Clickable.Clicked() {
-		node_manager.Instance.SelectNode(node_manager.INTEGRATED_NODE_ID, true)
+		node_manager.ConnectNode(node_manager.INTEGRATED_NODE_ID, true)
 		page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 	}
 
@@ -217,7 +217,7 @@ func (p *PageSelectNode) connect(conn node_manager.NodeConnection) {
 	go func() {
 		notification_modals.InfoInstance.SetText("Connecting...", conn.Endpoint)
 		notification_modals.InfoInstance.SetVisible(true, 0)
-		err := node_manager.Instance.SelectNode(conn.ID, true)
+		err := node_manager.ConnectNode(conn.ID, true)
 		p.connecting = false
 		notification_modals.InfoInstance.SetVisible(false, 0)
 

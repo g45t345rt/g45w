@@ -21,7 +21,6 @@ import (
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
-	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	page_node "github.com/g45t345rt/g45w/pages/node"
@@ -90,11 +89,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	integrated_node.Instantiate()
-
-	err = node_manager.Instantiate().Load()
+	err = node_manager.Load()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if node_manager.CurrentNode != "" {
+		node_manager.ConnectNode(node_manager.CurrentNode, false)
 	}
 
 	// window

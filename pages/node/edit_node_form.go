@@ -167,7 +167,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.confirmDelete.ClickedYes() {
-		err := node_manager.Instance.DelNode(p.nodeConn.ID)
+		err := node_manager.DelNode(p.nodeConn.ID)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -242,7 +242,7 @@ func (p *PageEditNodeForm) submitForm() {
 			return
 		}
 
-		err = node_manager.Instance.EditNode(node_manager.NodeConnection{
+		err = node_manager.EditNode(node_manager.NodeConnection{
 			ID:       p.nodeConn.ID,
 			Name:     txtName.Text(),
 			Endpoint: txtEnpoint.Text(),

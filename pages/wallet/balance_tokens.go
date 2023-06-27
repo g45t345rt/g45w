@@ -212,8 +212,12 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		page_instance.pageRouter.SetCurrent(PAGE_SETTINGS)
 	}
 
-	if walletapi.Connected {
-		wallet := wallet_manager.OpenedWallet.Memory
+	var wallet *walletapi.Wallet_Memory
+	if wallet_manager.OpenedWallet != nil {
+		wallet = wallet_manager.OpenedWallet.Memory
+	}
+
+	if walletapi.Connected && wallet != nil {
 		isRegistered := wallet.IsRegistered()
 
 		if !isRegistered {
@@ -236,8 +240,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			return p.alertBox.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			if walletapi.Connected {
-				wallet := wallet_manager.OpenedWallet.Memory
+			if walletapi.Connected && wallet != nil {
 				isRegistered := wallet.IsRegistered()
 
 				if !isRegistered {

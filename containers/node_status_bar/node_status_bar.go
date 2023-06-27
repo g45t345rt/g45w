@@ -45,10 +45,13 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	//paint.PaintOp{}.Add(gtx.Ops)
+	if wallet_manager.OpenedWallet == nil {
+		return layout.Dimensions{}
+	}
 
-	currentNode := node_manager.Instance.NodeState.Current
+	wallet := wallet_manager.OpenedWallet.Memory
+	currentNode := node_manager.CurrentNode
 	status := "unassigned node"
-
 	statusDotColor := color.NRGBA{R: 255, G: 0, B: 0, A: 255}
 
 	if currentNode != "" {
@@ -57,7 +60,6 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 			//height := n.integratedNodeStatus.Height
 			//bestHeight := n.integratedNodeStatus.BestHeight
-			wallet := wallet_manager.OpenedWallet.Memory
 			walletHeight := wallet.Get_Height()
 			daemonHeight := wallet.Get_Daemon_Height()
 			out := n.integratedNodeStatus.PeerOutCount
@@ -72,8 +74,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		} else {
 			n.remoteNodeInfo.Active()
 
-			nodeConn := node_manager.Instance.NodeState.Nodes[currentNode]
-			wallet := wallet_manager.OpenedWallet.Memory
+			nodeConn := node_manager.Nodes[currentNode]
 			walletHeight := wallet.Get_Height()
 			daemonHeight := wallet.Get_Daemon_Height()
 			out := n.remoteNodeInfo.Result.Outgoing_connections_count

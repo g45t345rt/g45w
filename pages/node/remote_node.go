@@ -93,8 +93,8 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 	}
 
-	currentNode := node_manager.Instance.NodeState.Current
-	nodeInfo := node_manager.Instance.NodeState.Nodes[currentNode]
+	currentNode := node_manager.CurrentNode
+	nodeInfo := node_manager.Nodes[currentNode]
 
 	p.nodeInfo.Active()
 

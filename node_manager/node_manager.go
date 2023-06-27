@@ -23,14 +23,11 @@ type NodeState struct {
 	Current string                    `json:"current"`
 }
 
+var CurrentNode string
+var Nodes map[string]NodeConnection
+
 const INTEGRATED_NODE_ID = "integrated"
 const NODE_STATE_FILE = "node_state.json"
-
-type NodeManager struct {
-	NodeState NodeState
-}
-
-var Instance *NodeManager
 
 var TrustedNodes = map[string]NodeConnection{
 	"deronfts":     {ID: "deronfts", Name: "DeroNFTs", Endpoint: "wss://node.deronfts.com/ws"},
@@ -38,12 +35,7 @@ var TrustedNodes = map[string]NodeConnection{
 	"derostats":    {ID: "derostats", Name: "DeroStats", Endpoint: "ws://derostats.io:10102/ws"},
 }
 
-func Instantiate() *NodeManager {
-	Instance = &NodeManager{}
-	return Instance
-}
-
-func (n *NodeManager) Load() error {
+func Load() error {
 	nodeDir := settings.NodeDir
 
 	err := os.MkdirAll(nodeDir, os.ModePerm)
@@ -82,70 +74,72 @@ func (n *NodeManager) Load() error {
 		return err
 	}
 
-	n.NodeState = nodeState
-	n.SelectNode(n.NodeState.Current, false)
+	CurrentNode = nodeState.Current
+	Nodes = nodeState.Nodes
+
 	return nil
 }
 
-func (n *NodeManager) AddNode(conn NodeConnection) error {
+func AddNode(conn NodeConnection) error {
 	id := fmt.Sprint(time.Now().Unix())
 	conn.ID = id
-	n.NodeState.Nodes[id] = conn
-	return n.saveState()
+	Nodes[id] = conn
+	return saveState()
 }
 
-func (n *NodeManager) EditNode(conn NodeConnection) error {
-	n.NodeState.Nodes[conn.ID] = conn
-	return n.saveState()
+func EditNode(conn NodeConnection) error {
+	Nodes[conn.ID] = conn
+	return saveState()
 }
 
-func (n *NodeManager) DelNode(id string) error {
-	delete(n.NodeState.Nodes, id)
-	return n.saveState()
+func DelNode(id string) error {
+	delete(Nodes, id)
+	return saveState()
 }
 
-func (n *NodeManager) ReloadTrustedNodes() error {
+func ReloadTrustedNodes() error {
 	for _, node := range TrustedNodes {
-		n.NodeState.Nodes[node.ID] = node
+		Nodes[node.ID] = node
 	}
 
-	return n.saveState()
+	return saveState()
 }
 
-func (n *NodeManager) SelectNode(id string, save bool) error {
+func ConnectNode(id string, save bool) error {
 	if id != INTEGRATED_NODE_ID {
-		_, ok := n.NodeState.Nodes[id]
+		_, ok := Nodes[id]
 		if !ok {
 			return fmt.Errorf("node id does not exists")
 		}
 	}
 
 	if id == INTEGRATED_NODE_ID {
-		err := integrated_node.Instance.Start()
+		err := integrated_node.Start()
 		if err != nil {
 			return err
 		}
 
-		err = walletapi.Connect("ws://127.0.0.1:10102/ws")
+		localEndpoint := "ws://127.0.0.1:10102/ws"
+		err = walletapi.Connect(localEndpoint)
 		if err != nil {
 			return err
 		}
 	} else {
-		nodeConn := n.NodeState.Nodes[id]
+		nodeConn := Nodes[id]
 		err := walletapi.Connect(nodeConn.Endpoint)
 		if err != nil {
 			return err
 		}
 
-		if n.NodeState.Current == INTEGRATED_NODE_ID {
-			integrated_node.Instance.Stop()
+		if CurrentNode == INTEGRATED_NODE_ID {
+			integrated_node.Stop()
 		}
 	}
 
-	n.NodeState.Current = id
+	CurrentNode = id
 
 	if save {
-		err := n.saveState()
+		err := saveState()
 		if err != nil {
 			return err
 		}
@@ -154,9 +148,15 @@ func (n *NodeManager) SelectNode(id string, save bool) error {
 	return nil
 }
 
-func (n *NodeManager) saveState() error {
+func saveState() error {
 	nodeDir := settings.NodeDir
-	data, err := json.Marshal(n.NodeState)
+
+	nodeState := NodeState{
+		Nodes:   Nodes,
+		Current: CurrentNode,
+	}
+
+	data, err := json.Marshal(nodeState)
 	if err != nil {
 		return err
 	}

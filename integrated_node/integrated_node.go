@@ -17,19 +17,10 @@ import (
 	"github.com/g45t345rt/g45w/utils"
 )
 
-type IntegratedNode struct {
-	Chain     *blockchain.Blockchain
-	RPCServer *derodrpc.RPCServer
-}
+var Chain *blockchain.Blockchain
+var RPCServer *derodrpc.RPCServer
 
-var Instance *IntegratedNode
-
-func Instantiate() *IntegratedNode {
-	Instance = &IntegratedNode{}
-	return Instance
-}
-
-func (n *IntegratedNode) Start() error {
+func Start() error {
 	nodeDir := settings.NodeDir
 
 	runtime.MemProfileRate = 0
@@ -68,7 +59,7 @@ func (n *IntegratedNode) Start() error {
 		return err
 	}
 
-	n.Chain = chain
+	Chain = chain
 	params["chain"] = chain
 
 	err = p2p.P2P_Init(params)
@@ -84,7 +75,7 @@ func (n *IntegratedNode) Start() error {
 		p2p.Broadcast_MiniBlock(mbl, peerid)
 	}
 
-	n.RPCServer, err = derodrpc.RPCServer_Start(params)
+	RPCServer, err = derodrpc.RPCServer_Start(params)
 	if err != nil {
 		return err
 	}
@@ -93,10 +84,10 @@ func (n *IntegratedNode) Start() error {
 	return nil
 }
 
-func (n *IntegratedNode) Stop() {
-	n.RPCServer.RPCServer_Stop()
+func Stop() {
+	RPCServer.RPCServer_Stop()
 	p2p.P2P_Shutdown() // does not close process_outgoing_connection? :(
-	n.Chain.Shutdown()
+	Chain.Shutdown()
 	globals.Cron.Stop()
 	metrics.Set.UnregisterAllMetrics()
 }
@@ -141,22 +132,17 @@ func (n *NodeStatus) Active() {
 }
 
 func (n *NodeStatus) update() {
-	if Instance == nil {
+	if Chain == nil {
 		return
 	}
 
-	chain := Instance.Chain
-	if chain == nil {
-		return
-	}
-
-	n.Height = chain.Get_Height()
+	n.Height = Chain.Get_Height()
 	bestHeight, _ := p2p.Best_Peer_Height()
 	n.BestHeight = bestHeight
 	//topo_height := chain.Load_TOPO_HEIGHT()
 
-	n.MemCount = len(chain.Mempool.Mempool_List_TX())
-	n.RegCount = len(chain.Regpool.Regpool_List_TX())
+	n.MemCount = len(Chain.Mempool.Mempool_List_TX())
+	n.RegCount = len(Chain.Regpool.Regpool_List_TX())
 
 	//p2p.PeerList_Print()
 	//n.PeerCount = p2p.Peer_Count()
@@ -164,7 +150,7 @@ func (n *NodeStatus) update() {
 	n.PeerInCount = in
 	n.PeerOutCount = out
 
-	n.NetworkHashRate = chain.Get_Network_HashRate()
+	n.NetworkHashRate = Chain.Get_Network_HashRate()
 
 	n.TimeOffset = globals.GetOffset().Round(time.Millisecond)
 	n.TimeOffsetNTP = globals.GetOffsetNTP().Round(time.Millisecond)

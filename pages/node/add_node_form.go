@@ -178,7 +178,7 @@ func (p *PageAddNodeForm) submitForm() {
 			return
 		}
 
-		err = node_manager.Instance.AddNode(node_manager.NodeConnection{
+		err = node_manager.AddNode(node_manager.NodeConnection{
 			Name:     txtName.Text(),
 			Endpoint: txtEndpoint.Text(),
 		})
