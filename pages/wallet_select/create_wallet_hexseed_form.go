@@ -179,7 +179,7 @@ func (p *PageCreateWalletHexSeedForm) submitForm() error {
 		return fmt.Errorf("the confirm password does not match")
 	}
 
-	err := wallet_manager.Instance.CreateWalletFromHexSeed(txtName.Text(), txtPassword.Text(), txtHexSeed.Text())
+	err := wallet_manager.CreateWalletFromHexSeed(txtName.Text(), txtPassword.Text(), txtHexSeed.Text())
 	if err != nil {
 		return err
 	}

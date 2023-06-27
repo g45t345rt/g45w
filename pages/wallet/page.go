@@ -128,7 +128,7 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
-	openedWallet := wallet_manager.Instance.OpenedWallet
+	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
 		if p.pageRouter.Current == PAGE_TXS {
@@ -158,7 +158,7 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	openedWallet := wallet_manager.Instance.OpenedWallet
+	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet == nil {
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}

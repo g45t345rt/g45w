@@ -141,7 +141,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	BottomBarTopWallet{}.Layout(gtx, th)
 
-	if wallet_manager.Instance.OpenedWallet != nil {
+	if wallet_manager.OpenedWallet != nil {
 		b.ButtonClose.Button.Disabled = false
 		if b.ButtonClose.Button.Clickable.Clicked() {
 			b.confirmClose.SetVisible(true)
@@ -152,7 +152,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	if b.confirmClose.ClickedYes() {
 		b.appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
-		wallet_manager.Instance.OpenedWallet = nil
+		wallet_manager.OpenedWallet = nil
 	}
 
 	if b.ButtonNode.Button.Clickable.Clicked() {
@@ -238,7 +238,7 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 type BottomBarTopWallet struct{}
 
 func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
-	openedWallet := wallet_manager.Instance.OpenedWallet
+	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet == nil {
 		return
 	}

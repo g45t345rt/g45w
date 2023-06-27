@@ -188,7 +188,7 @@ func (p *PageCreateWalletForm) submitForm() error {
 		return fmt.Errorf("the confirm password does not match")
 	}
 
-	err := wallet_manager.Instance.CreateWallet(txtName.Text(), txtPassword.Text())
+	err := wallet_manager.CreateWallet(txtName.Text(), txtPassword.Text())
 	if err != nil {
 		return err
 	}

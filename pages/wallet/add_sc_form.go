@@ -95,7 +95,7 @@ func (p *PageAddSCForm) Enter() {
 	page_instance.header.Subtitle = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
-	addr := wallet_manager.Instance.OpenedWallet.Info.Addr
+	addr := wallet_manager.OpenedWallet.Info.Addr
 	p.tokenManager = token_manager.New(addr)
 }
 

@@ -57,7 +57,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 			//height := n.integratedNodeStatus.Height
 			//bestHeight := n.integratedNodeStatus.BestHeight
-			wallet := wallet_manager.Instance.OpenedWallet.Memory
+			wallet := wallet_manager.OpenedWallet.Memory
 			walletHeight := wallet.Get_Height()
 			daemonHeight := wallet.Get_Daemon_Height()
 			out := n.integratedNodeStatus.PeerOutCount
@@ -73,7 +73,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			n.remoteNodeInfo.Active()
 
 			nodeConn := node_manager.Instance.NodeState.Nodes[currentNode]
-			wallet := wallet_manager.Instance.OpenedWallet.Memory
+			wallet := wallet_manager.OpenedWallet.Memory
 			walletHeight := wallet.Get_Height()
 			daemonHeight := wallet.Get_Daemon_Height()
 			out := n.remoteNodeInfo.Result.Outgoing_connections_count

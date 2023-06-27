@@ -150,7 +150,7 @@ func (p *PageBalanceTokens) Enter() {
 }
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
-	openedWallet := wallet_manager.Instance.OpenedWallet
+	openedWallet := wallet_manager.OpenedWallet
 	page_instance.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
 
 	th := app_instance.Theme
@@ -213,7 +213,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	if walletapi.Connected {
-		wallet := wallet_manager.Instance.OpenedWallet.Memory
+		wallet := wallet_manager.OpenedWallet.Memory
 		isRegistered := wallet.IsRegistered()
 
 		if !isRegistered {
@@ -237,7 +237,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			if walletapi.Connected {
-				wallet := wallet_manager.Instance.OpenedWallet.Memory
+				wallet := wallet_manager.OpenedWallet.Memory
 				isRegistered := wallet.IsRegistered()
 
 				if !isRegistered {

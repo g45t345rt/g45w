@@ -112,7 +112,7 @@ func (p *PageSettings) IsActive() bool {
 }
 
 func (p *PageSettings) Enter() {
-	openedWallet := wallet_manager.Instance.OpenedWallet
+	openedWallet := wallet_manager.OpenedWallet
 	walletName := openedWallet.Info.Name
 	p.txtWalletName.SetValue(walletName)
 	page_instance.header.SetTitle("Settings")
@@ -146,13 +146,13 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	submitted, text := p.modalWalletPassword.Submit()
 	if submitted {
-		openedWallet := wallet_manager.Instance.OpenedWallet
-		err := wallet_manager.Instance.DeleteWallet(openedWallet.Info.Addr, text)
+		openedWallet := wallet_manager.OpenedWallet
+		err := wallet_manager.DeleteWallet(openedWallet.Info.Addr, text)
 		if err == nil {
 			p.modalWalletPassword.Modal.SetVisible(false)
 			page_instance.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 			app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
-			wallet_manager.Instance.OpenedWallet = nil
+			wallet_manager.OpenedWallet = nil
 		} else {
 			if err.Error() == "Invalid Password" {
 				p.modalWalletPassword.StartWrongPassAnimation()
@@ -214,15 +214,15 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 }
 
 func (p *PageSettings) submitForm() error {
-	walletInfo := wallet_manager.Instance.OpenedWallet.Info
+	walletInfo := wallet_manager.OpenedWallet.Info
 	newWalletName := p.txtWalletName.Value()
 	if walletInfo.Name != newWalletName {
-		err := wallet_manager.Instance.RenameWallet(walletInfo.Addr, newWalletName)
+		err := wallet_manager.RenameWallet(walletInfo.Addr, newWalletName)
 		if err != nil {
 			return err
 		}
 
-		wallet_manager.Instance.OpenedWallet.Info.Name = newWalletName
+		wallet_manager.OpenedWallet.Info.Name = newWalletName
 	}
 
 	return nil

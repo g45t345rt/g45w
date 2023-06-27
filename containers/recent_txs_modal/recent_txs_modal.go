@@ -70,7 +70,7 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					openedWallet := wallet_manager.Instance.OpenedWallet
+					openedWallet := wallet_manager.OpenedWallet
 					if openedWallet == nil {
 						lbl := material.Label(th, unit.Sp(14), "Wallet is not opened.")
 						return lbl.Layout(gtx)

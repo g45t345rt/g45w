@@ -112,10 +112,10 @@ func (p *PageSelectWallet) Leave() {
 
 func (p *PageSelectWallet) Load() {
 	theme := app_instance.Theme
-	walletManager := wallet_manager.Instance
 
+	wallets := wallet_manager.Wallets
 	items := make([]WalletListItem, 0)
-	for _, wallet := range walletManager.Wallets {
+	for _, wallet := range wallets {
 		items = append(items,
 			NewWalletListItem(theme, wallet),
 		)
@@ -186,13 +186,9 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	{
 		submitted, text := p.modalWalletPassword.Submit()
 		if submitted {
-			walletMemory, walletInfo, err := wallet_manager.Instance.OpenWallet(p.currentWallet.Addr, text)
+			walletMemory, walletInfo, err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
 			if err == nil {
-				wallet_manager.Instance.OpenedWallet = &wallet_manager.OpenedWallet{
-					Info:   walletInfo,
-					Memory: walletMemory,
-				}
-
+				wallet_manager.SetOpenWallet(walletMemory, walletInfo)
 				p.modalWalletPassword.Modal.SetVisible(false)
 				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 			} else {

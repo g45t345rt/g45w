@@ -304,7 +304,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 }
 
 func (p *PageSendForm) submitForm() error {
-	wallet := wallet_manager.Instance.OpenedWallet.Memory
+	wallet := wallet_manager.OpenedWallet.Memory
 
 	destination := p.txtWalletAddr.Value()
 

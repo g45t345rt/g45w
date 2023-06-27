@@ -182,7 +182,7 @@ func (p *PageCreateWalletSeedForm) submitForm() error {
 		return fmt.Errorf("the confirm password does not match")
 	}
 
-	err := wallet_manager.Instance.CreateWalletFromSeed(txtName.Text(), txtPassword.Text(), txtSeed.Text())
+	err := wallet_manager.CreateWalletFromSeed(txtName.Text(), txtPassword.Text(), txtSeed.Text())
 	if err != nil {
 		return err
 	}

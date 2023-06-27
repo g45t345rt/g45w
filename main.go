@@ -85,7 +85,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = wallet_manager.Instantiate().Load()
+	err = wallet_manager.Load()
 	if err != nil {
 		log.Fatal(err)
 	}

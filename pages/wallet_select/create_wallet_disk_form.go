@@ -170,7 +170,7 @@ func (p *PageCreateWalletDiskForm) submitForm() error {
 		return fmt.Errorf("enter wallet name")
 	}
 
-	err := wallet_manager.Instance.CreateWalletFromPath(txtName.Text(), txtPassword.Text(), p.walletPath)
+	err := wallet_manager.CreateWalletFromPath(txtName.Text(), txtPassword.Text(), p.walletPath)
 	if err != nil {
 		return err
 	}

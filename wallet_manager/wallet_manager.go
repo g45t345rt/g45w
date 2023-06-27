@@ -14,7 +14,7 @@ import (
 	"github.com/g45t345rt/g45w/settings"
 )
 
-type OpenedWallet struct {
+type Wallet struct {
 	Info   *WalletInfo
 	Memory *walletapi.Wallet_Memory
 }
@@ -27,23 +27,12 @@ type WalletInfo struct {
 	ListOrder int   `json:"order"` // save item list ordering
 }
 
-var Instance *WalletManager
+var Wallets map[string]*WalletInfo
+var OpenedWallet *Wallet
 
-type WalletManager struct {
-	Wallets      map[string]*WalletInfo
-	OpenedWallet *OpenedWallet
-}
-
-func Instantiate() *WalletManager {
-	Instance = &WalletManager{
-		Wallets: make(map[string]*WalletInfo),
-	}
-	return Instance
-}
-
-func (w *WalletManager) Load() error {
+func Load() error {
 	walletsDir := settings.WalletsDir
-	w.Wallets = make(map[string]*WalletInfo)
+	Wallets = make(map[string]*WalletInfo)
 
 	err := os.MkdirAll(walletsDir, os.ModePerm)
 	if err != nil {
@@ -74,15 +63,15 @@ func (w *WalletManager) Load() error {
 				return err
 			}
 
-			w.Wallets[walletInfo.Addr] = walletInfo
+			Wallets[walletInfo.Addr] = walletInfo
 		}
 
 		return nil
 	})
 }
 
-func (w *WalletManager) GetWalletInfo(addr string) (*WalletInfo, error) {
-	walletInfo, ok := w.Wallets[addr]
+func GetWalletInfo(addr string) (*WalletInfo, error) {
+	walletInfo, ok := Wallets[addr]
 	if !ok {
 		return nil, fmt.Errorf("wallet [%s] does not exists", addr)
 	}
@@ -90,8 +79,8 @@ func (w *WalletManager) GetWalletInfo(addr string) (*WalletInfo, error) {
 	return walletInfo, nil
 }
 
-func (w *WalletManager) OpenWallet(addr string, password string) (*walletapi.Wallet_Memory, *WalletInfo, error) {
-	walletInfo, err := w.GetWalletInfo(addr)
+func OpenWallet(addr string, password string) (*walletapi.Wallet_Memory, *WalletInfo, error) {
+	walletInfo, err := GetWalletInfo(addr)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -111,8 +100,15 @@ func (w *WalletManager) OpenWallet(addr string, password string) (*walletapi.Wal
 	return wallet, walletInfo, nil
 }
 
-func (w *WalletManager) DeleteWallet(addr string, password string) error {
-	_, _, err := w.OpenWallet(addr, password)
+func SetOpenWallet(memory *walletapi.Wallet_Memory, info *WalletInfo) {
+	OpenedWallet = &Wallet{
+		Memory: memory,
+		Info:   info,
+	}
+}
+
+func DeleteWallet(addr string, password string) error {
+	_, _, err := OpenWallet(addr, password)
 	if err != nil {
 		return err
 	}
@@ -124,29 +120,29 @@ func (w *WalletManager) DeleteWallet(addr string, password string) error {
 		return err
 	}
 
-	delete(w.Wallets, addr)
+	delete(Wallets, addr)
 	return nil
 }
 
-func (w *WalletManager) CreateWalletFromPath(name string, password string, path string) error {
+func CreateWalletFromPath(name string, password string, path string) error {
 	wallet, err := walletapi.Open_Encrypted_Wallet(path, password)
 	if err != nil {
 		return err
 	}
 
-	return w.saveWallet(wallet.Wallet_Memory, name)
+	return saveWallet(wallet.Wallet_Memory, name)
 }
 
-func (w *WalletManager) CreateWalletFromSeed(name string, password string, seed string) error {
+func CreateWalletFromSeed(name string, password string, seed string) error {
 	wallet, err := walletapi.Create_Encrypted_Wallet_From_Recovery_Words_Memory(password, seed)
 	if err != nil {
 		return err
 	}
 
-	return w.saveWallet(wallet, name)
+	return saveWallet(wallet, name)
 }
 
-func (w *WalletManager) CreateWalletFromHexSeed(name string, password, hexSeed string) error {
+func CreateWalletFromHexSeed(name string, password, hexSeed string) error {
 	seed, err := hex.DecodeString(hexSeed)
 	if err != nil {
 		return err
@@ -162,31 +158,31 @@ func (w *WalletManager) CreateWalletFromHexSeed(name string, password, hexSeed s
 		return err
 	}
 
-	return w.saveWallet(wallet, name)
+	return saveWallet(wallet, name)
 }
 
-func (w *WalletManager) CreateWallet(name string, password string) error {
+func CreateWallet(name string, password string) error {
 	wallet, err := walletapi.Create_Encrypted_Wallet_Random_Memory(password)
 	if err != nil {
 		return err
 	}
 
-	return w.saveWallet(wallet, name)
+	return saveWallet(wallet, name)
 }
 
-func (w *WalletManager) RenameWallet(addr string, newName string) error {
-	walletInfo := w.Wallets[addr]
+func RenameWallet(addr string, newName string) error {
+	walletInfo := Wallets[addr]
 	walletInfo.Name = newName
-	return w.saveWalletInfo(addr, walletInfo)
+	return saveWalletInfo(addr, walletInfo)
 }
 
-func (w *WalletManager) OrderWallet(addr string, newOrder int) error {
-	walletInfo := w.Wallets[addr]
+func OrderWallet(addr string, newOrder int) error {
+	walletInfo := Wallets[addr]
 	walletInfo.ListOrder = newOrder
-	return w.saveWalletInfo(addr, walletInfo)
+	return saveWalletInfo(addr, walletInfo)
 }
 
-func (w *WalletManager) saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
+func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
 	addr := wallet.GetAddress().String()
 	walletInfo := &WalletInfo{
 		Addr:      addr,
@@ -194,12 +190,12 @@ func (w *WalletManager) saveWallet(wallet *walletapi.Wallet_Memory, name string)
 		Timestamp: time.Now().Unix(),
 	}
 
-	err := w.saveWalletInfo(addr, walletInfo)
+	err := saveWalletInfo(addr, walletInfo)
 	if err != nil {
 		return err
 	}
 
-	err = w.saveWalletData(wallet)
+	err = saveWalletData(wallet)
 	if err != nil {
 		return err
 	}
@@ -207,7 +203,7 @@ func (w *WalletManager) saveWallet(wallet *walletapi.Wallet_Memory, name string)
 	return nil
 }
 
-func (w *WalletManager) saveWalletInfo(addr string, walletInfo *WalletInfo) error {
+func saveWalletInfo(addr string, walletInfo *WalletInfo) error {
 	data, err := json.Marshal(walletInfo)
 	if err != nil {
 		return err
@@ -227,11 +223,11 @@ func (w *WalletManager) saveWalletInfo(addr string, walletInfo *WalletInfo) erro
 		return err
 	}
 
-	w.Wallets[addr] = walletInfo
+	Wallets[addr] = walletInfo
 	return nil
 }
 
-func (w *WalletManager) saveWalletData(wallet *walletapi.Wallet_Memory) error {
+func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 	walletData := wallet.Get_Encrypted_Wallet()
 	addr := wallet.GetAddress().String()
 
