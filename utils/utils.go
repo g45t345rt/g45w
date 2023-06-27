@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -224,4 +225,14 @@ func HashSHA256(value string) string {
 	hash.Write([]byte(value))
 	hashSum := hash.Sum(nil)
 	return hex.EncodeToString(hashSum)
+}
+
+func FetchImage(url string) (image.Image, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	img, _, err := image.Decode(res.Body)
+	return img, err
 }

@@ -18,6 +18,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -92,7 +93,7 @@ func (p *PageSelectWallet) IsActive() bool {
 }
 
 func (p *PageSelectWallet) Enter() {
-	page_instance.header.SetTitle("Select Wallet")
+	page_instance.header.SetTitle(lang.SELECT_WALLET.String())
 	p.isActive = true
 
 	if !p.firstEnter {

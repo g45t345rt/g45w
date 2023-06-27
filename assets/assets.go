@@ -3,9 +3,9 @@ package assets
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"image"
-	"net/http"
 )
 
 //go:embed images/*
@@ -20,12 +20,20 @@ func GetImage(path string) (image.Image, error) {
 	return img, err
 }
 
-func FetchImage(url string) (image.Image, error) {
-	res, err := http.Get(url)
+//go:embed lang/*
+var lang embed.FS
+
+func GetLang(path string) (map[string]string, error) {
+	data, err := lang.ReadFile(fmt.Sprintf("lang/%s", path))
 	if err != nil {
 		return nil, err
 	}
 
-	img, _, err := image.Decode(res.Body)
-	return img, err
+	var values map[string]string
+	err = json.Unmarshal(data, &values)
+	if err != nil {
+		return nil, err
+	}
+
+	return values, err
 }
