@@ -1,15 +1,9 @@
 package page_wallet_select
 
 import (
-	"image"
-	"image/color"
-
-	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
@@ -114,22 +108,12 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	dr := image.Rectangle{Max: gtx.Constraints.Min}
-	paint.LinearGradientOp{
-		Stop1:  f32.Pt(0, float32(dr.Min.Y)),
-		Stop2:  f32.Pt(0, float32(dr.Max.Y)),
-		Color1: color.NRGBA{R: 0, G: 0, B: 0, A: 5},
-		Color2: color.NRGBA{R: 0, G: 0, B: 0, A: 50},
-	}.Add(gtx.Ops)
-	defer clip.Rect(dr).Push(gtx.Ops).Pop()
-	paint.PaintOp{}.Add(gtx.Ops)
-
-	if bottom_bar.Instance.ButtonWallet.Button.Clickable.Clicked() {
-		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
-	}
-
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			if bottom_bar.Instance.ButtonWallet.Button.Clickable.Clicked() {
+				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
+			}
+
 			{
 				state := p.animationEnter.Update(gtx)
 				if state.Active {
@@ -148,6 +132,8 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
 				}
 			}
+
+			defer prefabs.PaintLinearGradient(gtx).Pop()
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

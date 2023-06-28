@@ -31,7 +31,7 @@ type PageRegisterWallet struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	listStyle material.ListStyle
+	list *widget.List
 
 	txtThreadCount *components.TextField
 	buttonStart    *components.Button
@@ -46,8 +46,6 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
@@ -89,7 +87,7 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 	normalReg := registration.NewNormalReg()
 
 	return &PageRegisterWallet{
-		listStyle:      listStyle,
+		list:           list,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
@@ -205,7 +203,10 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 		},
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

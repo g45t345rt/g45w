@@ -4,6 +4,7 @@ import (
 	"log"
 	"sort"
 
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/widget/material"
 	"github.com/olebedev/emitter"
@@ -29,8 +30,9 @@ type Router struct {
 	Current interface{}
 	Event   *emitter.Emitter
 
-	drawOrder  []interface{}
-	keyLayouts []KeyLayout
+	drawOrder     []interface{}
+	keyLayouts    []KeyLayout
+	closeKeyboard bool
 }
 
 func NewRouter() *Router {
@@ -59,6 +61,7 @@ func (router *Router) SetCurrent(tag interface{}) {
 			router.Pages[router.Current].Leave()
 		}
 
+		router.closeKeyboard = true
 		router.Event.Emit(EVENT_CHANGE, tag)
 		router.Current = tag
 		router.Pages[router.Current].Enter()
@@ -73,6 +76,12 @@ func (router *Router) AddLayout(keyLayout KeyLayout) {
 }
 
 func (router *Router) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if router.closeKeyboard {
+		// mobile: force close keyboard on page change
+		key.SoftKeyboardOp{Show: false}.Add(gtx.Ops)
+		router.closeKeyboard = false
+	}
+
 	for _, tag := range router.drawOrder {
 		page := router.Pages[tag]
 		if page.IsActive() {

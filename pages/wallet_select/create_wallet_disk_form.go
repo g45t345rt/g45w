@@ -27,7 +27,7 @@ type PageCreateWalletDiskForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	listStyle material.ListStyle
+	list *widget.List
 
 	txtWalletName *components.TextField
 	txtPassword   *components.TextField
@@ -42,8 +42,6 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
@@ -70,7 +68,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 	})
 
 	return &PageCreateWalletDiskForm{
-		listStyle:      listStyle,
+		list:           list,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
@@ -154,7 +152,18 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		},
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	if p.txtPassword.Input.Clickable.Clicked() {
+		p.list.ScrollTo(1)
+	}
+
+	if p.txtWalletName.Input.Clickable.Clicked() {
+		p.list.ScrollTo(2)
+	}
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

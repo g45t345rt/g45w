@@ -49,7 +49,7 @@ type PageBalanceTokens struct {
 	buttonRegister *components.Button
 	buttonCopyAddr *components.Button
 
-	listStyle material.ListStyle
+	list *widget.List
 }
 
 var _ router.Page = &PageBalanceTokens{}
@@ -84,8 +84,6 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
 	buttonSettings := components.NewButton(components.ButtonStyle{
@@ -124,7 +122,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		firstEnter:     true,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
-		listStyle:      listStyle,
+		list:           list,
 		buttonSettings: buttonSettings,
 		buttonRegister: buttonRegister,
 		buttonCopyAddr: buttonCopyAddr,
@@ -275,7 +273,10 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
 	})
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return widgets[index](gtx)
 	})
 }

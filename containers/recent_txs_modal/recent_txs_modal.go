@@ -7,6 +7,7 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -18,15 +19,14 @@ import (
 )
 
 type RecentTxsModal struct {
-	modal     *components.Modal
-	listStyle material.ListStyle
+	modal *components.Modal
+	list  *widget.List
 }
 
 var Instance *RecentTxsModal
 
 func LoadInstance() {
 	w := app_instance.Window
-	th := app_instance.Theme
 	modal := components.NewModal(w, components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
@@ -41,12 +41,10 @@ func LoadInstance() {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	Instance = &RecentTxsModal{
-		modal:     modal,
-		listStyle: listStyle,
+		modal: modal,
+		list:  list,
 	}
 
 	app_instance.Router.AddLayout(router.KeyLayout{
@@ -60,32 +58,49 @@ func (r *RecentTxsModal) SetVisible(visible bool) {
 }
 
 func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
+	var txItems []TxItem
+	for i := 0; i < 10; i++ {
+		txItems = append(txItems, TxItem{
+			TxId:          "2fb45948c17337446ac54ec7644df5335d7a9b55454f4d286a210af937e34bbe",
+			Confirmations: 23,
+			Date:          time.Now(),
+			Status:        "Checking transaction...",
+		})
+	}
+
 	r.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
-		return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Inset{
+			Top: unit.Dp(15), Bottom: unit.Dp(15),
+			Left: unit.Dp(15),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(18), "Recent Transactions")
+					lbl := material.Label(th, unit.Sp(20), fmt.Sprintf("Recent Transactions (%d)", len(txItems)))
 					lbl.Font.Weight = font.Bold
 					return lbl.Layout(gtx)
 				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Max.Y = gtx.Dp(250)
 					openedWallet := wallet_manager.OpenedWallet
 					if openedWallet == nil {
-						lbl := material.Label(th, unit.Sp(14), "Wallet is not opened.")
+						lbl := material.Label(th, unit.Sp(16), "Wallet is not opened.")
 						return lbl.Layout(gtx)
 					} else {
-						txItems := []TxItem{
-							{
-								TxId:          "b0a555db9dcac8d7bb2d9ccc27ade33f81ed6e4a283c50e28d77eb208cfa7ff2",
-								Confirmations: 5,
-								Date:          time.Now(),
-								Status:        "Checking transaction...",
-							},
-						}
+						listStyle := material.List(th, r.list)
+						listStyle.AnchorStrategy = material.Overlay
 
-						return r.listStyle.Layout(gtx, len(txItems), func(gtx layout.Context, index int) layout.Dimensions {
-							return txItems[index].Layout(gtx, th)
+						return listStyle.Layout(gtx, len(txItems), func(gtx layout.Context, index int) layout.Dimensions {
+							bottom := 0
+							if index < len(txItems)-1 {
+								bottom = 10
+							}
+
+							return layout.Inset{
+								Bottom: unit.Dp(bottom), Right: unit.Dp(15),
+							}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+								return txItems[index].Layout(gtx, th)
+							})
 						})
 					}
 				}),
@@ -107,24 +122,26 @@ func (tx *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					txId := utils.ReduceTxId(tx.TxId)
-					lbl := material.Label(th, unit.Sp(14), txId)
+					lbl := material.Label(th, unit.Sp(16), txId)
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(14), tx.Status)
+					lbl := material.Label(th, unit.Sp(16), tx.Status)
 					return lbl.Layout(gtx)
 				}),
 			)
 		}),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					confirmations := fmt.Sprintf("%d confirmations", tx.Confirmations)
-					lbl := material.Label(th, unit.Sp(14), confirmations)
+					lbl := material.Label(th, unit.Sp(16), confirmations)
+					lbl.Alignment = text.End
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(14), tx.Date.Format("2006-01-02"))
+					lbl := material.Label(th, unit.Sp(16), tx.Date.Format("2006-01-02"))
+					lbl.Alignment = text.End
 					return lbl.Layout(gtx)
 				}),
 			)

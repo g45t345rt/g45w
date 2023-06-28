@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"gioui.org/app"
-	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -214,16 +213,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						SW:   gtx.Dp(0),
 					}.Op(gtx.Ops))
 
-					dr := image.Rectangle{Max: gtx.Constraints.Max}
-					paint.LinearGradientOp{
-						Stop1:  f32.Pt(0, float32(dr.Min.Y)),
-						Stop2:  f32.Pt(0, float32(dr.Max.Y)),
-						Color1: color.NRGBA{R: 0, G: 0, B: 0, A: 5},
-						Color2: color.NRGBA{R: 0, G: 0, B: 0, A: 50},
-					}.Add(gtx.Ops)
-					defer clip.Rect(dr).Push(gtx.Ops).Pop()
-					paint.PaintOp{}.Add(gtx.Ops)
-
 					return layout.Inset{
 						Left: unit.Dp(30), Right: unit.Dp(30),
 						Top: unit.Dp(30), Bottom: unit.Dp(20),
@@ -232,6 +221,8 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					})
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					defer prefabs.PaintLinearGradient(gtx).Pop()
+
 					return p.pageRouter.Layout(gtx, th)
 				}),
 			)

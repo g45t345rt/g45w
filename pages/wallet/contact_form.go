@@ -42,7 +42,7 @@ type PageContactForm struct {
 
 	contact *contact_manager.Contact
 
-	listStyle material.ListStyle
+	list *widget.List
 }
 
 var _ router.Page = &PageContactForm{}
@@ -60,8 +60,6 @@ func NewPageContactForm() *PageContactForm {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonCreate := components.NewButton(components.ButtonStyle{
@@ -119,7 +117,7 @@ func NewPageContactForm() *PageContactForm {
 		txtNote:       txtNote,
 		confirmDelete: confirmDelete,
 
-		listStyle: listStyle,
+		list: list,
 	}
 }
 
@@ -233,7 +231,22 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		})
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	if p.txtName.Input.Clickable.Clicked() {
+		p.list.ScrollTo(0)
+	}
+
+	if p.txtAddr.Input.Clickable.Clicked() {
+		p.list.ScrollTo(1)
+	}
+
+	if p.txtNote.Input.Clickable.Clicked() {
+		p.list.ScrollTo(2)
+	}
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

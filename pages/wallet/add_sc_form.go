@@ -36,7 +36,7 @@ type PageAddSCForm struct {
 	txtSCID       *components.TextField
 	tokenManager  *token_manager.TokenManager
 
-	listStyle material.ListStyle
+	list *widget.List
 }
 
 var _ router.Page = &PageAddSCForm{}
@@ -54,8 +54,6 @@ func NewPageAddSCForm() *PageAddSCForm {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	checkIcon, _ := widget.NewIcon(icons.ActionSearch)
 	buttonCheckSC := components.NewButton(components.ButtonStyle{
@@ -81,7 +79,7 @@ func NewPageAddSCForm() *PageAddSCForm {
 		buttonCheckSC: buttonCheckSC,
 		txtSCID:       txtSCID,
 
-		listStyle: listStyle,
+		list: list,
 	}
 }
 
@@ -141,7 +139,10 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		},
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

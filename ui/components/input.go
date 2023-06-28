@@ -21,7 +21,8 @@ type Input struct {
 	Border      widget.Border
 	Inset       layout.Inset
 
-	clickable *widget.Clickable
+	Clickable  widget.Clickable
+	focusClick widget.Clickable
 }
 
 func NewInput(th *material.Theme, hint string) *Input {
@@ -35,7 +36,6 @@ func NewInput(th *material.Theme, hint string) *Input {
 	return &Input{
 		Hint:        hint,
 		EditorStyle: editorStyle,
-		clickable:   new(widget.Clickable),
 		Border:      border,
 		Inset: layout.Inset{
 			Top: unit.Dp(15), Bottom: unit.Dp(15),
@@ -56,7 +56,6 @@ func NewPasswordInput(th *material.Theme, hint string) *Input {
 	return &Input{
 		Hint:        hint,
 		EditorStyle: editorStyle,
-		clickable:   new(widget.Clickable),
 		Border:      border,
 		Inset: layout.Inset{
 			Top: unit.Dp(15), Bottom: unit.Dp(15),
@@ -78,31 +77,36 @@ func (t *Input) Editor() *widget.Editor {
 }
 
 func (t *Input) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	for _, e := range t.EditorStyle.Editor.Events() {
+	editor := t.Editor()
+
+	for _, e := range editor.Events() {
 		e, ok := e.(widget.SubmitEvent)
 		if ok {
 			fmt.Println(e.Text)
 		}
 	}
 
-	if t.clickable.Clicked() {
-		t.EditorStyle.Editor.Focus() // able to click within Inset padding
+	gtx.Constraints.Min.Y = t.EditorMinY
+
+	if t.focusClick.Clicked() {
+		editor.Focus()
 	}
 
-	gtx.Constraints.Min.Y = t.EditorMinY
-	return t.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			m := op.Record(gtx.Ops)
-			dims := t.Inset.Layout(gtx, t.EditorStyle.Layout)
-			c := m.Stop()
+	return t.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return t.focusClick.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				macro := op.Record(gtx.Ops)
+				dims := t.Inset.Layout(gtx, t.EditorStyle.Layout)
+				call := macro.Stop()
 
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
-				image.Rectangle{Max: dims.Size},
-				int(t.Border.CornerRadius),
-			).Op(gtx.Ops))
+				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+					image.Rectangle{Max: dims.Size},
+					int(t.Border.CornerRadius),
+				).Op(gtx.Ops))
 
-			c.Add(gtx.Ops)
-			return dims
+				call.Add(gtx.Ops)
+				return dims
+			})
 		})
 	})
 }

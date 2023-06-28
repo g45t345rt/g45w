@@ -30,8 +30,7 @@ type PageReceiveForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	listStyle material.ListStyle
-
+	list      *widget.List
 	labelAddr material.EditorStyle
 	addrImage *components.Image
 }
@@ -51,8 +50,6 @@ func NewPageReceiveForm() *PageReceiveForm {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	editor := new(widget.Editor)
 	labelAddr := material.Editor(th, editor, "")
@@ -64,7 +61,7 @@ func NewPageReceiveForm() *PageReceiveForm {
 	return &PageReceiveForm{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
-		listStyle:      listStyle,
+		list:           list,
 		labelAddr:      labelAddr,
 	}
 }
@@ -138,7 +135,10 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		},
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

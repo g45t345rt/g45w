@@ -33,15 +33,13 @@ type PageContacts struct {
 
 	contactItems []*ContactListItem
 
-	listStyle        material.ListStyle
+	list             *widget.List
 	buttonAddContact *components.Button
 }
 
 var _ router.Page = &PageContacts{}
 
 func NewPageContacts() *PageContacts {
-	th := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),
 	))
@@ -52,8 +50,6 @@ func NewPageContacts() *PageContacts {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	addIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
 	buttonAddContact := components.NewButton(components.ButtonStyle{
@@ -65,7 +61,7 @@ func NewPageContacts() *PageContacts {
 	return &PageContacts{
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
-		listStyle:        listStyle,
+		list:             list,
 		buttonAddContact: buttonAddContact,
 	}
 }
@@ -138,7 +134,10 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
 	})
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return widgets[index](gtx)
 	})
 }

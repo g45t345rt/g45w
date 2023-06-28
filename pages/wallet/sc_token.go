@@ -6,7 +6,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/tanema/gween"
@@ -19,14 +18,12 @@ type PageSCToken struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	listStyle material.ListStyle
+	list *widget.List
 }
 
 var _ router.Page = &PageSCToken{}
 
 func NewPageSCToken() *PageSCToken {
-	th := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -37,14 +34,12 @@ func NewPageSCToken() *PageSCToken {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	return &PageSCToken{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		listStyle: listStyle,
+		list: list,
 	}
 }
 
@@ -85,7 +80,10 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 	widgets := []layout.Widget{}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

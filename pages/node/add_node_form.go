@@ -34,7 +34,7 @@ type PageAddNodeForm struct {
 	txtName       *components.TextField
 	submitting    bool
 
-	listStyle material.ListStyle
+	list *widget.List
 }
 
 var _ router.Page = &PageAddNodeForm{}
@@ -52,8 +52,6 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
@@ -81,7 +79,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 		txtName:       txtName,
 		txtEndpoint:   txtEndpoint,
 
-		listStyle: listStyle,
+		list: list,
 	}
 }
 
@@ -137,7 +135,18 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		},
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	if p.txtName.Input.Clickable.Clicked() {
+		p.list.ScrollTo(0)
+	}
+
+	if p.txtEndpoint.Input.Clickable.Clicked() {
+		p.list.ScrollTo(0)
+	}
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

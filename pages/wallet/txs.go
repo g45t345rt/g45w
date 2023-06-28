@@ -34,14 +34,12 @@ type PageTxs struct {
 
 	txItems []*TxListItem
 
-	listStyle material.ListStyle
+	list *widget.List
 }
 
 var _ router.Page = &PageTxs{}
 
 func NewPageTxs() *PageTxs {
-	th := app_instance.Theme
-
 	txItems := []*TxListItem{}
 
 	upIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
@@ -73,14 +71,12 @@ func NewPageTxs() *PageTxs {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	return &PageTxs{
 		txItems:        txItems,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
-		listStyle:      listStyle,
+		list:           list,
 	}
 }
 
@@ -131,7 +127,10 @@ func (p *PageTxs) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 		return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
 	})
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return widgets[index](gtx)
 	})
 }

@@ -35,7 +35,7 @@ type PageSettings struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	listStyle material.ListStyle
+	list *widget.List
 }
 
 var _ router.Page = &PageSettings{}
@@ -91,8 +91,6 @@ func NewPageSettings() *PageSettings {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	txtWalletName := components.NewTextField(th, "Name", "")
 
@@ -100,7 +98,7 @@ func NewPageSettings() *PageSettings {
 		buttonDeleteWallet:  buttonDeleteWallet,
 		animationEnter:      animationEnter,
 		animationLeave:      animationLeave,
-		listStyle:           listStyle,
+		list:                list,
 		modalWalletPassword: modalWalletPassword,
 		txtWalletName:       txtWalletName,
 		buttonSave:          buttonSave,
@@ -205,7 +203,10 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		},
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(30), Right: unit.Dp(30),

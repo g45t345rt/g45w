@@ -35,8 +35,8 @@ type PageSelectNode struct {
 	buttonAddNode           *components.Button
 	connecting              bool
 
-	nodeList  *NodeList
-	listStyle material.ListStyle
+	nodeList *NodeList
+	list     *widget.List
 }
 
 var _ router.Page = &PageSelectNode{}
@@ -53,8 +53,6 @@ func NewPageSelectNode() *PageSelectNode {
 	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
 
 	nodeList := NewNodeList(th, "You didn't add any remote nodes yet.")
 
@@ -81,7 +79,7 @@ func NewPageSelectNode() *PageSelectNode {
 	return &PageSelectNode{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
-		listStyle:      listStyle,
+		list:           list,
 
 		nodeList:                nodeList,
 		buttonSetIntegratedNode: buttonSetIntegratedNode,
@@ -200,7 +198,10 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 	}
 
-	return p.listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(0),
 			Left: unit.Dp(30), Right: unit.Dp(30),
