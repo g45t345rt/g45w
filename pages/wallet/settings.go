@@ -114,7 +114,6 @@ func (p *PageSettings) Enter() {
 	openedWallet := wallet_manager.OpenedWallet
 	walletName := openedWallet.Info.Name
 	p.txtWalletName.SetValue(walletName)
-	page_instance.header.SetTitle(lang.Translate("Settings"))
 	page_instance.header.Subtitle = nil
 
 	p.isActive = true
@@ -128,6 +127,8 @@ func (p *PageSettings) Leave() {
 }
 
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Settings")
+
 	if p.buttonDeleteWallet.Clickable.Clicked() {
 		p.modalWalletPassword.Modal.SetVisible(true)
 	}

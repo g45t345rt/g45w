@@ -84,7 +84,6 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 }
 
 func (p *PageCreateWalletHexSeedForm) Enter() {
-	page_instance.header.SetTitle(lang.Translate("Recover from Hex Seed"))
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -100,6 +99,8 @@ func (p *PageCreateWalletHexSeedForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Recover from Hex Seed")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

@@ -11,12 +11,13 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type RingSizeSelector struct {
+type LangSelector struct {
 	buttonSelect *components.Button
 	selectModal  *SelectModal
 
@@ -24,30 +25,29 @@ type RingSizeSelector struct {
 	Value   string
 }
 
-func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
-	tuneIcon, _ := widget.NewIcon(icons.ActionTrackChanges)
+func NewLangSelector(defaultLangKey string) *LangSelector {
+	langIcon, _ := widget.NewIcon(icons.ActionLanguage)
 	buttonSelect := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(16),
 		Inset:           layout.UniformInset(unit.Dp(10)),
-		Icon:            tuneIcon,
+		Icon:            langIcon,
 		IconGap:         unit.Dp(10),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
 
-	sizes := []string{"2", "4", "8", "16", "32", "64", "128", "256"}
 	items := []*SelectListItem{}
-
 	th := app_instance.Theme
 	w := app_instance.Window
 
-	for _, size := range sizes {
-		items = append(items, NewSelectListItem(size, func(gtx layout.Context, index int) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(20), sizes[index])
+	languages := lang.SupportedLanguages
+	for _, langKey := range languages {
+		items = append(items, NewSelectListItem(langKey, func(gtx layout.Context, index int) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(20), lang.Translate(languages[index]))
 			return lbl.Layout(gtx)
 		}))
 	}
@@ -60,24 +60,25 @@ func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 		},
 	})
 
-	r := &RingSizeSelector{
+	defaultLanguage := lang.Translate(defaultLangKey)
+	r := &LangSelector{
 		buttonSelect: buttonSelect,
 		selectModal:  selectModal,
-		Value:        defaultSize,
+		Value:        defaultLanguage,
 	}
 
-	r.setButtonText(defaultSize)
+	r.setButtonText(defaultLanguage)
 	return r
 }
-func (r *RingSizeSelector) setButtonText(value string) {
-	r.buttonSelect.Style.Text = fmt.Sprintf("Ring size: %s", value)
+func (r *LangSelector) setButtonText(value string) {
+	r.buttonSelect.Style.Text = fmt.Sprintf("Language: %s", value)
 }
 
-func (r *RingSizeSelector) Changed() bool {
+func (r *LangSelector) Changed() bool {
 	return r.changed
 }
 
-func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	r.changed = false
 
 	if r.buttonSelect.Clickable.Clicked() {

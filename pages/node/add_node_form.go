@@ -90,7 +90,6 @@ func (p *PageAddNodeForm) IsActive() bool {
 
 func (p *PageAddNodeForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Add Node"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
@@ -101,6 +100,8 @@ func (p *PageAddNodeForm) Leave() {
 }
 
 func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Add Node")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

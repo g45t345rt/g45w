@@ -146,7 +146,6 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 }
 
 func (p *PageCreateWalletFastRegForm) Enter() {
-	page_instance.header.SetTitle(lang.Translate("Fast Registration"))
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -163,6 +162,8 @@ func (p *PageCreateWalletFastRegForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Fast Registration")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

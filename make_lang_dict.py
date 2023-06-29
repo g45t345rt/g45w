@@ -20,8 +20,11 @@ def main():
                         dict_lang[match] = match
                     print(len(matches), "keys")
 
+    sorted_keys = sorted(dict_lang.keys())
+    sorted_lang = {key: dict_lang[key] for key in sorted_keys}
+
     with open("assets/lang/gen_template.json", "w") as file:
-        json.dump(dict_lang, file, indent=2)
+        json.dump(sorted_lang, file, indent=2)
 
 
 if __name__ == "__main__":

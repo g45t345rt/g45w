@@ -124,7 +124,6 @@ func (p *PageEditNodeForm) IsActive() bool {
 
 func (p *PageEditNodeForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Edit Node"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
@@ -138,6 +137,8 @@ func (p *PageEditNodeForm) Leave() {
 }
 
 func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Edit Node")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

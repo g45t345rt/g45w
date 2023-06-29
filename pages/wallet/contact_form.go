@@ -129,10 +129,7 @@ func (p *PageContactForm) IsActive() bool {
 func (p *PageContactForm) Enter() {
 	p.isActive = true
 
-	if p.contact == nil {
-		page_instance.header.SetTitle(lang.Translate("New Contact"))
-	} else {
-		page_instance.header.SetTitle(lang.Translate("Edit Contact"))
+	if p.contact != nil {
 		p.txtName.SetValue(p.contact.Name)
 		p.txtAddr.SetValue(p.contact.Addr)
 		p.txtNote.SetValue(p.contact.Note)
@@ -152,6 +149,12 @@ func (p *PageContactForm) Leave() {
 }
 
 func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if p.contact == nil {
+		page_instance.header.Title = lang.Translate("New Contact")
+	} else {
+		page_instance.header.Title = lang.Translate("Edit Contact")
+	}
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

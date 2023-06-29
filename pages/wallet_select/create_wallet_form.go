@@ -87,7 +87,6 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 }
 
 func (p *PageCreateWalletForm) Enter() {
-	page_instance.header.SetTitle(lang.Translate("Create New Wallet"))
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -103,6 +102,8 @@ func (p *PageCreateWalletForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Create New Wallet")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

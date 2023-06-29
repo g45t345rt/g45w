@@ -95,7 +95,6 @@ func (p *PageSelectNode) IsActive() bool {
 func (p *PageSelectNode) Enter() {
 	p.isActive = true
 
-	page_instance.header.SetTitle(lang.Translate("Select Node"))
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
 
@@ -123,6 +122,8 @@ func (p *PageSelectNode) Load() {
 }
 
 func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Select Node")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

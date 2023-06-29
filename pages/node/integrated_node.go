@@ -53,7 +53,6 @@ func (p *PageIntegratedNode) IsActive() bool {
 func (p *PageIntegratedNode) Enter() {
 	p.isActive = true
 
-	page_instance.header.SetTitle(lang.Translate("Integrated Node"))
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
 }
@@ -64,6 +63,8 @@ func (p *PageIntegratedNode) Leave() {
 }
 
 func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Integrated Node")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

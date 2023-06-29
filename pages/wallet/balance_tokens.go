@@ -150,7 +150,7 @@ func (p *PageBalanceTokens) Enter() {
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
 	openedWallet := wallet_manager.OpenedWallet
-	page_instance.header.SetTitle(fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name))
+	page_instance.header.Title = fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name)
 
 	th := app_instance.Theme
 	page_instance.header.ButtonRight = nil

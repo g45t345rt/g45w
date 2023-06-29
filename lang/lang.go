@@ -7,11 +7,16 @@ import (
 	"github.com/g45t345rt/g45w/settings"
 )
 
-var languages = []string{"fr", "es"}
+var SupportedLanguages = []string{"en", "fr", "es"}
+
 var langValues = make(map[string]map[string]string)
 
 func Load() error {
-	for _, lang := range languages {
+	for _, lang := range SupportedLanguages {
+		if lang == "en" {
+			continue
+		}
+
 		values, err := assets.GetLang(fmt.Sprintf("%s.json", lang))
 		if err != nil {
 			return err

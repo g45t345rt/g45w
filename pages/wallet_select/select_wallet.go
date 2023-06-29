@@ -93,7 +93,6 @@ func (p *PageSelectWallet) IsActive() bool {
 }
 
 func (p *PageSelectWallet) Enter() {
-	page_instance.header.SetTitle(lang.Translate("Select wallet"))
 	p.isActive = true
 
 	if !p.firstEnter {
@@ -129,6 +128,8 @@ func (p *PageSelectWallet) Load() {
 }
 
 func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	page_instance.header.Title = lang.Translate("Select wallet")
+
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -257,11 +258,11 @@ func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionMod
 	seedIcon, _ := widget.NewIcon(icons.EditorShortText)
 
 	items := []*CreateWalletListItem{
-		NewCreateWalletListItem("Fast registration", fastIcon, PAGE_CREATE_WALLET_FASTREG_FORM),
-		NewCreateWalletListItem("Create new wallet", newIcon, PAGE_CREATE_WALLET_FORM),
-		NewCreateWalletListItem("Recover from Disk", diskIcon, PAGE_CREATE_WALLET_DISK_FORM),
-		NewCreateWalletListItem("Recover from Seed", seedIcon, PAGE_CREATE_WALLET_SEED_FORM),
-		NewCreateWalletListItem("Recover from Hex Seed", seedIcon, PAGE_CREATE_WALLET_HEXSEED_FORM),
+		NewCreateWalletListItem("Fast registration", fastIcon, PAGE_CREATE_WALLET_FASTREG_FORM),     //@lang.Translate("Fast registration")
+		NewCreateWalletListItem("Create new wallet", newIcon, PAGE_CREATE_WALLET_FORM),              //@lang.Translate("Create new wallet")
+		NewCreateWalletListItem("Recover from Disk", diskIcon, PAGE_CREATE_WALLET_DISK_FORM),        //@lang.Translate("Recover from Disk")
+		NewCreateWalletListItem("Recover from Seed", seedIcon, PAGE_CREATE_WALLET_SEED_FORM),        //@lang.Translate("Recover from Seed")
+		NewCreateWalletListItem("Recover from Hex Seed", seedIcon, PAGE_CREATE_WALLET_HEXSEED_FORM), //@lang.Translate("Recover from Hex Seed")
 	}
 
 	return &CreateWalletSelectionModal{
