@@ -95,7 +95,6 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 
 	buttonRegister := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("REGISTER WALLET"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -150,7 +149,8 @@ func (p *PageBalanceTokens) Enter() {
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
 	openedWallet := wallet_manager.OpenedWallet
-	page_instance.header.Title = fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name)
+	title := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name)
+	page_instance.header.SetTitle(title)
 
 	th := app_instance.Theme
 	page_instance.header.ButtonRight = nil
@@ -220,13 +220,13 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		isRegistered := wallet.IsRegistered()
 
 		if !isRegistered {
-			p.alertBox.SetText("This wallet is not registered on the blockchain.")
+			p.alertBox.Text = lang.Translate("This wallet is not registered on the blockchain.")
 			p.alertBox.SetVisible(true)
 		} else {
 			p.alertBox.SetVisible(false)
 		}
 	} else {
-		p.alertBox.SetText("Wallet is not connected to a node.")
+		p.alertBox.Text = lang.Translate("Wallet is not connected to a node.")
 		p.alertBox.SetVisible(true)
 	}
 
@@ -247,6 +247,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 						Top: unit.Dp(0), Bottom: unit.Dp(20),
 						Left: unit.Dp(30), Right: unit.Dp(30),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
 						return p.buttonRegister.Layout(gtx, th)
 					})
 				}
@@ -283,9 +284,10 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 }
 
 type AlertBox struct {
+	Text string
+
 	iconWarning *widget.Icon
 	visible     bool
-	text        string
 }
 
 func NewAlertBox() *AlertBox {
@@ -293,10 +295,6 @@ func NewAlertBox() *AlertBox {
 	return &AlertBox{
 		iconWarning: iconWarning,
 	}
-}
-
-func (n *AlertBox) SetText(value string) {
-	n.text = value
 }
 
 func (n *AlertBox) SetVisible(visible bool) {
@@ -322,7 +320,7 @@ func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(14), n.text)
+						label := material.Label(th, unit.Sp(14), n.Text)
 						label.Color = color.NRGBA{A: 200}
 						return label.Layout(gtx)
 					}),
@@ -345,7 +343,6 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 	sendIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
 	buttonSend := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("SEND"),
 		Icon:            sendIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -360,7 +357,6 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 	receiveIcon, _ := widget.NewIcon(icons.NavigationArrowDownward)
 	buttonReceive := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("RECEIVE"),
 		Icon:            receiveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -443,12 +439,13 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Max.Y = gtx.Dp(40)
+						d.buttonSend.Text = lang.Translate("SEND")
 						return d.buttonSend.Layout(gtx, th)
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Max.Y = gtx.Dp(40)
-
+						d.buttonReceive.Text = lang.Translate("RECEIVE")
 						return d.buttonReceive.Layout(gtx, th)
 					}),
 				)

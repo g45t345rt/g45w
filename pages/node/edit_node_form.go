@@ -64,7 +64,6 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonEditNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("SAVE"),
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -82,7 +81,6 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("DELETE NODE"),
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -95,10 +93,13 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonDeleteNode.Style.Font.Weight = font.Bold
 
 	w := app_instance.Window
-	confirmDelete := components.NewConfirm(w, lang.Translate("Are you sure?"), th, layout.Center)
+	confirmDelete := components.NewConfirm(w, th, layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
+			confirmDelete.Prompt = lang.Translate("Are you sure?")
+			confirmDelete.NoText = lang.Translate("NO")
+			confirmDelete.YesText = lang.Translate("YES")
 			confirmDelete.Layout(gtx, th)
 		},
 	})
@@ -124,6 +125,7 @@ func (p *PageEditNodeForm) IsActive() bool {
 
 func (p *PageEditNodeForm) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Edit Node"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
@@ -137,8 +139,6 @@ func (p *PageEditNodeForm) Leave() {
 }
 
 func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Edit Node")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -186,6 +186,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 			return p.txtEndpoint.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonEditNode.Text = lang.Translate("SAVE")
 			return p.buttonEditNode.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -197,6 +198,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 			return layout.Dimensions{Size: max}
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonDeleteNode.Text = lang.Translate("DELETE NODE")
 			return p.buttonDeleteNode.Layout(gtx, th)
 		},
 	}

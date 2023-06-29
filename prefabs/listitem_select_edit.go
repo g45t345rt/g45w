@@ -28,7 +28,6 @@ type ListItemSelectEdit struct {
 func NewListItemSelectEdit() *ListItemSelectEdit {
 	buttonSelect := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("SELECT"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -40,7 +39,6 @@ func NewListItemSelectEdit() *ListItemSelectEdit {
 
 	buttonEdit := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("EDIT"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -117,10 +115,12 @@ func (n *ListItemSelectEdit) Layout(gtx layout.Context, th *material.Theme) layo
 	return layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				n.ButtonSelect.Text = lang.Translate("SELECT")
 				return n.ButtonSelect.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				n.ButtonEdit.Text = lang.Translate("EDIT")
 				return n.ButtonEdit.Layout(gtx, th)
 			}),
 		)

@@ -1,34 +1,26 @@
 package page_node
 
 import (
-	"image/color"
-
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/text"
 	"gioui.org/unit"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
-	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
-	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
-	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type Page struct {
 	isActive   bool
 	firstEnter bool
 
-	buttonSetNode *components.Button
-	pageRouter    *router.Router
+	pageRouter *router.Router
 
 	pageSelectNode   *PageSelectNode
 	pageAddNodeForm  *PageAddNodeForm
@@ -61,21 +53,6 @@ func New() *Page {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
-	setIcon, _ := widget.NewIcon(icons.ActionSettings)
-	buttonSetNode := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("SELECT NODE"),
-		Icon:            setIcon,
-		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		BackgroundColor: color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-	})
-	buttonSetNode.Label.Alignment = text.Middle
-	buttonSetNode.Style.Font.Weight = font.Bold
-
 	pageRouter := router.NewRouter()
 	pageSelectNode := NewPageSelectNode()
 	pageRouter.Add(PAGE_SELECT_NODE, pageSelectNode)
@@ -98,7 +75,6 @@ func New() *Page {
 	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
 
 	page := &Page{
-		buttonSetNode:    buttonSetNode,
 		firstEnter:       true,
 		pageRouter:       pageRouter,
 		pageSelectNode:   pageSelectNode,

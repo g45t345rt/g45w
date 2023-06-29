@@ -59,7 +59,6 @@ func NewPageSelectNode() *PageSelectNode {
 
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("Use Integrated Node"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(16),
@@ -94,7 +93,7 @@ func (p *PageSelectNode) IsActive() bool {
 
 func (p *PageSelectNode) Enter() {
 	p.isActive = true
-
+	page_instance.header.SetTitle(lang.Translate("Select Node"))
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
 
@@ -122,8 +121,6 @@ func (p *PageSelectNode) Load() {
 }
 
 func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Select Node")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -145,6 +142,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonSetIntegratedNode.Text = lang.Translate("Use Integrated Node")
 			return p.buttonSetIntegratedNode.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {

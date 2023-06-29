@@ -46,7 +46,6 @@ func NewPageSettings() *PageSettings {
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteWallet := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("DELETE WALLET"),
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -61,7 +60,6 @@ func NewPageSettings() *PageSettings {
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonSave := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("SAVE CHANGES"),
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -78,7 +76,7 @@ func NewPageSettings() *PageSettings {
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			modalWalletPassword.Layout(gtx)
+			modalWalletPassword.Layout(gtx, th)
 		},
 	})
 
@@ -113,6 +111,7 @@ func (p *PageSettings) IsActive() bool {
 func (p *PageSettings) Enter() {
 	openedWallet := wallet_manager.OpenedWallet
 	walletName := openedWallet.Info.Name
+	page_instance.header.SetTitle(lang.Translate("Settings"))
 	p.txtWalletName.SetValue(walletName)
 	page_instance.header.Subtitle = nil
 
@@ -127,8 +126,6 @@ func (p *PageSettings) Leave() {
 }
 
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Settings")
-
 	if p.buttonDeleteWallet.Clickable.Clicked() {
 		p.modalWalletPassword.Modal.SetVisible(true)
 	}
@@ -187,6 +184,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.txtWalletName.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonSave.Text = lang.Translate("SAVE CHANGES")
 			return p.buttonSave.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -198,6 +196,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return layout.Dimensions{Size: gtx.Constraints.Max}
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonDeleteWallet.Text = lang.Translate("DELETE WALLET")
 			return p.buttonDeleteWallet.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {

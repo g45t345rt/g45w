@@ -14,7 +14,6 @@ import (
 )
 
 type Header struct {
-	Title       string
 	LabelTitle  material.LabelStyle
 	Subtitle    layout.Widget
 	ButtonRight *components.Button
@@ -47,6 +46,10 @@ func NewHeader(labelTitle material.LabelStyle, r *router.Router) *Header {
 	})
 
 	return header
+}
+
+func (h *Header) SetTitle(title string) {
+	h.LabelTitle.Text = title
 }
 
 func (h *Header) AddHistory(tag interface{}) {
@@ -90,7 +93,6 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimension
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					h.LabelTitle.Text = h.Title
 					return h.LabelTitle.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

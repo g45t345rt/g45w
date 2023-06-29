@@ -62,7 +62,6 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("RECOVER WALLET"),
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -87,6 +86,7 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 
 func (p *PageCreateWalletSeedForm) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Recover from Seed"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
@@ -101,8 +101,6 @@ func (p *PageCreateWalletSeedForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Recover from Seed")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -148,6 +146,7 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 			return p.txtConfirmPassword.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonCreate.Text = lang.Translate("RECOVER WALLET")
 			return p.buttonCreate.Layout(gtx, th)
 		},
 	}

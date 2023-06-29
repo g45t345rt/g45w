@@ -32,7 +32,6 @@ type ButtonStyle struct {
 	TextColor            color.NRGBA
 	BackgroundColor      color.NRGBA
 	Rounded              Rounded
-	Text                 string
 	TextSize             unit.Sp
 	Inset                layout.Inset
 	Font                 font.Font
@@ -44,6 +43,7 @@ type ButtonStyle struct {
 }
 
 type Button struct {
+	Text      string
 	Style     ButtonStyle
 	Clickable *widget.Clickable
 	Label     *widget.Label
@@ -191,7 +191,7 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 
 			c := op.Record(gtx.Ops)
 			dims := style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				if style.Icon != nil && btn.Style.Text == "" {
+				if style.Icon != nil && btn.Text == "" {
 					return style.Icon.Layout(gtx, textColor)
 				}
 
@@ -207,7 +207,7 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						paint.ColorOp{Color: textColor}.Add(gtx.Ops)
 						return btn.Label.Layout(gtx, th.Shaper, style.Font,
-							style.TextSize, style.Text, op.CallOp{})
+							style.TextSize, btn.Text, op.CallOp{})
 					}),
 				)
 			})

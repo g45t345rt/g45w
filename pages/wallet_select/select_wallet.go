@@ -68,10 +68,25 @@ func NewPageSelectWallet() *PageSelectWallet {
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			modalWalletPassword.Layout(gtx)
+			modalWalletPassword.Layout(gtx, th)
 			modalCreateWalletSelection.Layout(gtx, th)
 		},
 	})
+
+	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
+
+	buttonWalletCreate := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            addIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+	buttonWalletCreate.Label.Alignment = text.Middle
+	buttonWalletCreate.Style.Font.Weight = font.Bold
 
 	return &PageSelectWallet{
 		firstEnter: true,
@@ -80,7 +95,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonWalletCreate: NewWalletCreateButton(),
+		buttonWalletCreate: buttonWalletCreate,
 		walletList:         walletList,
 
 		modalWalletPassword:        modalWalletPassword,
@@ -94,6 +109,7 @@ func (p *PageSelectWallet) IsActive() bool {
 
 func (p *PageSelectWallet) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Select wallet"))
 
 	if !p.firstEnter {
 		p.animationLeave.Reset()
@@ -128,8 +144,6 @@ func (p *PageSelectWallet) Load() {
 }
 
 func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Select wallet")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -177,6 +191,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 							p.modalCreateWalletSelection.modal.SetVisible(true)
 						}
 
+						p.buttonWalletCreate.Text = lang.Translate("NEW WALLET")
 						return p.buttonWalletCreate.Layout(gtx, th)
 					}),
 				)
@@ -205,27 +220,6 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	return layout.Dimensions{Size: gtx.Constraints.Max}
-}
-
-func NewWalletCreateButton() *components.Button {
-	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
-
-	var buttonStyle = components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("NEW WALLET"),
-		Icon:            addIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-	}
-
-	btn := components.NewButton(buttonStyle)
-	btn.Label.Alignment = text.Middle
-	btn.Style.Font.Weight = font.Bold
-	return btn
 }
 
 type CreateWalletSelectionModal struct {
@@ -315,11 +309,10 @@ func (c *CreateWalletListItem) Layout(gtx layout.Context, th *material.Theme) la
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(20), c.text)
-					return label.Layout(gtx)
+					lbl := material.Label(th, unit.Sp(20), lang.Translate(c.text))
+					return lbl.Layout(gtx)
 				}),
 			)
-
 		})
 	})
 
@@ -378,26 +371,14 @@ func (l *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 
 type WalletListItem struct {
 	wallet    *wallet_manager.WalletInfo
-	lblName   material.LabelStyle
-	lblAddr   material.LabelStyle
 	Clickable *widget.Clickable
-
-	rounded unit.Dp
+	rounded   unit.Dp
 }
 
 func NewWalletListItem(th *material.Theme, wallet *wallet_manager.WalletInfo) WalletListItem {
-	name := fmt.Sprintf("Wallet [%s]", wallet.Name)
-	addr := utils.ReduceAddr(wallet.Addr)
-
-	lblName := material.Label(th, unit.Sp(18), name)
-	lblName.Font.Weight = font.Bold
-	lblAddr := material.Label(th, unit.Sp(15), addr)
-	lblAddr.Color.A = 200
 
 	return WalletListItem{
 		wallet:    wallet,
-		lblName:   lblName,
-		lblAddr:   lblAddr,
 		Clickable: &widget.Clickable{},
 		rounded:   unit.Dp(12),
 	}
@@ -409,8 +390,18 @@ func (item *WalletListItem) Layout(gtx layout.Context, th *material.Theme) layou
 			return layout.Flex{Alignment: layout.Start}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-						layout.Rigid(item.lblName.Layout),
-						layout.Rigid(item.lblAddr.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							name := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), item.wallet.Name)
+							lbl := material.Label(th, unit.Sp(18), name)
+							lbl.Font.Weight = font.Bold
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							addr := utils.ReduceAddr(item.wallet.Addr)
+							lbl := material.Label(th, unit.Sp(15), addr)
+							lbl.Color.A = 200
+							return lbl.Layout(gtx)
+						}),
 					)
 				}),
 			)

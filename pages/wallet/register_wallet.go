@@ -62,7 +62,6 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonStart := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("START"),
 		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{A: 255},
@@ -75,7 +74,6 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("STOP"),
 		Icon:            stopIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -197,9 +195,11 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			if p.normalReg.Running {
+				p.buttonStop.Text = lang.Translate("STOP")
 				return p.buttonStop.Layout(gtx, th)
 			}
 
+			p.buttonStart.Text = lang.Translate("START")
 			return p.buttonStart.Layout(gtx, th)
 		},
 	}

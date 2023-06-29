@@ -19,7 +19,7 @@ import (
 )
 
 type PasswordModal struct {
-	editorStyle        material.EditorStyle
+	editor             *widget.Editor
 	animationWrongPass *animation.Animation
 	iconLock           *widget.Icon
 
@@ -29,13 +29,10 @@ type PasswordModal struct {
 }
 
 func NewPasswordModal() *PasswordModal {
-	th := app_instance.Theme
 	editor := new(widget.Editor)
 	editor.SingleLine = true
 	editor.Submit = true
 	editor.Mask = rune(42)
-	editorStyle := material.Editor(th, editor, lang.Translate("Enter password"))
-	editorStyle.TextSize = unit.Sp(20)
 
 	animationWrongPass := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(0, 1, .05, ease.Linear),
@@ -58,7 +55,7 @@ func NewPasswordModal() *PasswordModal {
 	})
 
 	return &PasswordModal{
-		editorStyle:        editorStyle,
+		editor:             editor,
 		Modal:              modal,
 		animationWrongPass: animationWrongPass,
 		iconLock:           iconLock,
@@ -78,19 +75,19 @@ func (w *PasswordModal) StartWrongPassAnimation() {
 	w.animationWrongPass.Start()
 }
 
-func (w *PasswordModal) Layout(gtx layout.Context) layout.Dimensions {
-	for _, e := range w.editorStyle.Editor.Events() {
+func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	for _, e := range w.editor.Events() {
 		e, ok := e.(widget.SubmitEvent)
 		if ok {
 			//w.animationWrongPass.Start()
-			w.editorStyle.Editor.SetText("")
+			w.editor.SetText("")
 			w.submitText = e.Text
 			w.submitted = true
 		}
 	}
 
 	if w.Modal.Visible() {
-		w.editorStyle.Editor.Focus()
+		w.editor.Focus()
 	}
 
 	return w.Modal.Layout(gtx,
@@ -113,7 +110,9 @@ func (w *PasswordModal) Layout(gtx layout.Context) layout.Dimensions {
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(3, func(gtx layout.Context) layout.Dimensions {
-						return w.editorStyle.Layout(gtx)
+						editor := material.Editor(th, w.editor, lang.Translate("Enter password"))
+						editor.TextSize = unit.Sp(20)
+						return editor.Layout(gtx)
 					}),
 				)
 			})

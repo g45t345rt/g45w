@@ -9,13 +9,15 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/lang"
 )
 
 type Confirm struct {
-	Prompt string
+	Prompt  string
+	YesText string
+	NoText  string
 
-	modal     *Modal
+	Modal *Modal
+
 	buttonYes *Button
 	buttonNo  *Button
 
@@ -23,7 +25,7 @@ type Confirm struct {
 	clickedNo  bool
 }
 
-func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layout.Direction) *Confirm {
+func NewConfirm(w *app.Window, th *material.Theme, direction layout.Direction) *Confirm {
 	modal := NewModal(w, ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
@@ -37,7 +39,6 @@ func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layo
 
 	buttonYes := NewButton(ButtonStyle{
 		Rounded:         UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("YES"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -49,7 +50,6 @@ func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layo
 
 	buttonNo := NewButton(ButtonStyle{
 		Rounded:         UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("NO"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -60,8 +60,7 @@ func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layo
 	buttonNo.Style.Font.Weight = font.Bold
 
 	return &Confirm{
-		Prompt:     prompt,
-		modal:      modal,
+		Modal:      modal,
 		buttonYes:  buttonYes,
 		buttonNo:   buttonNo,
 		clickedYes: false,
@@ -78,7 +77,7 @@ func (c *Confirm) ClickedNo() bool {
 }
 
 func (c *Confirm) SetVisible(visible bool) {
-	c.modal.SetVisible(visible)
+	c.Modal.SetVisible(visible)
 }
 
 func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -90,7 +89,7 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 	}
 
 	var lblSize layout.Dimensions
-	return c.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+	return c.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -103,9 +102,11 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 					gtx.Constraints.Min.X = lblSize.Size.X
 					return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							c.buttonNo.Text = c.NoText
 							return c.buttonNo.Layout(gtx, th)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							c.buttonYes.Text = c.YesText
 							return c.buttonYes.Layout(gtx, th)
 						}),
 					)

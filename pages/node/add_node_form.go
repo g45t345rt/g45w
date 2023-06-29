@@ -57,7 +57,6 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("ADD NODE"),
 		Icon:            addIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -90,6 +89,7 @@ func (p *PageAddNodeForm) IsActive() bool {
 
 func (p *PageAddNodeForm) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Add Node"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
@@ -100,8 +100,6 @@ func (p *PageAddNodeForm) Leave() {
 }
 
 func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Add Node")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -133,6 +131,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return p.txtEndpoint.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonAddNode.Text = lang.Translate("ADD NODE")
 			return p.buttonAddNode.Layout(gtx, th)
 		},
 	}

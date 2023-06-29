@@ -66,11 +66,7 @@ func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 		Value:        defaultSize,
 	}
 
-	r.setButtonText(defaultSize)
 	return r
-}
-func (r *RingSizeSelector) setButtonText(value string) {
-	r.buttonSelect.Style.Text = fmt.Sprintf("Ring size: %s", value)
 }
 
 func (r *RingSizeSelector) Changed() bool {
@@ -87,10 +83,10 @@ func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout
 	selected := r.selectModal.Selected()
 	if selected {
 		r.Value = r.selectModal.SelectedKey
-		r.setButtonText(r.Value)
 		r.changed = true
 		r.selectModal.modal.SetVisible(false)
 	}
 
+	r.buttonSelect.Text = fmt.Sprintf("Ring size: %s", r.Value)
 	return r.buttonSelect.Layout(gtx, th)
 }

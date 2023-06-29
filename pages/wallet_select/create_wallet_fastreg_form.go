@@ -90,7 +90,6 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonStart := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("START"),
 		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{A: 255},
@@ -103,7 +102,6 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("STOP"),
 		Icon:            stopIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -147,6 +145,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 
 func (p *PageCreateWalletFastRegForm) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Fast Registration"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
@@ -162,8 +161,6 @@ func (p *PageCreateWalletFastRegForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Fast Registration")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -245,9 +242,11 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			if p.fastReg.Running {
+				p.buttonStop.Text = lang.Translate("STOP")
 				return p.buttonStop.Layout(gtx, th)
 			}
 
+			p.buttonStart.Text = lang.Translate("START")
 			return p.buttonStart.Layout(gtx, th)
 		},
 	}

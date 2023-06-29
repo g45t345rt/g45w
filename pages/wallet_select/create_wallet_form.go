@@ -64,7 +64,6 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("CREATE WALLET"),
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -88,6 +87,7 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 
 func (p *PageCreateWalletForm) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Create New Wallet"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
@@ -102,8 +102,6 @@ func (p *PageCreateWalletForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Create New Wallet")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -152,6 +150,7 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 			return p.txtConfirmPassword.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonCreate.Text = lang.Translate("CREATE WALLET")
 			return p.buttonCreate.Layout(gtx, th)
 		},
 	}

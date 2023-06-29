@@ -56,7 +56,6 @@ func NewPageSendForm() *PageSendForm {
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("BUILD TRANSACTION"),
 		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -93,7 +92,6 @@ func NewPageSendForm() *PageSendForm {
 
 	buttonOptions := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("OPTIONS"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -287,6 +285,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			})
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonBuildTx.Text = lang.Translate("BUILD TRANSACTION")
 			return p.buttonBuildTx.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {

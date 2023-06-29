@@ -73,6 +73,7 @@ func (p *PageContacts) IsActive() bool {
 
 func (p *PageContacts) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Contacts"))
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = p.buttonAddContact
 
@@ -92,8 +93,6 @@ func (p *PageContacts) Leave() {
 }
 
 func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Contacts")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

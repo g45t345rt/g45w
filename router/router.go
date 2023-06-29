@@ -53,9 +53,9 @@ func (router *Router) Add(tag interface{}, page Page) {
 func (router *Router) SetCurrent(tag interface{}) {
 	_, ok := router.Pages[tag]
 	if ok {
-		if router.Current == tag {
-			return
-		}
+		//if router.Current == tag {
+		//return
+		//}
 
 		if router.Current != nil {
 			router.Pages[router.Current].Leave()

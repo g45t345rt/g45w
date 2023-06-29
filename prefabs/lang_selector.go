@@ -67,11 +67,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 		Value:        defaultLanguage,
 	}
 
-	r.setButtonText(defaultLanguage)
 	return r
-}
-func (r *LangSelector) setButtonText(value string) {
-	r.buttonSelect.Style.Text = fmt.Sprintf("Language: %s", value)
 }
 
 func (r *LangSelector) Changed() bool {
@@ -88,10 +84,10 @@ func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	selected := r.selectModal.Selected()
 	if selected {
 		r.Value = r.selectModal.SelectedKey
-		r.setButtonText(r.Value)
 		r.changed = true
 		r.selectModal.modal.SetVisible(false)
 	}
 
+	r.buttonSelect.Text = fmt.Sprintf("Language: %s", r.Value)
 	return r.buttonSelect.Layout(gtx, th)
 }

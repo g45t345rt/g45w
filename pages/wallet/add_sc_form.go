@@ -59,7 +59,6 @@ func NewPageAddSCForm() *PageAddSCForm {
 	checkIcon, _ := widget.NewIcon(icons.ActionSearch)
 	buttonCheckSC := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("CHECK SC"),
 		Icon:            checkIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -90,6 +89,7 @@ func (p *PageAddSCForm) IsActive() bool {
 
 func (p *PageAddSCForm) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Add Smart Contract"))
 	page_instance.header.Subtitle = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -103,8 +103,6 @@ func (p *PageAddSCForm) Leave() {
 }
 
 func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Add Smart Contract")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -137,6 +135,7 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			return p.txtSCID.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonCheckSC.Text = lang.Translate("CHECK SC")
 			return p.buttonCheckSC.Layout(gtx, th)
 		},
 	}

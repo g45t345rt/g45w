@@ -59,6 +59,7 @@ func (p *PageRemoteNode) IsActive() bool {
 
 func (p *PageRemoteNode) Enter() {
 	p.isActive = true
+	page_instance.header.SetTitle(lang.Translate("Remote Node"))
 
 	//if p.useAnimationEnter {
 	p.animationLeave.Reset()
@@ -73,8 +74,6 @@ func (p *PageRemoteNode) Leave() {
 }
 
 func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Remote Node")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

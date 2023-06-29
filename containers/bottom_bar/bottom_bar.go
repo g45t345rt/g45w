@@ -93,10 +93,13 @@ func LoadInstance() *BottomBar {
 		Animation:      components.NewButtonAnimationScale(animScale),
 	})
 
-	confirmClose := components.NewConfirm(w, lang.Translate("Closing current wallet?"), th, layout.Center)
+	confirmClose := components.NewConfirm(w, th, layout.Center)
 	appRouter.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
+			confirmClose.Prompt = lang.Translate("Closing current wallet?")
+			confirmClose.NoText = lang.Translate("NO")
+			confirmClose.YesText = lang.Translate("YES")
 			confirmClose.Layout(gtx, th)
 		},
 	})

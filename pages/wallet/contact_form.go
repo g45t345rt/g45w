@@ -65,7 +65,6 @@ func NewPageContactForm() *PageContactForm {
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("ADD CONTACT"),
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -80,7 +79,6 @@ func NewPageContactForm() *PageContactForm {
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDelete := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("DELETE CONTACT"),
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -99,10 +97,13 @@ func NewPageContactForm() *PageContactForm {
 	txtNote.Editor().Submit = false
 
 	w := app_instance.Window
-	confirmDelete := components.NewConfirm(w, lang.Translate("Are you sure?"), th, layout.Center)
+	confirmDelete := components.NewConfirm(w, th, layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
+			confirmDelete.Prompt = lang.Translate("Are you sure?")
+			confirmDelete.NoText = lang.Translate("NO")
+			confirmDelete.YesText = lang.Translate("YES")
 			confirmDelete.Layout(gtx, th)
 		},
 	})
@@ -130,9 +131,12 @@ func (p *PageContactForm) Enter() {
 	p.isActive = true
 
 	if p.contact != nil {
+		page_instance.header.SetTitle(lang.Translate("Edit Contact"))
 		p.txtName.SetValue(p.contact.Name)
 		p.txtAddr.SetValue(p.contact.Addr)
 		p.txtNote.SetValue(p.contact.Note)
+	} else {
+		page_instance.header.SetTitle(lang.Translate("New Contact"))
 	}
 
 	page_instance.header.Subtitle = nil
@@ -149,12 +153,6 @@ func (p *PageContactForm) Leave() {
 }
 
 func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if p.contact == nil {
-		page_instance.header.Title = lang.Translate("New Contact")
-	} else {
-		page_instance.header.Title = lang.Translate("Edit Contact")
-	}
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -216,6 +214,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return p.txtNote.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonCreate.Text = lang.Translate("ADD CONTACT")
 			return p.buttonCreate.Layout(gtx, th)
 		},
 	}
@@ -231,6 +230,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		})
 
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			p.buttonDelete.Text = lang.Translate("DELETE CONTACT")
 			return p.buttonDelete.Layout(gtx, th)
 		})
 	}

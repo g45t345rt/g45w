@@ -58,7 +58,6 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonLoad := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            lang.Translate("LOAD WALLET"),
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -83,6 +82,7 @@ func (p *PageCreateWalletDiskForm) Enter() {
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
+	page_instance.header.SetTitle(lang.Translate("Load from Disk"))
 
 	read, err := app_instance.Explorer.ChooseFile()
 	if err != nil {
@@ -106,8 +106,6 @@ func (p *PageCreateWalletDiskForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	page_instance.header.Title = lang.Translate("Load from Disk")
-
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -150,6 +148,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 			return p.txtWalletName.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonLoad.Text = lang.Translate("LOAD WALLET")
 			return p.buttonLoad.Layout(gtx, th)
 		},
 	}
