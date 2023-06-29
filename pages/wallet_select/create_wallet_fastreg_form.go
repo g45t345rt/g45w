@@ -30,6 +30,29 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
+type RegResult struct {
+	TxID     string
+	TxHex    string
+	Tx       *transaction.Transaction
+	Addr     string
+	WordSeed string
+	HexSeed  string
+}
+
+func NewRegResult(tx *transaction.Transaction, secret *big.Int) *RegResult {
+	addr, _ := rpc.NewAddressFromCompressedKeys(tx.MinerAddress[:])
+	wordSeed := mnemonics.Key_To_Words(secret, "english")
+
+	return &RegResult{
+		Tx:       tx,
+		TxID:     tx.GetHash().String(),
+		TxHex:    hex.EncodeToString(tx.Serialize()),
+		Addr:     addr.String(),
+		WordSeed: wordSeed,
+		HexSeed:  secret.Text(16),
+	}
+}
+
 type PageCreateWalletFastRegForm struct {
 	isActive bool
 
@@ -93,18 +116,8 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 
 	fastReg := registration.NewFastReg()
 	fastReg.OnFound = func(tx *transaction.Transaction, secret *big.Int) {
-		addr, _ := rpc.NewAddressFromCompressedKeys(tx.MinerAddress[:])
-		wordSeed := mnemonics.Key_To_Words(secret, "english")
-
-		result := &RegResult{
-			TxID:     tx.GetHash().String(),
-			TxHex:    hex.EncodeToString(tx.Serialize()),
-			Addr:     addr.String(),
-			WordSeed: wordSeed,
-			HexSeed:  secret.Text(16),
-		}
-
-		page_instance.pageCreateWalletForm.regResultContainer = NewRegResultContainer(result)
+		regResult := NewRegResult(tx, secret)
+		page_instance.pageCreateWalletForm.regResultContainer = NewRegResultContainer(regResult)
 		page_instance.pageRouter.SetCurrent(PAGE_CREATE_WALLET_FORM)
 		w.Invalidate()
 	}

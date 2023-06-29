@@ -10,6 +10,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -23,14 +24,6 @@ import (
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
-
-type RegResult struct {
-	TxID     string
-	TxHex    string
-	Addr     string
-	WordSeed string
-	HexSeed  string
-}
 
 type PageCreateWalletForm struct {
 	isActive bool
@@ -223,12 +216,18 @@ type RegResultContainer struct {
 func NewRegResultContainer(result *RegResult) *RegResultContainer {
 	addrEditor := new(widget.Editor)
 	addrEditor.SetText(result.Addr)
+	addrEditor.WrapPolicy = text.WrapGraphemes
+	addrEditor.ReadOnly = true
 
 	wordSeedEditor := new(widget.Editor)
 	wordSeedEditor.SetText(result.WordSeed)
+	wordSeedEditor.WrapPolicy = text.WrapWords
+	wordSeedEditor.ReadOnly = true
 
 	hexSeedEditor := new(widget.Editor)
 	hexSeedEditor.SetText(result.HexSeed)
+	hexSeedEditor.WrapPolicy = text.WrapGraphemes
+	hexSeedEditor.ReadOnly = true
 
 	return &RegResultContainer{
 		addrEditor:     addrEditor,
@@ -240,7 +239,7 @@ func NewRegResultContainer(result *RegResult) *RegResultContainer {
 func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), "The registration process found the POW solution. You can now create your wallet and send the registration transaction.")
+			lbl := material.Label(th, unit.Sp(16), "The registration process found the POW solution. You can now create your wallet and send the registration transaction.")
 			return lbl.Layout(gtx)
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
@@ -254,9 +253,9 @@ func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) la
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Editor(th, item.addrEditor, "")
-						lbl.TextSize = unit.Sp(14)
-						return lbl.Layout(gtx)
+						editor := material.Editor(th, item.addrEditor, "")
+						editor.TextSize = unit.Sp(14)
+						return editor.Layout(gtx)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -265,9 +264,9 @@ func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) la
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Editor(th, item.wordSeedEditor, "")
-						lbl.TextSize = unit.Sp(14)
-						return lbl.Layout(gtx)
+						editor := material.Editor(th, item.wordSeedEditor, "")
+						editor.TextSize = unit.Sp(14)
+						return editor.Layout(gtx)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -276,9 +275,9 @@ func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) la
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Editor(th, item.hexSeedEditor, "")
-						lbl.TextSize = unit.Sp(14)
-						return lbl.Layout(gtx)
+						editor := material.Editor(th, item.hexSeedEditor, "")
+						editor.TextSize = unit.Sp(14)
+						return editor.Layout(gtx)
 					}),
 				)
 			})

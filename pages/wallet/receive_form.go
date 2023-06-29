@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"image"
 	"log"
-	"strings"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -14,11 +13,9 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
-	"github.com/g45t345rt/g45w/utils"
 	qrcode "github.com/skip2/go-qrcode"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -30,16 +27,14 @@ type PageReceiveForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	list      *widget.List
-	labelAddr material.EditorStyle
-	addrImage *components.Image
+	list       *widget.List
+	addrEditor *widget.Editor
+	addrImage  *components.Image
 }
 
 var _ router.Page = &PageReceiveForm{}
 
 func NewPageReceiveForm() *PageReceiveForm {
-	th := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -51,18 +46,16 @@ func NewPageReceiveForm() *PageReceiveForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	editor := new(widget.Editor)
-	labelAddr := material.Editor(th, editor, "")
-	labelAddr.TextSize = unit.Sp(16)
-	labelAddr.Editor.Alignment = text.Middle
-	labelAddr.Font.Weight = font.Bold
-	labelAddr.Editor.ReadOnly = true
+	addrEditor := new(widget.Editor)
+	addrEditor.WrapPolicy = text.WrapGraphemes
+	addrEditor.Alignment = text.Middle
+	addrEditor.ReadOnly = true
 
 	return &PageReceiveForm{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		list:           list,
-		labelAddr:      labelAddr,
+		addrEditor:     addrEditor,
 	}
 }
 
@@ -77,8 +70,6 @@ func (p *PageReceiveForm) Enter() {
 
 	// gio ui does not implement character break yet https://todo.sr.ht/~eliasnaur/gio/467
 	addr := "dero1qyvzwypmgqrqpsr8xlz209mwr6sz8fu9a4fphkpnesg29du40zw22qqpm2nkv"
-	splitAddr := utils.SplitString(addr, 22)
-	addr = strings.Join(splitAddr, "\n")
 
 	imgBytes, err := qrcode.Encode(addr, qrcode.Medium, 256)
 	if err != nil {
@@ -95,7 +86,7 @@ func (p *PageReceiveForm) Enter() {
 		Fit: components.Contain,
 	}
 
-	p.labelAddr.Editor.SetText(addr)
+	p.addrEditor.SetText(addr)
 }
 
 func (p *PageReceiveForm) Leave() {
@@ -125,7 +116,13 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.labelAddr.Layout(gtx)
+			gtx.Constraints.Max.X = gtx.Dp(250)
+			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				editor := material.Editor(th, p.addrEditor, "")
+				editor.TextSize = unit.Sp(16)
+				editor.Font.Weight = font.Bold
+				return editor.Layout(gtx)
+			})
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

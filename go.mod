@@ -6,7 +6,7 @@ go 1.19
 
 require (
 	eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d
-	gioui.org v0.0.0-20230526230622-e3ef98dda382
+	gioui.org v0.0.0-20230627103614-e5fe3a0732f4
 	github.com/deroproject/derohe v0.0.0-20220610090545-ec5da1c381a9
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1
@@ -38,7 +38,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
-	github.com/go-text/typesetting v0.0.0-20230413204129-b4f0492bf7ae // indirect
+	github.com/go-text/typesetting v0.0.0-20230602202114-9797aefac433 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.6.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
