@@ -16,6 +16,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -92,7 +93,7 @@ func LoadInstance() *BottomBar {
 		Animation:      components.NewButtonAnimationScale(animScale),
 	})
 
-	confirmClose := components.NewConfirm(w, "Closing current wallet?", th, layout.Center)
+	confirmClose := components.NewConfirm(w, lang.Translate("Closing current wallet?"), th, layout.Center)
 	appRouter.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {

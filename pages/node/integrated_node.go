@@ -10,6 +10,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/integrated_node"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/utils"
@@ -52,7 +53,7 @@ func (p *PageIntegratedNode) IsActive() bool {
 func (p *PageIntegratedNode) Enter() {
 	p.isActive = true
 
-	page_instance.header.SetTitle("Integrated Node")
+	page_instance.header.SetTitle(lang.Translate("Integrated Node"))
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
 }
@@ -92,7 +93,7 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Node Height / Network Height")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Node Height / Network Height"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),
@@ -105,7 +106,7 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Peers (In/Out)")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),
@@ -118,7 +119,7 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Network Hashrate")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),
@@ -131,7 +132,7 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "TXp / Time Offset")
+				label := material.Label(th, unit.Sp(18), lang.Translate("TXp / Time Offset"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),
@@ -151,7 +152,7 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Space Used")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Space Used"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),

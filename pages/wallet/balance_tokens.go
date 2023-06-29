@@ -23,6 +23,7 @@ import (
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -94,7 +95,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 
 	buttonRegister := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "REGISTER WALLET",
+		Text:            lang.Translate("REGISTER WALLET"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -149,7 +150,7 @@ func (p *PageBalanceTokens) Enter() {
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
 	openedWallet := wallet_manager.OpenedWallet
-	page_instance.header.SetTitle(fmt.Sprintf("Wallet [%s]", openedWallet.Info.Name))
+	page_instance.header.SetTitle(fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name))
 
 	th := app_instance.Theme
 	page_instance.header.ButtonRight = nil
@@ -159,7 +160,7 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 			clipboard.WriteOp{
 				Text: walletAddr,
 			}.Add(gtx.Ops)
-			notification_modals.InfoInstance.SetText("Clipboard", "Addr copied to clipboard")
+			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Addr copied to clipboard"))
 			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
@@ -344,7 +345,7 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 	sendIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
 	buttonSend := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "SEND",
+		Text:            lang.Translate("SEND"),
 		Icon:            sendIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -359,7 +360,7 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 	receiveIcon, _ := widget.NewIcon(icons.NavigationArrowDownward)
 	buttonReceive := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "RECEIVE",
+		Text:            lang.Translate("RECEIVE"),
 		Icon:            receiveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -394,7 +395,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				lblTitle := material.Label(th, unit.Sp(14), "Available Balance")
+				lblTitle := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
 				lblTitle.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
 
 				return lblTitle.Layout(gtx)
@@ -498,7 +499,7 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*Token
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						labelTokens := material.Label(th, unit.Sp(17), "YOUR TOKENS")
+						labelTokens := material.Label(th, unit.Sp(17), lang.Translate("YOUR TOKENS"))
 						labelTokens.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
 						labelTokens.Font.Weight = font.Bold
 						return labelTokens.Layout(gtx)

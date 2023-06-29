@@ -14,6 +14,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -45,7 +46,7 @@ func NewPageSettings() *PageSettings {
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteWallet := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "DELETE WALLET",
+		Text:            lang.Translate("DELETE WALLET"),
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -60,7 +61,7 @@ func NewPageSettings() *PageSettings {
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonSave := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "SAVE CHANGES",
+		Text:            lang.Translate("SAVE CHANGES"),
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -92,7 +93,7 @@ func NewPageSettings() *PageSettings {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	txtWalletName := components.NewTextField(th, "Name", "")
+	txtWalletName := components.NewTextField(th, lang.Translate("Name"), "")
 
 	return &PageSettings{
 		buttonDeleteWallet:  buttonDeleteWallet,
@@ -113,7 +114,7 @@ func (p *PageSettings) Enter() {
 	openedWallet := wallet_manager.OpenedWallet
 	walletName := openedWallet.Info.Name
 	p.txtWalletName.SetValue(walletName)
-	page_instance.header.SetTitle("Settings")
+	page_instance.header.SetTitle(lang.Translate("Settings"))
 	page_instance.header.Subtitle = nil
 
 	p.isActive = true
@@ -134,10 +135,10 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	if p.buttonSave.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "Changes applied successfully")
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Changes applied successfully"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}

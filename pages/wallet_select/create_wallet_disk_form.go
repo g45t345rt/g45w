@@ -12,6 +12,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -51,13 +52,13 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
-	txtWalletName := components.NewTextField(th, "Wallet Name", "")
-	txtPassword := components.NewPasswordTextField(th, "Password", "")
+	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")
+	txtPassword := components.NewPasswordTextField(th, lang.Translate("Password"), "")
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonLoad := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "LOAD WALLET",
+		Text:            lang.Translate("LOAD WALLET"),
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -79,7 +80,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 }
 
 func (p *PageCreateWalletDiskForm) Enter() {
-	page_instance.header.SetTitle("Load from Disk")
+	page_instance.header.SetTitle(lang.Translate("Load from Disk"))
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -128,10 +129,10 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	if p.buttonLoad.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "Wallet loaded successfully")
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Wallet loaded successfully"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}

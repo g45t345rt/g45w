@@ -10,6 +10,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/tanema/gween"
@@ -33,7 +34,7 @@ func NewPasswordModal() *PasswordModal {
 	editor.SingleLine = true
 	editor.Submit = true
 	editor.Mask = rune(42)
-	editorStyle := material.Editor(th, editor, "Enter password")
+	editorStyle := material.Editor(th, editor, lang.Translate("Enter password"))
 	editorStyle.TextSize = unit.Sp(20)
 
 	animationWrongPass := animation.NewAnimation(false, gween.NewSequence(

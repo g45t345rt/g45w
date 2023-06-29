@@ -16,6 +16,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -56,14 +57,14 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
-	txtWalletName := components.NewTextField(th, "Wallet Name", "")
-	txtPassword := components.NewPasswordTextField(th, "Password", "")
-	txtConfirmPassword := components.NewPasswordTextField(th, "Confirm Password", "")
+	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")
+	txtPassword := components.NewPasswordTextField(th, lang.Translate("Password"), "")
+	txtConfirmPassword := components.NewPasswordTextField(th, lang.Translate("Confirm Password"), "")
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "CREATE WALLET",
+		Text:            lang.Translate("CREATE WALLET"),
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -86,7 +87,7 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 }
 
 func (p *PageCreateWalletForm) Enter() {
-	page_instance.header.SetTitle("Create New Wallet")
+	page_instance.header.SetTitle(lang.Translate("Create New Wallet"))
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -124,10 +125,10 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 	if p.buttonCreate.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "New wallet created")
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New wallet created"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
@@ -239,7 +240,7 @@ func NewRegResultContainer(result *RegResult) *RegResultContainer {
 func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), "The registration process found the POW solution. You can now create your wallet and send the registration transaction.")
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("The registration process found the POW solution. You can now create your wallet and send the registration transaction."))
 			return lbl.Layout(gtx)
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
@@ -248,7 +249,7 @@ func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) la
 			dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), "Address")
+						lbl := material.Label(th, unit.Sp(16), lang.Translate("Address"))
 						lbl.Font.Weight = font.Bold
 						return lbl.Layout(gtx)
 					}),
@@ -259,7 +260,7 @@ func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) la
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), "Word Seed")
+						lbl := material.Label(th, unit.Sp(16), lang.Translate("Word Seed"))
 						lbl.Font.Weight = font.Bold
 						return lbl.Layout(gtx)
 					}),
@@ -270,7 +271,7 @@ func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) la
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), "Hex Seed")
+						lbl := material.Label(th, unit.Sp(16), lang.Translate("Hex Seed"))
 						lbl.Font.Weight = font.Bold
 						return lbl.Layout(gtx)
 					}),

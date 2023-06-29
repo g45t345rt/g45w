@@ -93,7 +93,7 @@ func (p *PageSelectWallet) IsActive() bool {
 }
 
 func (p *PageSelectWallet) Enter() {
-	page_instance.header.SetTitle(lang.SELECT_WALLET.String())
+	page_instance.header.SetTitle(lang.Translate("Select wallet"))
 	p.isActive = true
 
 	if !p.firstEnter {
@@ -157,7 +157,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						if len(p.walletList.items) == 0 {
-							labelNoWallet := material.Label(th, unit.Sp(16), "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.")
+							labelNoWallet := material.Label(th, unit.Sp(16), lang.Translate("You didn't add a wallet yet.\nClick 'New Wallet' button to continue."))
 							return labelNoWallet.Layout(gtx)
 						} else {
 							for _, item := range p.walletList.items {
@@ -211,7 +211,7 @@ func NewWalletCreateButton() *components.Button {
 
 	var buttonStyle = components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "NEW WALLET",
+		Text:            lang.Translate("NEW WALLET"),
 		Icon:            addIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},

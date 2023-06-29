@@ -9,6 +9,7 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/tanema/gween"
@@ -27,7 +28,7 @@ type ListItemSelectEdit struct {
 func NewListItemSelectEdit() *ListItemSelectEdit {
 	buttonSelect := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "SELECT",
+		Text:            lang.Translate("SELECT"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -39,7 +40,7 @@ func NewListItemSelectEdit() *ListItemSelectEdit {
 
 	buttonEdit := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "EDIT",
+		Text:            lang.Translate("EDIT"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),

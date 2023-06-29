@@ -15,6 +15,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/token_manager"
@@ -58,7 +59,7 @@ func NewPageAddSCForm() *PageAddSCForm {
 	checkIcon, _ := widget.NewIcon(icons.ActionSearch)
 	buttonCheckSC := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "CHECK SC",
+		Text:            lang.Translate("CHECK SC"),
 		Icon:            checkIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -89,7 +90,7 @@ func (p *PageAddSCForm) IsActive() bool {
 
 func (p *PageAddSCForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle("Add Smart Contract")
+	page_instance.header.SetTitle(lang.Translate("Add Smart Contract"))
 	page_instance.header.Subtitle = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()

@@ -17,6 +17,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -63,7 +64,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonEditNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "SAVE",
+		Text:            lang.Translate("SAVE"),
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -75,13 +76,13 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonEditNode.Label.Alignment = text.Middle
 	buttonEditNode.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField(th, "Name", "Dero NFTs")
-	txtEndpoint := components.NewTextField(th, "Endpoint", "wss://node.deronfts.com/ws")
+	txtName := components.NewTextField(th, lang.Translate("Name"), "Dero NFTs")
+	txtEndpoint := components.NewTextField(th, lang.Translate("Endpoint"), "wss://node.deronfts.com/ws")
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "DELETE NODE",
+		Text:            lang.Translate("DELETE NODE"),
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -94,7 +95,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonDeleteNode.Style.Font.Weight = font.Bold
 
 	w := app_instance.Window
-	confirmDelete := components.NewConfirm(w, "Are you sure?", th, layout.Center)
+	confirmDelete := components.NewConfirm(w, lang.Translate("Are you sure?"), th, layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
@@ -123,7 +124,7 @@ func (p *PageEditNodeForm) IsActive() bool {
 
 func (p *PageEditNodeForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle("Edit Node")
+	page_instance.header.SetTitle(lang.Translate("Edit Node"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
@@ -167,10 +168,10 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	if p.confirmDelete.ClickedYes() {
 		err := node_manager.DelNode(p.nodeConn.ID)
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "node deleted")
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 		}
@@ -262,7 +263,7 @@ func (p *PageEditNodeForm) submitForm() {
 		}
 
 		p.submitting = false
-		notification_modals.SuccessInstance.SetText("Success", "data saved")
+		notification_modals.SuccessInstance.SetText("Success", lang.Translate("Data saved"))
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}()

@@ -12,6 +12,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/utils"
@@ -75,7 +76,7 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(20), fmt.Sprintf("Recent Transactions (%d)", len(txItems)))
+					lbl := material.Label(th, unit.Sp(20), fmt.Sprintf("%s (%d)", lang.Translate("Recent Transactions"), len(txItems)))
 					lbl.Font.Weight = font.Bold
 					return lbl.Layout(gtx)
 				}),
@@ -84,7 +85,7 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 					gtx.Constraints.Max.Y = gtx.Dp(250)
 					openedWallet := wallet_manager.OpenedWallet
 					if openedWallet == nil {
-						lbl := material.Label(th, unit.Sp(16), "Wallet is not opened.")
+						lbl := material.Label(th, unit.Sp(16), lang.Translate("Wallet is not opened."))
 						return lbl.Layout(gtx)
 					} else {
 						listStyle := material.List(th, r.list)

@@ -19,6 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/contact_manager"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -64,7 +65,7 @@ func NewPageContactForm() *PageContactForm {
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "ADD CONTACT",
+		Text:            lang.Translate("ADD CONTACT"),
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -79,7 +80,7 @@ func NewPageContactForm() *PageContactForm {
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDelete := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "DELETE CONTACT",
+		Text:            lang.Translate("DELETE CONTACT"),
 		Icon:            deleteIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -91,14 +92,14 @@ func NewPageContactForm() *PageContactForm {
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField(th, "Name", "")
-	txtAddr := components.NewTextField(th, "Addr", "")
-	txtNote := components.NewTextField(th, "Note", "")
+	txtName := components.NewTextField(th, lang.Translate("Name"), "")
+	txtAddr := components.NewTextField(th, lang.Translate("Address"), "")
+	txtNote := components.NewTextField(th, lang.Translate("Note"), "")
 	txtNote.Editor().SingleLine = false
 	txtNote.Editor().Submit = false
 
 	w := app_instance.Window
-	confirmDelete := components.NewConfirm(w, "Are you sure?", th, layout.Center)
+	confirmDelete := components.NewConfirm(w, lang.Translate("Are you sure?"), th, layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
@@ -129,9 +130,9 @@ func (p *PageContactForm) Enter() {
 	p.isActive = true
 
 	if p.contact == nil {
-		page_instance.header.SetTitle("New Contact")
+		page_instance.header.SetTitle(lang.Translate("New Contact"))
 	} else {
-		page_instance.header.SetTitle("Edit Contact")
+		page_instance.header.SetTitle(lang.Translate("Edit Contact"))
 		p.txtName.SetValue(p.contact.Name)
 		p.txtAddr.SetValue(p.contact.Addr)
 		p.txtNote.SetValue(p.contact.Note)
@@ -173,10 +174,10 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	if p.buttonCreate.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "New contact added")
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New contact added"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 			p.clearForm()
@@ -190,10 +191,10 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	if p.confirmDelete.ClickedYes() {
 		err := page_instance.contactManager.DelContact(p.contact.Addr)
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "Contact deleted")
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 			p.clearForm()

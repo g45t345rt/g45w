@@ -12,6 +12,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -63,7 +64,7 @@ func New() *Page {
 	setIcon, _ := widget.NewIcon(icons.ActionSettings)
 	buttonSetNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "SELECT NODE",
+		Text:            lang.Translate("SELECT NODE"),
 		Icon:            setIcon,
 		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, G: 255, B: 255, A: 255},

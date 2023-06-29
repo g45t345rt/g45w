@@ -11,6 +11,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -50,16 +51,16 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
-	txtWalletName := components.NewTextField(th, "Wallet Name", "")
-	txtPassword := components.NewPasswordTextField(th, "Password", "")
-	txtConfirmPassword := components.NewPasswordTextField(th, "Confirm Password", "")
+	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")
+	txtPassword := components.NewPasswordTextField(th, lang.Translate("Password"), "")
+	txtConfirmPassword := components.NewPasswordTextField(th, lang.Translate("Confirm Password"), "")
 
-	txtHexSeed := components.NewTextField(th, "Hex Seed", "Enter hex seed of 64 chars")
+	txtHexSeed := components.NewTextField(th, lang.Translate("Hex Seed"), lang.Translate("Enter hex seed of 64 chars"))
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "RECOVER WALLET",
+		Text:            lang.Translate("RECOVER WALLET"),
 		Icon:            iconCreate,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -83,7 +84,7 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 }
 
 func (p *PageCreateWalletHexSeedForm) Enter() {
-	page_instance.header.SetTitle("Recover from Hex Seed")
+	page_instance.header.SetTitle(lang.Translate("Recover from Hex Seed"))
 	p.isActive = true
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
@@ -124,7 +125,7 @@ func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Th
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", "New wallet created")
+			notification_modals.SuccessInstance.SetText("Success", lang.Translate("New wallet created"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}

@@ -14,6 +14,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/registration"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -55,13 +56,13 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtThreadCount := components.NewTextField(th, "Worker Count", "")
+	txtThreadCount := components.NewTextField(th, lang.Translate("Worker Count"), "")
 	txtThreadCount.SetValue("1")
 
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonStart := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "START",
+		Text:            lang.Translate("START"),
 		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{A: 255},
@@ -74,7 +75,7 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "STOP",
+		Text:            lang.Translate("STOP"),
 		Icon:            stopIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 255, A: 255},
@@ -148,7 +149,7 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), "The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam.")
+			lbl := material.Label(th, unit.Sp(14), lang.Translate("The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam."))
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -158,7 +159,7 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(13), "More workers is faster but takes more cpu ressources. You decide!")
+					lbl := material.Label(th, unit.Sp(13), lang.Translate("More workers is faster but takes more cpu ressources. You decide!"))
 					return lbl.Layout(gtx)
 				}),
 			)
@@ -166,7 +167,7 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(16), "Progress")
+					label := material.Label(th, unit.Sp(16), lang.Translate("Progress"))
 					label.Font.Weight = font.Bold
 					return label.Layout(gtx)
 				}),

@@ -27,7 +27,7 @@ of smart contract calls to directly send from wallet.
 - Easily send payments and receive with QR code.
 - Fast registration implemented (by pieswap).
 - Address book to manage contacts.
-- Support as much language as possible (english,french)
+- Support as much language as possible.
 
 ## Screenshots
 

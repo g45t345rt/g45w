@@ -15,6 +15,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/integrated_node"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	page_node "github.com/g45t345rt/g45w/pages/node"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -70,7 +71,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				statusDotColor = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
 			}
 
-			status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, "Integrated")
+			status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, lang.Translate("Integrated"))
 		} else {
 			n.remoteNodeInfo.Active()
 

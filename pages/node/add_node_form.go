@@ -14,6 +14,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -56,7 +57,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "ADD NODE",
+		Text:            lang.Translate("ADD NODE"),
 		Icon:            addIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -68,8 +69,8 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	buttonAddNode.Label.Alignment = text.Middle
 	buttonAddNode.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField(th, "Name", "Dero NFTs")
-	txtEndpoint := components.NewTextField(th, "Endpoint", "wss://node.deronfts.com/ws")
+	txtName := components.NewTextField(th, lang.Translate("Name"), "Dero NFTs")
+	txtEndpoint := components.NewTextField(th, lang.Translate("Endpoint"), "wss://node.deronfts.com/ws")
 
 	return &PageAddNodeForm{
 		animationEnter: animationEnter,
@@ -89,7 +90,7 @@ func (p *PageAddNodeForm) IsActive() bool {
 
 func (p *PageAddNodeForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle("Add Node")
+	page_instance.header.SetTitle(lang.Translate("Add Node"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
@@ -197,7 +198,7 @@ func (p *PageAddNodeForm) submitForm() {
 		}
 
 		p.submitting = false
-		notification_modals.SuccessInstance.SetText("Success", "new noded added")
+		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), "new noded added")
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}()

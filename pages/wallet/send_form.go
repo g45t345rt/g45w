@@ -17,6 +17,7 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -55,7 +56,7 @@ func NewPageSendForm() *PageSendForm {
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "BUILD TRANSACTION",
+		Text:            lang.Translate("BUILD TRANSACTION"),
 		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
@@ -67,15 +68,15 @@ func NewPageSendForm() *PageSendForm {
 	buttonBuildTx.Label.Alignment = text.Middle
 	buttonBuildTx.Style.Font.Weight = font.Bold
 
-	txtAmount := components.NewTextField(th, "Amount", "")
+	txtAmount := components.NewTextField(th, lang.Translate("Amount"), "")
 	txtWalletAddr := components.NewInput(th, "")
-	txtComment := components.NewTextField(th, "Comment", "The comment is natively encrypted.")
+	txtComment := components.NewTextField(th, lang.Translate("Comment"), lang.Translate("The comment is natively encrypted."))
 	txtComment.Editor().SingleLine = false
 	txtComment.Editor().Submit = false
-	txtDescription := components.NewTextField(th, "Description", "Saved locally in your wallet.")
+	txtDescription := components.NewTextField(th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
 	txtDescription.Editor().SingleLine = false
 	txtDescription.Editor().Submit = false
-	txtDstPort := components.NewTextField(th, "Destination Port", "")
+	txtDstPort := components.NewTextField(th, lang.Translate("Destination Port"), "")
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
@@ -92,7 +93,7 @@ func NewPageSendForm() *PageSendForm {
 
 	buttonOptions := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "OPTIONS",
+		Text:            lang.Translate("OPTIONS"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -217,7 +218,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(20), "Wallet Addr / Name")
+					lbl := material.Label(th, unit.Sp(20), lang.Translate("Wallet Addr / Name"))
 					lbl.Font.Weight = font.Bold
 					return lbl.Layout(gtx)
 				}),
@@ -243,7 +244,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										lbl := material.Label(th, unit.Sp(16), "Addr matching contact:")
+										lbl := material.Label(th, unit.Sp(16), lang.Translate("Matching contact:"))
 										return lbl.Layout(gtx)
 									}),
 									layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),

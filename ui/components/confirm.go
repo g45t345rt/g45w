@@ -9,6 +9,7 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/lang"
 )
 
 type Confirm struct {
@@ -36,7 +37,7 @@ func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layo
 
 	buttonYes := NewButton(ButtonStyle{
 		Rounded:         UniformRounded(unit.Dp(5)),
-		Text:            "YES",
+		Text:            lang.Translate("YES"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -48,7 +49,7 @@ func NewConfirm(w *app.Window, prompt string, th *material.Theme, direction layo
 
 	buttonNo := NewButton(ButtonStyle{
 		Rounded:         UniformRounded(unit.Dp(5)),
-		Text:            "NO",
+		Text:            lang.Translate("NO"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),

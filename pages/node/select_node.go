@@ -17,6 +17,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -54,11 +55,11 @@ func NewPageSelectNode() *PageSelectNode {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	nodeList := NewNodeList(th, "You didn't add any remote nodes yet.")
+	nodeList := NewNodeList(th, lang.Translate("You didn't add any remote nodes yet."))
 
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Text:            "Use Integrated Node",
+		Text:            lang.Translate("Use Integrated Node"),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(16),
@@ -94,7 +95,7 @@ func (p *PageSelectNode) IsActive() bool {
 func (p *PageSelectNode) Enter() {
 	p.isActive = true
 
-	page_instance.header.SetTitle("Select Node")
+	page_instance.header.SetTitle(lang.Translate("Select Node"))
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
 
@@ -149,7 +150,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			return layout.Spacer{Height: unit.Dp(5)}.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), "Always use Integrated Node or your own remote node for full privacy and trust.")
+			lbl := material.Label(th, unit.Sp(14), lang.Translate("Always use Integrated Node or your own remote node for full privacy and trust."))
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -160,7 +161,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(20), "Remote Nodes")
+							lbl := material.Label(th, unit.Sp(20), lang.Translate("Remote Nodes"))
 							lbl.Font.Weight = font.Bold
 							return lbl.Layout(gtx)
 						}),

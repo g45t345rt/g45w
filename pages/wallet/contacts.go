@@ -15,6 +15,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/contact_manager"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -72,7 +73,7 @@ func (p *PageContacts) IsActive() bool {
 
 func (p *PageContacts) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle("Contacts")
+	page_instance.header.SetTitle(lang.Translate("Contacts"))
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = p.buttonAddContact
 
@@ -121,7 +122,7 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		return layout.Inset{
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), "You didn't add any contacts yet.")
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("You didn't add any contacts yet."))
 			return lbl.Layout(gtx)
 		})
 	}

@@ -16,6 +16,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -59,7 +60,7 @@ func (p *PageRemoteNode) IsActive() bool {
 func (p *PageRemoteNode) Enter() {
 	p.isActive = true
 
-	page_instance.header.SetTitle("Remote Node")
+	page_instance.header.SetTitle(lang.Translate("Remote Node"))
 
 	//if p.useAnimationEnter {
 	p.animationLeave.Reset()
@@ -132,7 +133,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Node Height")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Node Height"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),
@@ -145,7 +146,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Peers (In/Out)")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),
@@ -160,7 +161,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Network Hashrate")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),
@@ -174,7 +175,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), "Version")
+				label := material.Label(th, unit.Sp(18), lang.Translate("Version"))
 				label.Color = color.NRGBA{A: 150}
 				return label.Layout(gtx)
 			}),

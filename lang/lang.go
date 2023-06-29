@@ -7,11 +7,8 @@ import (
 	"github.com/g45t345rt/g45w/settings"
 )
 
-var SELECT_WALLET = Lang{key: "select_wallet"}
-
-var defaultLang = "en"
-var languages = []string{"en", "fr"}
-var keyValues = make(map[string]map[string]string)
+var languages = []string{"fr", "es"}
+var langValues = make(map[string]map[string]string)
 
 func Load() error {
 	for _, lang := range languages {
@@ -19,39 +16,23 @@ func Load() error {
 		if err != nil {
 			return err
 		}
-		keyValues[lang] = values
+		langValues[lang] = values
 	}
 
 	return nil
 }
 
-func GetValue(lang string, key string) string {
-	values, ok := keyValues[lang]
+func Translate(eng string) string {
+	lang := settings.App.Language
+	values, ok := langValues[lang]
 	if !ok {
-		if lang != defaultLang {
-			return GetValue(defaultLang, key)
-		} else {
-			return "UNKNOWN_LANG_MAP"
-		}
+		return eng
 	}
 
-	value, ok := values[key]
+	value, ok := values[eng]
 	if !ok {
-		if lang != defaultLang {
-			return GetValue(defaultLang, key)
-		} else {
-			return "UNKNOWN_KEY"
-		}
+		return eng
 	}
 
 	return value
-}
-
-type Lang struct {
-	key string
-}
-
-func (l Lang) String() string {
-	lang := settings.App.Language
-	return GetValue(lang, l.key)
 }
