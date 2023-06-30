@@ -88,6 +88,6 @@ func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		r.selectModal.modal.SetVisible(false)
 	}
 
-	r.buttonSelect.Text = fmt.Sprintf("Language: %s", r.Value)
+	r.buttonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), r.Value)
 	return r.buttonSelect.Layout(gtx, th)
 }

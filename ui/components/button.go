@@ -40,6 +40,7 @@ type ButtonStyle struct {
 	HoverBackgroundColor *color.NRGBA
 	HoverTextColor       *color.NRGBA
 	Animation            ButtonAnimation
+	Border               widget.Border
 }
 
 type Button struct {
@@ -190,26 +191,28 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			}
 
 			c := op.Record(gtx.Ops)
-			dims := style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				if style.Icon != nil && btn.Text == "" {
-					return style.Icon.Layout(gtx, textColor)
-				}
+			dims := style.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					if style.Icon != nil && btn.Text == "" {
+						return style.Icon.Layout(gtx, textColor)
+					}
 
-				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						if style.Icon != nil {
-							return style.Icon.Layout(gtx, textColor)
-						}
+					return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							if style.Icon != nil {
+								return style.Icon.Layout(gtx, textColor)
+							}
 
-						return layout.Dimensions{}
-					}),
-					layout.Rigid(layout.Spacer{Width: style.IconGap}.Layout),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						paint.ColorOp{Color: textColor}.Add(gtx.Ops)
-						return btn.Label.Layout(gtx, th.Shaper, style.Font,
-							style.TextSize, btn.Text, op.CallOp{})
-					}),
-				)
+							return layout.Dimensions{}
+						}),
+						layout.Rigid(layout.Spacer{Width: style.IconGap}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							paint.ColorOp{Color: textColor}.Add(gtx.Ops)
+							return btn.Label.Layout(gtx, th.Shaper, style.Font,
+								style.TextSize, btn.Text, op.CallOp{})
+						}),
+					)
+				})
 			})
 			m := c.Stop()
 
