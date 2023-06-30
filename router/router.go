@@ -7,7 +7,6 @@ import (
 	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/widget/material"
-	"github.com/olebedev/emitter"
 )
 
 type LayoutFunc func(gtx layout.Context, th *material.Theme)
@@ -23,12 +22,12 @@ func (k SortKeyLayout) Len() int           { return len(k) }
 func (k SortKeyLayout) Swap(i, j int)      { k[i], k[j] = k[j], k[i] }
 func (k SortKeyLayout) Less(i, j int) bool { return k[i].DrawIndex < k[j].DrawIndex }
 
-var EVENT_CHANGE = "change"
+//var EVENT_CHANGE = "change"
 
 type Router struct {
 	Pages   map[interface{}]Page // does not keep ordering with range (use drawOrder)
 	Current interface{}
-	Event   *emitter.Emitter
+	//Event   *emitter.Emitter
 
 	drawOrder     []interface{}
 	keyLayouts    []KeyLayout
@@ -36,10 +35,10 @@ type Router struct {
 }
 
 func NewRouter() *Router {
-	event := &emitter.Emitter{}
-	event.Use("*", emitter.Void)
+	//event := &emitter.Emitter{}
+	//event.Use("*", emitter.Void)
 	return &Router{
-		Event:     event,
+		//Event:     event,
 		drawOrder: make([]interface{}, 0),
 		Pages:     make(map[interface{}]Page),
 	}
@@ -53,16 +52,16 @@ func (router *Router) Add(tag interface{}, page Page) {
 func (router *Router) SetCurrent(tag interface{}) {
 	_, ok := router.Pages[tag]
 	if ok {
-		//if router.Current == tag {
-		//return
-		//}
+		if router.Current == tag {
+			return
+		}
 
-		if router.Current != nil {
+		if router.Current != tag && router.Current != nil {
 			router.Pages[router.Current].Leave()
 		}
 
 		router.closeKeyboard = true
-		router.Event.Emit(EVENT_CHANGE, tag)
+		//router.Event.Emit(EVENT_CHANGE, tag)
 		router.Current = tag
 		router.Pages[router.Current].Enter()
 	} else {

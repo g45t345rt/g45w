@@ -31,9 +31,8 @@ import (
 )
 
 type PageSelectWallet struct {
-	isActive   bool
-	firstEnter bool
-	clickable  *widget.Clickable
+	isActive  bool
+	clickable *widget.Clickable
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -53,7 +52,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 	theme := app_instance.Theme
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .5, ease.OutCubic),
+		gween.New(1, 0, .5, ease.OutCubic),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
@@ -89,8 +88,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 	buttonWalletCreate.Style.Font.Weight = font.Bold
 
 	return &PageSelectWallet{
-		firstEnter: true,
-		clickable:  new(widget.Clickable),
+		clickable: new(widget.Clickable),
 
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -111,12 +109,11 @@ func (p *PageSelectWallet) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Select wallet"))
 
-	if !p.firstEnter {
+	if !page_instance.header.IsHistory(PAGE_SELECT_WALLET) {
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
 	}
 
-	p.firstEnter = false
 	p.Load()
 }
 
@@ -274,7 +271,9 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return c.listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
 				if c.items[index].clickable.Clicked() {
-					page_instance.pageRouter.SetCurrent(c.items[index].routerPath)
+					tag := c.items[index].routerTag
+					page_instance.pageRouter.SetCurrent(tag)
+					page_instance.header.AddHistory(tag)
 					c.modal.SetVisible(false)
 				}
 
@@ -285,18 +284,18 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 }
 
 type CreateWalletListItem struct {
-	text       string
-	routerPath string
-	icon       *widget.Icon
-	clickable  *widget.Clickable
+	text      string
+	routerTag string
+	icon      *widget.Icon
+	clickable *widget.Clickable
 }
 
-func NewCreateWalletListItem(text string, icon *widget.Icon, routerPath string) *CreateWalletListItem {
+func NewCreateWalletListItem(text string, icon *widget.Icon, routerTag string) *CreateWalletListItem {
 	return &CreateWalletListItem{
-		text:       text,
-		icon:       icon,
-		routerPath: routerPath,
-		clickable:  new(widget.Clickable),
+		text:      text,
+		icon:      icon,
+		routerTag: routerTag,
+		clickable: new(widget.Clickable),
 	}
 }
 

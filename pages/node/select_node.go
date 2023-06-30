@@ -94,6 +94,7 @@ func (p *PageSelectNode) IsActive() bool {
 func (p *PageSelectNode) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Select Node"))
+
 	p.animationLeave.Reset()
 	p.animationEnter.Start()
 
@@ -101,8 +102,12 @@ func (p *PageSelectNode) Enter() {
 }
 
 func (p *PageSelectNode) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	if page_instance.header.IsHistory(PAGE_SELECT_NODE) {
+		p.animationEnter.Reset()
+		p.animationLeave.Start()
+	} else {
+		p.isActive = false
+	}
 }
 
 func (p *PageSelectNode) Load() {
@@ -138,6 +143,11 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		if state.Active {
 			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
 		}
+	}
+
+	if p.buttonAddNode.Clickable.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_ADD_NODE_FORM)
+		page_instance.header.AddHistory(PAGE_ADD_NODE_FORM)
 	}
 
 	widgets := []layout.Widget{
@@ -191,6 +201,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		if item.listItemSelect.EditClicked() {
 			page_instance.pageEditNodeForm.nodeConn = item.conn
 			page_instance.pageRouter.SetCurrent(PAGE_EDIT_NODE_FORM)
+			page_instance.header.AddHistory(PAGE_EDIT_NODE_FORM)
 		}
 
 		if item.listItemSelect.SelectClicked() {
@@ -227,8 +238,8 @@ func (p *PageSelectNode) connect(conn node_manager.NodeConnection) {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			page_instance.pageRemoteNode.useAnimationEnter = true
 			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
+			page_instance.header.AddHistory(PAGE_REMOTE_NODE)
 			app_instance.Window.Invalidate()
 		}
 	}()

@@ -81,7 +81,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
+		gween.New(0, -1, .5, ease.OutCubic),
 	))
 
 	txtThreadCount := components.NewTextField(th, lang.Translate("Worker Count"), "")
@@ -118,6 +118,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		regResult := NewRegResult(tx, secret)
 		page_instance.pageCreateWalletForm.regResultContainer = NewRegResultContainer(regResult)
 		page_instance.pageRouter.SetCurrent(PAGE_CREATE_WALLET_FORM)
+		page_instance.header.AddHistory(PAGE_CREATE_WALLET_FORM)
 		w.Invalidate()
 	}
 

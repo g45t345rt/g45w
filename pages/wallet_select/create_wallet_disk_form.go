@@ -49,7 +49,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
+		gween.New(0, -1, .5, ease.OutCubic),
 	))
 
 	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")
@@ -80,6 +80,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 
 func (p *PageCreateWalletDiskForm) Enter() {
 	p.isActive = true
+
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 	page_instance.header.SetTitle(lang.Translate("Load from Disk"))

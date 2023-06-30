@@ -22,11 +22,12 @@ type Page struct {
 
 	pageRouter *router.Router
 
-	pageSelectNode   *PageSelectNode
-	pageAddNodeForm  *PageAddNodeForm
-	pageEditNodeForm *PageEditNodeForm
-	pageRemoteNode   *PageRemoteNode
-	header           *prefabs.Header
+	pageSelectNode     *PageSelectNode
+	pageAddNodeForm    *PageAddNodeForm
+	pageEditNodeForm   *PageEditNodeForm
+	pageRemoteNode     *PageRemoteNode
+	pageIntegratedNode *PageIntegratedNode
+	header             *prefabs.Header
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -75,13 +76,14 @@ func New() *Page {
 	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
 
 	page := &Page{
-		firstEnter:       true,
-		pageRouter:       pageRouter,
-		pageSelectNode:   pageSelectNode,
-		pageAddNodeForm:  pageAddNodeForm,
-		pageEditNodeForm: pageEditNodeForm,
-		pageRemoteNode:   pageRemoteNode,
-		header:           header,
+		firstEnter:         true,
+		pageRouter:         pageRouter,
+		pageSelectNode:     pageSelectNode,
+		pageAddNodeForm:    pageAddNodeForm,
+		pageEditNodeForm:   pageEditNodeForm,
+		pageRemoteNode:     pageRemoteNode,
+		pageIntegratedNode: pageIntegratedNode,
+		header:             header,
 
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -101,14 +103,17 @@ func (p *Page) Enter() {
 	p.animationLeave.Reset()
 
 	currentNode := node_manager.CurrentNode
-	if currentNode != "" {
-		if p.pageRouter.Current == nil {
-			p.header.AddHistory(PAGE_SELECT_NODE)
-		}
 
+	p.header.ResetHistory()
+	p.header.AddHistory(PAGE_SELECT_NODE)
+	if currentNode != "" {
 		if currentNode == node_manager.INTEGRATED_NODE_ID {
+			p.header.AddHistory(PAGE_INTEGRATED_NODE)
+			p.pageIntegratedNode.animationLeave.Reset()
 			p.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 		} else {
+			p.header.AddHistory(PAGE_REMOTE_NODE)
+			p.pageRemoteNode.animationLeave.Reset()
 			p.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 		}
 	} else {
@@ -117,6 +122,9 @@ func (p *Page) Enter() {
 }
 
 func (p *Page) Leave() {
+	p.pageRemoteNode.animationLeave.Reset()
+	p.pageIntegratedNode.animationLeave.Reset()
+
 	p.animationEnter.Reset()
 	p.animationLeave.Start()
 }
@@ -143,10 +151,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	}
 
 	defer prefabs.PaintLinearGradient(gtx).Pop()
-
-	if p.pageSelectNode.buttonAddNode.Clickable.Clicked() {
-		p.pageRouter.SetCurrent(PAGE_ADD_NODE_FORM)
-	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

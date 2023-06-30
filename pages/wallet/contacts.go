@@ -113,6 +113,7 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	if p.buttonAddContact.Clickable.Clicked() {
+		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
 	}
 

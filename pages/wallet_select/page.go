@@ -99,7 +99,14 @@ func (p *Page) Enter() {
 	p.animationEnter.Start()
 
 	p.pageSelectWallet.Load()
-	p.pageRouter.SetCurrent(PAGE_SELECT_WALLET)
+
+	lastHistory := p.header.GetLastHistory()
+	if lastHistory != nil {
+		p.pageRouter.SetCurrent(lastHistory)
+	} else {
+		p.header.AddHistory(PAGE_SELECT_WALLET)
+		p.pageRouter.SetCurrent(PAGE_SELECT_WALLET)
+	}
 }
 
 func (p *Page) Leave() {
@@ -108,12 +115,12 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if bottom_bar.Instance.ButtonWallet.Button.Clickable.Clicked() {
+		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
+	}
+
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			if bottom_bar.Instance.ButtonWallet.Button.Clickable.Clicked() {
-				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
-			}
-
 			{
 				state := p.animationEnter.Update(gtx)
 				if state.Active {

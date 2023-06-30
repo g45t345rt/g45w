@@ -95,8 +95,12 @@ func (p *PageAddNodeForm) Enter() {
 }
 
 func (p *PageAddNodeForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	if page_instance.header.IsHistory(PAGE_ADD_NODE_FORM) {
+		p.animationEnter.Reset()
+		p.animationLeave.Start()
+	} else {
+		p.isActive = false
+	}
 }
 
 func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

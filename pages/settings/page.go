@@ -15,6 +15,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -29,13 +30,14 @@ type Page struct {
 
 	settingsItems []*SettingsItem
 
+	header       *prefabs.Header
 	langSelector *prefabs.LangSelector
 }
 
 var _ router.Page = &Page{}
 
 func New() *Page {
-	langSelector := prefabs.NewLangSelector("en")
+	langSelector := prefabs.NewLangSelector(settings.App.Language)
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -55,8 +57,16 @@ func New() *Page {
 		NewSettingsItem("Build Time", buildTime),                  //@lang.Translate("Build Time")
 	}
 
+	pageRouter := router.NewRouter()
+
+	th := app_instance.Theme
+	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
+	labelHeaderStyle.Font.Weight = font.Bold
+	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
+
 	return &Page{
 		list:          list,
+		header:        header,
 		settingsItems: settingsItems,
 		langSelector:  langSelector,
 	}
@@ -67,6 +77,7 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
+	p.header.SetTitle(lang.Translate("Settings"))
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_SETTINGS)
 	p.isActive = true
 }
@@ -105,6 +116,14 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	listStyle.AnchorStrategy = material.Overlay
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Inset{
+				Top: unit.Dp(30), Bottom: unit.Dp(30),
+				Left: unit.Dp(30), Right: unit.Dp(30),
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return p.header.Layout(gtx, th)
+			})
+		}),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 				return widgets[index](gtx, index)

@@ -179,6 +179,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	if p.buttonContacts.Clickable.Clicked() {
+		page_instance.header.AddHistory(PAGE_CONTACTS)
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 	}
 
@@ -265,6 +266,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.ringSizeSelector.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.accordionOptions.Style.Button.Text = lang.Translate("Options")
 			return p.accordionOptions.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),

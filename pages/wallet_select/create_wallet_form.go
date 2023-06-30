@@ -54,7 +54,7 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
+		gween.New(0, -1, .5, ease.OutCubic),
 	))
 
 	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")

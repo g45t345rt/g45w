@@ -134,8 +134,12 @@ func (p *PageEditNodeForm) Enter() {
 }
 
 func (p *PageEditNodeForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	if page_instance.header.IsHistory(PAGE_EDIT_NODE_FORM) {
+		p.animationEnter.Reset()
+		p.animationLeave.Start()
+	} else {
+		p.isActive = false
+	}
 }
 
 func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

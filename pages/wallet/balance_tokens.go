@@ -208,6 +208,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	if p.buttonSettings.Clickable.Clicked() {
+		page_instance.header.AddHistory(PAGE_SETTINGS)
 		page_instance.pageRouter.SetCurrent(PAGE_SETTINGS)
 	}
 
@@ -231,6 +232,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	if p.buttonRegister.Clickable.Clicked() {
+		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
 		page_instance.pageRouter.SetCurrent(PAGE_REGISTER_WALLET)
 	}
 
@@ -267,6 +269,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		widgets = append(widgets, item.Layout)
 
 		if item.Clickable.Clicked() {
+			page_instance.header.AddHistory(PAGE_SC_TOKEN)
 			page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
 		}
 	}
