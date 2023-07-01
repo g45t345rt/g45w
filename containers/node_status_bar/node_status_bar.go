@@ -46,6 +46,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
 	//paint.PaintOp{}.Add(gtx.Ops)
+
 	if wallet_manager.OpenedWallet == nil {
 		return layout.Dimensions{}
 	}

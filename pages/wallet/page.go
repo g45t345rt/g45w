@@ -150,8 +150,8 @@ func (p *Page) Enter() {
 		if lastHistory != nil {
 			p.pageRouter.SetCurrent(lastHistory)
 		} else {
-			p.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 			p.header.AddHistory(PAGE_BALANCE_TOKENS)
+			p.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 		}
 	} else {
 		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
@@ -164,6 +164,8 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	p.header.HandleKeyBack(gtx)
+
 	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet == nil {
 		return layout.Dimensions{Size: gtx.Constraints.Max}

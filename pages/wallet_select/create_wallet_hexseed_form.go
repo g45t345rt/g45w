@@ -44,11 +44,11 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 	list.Axis = layout.Vertical
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
+		gween.New(1, 0, .25, ease.Linear),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .5, ease.OutCubic),
+		gween.New(0, 1, .25, ease.Linear),
 	))
 
 	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")

@@ -43,10 +43,6 @@ func NewHeader(labelTitle material.LabelStyle, r *router.Router) *Header {
 		history:      make([]interface{}, 0),
 	}
 
-	//r.Event.On(router.EVENT_CHANGE, func(e *emitter.Event) {
-	//	header.history = append(header.history, e.Args[0])
-	//})
-
 	return header
 }
 
@@ -89,17 +85,11 @@ func (h *Header) GoBack() {
 	}
 }
 
-func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if h.buttonGoBack.Clickable.Clicked() {
-		h.GoBack()
-	}
-
-	showBackButton := len(h.history) > 1
-
+func (h *Header) HandleKeyBack(gtx layout.Context) {
 	for _, e := range gtx.Events(h.keyEvent) {
 		switch e := e.(type) {
 		case key.Event:
-			if e.Name == key.NameBack || e.Name == key.NameDeleteBackward && e.State == key.Release {
+			if e.Name == key.NameEscape || e.Name == key.NameBack && e.State == key.Press { // don't use key.Release not implement on Android
 				h.GoBack()
 			}
 		}
@@ -107,8 +97,16 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimension
 
 	key.InputOp{
 		Tag:  h.keyEvent,
-		Keys: key.NameDeleteBackward + key.NameBack,
+		Keys: key.NameEscape + key.NameBack,
 	}.Add(gtx.Ops)
+}
+
+func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if h.buttonGoBack.Clickable.Clicked() {
+		h.GoBack()
+	}
+
+	showBackButton := len(h.history) > 1
 
 	return layout.Flex{
 		Axis:      layout.Horizontal,
