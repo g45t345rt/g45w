@@ -1,1 +1,1 @@
-adb install ./build/g45w_android.apk
+adb install ./build/g45w_android_amd64.apk

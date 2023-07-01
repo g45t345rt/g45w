@@ -1,0 +1,36 @@
+name: Build Android
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Install Choco
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+      - name: Install Android SDK and NDK
+        run: |
+          choco install -y android-sdk
+          choco install -y android-ndk
+
+      - name: Build android
+        run: ./build_gio.sh android amd64
+
+      - name: Archive build
+        uses: actions/upload-artifact@v2
+        with:
+          name: Build
+          path: build

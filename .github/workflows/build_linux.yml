@@ -1,9 +1,7 @@
-name: Build
+name: Build Linux
 
 on:
-  push:
-    branches:
-        - master
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,5 +28,5 @@ jobs:
     - name: Archive build
       uses: actions/upload-artifact@v2
       with:
-        name: built-folder
+        name: Build
         path: build
