@@ -21,6 +21,9 @@ jobs:
       with:
         go-version: 1.19.10
 
+    - name: Set permission for build bash file
+      run: chmod +x ./build_go.sh
+
     - name: Build linux amd64
       run: ./build_go.sh linux amd64
 
