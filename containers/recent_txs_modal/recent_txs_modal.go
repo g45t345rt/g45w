@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"gioui.org/font"
-	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/text"
 	"gioui.org/unit"
@@ -21,9 +20,8 @@ import (
 )
 
 type RecentTxsModal struct {
-	modal    *components.Modal
-	list     *widget.List
-	keyEvent bool
+	modal *components.Modal
+	list  *widget.List
 }
 
 var Instance *RecentTxsModal
@@ -70,20 +68,6 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 			Status:        "Checking transaction...",
 		})
 	}
-
-	for _, e := range gtx.Events(r.keyEvent) {
-		switch e := e.(type) {
-		case key.Event:
-			if e.Name == key.NameDeleteBackward && e.State == key.Press { // don't use key.Release not implement on Android
-				r.SetVisible(false)
-			}
-		}
-	}
-
-	key.InputOp{
-		Tag:  r.keyEvent,
-		Keys: key.NameDeleteBackward,
-	}.Add(gtx.Ops)
 
 	r.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{

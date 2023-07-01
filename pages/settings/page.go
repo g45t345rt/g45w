@@ -22,7 +22,9 @@ type Page struct {
 	animationLeave *animation.Animation
 	header         *prefabs.Header
 	pageRouter     *router.Router
-	langSelector   *prefabs.LangSelector
+
+	pageFront *PageFront
+	pageInfo  *PageInfo
 }
 
 var (
@@ -61,6 +63,8 @@ func New() *Page {
 		animationLeave: animationLeave,
 		header:         header,
 		pageRouter:     pageRouter,
+		pageFront:      pageFront,
+		pageInfo:       pageInfo,
 	}
 
 	page_instance = page
@@ -93,8 +97,6 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	p.header.HandleKeyBack(gtx)
-
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			{

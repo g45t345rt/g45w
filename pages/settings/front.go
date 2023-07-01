@@ -34,7 +34,12 @@ type PageFront struct {
 var _ router.Page = &PageFront{}
 
 func NewPageFront() *PageFront {
-	langSelector := prefabs.NewLangSelector(settings.App.Language)
+	langKey := "en"
+	if settings.App.Language != "" {
+		langKey = settings.App.Language
+	}
+
+	langSelector := prefabs.NewLangSelector(langKey)
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),

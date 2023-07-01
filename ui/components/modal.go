@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"gioui.org/app"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -105,6 +106,7 @@ type ModalStyle struct {
 	BgColor             color.NRGBA
 	Backdrop            layout.Widget
 	Animation           ModalAnimation
+	CloseKeySet         key.Set
 }
 
 type Modal struct {
@@ -116,6 +118,10 @@ type Modal struct {
 }
 
 func NewModal(w *app.Window, style ModalStyle) *Modal {
+	if style.CloseKeySet == "" {
+		style.CloseKeySet = key.NameEscape + "|" + key.NameBack
+	}
+
 	return &Modal{
 		Style:        style,
 		window:       w,
@@ -143,10 +149,28 @@ func (modal *Modal) SetVisible(visible bool) {
 	modal.window.Invalidate()
 }
 
+func (modal *Modal) handleKeyClose(gtx layout.Context) {
+	key.InputOp{
+		Tag:  modal,
+		Keys: modal.Style.CloseKeySet,
+	}.Add(gtx.Ops)
+
+	for _, e := range gtx.Events(modal) {
+		switch e := e.(type) {
+		case key.Event:
+			if e.State == key.Press {
+				modal.SetVisible(false)
+			}
+		}
+	}
+}
+
 func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Context), w layout.Widget) layout.Dimensions {
 	if !modal.visible {
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
+
+	modal.handleKeyClose(gtx)
 
 	animationEnter := modal.Style.Animation.animationEnter
 	transformEnter := modal.Style.Animation.transformEnter

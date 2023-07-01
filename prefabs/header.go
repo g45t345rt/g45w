@@ -21,8 +21,6 @@ type Header struct {
 	buttonGoBack *components.Button
 	router       *router.Router
 	history      []interface{}
-
-	keyEvent bool
 }
 
 func NewHeader(labelTitle material.LabelStyle, r *router.Router) *Header {
@@ -85,23 +83,25 @@ func (h *Header) GoBack() {
 	}
 }
 
-func (h *Header) HandleKeyBack(gtx layout.Context) {
-	for _, e := range gtx.Events(h.keyEvent) {
+func (h *Header) handleKeyBack(gtx layout.Context) {
+	key.InputOp{
+		Tag:  h,
+		Keys: key.NameEscape + "|" + key.NameBack,
+	}.Add(gtx.Ops)
+
+	for _, e := range gtx.Events(h) {
 		switch e := e.(type) {
 		case key.Event:
-			if e.Name == key.NameEscape || e.Name == key.NameBack && e.State == key.Press { // don't use key.Release not implement on Android
+			if e.State == key.Press { // don't use key.Release not implement on Android
 				h.GoBack()
 			}
 		}
 	}
-
-	key.InputOp{
-		Tag:  h.keyEvent,
-		Keys: key.NameEscape + key.NameBack,
-	}.Add(gtx.Ops)
 }
 
 func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	h.handleKeyBack(gtx)
+
 	if h.buttonGoBack.Clickable.Clicked() {
 		h.GoBack()
 	}

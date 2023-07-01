@@ -26,10 +26,10 @@ type NotificationStyle struct {
 
 type NotificationModal struct {
 	Style NotificationStyle
+	Modal *Modal
 
 	title    string
 	subtitle string
-	modal    *Modal
 	timer    *time.Timer
 }
 
@@ -104,7 +104,7 @@ func NewNotificationModal(w *app.Window, style NotificationStyle) *NotificationM
 	modal := NewModal(w, modalStyle)
 	notification := &NotificationModal{
 		Style: style,
-		modal: modal,
+		Modal: modal,
 	}
 	return notification
 }
@@ -127,11 +127,11 @@ func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
 		}
 	}
 
-	n.modal.SetVisible(visible)
+	n.Modal.SetVisible(visible)
 }
 
 func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	return n.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+	return n.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return n.Style.InnerInset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

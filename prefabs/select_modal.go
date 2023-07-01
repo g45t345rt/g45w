@@ -18,9 +18,9 @@ import (
 
 type SelectModal struct {
 	SelectedKey string
+	Modal       *components.Modal
 
 	list     *widget.List
-	modal    *components.Modal
 	selected bool
 }
 
@@ -40,7 +40,7 @@ func NewSelectModal(w *app.Window) *SelectModal {
 	})
 
 	return &SelectModal{
-		modal: modal,
+		Modal: modal,
 		list:  list,
 	}
 }
@@ -51,7 +51,7 @@ func (l *SelectModal) Selected() bool {
 
 func (l *SelectModal) Layout(gtx layout.Context, th *material.Theme, items []*SelectListItem) layout.Dimensions {
 	l.selected = false
-	return l.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+	return l.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
 			Left: unit.Dp(10), Right: unit.Dp(10),

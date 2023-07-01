@@ -115,8 +115,6 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	p.header.HandleKeyBack(gtx)
-
 	if bottom_bar.Instance.ButtonWallet.Button.Clickable.Clicked() {
 		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 	}

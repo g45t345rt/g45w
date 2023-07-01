@@ -164,8 +164,6 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	p.header.HandleKeyBack(gtx)
-
 	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet == nil {
 		return layout.Dimensions{Size: gtx.Constraints.Max}

@@ -21,8 +21,8 @@ import (
 )
 
 type LangSelector struct {
-	buttonSelect *components.Button
-	selectModal  *SelectModal
+	ButtonSelect *components.Button
+	SelectModal  *SelectModal
 
 	changed bool
 	Value   string
@@ -88,8 +88,8 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 
 	defaultLanguage := lang.Translate(defaultLangKey)
 	r := &LangSelector{
-		buttonSelect: buttonSelect,
-		selectModal:  selectModal,
+		ButtonSelect: buttonSelect,
+		SelectModal:  selectModal,
 		Value:        defaultLanguage,
 	}
 
@@ -103,15 +103,15 @@ func (r *LangSelector) Changed() bool {
 func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	r.changed = false
 
-	if r.buttonSelect.Clickable.Clicked() {
-		r.selectModal.modal.SetVisible(true)
+	if r.ButtonSelect.Clickable.Clicked() {
+		r.SelectModal.Modal.SetVisible(true)
 	}
 
-	selected := r.selectModal.Selected()
+	selected := r.SelectModal.Selected()
 	if selected {
-		r.Value = r.selectModal.SelectedKey
+		r.Value = r.SelectModal.SelectedKey
 		r.changed = true
-		r.selectModal.modal.SetVisible(false)
+		r.SelectModal.Modal.SetVisible(false)
 	}
 
 	value := r.Value
@@ -121,6 +121,6 @@ func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	r.buttonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), value)
-	return r.buttonSelect.Layout(gtx, th)
+	r.ButtonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), value)
+	return r.ButtonSelect.Layout(gtx, th)
 }
