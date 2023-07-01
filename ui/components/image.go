@@ -31,10 +31,7 @@ type Image struct {
 
 	Transform func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D
 
-	RNW unit.Dp
-	RNE unit.Dp
-	RSW unit.Dp
-	RSE unit.Dp
+	Rounded Rounded
 }
 
 func (im Image) Layout(gtx layout.Context) layout.Dimensions {
@@ -58,8 +55,8 @@ func (im Image) Layout(gtx layout.Context) layout.Dimensions {
 
 	defer clip.RRect{
 		Rect: image.Rectangle{Max: dims.Size},
-		NW:   gtx.Dp(im.RNW), NE: gtx.Dp(im.RNE),
-		SE: gtx.Dp(im.RSE), SW: gtx.Dp(im.RSW),
+		NW:   gtx.Dp(im.Rounded.NW), NE: gtx.Dp(im.Rounded.NE),
+		SE: gtx.Dp(im.Rounded.SE), SW: gtx.Dp(im.Rounded.SW),
 	}.Push(gtx.Ops).Pop()
 
 	if im.Transform != nil {

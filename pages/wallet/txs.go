@@ -88,8 +88,11 @@ func (p *PageTxs) Enter() {
 	p.isActive = true
 
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_TXS)
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_TXS) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageTxs) Leave() {

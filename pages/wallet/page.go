@@ -150,8 +150,8 @@ func (p *Page) Enter() {
 		if lastHistory != nil {
 			p.pageRouter.SetCurrent(lastHistory)
 		} else {
-			p.header.AddHistory(PAGE_BALANCE_TOKENS)
 			p.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
+			p.header.AddHistory(PAGE_BALANCE_TOKENS)
 		}
 	} else {
 		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
@@ -170,18 +170,18 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	}
 
 	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
-		p.header.AddHistory(PAGE_SEND_FORM)
 		p.pageRouter.SetCurrent(PAGE_SEND_FORM)
+		p.header.AddHistory(PAGE_SEND_FORM)
 	}
 
 	if p.pageBalanceTokens.displayBalance.buttonReceive.Clickable.Clicked() {
-		p.header.AddHistory(PAGE_RECEIVE_FORM)
 		p.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
+		p.header.AddHistory(PAGE_RECEIVE_FORM)
 	}
 
 	if p.pageBalanceTokens.tokenBar.buttonAddToken.Clickable.Clicked() {
-		p.header.AddHistory(PAGE_ADD_SC_FORM)
 		p.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
+		p.header.AddHistory(PAGE_ADD_SC_FORM)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

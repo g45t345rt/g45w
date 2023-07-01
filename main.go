@@ -145,10 +145,10 @@ func main() {
 	notification_modals.LoadInstance()
 	recent_txs_modal.LoadInstance()
 
-	appRouter.Add(app_instance.PAGE_SETTINGS, page_settings.New())
 	appRouter.Add(app_instance.PAGE_NODE, page_node.New())
 	appRouter.Add(app_instance.PAGE_WALLET, page_wallet.New())
 	appRouter.Add(app_instance.PAGE_WALLET_SELECT, page_wallet_select.New())
+	appRouter.Add(app_instance.PAGE_SETTINGS, page_settings.New())
 	appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 
 	go func() {

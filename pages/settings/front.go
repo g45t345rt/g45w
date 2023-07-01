@@ -49,7 +49,7 @@ func NewPageFront() *PageFront {
 		Icon:            infoIcon,
 		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		BackgroundColor: color.NRGBA{A: 0},
-		TextSize:        unit.Sp(14),
+		TextSize:        unit.Sp(16),
 		IconGap:         unit.Dp(10),
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
@@ -81,6 +81,7 @@ func (p *PageFront) IsActive() bool {
 func (p *PageFront) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Settings"))
+
 	if !page_instance.header.IsHistory(PAGE_FRONT) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
@@ -113,8 +114,8 @@ func (p *PageFront) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}
 
 	if p.buttonInfo.Clickable.Clicked() {
-		page_instance.header.AddHistory(PAGE_INFO)
 		page_instance.pageRouter.SetCurrent(PAGE_INFO)
+		page_instance.header.AddHistory(PAGE_INFO)
 	}
 
 	widgets := []layout.Widget{

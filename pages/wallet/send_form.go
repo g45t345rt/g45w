@@ -144,8 +144,10 @@ func (p *PageSendForm) IsActive() bool {
 
 func (p *PageSendForm) Enter() {
 	p.isActive = true
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+	if !page_instance.header.IsHistory(PAGE_SEND_FORM) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 	page_instance.pageBalanceTokens.ResetWalletHeader()
 }
 
@@ -179,8 +181,8 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	if p.buttonContacts.Clickable.Clicked() {
-		page_instance.header.AddHistory(PAGE_CONTACTS)
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
+		page_instance.header.AddHistory(PAGE_CONTACTS)
 	}
 
 	widgets := []layout.Widget{

@@ -85,8 +85,11 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 func (p *PageCreateWalletHexSeedForm) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Recover from Hex Seed"))
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_HEXSEED_FORM) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageCreateWalletHexSeedForm) Leave() {

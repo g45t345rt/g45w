@@ -116,8 +116,11 @@ func (p *PageSettings) Enter() {
 	page_instance.header.Subtitle = nil
 
 	p.isActive = true
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_SETTINGS) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageSettings) Leave() {

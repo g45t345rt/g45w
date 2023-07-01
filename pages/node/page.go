@@ -17,8 +17,7 @@ import (
 )
 
 type Page struct {
-	isActive   bool
-	firstEnter bool
+	isActive bool
 
 	pageRouter *router.Router
 
@@ -76,7 +75,6 @@ func New() *Page {
 	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
 
 	page := &Page{
-		firstEnter:         true,
 		pageRouter:         pageRouter,
 		pageSelectNode:     pageSelectNode,
 		pageAddNodeForm:    pageAddNodeForm,
@@ -130,39 +128,43 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-
-		if state.Active {
-			defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
-
-	defer prefabs.PaintLinearGradient(gtx).Pop()
-
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Inset{
-				Top: unit.Dp(30), Bottom: unit.Dp(20),
-				Left: unit.Dp(30), Right: unit.Dp(30),
-			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return p.header.Layout(gtx, th)
-			})
-		}),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return p.pageRouter.Layout(gtx, th)
+			{
+				state := p.animationEnter.Update(gtx)
+				if state.Active {
+					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
+				}
+			}
+
+			{
+				state := p.animationLeave.Update(gtx)
+
+				if state.Active {
+					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
+				}
+
+				if state.Finished {
+					p.isActive = false
+					op.InvalidateOp{}.Add(gtx.Ops)
+				}
+			}
+
+			defer prefabs.PaintLinearGradient(gtx).Pop()
+
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Inset{
+						Top: unit.Dp(30), Bottom: unit.Dp(20),
+						Left: unit.Dp(30), Right: unit.Dp(30),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return p.header.Layout(gtx, th)
+					})
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return p.pageRouter.Layout(gtx, th)
+				}),
+			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return bottom_bar.Instance.Layout(gtx, th)

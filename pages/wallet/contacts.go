@@ -83,8 +83,10 @@ func (p *PageContacts) Enter() {
 		p.contactItems = append(p.contactItems, item)
 	}
 
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+	if !page_instance.header.IsHistory(PAGE_CONTACTS) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageContacts) Leave() {
@@ -113,8 +115,8 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	if p.buttonAddContact.Clickable.Clicked() {
-		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
+		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
 	}
 
 	widgets := []layout.Widget{}

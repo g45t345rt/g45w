@@ -142,8 +142,10 @@ func (p *PageContactForm) Enter() {
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = nil
 
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+	if !page_instance.header.IsHistory(PAGE_CONTACT_FORM) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageContactForm) Leave() {

@@ -65,8 +65,11 @@ func (p *PageReceiveForm) IsActive() bool {
 
 func (p *PageReceiveForm) Enter() {
 	p.isActive = true
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_RECEIVE_FORM) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 
 	// gio ui does not implement character break yet https://todo.sr.ht/~eliasnaur/gio/467
 	addr := "dero1qyvzwypmgqrqpsr8xlz209mwr6sz8fu9a4fphkpnesg29du40zw22qqpm2nkv"

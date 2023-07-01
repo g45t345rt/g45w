@@ -87,8 +87,11 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 func (p *PageCreateWalletSeedForm) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Recover from Seed"))
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_SEED_FORM) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageCreateWalletSeedForm) Leave() {

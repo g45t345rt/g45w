@@ -100,8 +100,11 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 
 func (p *PageRegisterWallet) Enter() {
 	p.isActive = true
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_REGISTER_WALLET) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageRegisterWallet) Leave() {

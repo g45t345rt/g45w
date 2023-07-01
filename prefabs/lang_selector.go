@@ -3,14 +3,17 @@ package prefabs
 import (
 	"fmt"
 	"image/color"
+	"log"
 
 	"gioui.org/font"
 	"gioui.org/layout"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -45,10 +48,33 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 	w := app_instance.Window
 
 	languages := lang.SupportedLanguages
-	for _, langKey := range languages {
-		items = append(items, NewSelectListItem(langKey, func(gtx layout.Context, index int) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(20), lang.Translate(languages[index]))
-			return lbl.Layout(gtx)
+	for _, language := range languages {
+		img, err := assets.GetImage(language.ImgPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		langImg := &components.Image{
+			Src:      paint.NewImageOp(img),
+			Fit:      components.Cover,
+			Position: layout.Center,
+			Rounded:  components.UniformRounded(unit.Dp(5)),
+		}
+
+		items = append(items, NewSelectListItem(language.Key, func(gtx layout.Context, index int) layout.Dimensions {
+			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Max.X = gtx.Dp(45)
+					gtx.Constraints.Max.Y = gtx.Dp(30)
+					return langImg.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					name := languages[index].Name
+					lbl := material.Label(th, unit.Sp(20), lang.Translate(name))
+					return lbl.Layout(gtx)
+				}),
+			)
 		}))
 	}
 
@@ -88,6 +114,13 @@ func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		r.selectModal.modal.SetVisible(false)
 	}
 
-	r.buttonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), r.Value)
+	value := r.Value
+	for _, language := range lang.SupportedLanguages {
+		if language.Key == r.Value {
+			value = lang.Translate(language.Name)
+		}
+	}
+
+	r.buttonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), value)
 	return r.buttonSelect.Layout(gtx, th)
 }

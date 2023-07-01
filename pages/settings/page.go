@@ -75,8 +75,15 @@ func (p *Page) Enter() {
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_SETTINGS)
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
-	p.header.AddHistory(PAGE_FRONT)
-	p.pageRouter.SetCurrent(PAGE_FRONT)
+
+	lastHistory := p.header.GetLastHistory()
+	if lastHistory != nil {
+		p.pageRouter.SetCurrent(lastHistory)
+	} else {
+		p.header.AddHistory(PAGE_FRONT)
+		p.pageRouter.SetCurrent(PAGE_FRONT)
+	}
+
 	p.isActive = true
 }
 

@@ -81,8 +81,11 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 func (p *PageCreateWalletDiskForm) Enter() {
 	p.isActive = true
 
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_DISK_FORM) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
+
 	page_instance.header.SetTitle(lang.Translate("Load from Disk"))
 
 	read, err := app_instance.Explorer.ChooseFile()

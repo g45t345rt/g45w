@@ -49,8 +49,11 @@ func (p *PageSCToken) IsActive() bool {
 
 func (p *PageSCToken) Enter() {
 	p.isActive = true
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_SC_TOKEN) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageSCToken) Leave() {

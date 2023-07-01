@@ -36,8 +36,7 @@ import (
 )
 
 type PageBalanceTokens struct {
-	isActive   bool
-	firstEnter bool
+	isActive bool
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -119,7 +118,6 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		tokenBar:       NewTokenBar(th),
 		alertBox:       NewAlertBox(),
 		tokenItems:     tokenItems,
-		firstEnter:     true,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		list:           list,
@@ -136,7 +134,7 @@ func (p *PageBalanceTokens) IsActive() bool {
 func (p *PageBalanceTokens) Enter() {
 	p.isActive = true
 
-	if !p.firstEnter {
+	if !page_instance.header.IsHistory(PAGE_BALANCE_TOKENS) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
@@ -144,7 +142,6 @@ func (p *PageBalanceTokens) Enter() {
 	p.ResetWalletHeader()
 	page_instance.header.ButtonRight = p.buttonSettings
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
-	p.firstEnter = false
 }
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
@@ -208,8 +205,8 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	if p.buttonSettings.Clickable.Clicked() {
-		page_instance.header.AddHistory(PAGE_SETTINGS)
 		page_instance.pageRouter.SetCurrent(PAGE_SETTINGS)
+		page_instance.header.AddHistory(PAGE_SETTINGS)
 	}
 
 	var wallet *walletapi.Wallet_Memory
@@ -232,8 +229,8 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	if p.buttonRegister.Clickable.Clicked() {
-		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
 		page_instance.pageRouter.SetCurrent(PAGE_REGISTER_WALLET)
+		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
 	}
 
 	widgets := []layout.Widget{
@@ -532,12 +529,9 @@ type TokenImageItem struct {
 
 func NewTokenImageItem(src image.Image) *TokenImageItem {
 	image := &components.Image{
-		Src: paint.NewImageOp(src),
-		Fit: components.Cover,
-		RNW: unit.Dp(10),
-		RNE: unit.Dp(10),
-		RSW: unit.Dp(10),
-		RSE: unit.Dp(10),
+		Src:     paint.NewImageOp(src),
+		Fit:     components.Cover,
+		Rounded: components.UniformRounded(unit.Dp(10)),
 	}
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
