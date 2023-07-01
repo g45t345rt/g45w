@@ -8,13 +8,13 @@ fi
 
 GOOS=$1
 GOARCH=$2
-output="./build/g45w_${GOOS}_${GOARCH}"
+OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
 
-source build_vars.sh
+source ./build_vars.sh
 
 if [ $GOOS = "windows" ]; then
-  output+=".exe"
+  OUTPUT+=".exe"
   FLAGS="$FLAGS -H windowsgui"
 fi
 
-GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="$FLAGS" -o "$output" .
+GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="$FLAGS" -o "$OUTPUT" .

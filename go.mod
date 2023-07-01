@@ -16,7 +16,6 @@ require (
 require (
 	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
-	github.com/olebedev/emitter v0.0.0-20230411050614-349169dec2ba // indirect
 )
 
 require (

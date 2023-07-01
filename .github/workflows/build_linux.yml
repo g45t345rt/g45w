@@ -1,0 +1,31 @@
+name: Build
+
+on:
+  push:
+    branches:
+        - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install dependencies
+      run: apt install gcc pkg-config libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libgles2-mesa-dev libegl1-mesa-dev libffi-dev libxcursor-dev libvulkan-dev
+
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.19.10
+
+    - name: Build linux amd64
+      run: ./build_go.sh linux amd64
+
+    - name: Archive build
+      uses: actions/upload-artifact@v2
+      with:
+        name: built-folder
+        path: build
