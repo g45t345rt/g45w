@@ -95,7 +95,8 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			{
 				state := w.animationWrongPass.Update(gtx)
 				if state.Active {
-					transform := f32.Affine2D{}.Offset(f32.Pt(state.Value*15, 0))
+					value := float32(gtx.Dp(unit.Dp(state.Value * 50)))
+					transform := f32.Affine2D{}.Offset(f32.Pt(value, 0))
 					op.Affine(transform).Add(gtx.Ops)
 				}
 			}

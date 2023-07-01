@@ -175,8 +175,8 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 							return lbl.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							gtx.Constraints.Min.X = gtx.Dp(30)
-							gtx.Constraints.Min.Y = gtx.Dp(30)
+							gtx.Constraints.Min.X = gtx.Dp(35)
+							gtx.Constraints.Min.Y = gtx.Dp(35)
 							return p.buttonAddNode.Layout(gtx, th)
 						}),
 					)

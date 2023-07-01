@@ -144,8 +144,8 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimension
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			if h.ButtonRight != nil {
-				gtx.Constraints.Max.X = gtx.Dp(25)
-				gtx.Constraints.Max.Y = gtx.Dp(25)
+				gtx.Constraints.Min.X = gtx.Dp(30)
+				gtx.Constraints.Min.Y = gtx.Dp(30)
 				return h.ButtonRight.Layout(gtx, th)
 			}
 
