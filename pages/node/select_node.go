@@ -95,8 +95,10 @@ func (p *PageSelectNode) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Select Node"))
 
-	p.animationLeave.Reset()
-	p.animationEnter.Start()
+	if !page_instance.header.IsHistory(PAGE_SELECT_NODE) {
+		p.animationLeave.Reset()
+		p.animationEnter.Start()
+	}
 
 	p.Load()
 }
