@@ -25,19 +25,11 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Cache Android SDK and NDK
-        uses: actions/cache@v2
-        with:
-          path: |
-            ${{runner.workspace}}/android-sdk
-            ${{runner.workspace}}/android-ndk
-          key: ${{runner.os}}-android-${{hashFiles('**/build.gradle')}}
-          restore-keys: ${{runner.os}}-android-
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
 
-      - name: Install Android SDK and NDK
-        run: |
-          choco install -y android-sdk
-          choco install -y android-ndk
+      - name: Setup NDK
+        run: sdkmanager ndk-bundle
 
       - name: Build android
         run: ./build_gio.sh android amd64
