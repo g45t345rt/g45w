@@ -25,6 +25,9 @@ jobs:
     - name: Build linux amd64
       run: ./build_go.sh linux amd64
 
+    - name: Build linux arm64
+      run: ./build_go.sh linux arm64
+
     - name: Archive build
       uses: actions/upload-artifact@v3
       with:

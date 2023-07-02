@@ -45,13 +45,13 @@ Check Github workflows for more build information.
 
 Install Android SDK with NDK bundle!
 
-Run `./build_gio.sh android amd64`  
+Run `./build_gio.sh android arm64`  
 Use `./adb_install.sh` to install apk, if your phone is connected with developer mode.
 
 ### IOS
 
 Xcode is required!  
-Run `./build_gio.sh ios amd64`
+Run `./build_gio.sh ios arm64`
 
 ### Linux
 
@@ -85,8 +85,8 @@ Run `./build_gio.sh macos amd64`
 `/build/g45w_windows_amd64.exe`  
 `/build/g45w_linux_amd64`  
 `/build/g45w_macos_amd64.app`  
-`/build/g45w_ios_amd64.app`  
-`/build/g45w_android_amd64.apk`  
+`/build/g45w_ios_arm64.app`  
+`/build/g45w_android_arm64.apk`  
 
 ## License
 

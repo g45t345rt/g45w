@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./build_gio.sh android amd64
+./build_gio.sh android arm64

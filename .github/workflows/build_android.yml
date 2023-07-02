@@ -31,8 +31,8 @@ jobs:
       - name: Setup NDK
         run: sdkmanager ndk-bundle
 
-      - name: Build android
-        run: bash build_gio.sh android amd64
+      - name: Build android arm64
+        run: bash build_gio.sh android arm64
 
       - name: Archive build
         uses: actions/upload-artifact@v3
