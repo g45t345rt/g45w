@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-leatest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout repo
