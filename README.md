@@ -42,17 +42,18 @@ You can build your own version by following build steps bellow or use available 
 
 Install Android SDK with NDK bundle!
 
-Run `./build_gio.sh android amd64`
+Run `./build_gio.sh android amd64`  
 Use `./adb_install.sh` to install apk, if your phone is connected with developer mode.
 
 ### IOS
 
-Xcode is required!
+Xcode is required!  
 Run `./build_gio.sh ios amd64`
 
 ## Build Desktop
 
-Check Github workflows for more build information.
+Check Github workflows for more build information.  
+<https://github.com/g45t345rt/g45w/tree/master/.github/workflows>
 
 ### Linux
 
@@ -78,21 +79,20 @@ Run `./build_gio.sh windows amd64`
 
 #### MacOS
 
-Xcode is required!
-
+Xcode is required!  
 Run `./build_gio.sh macos amd64`
 
 ### Build Outputs
 
-`/build/g45w_windows_amd64.exe`
-`/build/g45w_linux_amd64`
-`/build/g45w_macos_amd64.app`
-`/build/g45w_ios_amd64.app`
-`/build/g45w_android_amd64.apk`
+`/build/g45w_windows_amd64.exe`  
+`/build/g45w_linux_amd64`  
+`/build/g45w_macos_amd64.app`  
+`/build/g45w_ios_amd64.app`  
+`/build/g45w_android_amd64.apk`  
 
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
-The MIT License (MIT)
+The MIT License (MIT)  
 Copyright (c) 2023 g45t345rt
