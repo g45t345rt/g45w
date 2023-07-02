@@ -6,6 +6,8 @@ if [[ $# -ne 2 ]]; then
   exit 1
 fi
 
+mkdir -p "./build"
+
 GOOS=$1
 GOARCH=$2
 OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
