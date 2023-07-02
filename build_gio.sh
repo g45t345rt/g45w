@@ -20,6 +20,10 @@ if [ $GOOS = "android" ]; then
   OUTPUT+=".apk"
 fi
 
+if [ $GOOS = "macos" ]; then
+  OUTPUT+=".app"
+fi
+
 ## gogio commands
 # target        = flag.String("target", "", "specify target (ios, tvos, android, js).\n")
 #	archNames     = flag.String("arch", "", "specify architecture(s) to include (arm, arm64, amd64).")
