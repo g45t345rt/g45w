@@ -27,7 +27,7 @@ if [ $GOOS = "macos" ]; then
 fi
 
 if [ $GOOS = "ios" ]; then
-  OUTPUT+=".app"
+  OUTPUT+=".ipa"
 fi
 
 ## gogio commands
