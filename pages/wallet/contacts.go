@@ -168,11 +168,12 @@ func (item *ContactListItem) Layout(gtx layout.Context) layout.Dimensions {
 	if item.listItemSelect.EditClicked() {
 		page_instance.pageContactForm.contact = &item.contact
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
+		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
 	}
 
 	if item.listItemSelect.SelectClicked() {
 		page_instance.pageSendForm.txtWalletAddr.SetValue(item.contact.Addr)
-		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
+		page_instance.header.GoBack()
 	}
 
 	return layout.Inset{

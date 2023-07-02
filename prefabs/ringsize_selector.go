@@ -39,7 +39,7 @@ func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
 
-	sizes := []string{"2", "4", "8", "16", "32", "64", "128", "256"}
+	sizes := []string{"2", "4", "8", "16", "32", "64", "128"}
 	items := []*SelectListItem{}
 
 	th := app_instance.Theme

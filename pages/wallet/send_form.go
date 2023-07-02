@@ -31,15 +31,15 @@ import (
 type PageSendForm struct {
 	isActive bool
 
-	SCID             string
-	txtAmount        *components.TextField
-	txtWalletAddr    *components.Input
-	txtComment       *components.TextField
-	txtDescription   *components.TextField
-	txtDstPort       *components.TextField
-	buttonBuildTx    *components.Button
-	accordionOptions *components.Accordion
-	buttonContacts   *components.Button
+	SCID           string
+	txtAmount      *components.TextField
+	txtWalletAddr  *components.Input
+	txtComment     *components.TextField
+	txtDescription *components.TextField
+	txtDstPort     *components.TextField
+	buttonBuildTx  *components.Button
+	buttonContacts *components.Button
+	buttonOptions  *components.Button
 
 	ringSizeSelector *prefabs.RingSizeSelector
 
@@ -53,7 +53,7 @@ var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
 	th := app_instance.Theme
-	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
+	buildIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            buildIcon,
@@ -90,24 +90,24 @@ func NewPageSendForm() *PageSendForm {
 
 	ringSizeSelector := prefabs.NewRingSizeSelector("16")
 
+	optionIcon, _ := widget.NewIcon(icons.ActionSettingsEthernet)
 	buttonOptions := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
+		Icon:            optionIcon,
+		IconGap:         unit.Dp(10),
+		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		BackgroundColor: color.NRGBA{A: 0},
 		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
 	})
 	buttonOptions.Label.Alignment = text.Middle
 	buttonOptions.Style.Font.Weight = font.Bold
-	accordionOptions := components.NewAccordion(components.AccordionStyle{
-		Border: widget.Border{
-			CornerRadius: unit.Dp(5),
-			Color:        color.NRGBA{A: 255},
-			Width:        unit.Dp(2),
-		},
-		Inset:  layout.UniformInset(unit.Dp(10)),
-		Button: buttonOptions,
-	}, false)
 
 	contactIcon, _ := widget.NewIcon(icons.SocialPerson)
 	buttonContacts := components.NewButton(components.ButtonStyle{
@@ -133,8 +133,8 @@ func NewPageSendForm() *PageSendForm {
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
 		list:             list,
-		accordionOptions: accordionOptions,
 		buttonContacts:   buttonContacts,
+		buttonOptions:    buttonOptions,
 	}
 }
 
@@ -180,6 +180,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	}
 
+	if p.buttonOptions.Clickable.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_SEND_OPTIONS_FORM)
+		page_instance.header.AddHistory(PAGE_SEND_OPTIONS_FORM)
+	}
+
 	if p.buttonContacts.Clickable.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 		page_instance.header.AddHistory(PAGE_CONTACTS)
@@ -192,12 +197,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), "Send DERO")
+						lbl := material.Label(th, unit.Sp(18), "Selected Asset [DERO]")
 						lbl.Font.Weight = font.Bold
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(14), "00000...00000")
+						lbl := material.Label(th, unit.Sp(16), "00000...00000")
 						lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
 						return lbl.Layout(gtx)
 					}),
@@ -268,25 +273,8 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.ringSizeSelector.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.accordionOptions.Style.Button.Text = lang.Translate("Options")
-			return p.accordionOptions.Layout(gtx, th, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						p.txtComment.Input.EditorMinY = gtx.Dp(75)
-						return p.txtComment.Layout(gtx, th)
-					}),
-					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return p.txtDstPort.Layout(gtx, th)
-					}),
-					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						p.txtDescription.Input.EditorMinY = gtx.Dp(75)
-						return p.txtDescription.Layout(gtx, th)
-					}),
-				)
-			})
+			p.buttonOptions.Text = lang.Translate("OPTIONS")
+			return p.buttonOptions.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonBuildTx.Text = lang.Translate("BUILD TRANSACTION")

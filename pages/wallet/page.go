@@ -46,16 +46,17 @@ var _ router.Page = &Page{}
 var page_instance *Page
 
 var (
-	PAGE_SETTINGS        = "page_settings"
-	PAGE_SEND_FORM       = "page_send_form"
-	PAGE_RECEIVE_FORM    = "page_receive_form"
-	PAGE_BALANCE_TOKENS  = "page_balance_tokens"
-	PAGE_ADD_SC_FORM     = "page_add_sc_form"
-	PAGE_TXS             = "page_txs"
-	PAGE_SC_TOKEN        = "page_sc_token"
-	PAGE_REGISTER_WALLET = "page_register_wallet"
-	PAGE_CONTACTS        = "page_contacts"
-	PAGE_CONTACT_FORM    = "page_contact_form"
+	PAGE_SETTINGS          = "page_settings"
+	PAGE_SEND_FORM         = "page_send_form"
+	PAGE_RECEIVE_FORM      = "page_receive_form"
+	PAGE_BALANCE_TOKENS    = "page_balance_tokens"
+	PAGE_ADD_SC_FORM       = "page_add_sc_form"
+	PAGE_TXS               = "page_txs"
+	PAGE_SC_TOKEN          = "page_sc_token"
+	PAGE_REGISTER_WALLET   = "page_register_wallet"
+	PAGE_CONTACTS          = "page_contacts"
+	PAGE_CONTACT_FORM      = "page_contact_form"
+	PAGE_SEND_OPTIONS_FORM = "page_send_options_form"
 )
 
 func New() *Page {
@@ -99,6 +100,9 @@ func New() *Page {
 
 	pageContactForm := NewPageContactForm()
 	pageRouter.Add(PAGE_CONTACT_FORM, pageContactForm)
+
+	pageSendOptionsForm := NewPageSendOptionsForm()
+	pageRouter.Add(PAGE_SEND_OPTIONS_FORM, pageSendOptionsForm)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold

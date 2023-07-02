@@ -415,8 +415,8 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Max.Y = gtx.Dp(50)
-						gtx.Constraints.Max.X = gtx.Dp(50)
+						gtx.Constraints.Min.Y = gtx.Dp(30)
+						gtx.Constraints.Min.X = gtx.Dp(30)
 
 						if settings.App.HideBalance {
 							d.buttonHideBalance.Style.Icon = d.showBalanceIcon
