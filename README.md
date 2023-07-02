@@ -36,7 +36,10 @@ transactions directly from this wallet.
 
 You can build your own version by following build steps bellow or use available prebuilds here <https://github.com/g45t345rt/g45w/releases>.
 
-## Build Mobile
+## How to build
+
+Check Github workflows for more build information.  
+<https://github.com/g45t345rt/g45w/tree/master/.github/workflows>
 
 ### Android
 
@@ -49,11 +52,6 @@ Use `./adb_install.sh` to install apk, if your phone is connected with developer
 
 Xcode is required!  
 Run `./build_gio.sh ios amd64`
-
-## Build Desktop
-
-Check Github workflows for more build information.  
-<https://github.com/g45t345rt/g45w/tree/master/.github/workflows>
 
 ### Linux
 
@@ -73,16 +71,16 @@ apt install gcc pkg-config libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon
 
 Run `./build_go.sh linux amd64`
 
-#### Windows
+### Windows
 
 Run `./build_gio.sh windows amd64`
 
-#### MacOS
+### MacOS
 
 Xcode is required!  
 Run `./build_gio.sh macos amd64`
 
-### Build Outputs
+### Outputs
 
 `/build/g45w_windows_amd64.exe`  
 `/build/g45w_linux_amd64`  
