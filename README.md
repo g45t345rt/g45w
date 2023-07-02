@@ -7,16 +7,17 @@ Cross-platform: Linux, Windows, MacOS, Android, IOS...
 
 ## Why
 
-Utimately, my goal is to bring more users into the Dero Ecosystem with a wallet that is intuitive and easy to use.
+Utimately, my goal is to bring more users into the Dero Ecosystem with a wallet that is intuitive, easy to use
+and don't compromise privacy.
 
-The Dero Project already has a fantastic wallet made by the foundation members,
-but I want to offer an alternative with a different UI and other features.
-The most notable difference in technology is that this wallet uses Gio UI instead of Fyne for rendering components.
+Although there is already a fantastic wallet created by the DERO Foundation members <https://github.com/DEROFDN/Engram>,
+I want to provide an alternative with a different user interface and additional features, such as smart contract interaction.
+One notable technological difference is that this wallet uses Gio UI instead of Fyne for rendering components.
 
-I also want to discontinue the `Dero RPC Bridge` browser extension in favor of this wallet.
-This will remove a painful/unsafe step of connecting your wallet directly with
-the platform. In the future platforms should provided QR code
-of smart contract calls to directly send from wallet.
+Additionally, I intend to discontinue the `Dero RPC Bridge` browser extension in favor of this wallet.
+This change should remove a painful/unsafe step of connecting your wallet directly to
+the platform. In the future, platforms should provide QR code for smart contract calls, allowing users to send
+transactions directly from this wallet.
 
 ## Features
 
@@ -31,23 +32,29 @@ of smart contract calls to directly send from wallet.
 
 ## Screenshots
 
-## Build
+## Releases
 
-### Mobile
+You can build your own version by following build steps bellow or use available prebuilds here <https://github.com/g45t345rt/g45w/releases>.
 
-#### Android
+## Build Mobile
 
-Run `./build_android.sh` to compile go and create apk package in `/build/g45w_android.apk`
+### Android
 
-#### IOS
+Install Android SDK with NDK bundle!
+
+Run `./build_gio.sh android amd64`
+Use `./adb_install.sh` to install apk, if your phone is connected with developer mode.
+
+### IOS
 
 Xcode is required!
+Run `./build_gio.sh ios amd64`
 
-Run `./build_ios.sh` to compile go and create app in `/build/g45w_ios.app`
+## Build Desktop
 
-### Desktop
+Check Github workflows for more build information.
 
-#### Linux
+### Linux
 
 Install dependencies
 
@@ -63,17 +70,25 @@ Ubuntu 18.04+
 apt install gcc pkg-config libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libgles2-mesa-dev libegl1-mesa-dev libffi-dev libxcursor-dev libvulkan-dev
 ```
 
-Run `./build.sh linux amd64` to compile and create file in `/build/g45w_linux_amd64`
+Run `./build_go.sh linux amd64`
 
 #### Windows
 
-Run `./build.sh windows amd64` to compile and create .exe in `/build/g45w_windows_amd64.exe`
+Run `./build_gio.sh windows amd64`
 
 #### MacOS
 
 Xcode is required!
 
-Run `./build.sh darwin amd64` to compile and create file in `/build/g45w_darwin_amd64`
+Run `./build_gio.sh macos amd64`
+
+### Build Outputs
+
+`/build/g45w_windows_amd64.exe`
+`/build/g45w_linux_amd64`
+`/build/g45w_macos_amd64.app`
+`/build/g45w_ios_amd64.app`
+`/build/g45w_android_amd64.apk`
 
 ## License
 
