@@ -30,7 +30,9 @@ transactions directly from this wallet.
 - Address book to manage contacts.
 - Support as much language as possible.
 
-## Screenshots
+## Demo
+
+![Wallet app demo](https://github.com/g45t345rt/g45w/blob/master/g45w_demo.mp4)
 
 ## Releases
 
