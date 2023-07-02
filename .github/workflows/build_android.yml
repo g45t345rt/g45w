@@ -16,6 +16,9 @@ jobs:
         with:
           go-version: 1.19.10
 
+      - name: Install gogio tool
+        run: go install gioui.org/cmd/gogio@latest
+
       - name: Set up Java
         uses: actions/setup-java@v2
         with:

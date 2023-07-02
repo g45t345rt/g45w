@@ -19,6 +19,9 @@ jobs:
     - name: Set permission for build bash file
       run: chmod +x ./build_gio.sh
 
+    - name: Install gogio tool
+      run: go install gioui.org/cmd/gogio@latest
+
     - name: Build macos amd64
       run: ./build_gio.sh macos amd64
 
