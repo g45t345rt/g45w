@@ -32,7 +32,7 @@ transactions directly from this wallet.
 
 ## Demo
 
-![Wallet app demo](https://github.com/g45t345rt/g45w/blob/master/g45w_demo.mp4)
+![Wallet app demo](https://github.com/g45t345rt/g45w/blob/master/g45w_demo.gif)
 
 ## Releases
 
