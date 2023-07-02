@@ -34,9 +34,6 @@ type PageSendForm struct {
 	SCID           string
 	txtAmount      *components.TextField
 	txtWalletAddr  *components.Input
-	txtComment     *components.TextField
-	txtDescription *components.TextField
-	txtDstPort     *components.TextField
 	buttonBuildTx  *components.Button
 	buttonContacts *components.Button
 	buttonOptions  *components.Button
@@ -69,13 +66,6 @@ func NewPageSendForm() *PageSendForm {
 
 	txtAmount := components.NewTextField(th, lang.Translate("Amount"), "")
 	txtWalletAddr := components.NewInput(th, "")
-	txtComment := components.NewTextField(th, lang.Translate("Comment"), lang.Translate("The comment is natively encrypted."))
-	txtComment.Editor().SingleLine = false
-	txtComment.Editor().Submit = false
-	txtDescription := components.NewTextField(th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
-	txtDescription.Editor().SingleLine = false
-	txtDescription.Editor().Submit = false
-	txtDstPort := components.NewTextField(th, lang.Translate("Destination Port"), "")
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
@@ -125,9 +115,6 @@ func NewPageSendForm() *PageSendForm {
 	return &PageSendForm{
 		txtAmount:        txtAmount,
 		txtWalletAddr:    txtWalletAddr,
-		txtComment:       txtComment,
-		txtDstPort:       txtDstPort,
-		txtDescription:   txtDescription,
 		buttonBuildTx:    buttonBuildTx,
 		ringSizeSelector: ringSizeSelector,
 		animationEnter:   animationEnter,
@@ -308,15 +295,17 @@ func (p *PageSendForm) submitForm() error {
 	wallet := wallet_manager.OpenedWallet.Memory
 
 	destination := p.txtWalletAddr.Value()
+	txtComment := page_instance.pageSendOptionsForm.txtComment
+	txtDstPort := page_instance.pageSendOptionsForm.txtDstPort
 
 	var arguments rpc.Arguments
 
-	comment := p.txtComment.Value()
+	comment := txtComment.Value()
 	if len(comment) > 0 {
 		arguments = append(arguments, rpc.Argument{Name: rpc.RPC_COMMENT, DataType: rpc.DataString, Value: comment})
 	}
 
-	destPortString := p.txtDstPort.Value()
+	destPortString := txtDstPort.Value()
 	if len(destPortString) > 0 {
 		destPort, err := strconv.ParseUint(destPortString, 10, 64)
 		if err != nil {

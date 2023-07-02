@@ -30,6 +30,7 @@ type PageCreateWalletDiskForm struct {
 
 	list *widget.List
 
+	buttonCreate  *components.Button
 	txtWalletName *components.TextField
 	txtPassword   *components.TextField
 	buttonLoad    *components.Button
@@ -56,9 +57,21 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 	txtPassword := components.NewPasswordTextField(th, lang.Translate("Password"), "")
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
-	buttonLoad := components.NewButton(components.ButtonStyle{
+	buttonCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            iconCreate,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+
+	iconOpen, _ := widget.NewIcon(icons.FileFolderOpen)
+	buttonLoad := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            iconOpen,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -74,6 +87,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 
 		txtWalletName: txtWalletName,
 		txtPassword:   txtPassword,
+		buttonCreate:  buttonCreate,
 		buttonLoad:    buttonLoad,
 	}
 }
@@ -87,17 +101,6 @@ func (p *PageCreateWalletDiskForm) Enter() {
 	}
 
 	page_instance.header.SetTitle(lang.Translate("Load from Disk"))
-
-	read, err := app_instance.Explorer.ChooseFile()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	switch f := read.(type) {
-	case *os.File:
-		p.walletPath = f.Name()
-	default:
-	}
 }
 
 func (p *PageCreateWalletDiskForm) Leave() {
@@ -130,6 +133,23 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	}
 
 	if p.buttonLoad.Clickable.Clicked() {
+		go func() {
+			read, err := app_instance.Explorer.ChooseFile()
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				return
+			}
+
+			switch f := read.(type) {
+			case *os.File:
+				p.walletPath = f.Name()
+			default:
+			}
+		}()
+	}
+
+	if p.buttonCreate.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -142,7 +162,16 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), p.walletPath)
+			p.buttonLoad.Text = lang.Translate("LOAD FILE")
+			return p.buttonLoad.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			path := lang.Translate("Not file selected.")
+			if p.walletPath != "" {
+				path = p.walletPath
+			}
+
+			lbl := material.Label(th, unit.Sp(16), path)
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -152,8 +181,8 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 			return p.txtWalletName.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonLoad.Text = lang.Translate("LOAD WALLET")
-			return p.buttonLoad.Layout(gtx, th)
+			p.buttonCreate.Text = lang.Translate("CREATE WALLET")
+			return p.buttonCreate.Layout(gtx, th)
 		},
 	}
 

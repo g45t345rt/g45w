@@ -31,10 +31,11 @@ type Page struct {
 
 	header *prefabs.Header
 
-	pageBalanceTokens *PageBalanceTokens
-	pageSendForm      *PageSendForm
-	pageSCToken       *PageSCToken
-	pageContactForm   *PageContactForm
+	pageBalanceTokens   *PageBalanceTokens
+	pageSendForm        *PageSendForm
+	pageSCToken         *PageSCToken
+	pageContactForm     *PageContactForm
+	pageSendOptionsForm *PageSendOptionsForm
 
 	contactManager *contact_manager.ContactManager
 
@@ -115,10 +116,11 @@ func New() *Page {
 
 		header: header,
 
-		pageBalanceTokens: pageBalanceTokens,
-		pageSendForm:      pageSendForm,
-		pageSCToken:       pageSCToken,
-		pageContactForm:   pageContactForm,
+		pageBalanceTokens:   pageBalanceTokens,
+		pageSendForm:        pageSendForm,
+		pageSCToken:         pageSCToken,
+		pageContactForm:     pageContactForm,
+		pageSendOptionsForm: pageSendOptionsForm,
 
 		pageRouter: pageRouter,
 	}

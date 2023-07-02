@@ -92,7 +92,7 @@ func (h *Header) handleKeyBack(gtx layout.Context) {
 	for _, e := range gtx.Events(h) {
 		switch e := e.(type) {
 		case key.Event:
-			if e.State == key.Press { // don't use key.Release not implement on Android
+			if e.Name == key.NameEscape || e.Name == key.NameBack && e.State == key.Press { // don't use key.Release not implement on Android
 				h.GoBack()
 			}
 		}

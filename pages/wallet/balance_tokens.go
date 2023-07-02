@@ -385,6 +385,11 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 }
 
 func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	var wallet *walletapi.Wallet_Memory
+	if wallet_manager.OpenedWallet != nil {
+		wallet = wallet_manager.OpenedWallet.Memory
+	}
+
 	return layout.Inset{
 		Left: unit.Dp(30), Right: unit.Dp(30),
 		Top: unit.Dp(0), Bottom: unit.Dp(40),
@@ -400,7 +405,12 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						amount := utils.ShiftNumber{Number: 100000, Decimals: 5}.Format()
+						balance := uint64(0)
+						if walletapi.Connected && wallet != nil {
+							balance, _ = wallet.Get_Balance()
+						}
+
+						amount := utils.ShiftNumber{Number: balance, Decimals: 5}.Format()
 						lblAmount := material.Label(th, unit.Sp(34), amount)
 						lblAmount.Font.Weight = font.Bold
 						dims := lblAmount.Layout(gtx)
