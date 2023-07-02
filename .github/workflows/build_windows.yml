@@ -20,7 +20,7 @@ jobs:
       run: go install gioui.org/cmd/gogio@latest
 
     - name: Build windows amd64
-      run: ./build_gio.sh windows amd64
+      run: bash build_gio.sh windows amd64
 
     - name: Archive build
       uses: actions/upload-artifact@v3

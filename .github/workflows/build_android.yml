@@ -32,7 +32,7 @@ jobs:
         run: sdkmanager ndk-bundle
 
       - name: Build android
-        run: ./build_gio.sh android amd64
+        run: bash build_gio.sh android amd64
 
       - name: Archive build
         uses: actions/upload-artifact@v3
