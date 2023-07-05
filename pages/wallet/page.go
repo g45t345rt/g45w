@@ -140,12 +140,6 @@ func (p *Page) Enter() {
 	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
-		if p.pageRouter.Current == PAGE_TXS {
-			bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_TXS)
-		} else {
-			bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
-		}
-
 		w := app_instance.Window
 		w.Option(app.StatusColor(color.NRGBA{A: 255}))
 

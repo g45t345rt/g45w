@@ -219,5 +219,6 @@ func (p *PageCreateWalletDiskForm) submitForm() error {
 		return err
 	}
 
+	page_instance.header.GoBack()
 	return nil
 }

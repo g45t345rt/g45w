@@ -161,7 +161,7 @@ func CreateWalletFromHexSeed(name string, password, hexSeed string) error {
 	return saveWallet(wallet, name)
 }
 
-func CreateWallet(name string, password string) error {
+func CreateRandomWallet(name string, password string) error {
 	wallet, err := walletapi.Create_Encrypted_Wallet_Random_Memory(password)
 	if err != nil {
 		return err
@@ -180,6 +180,21 @@ func OrderWallet(addr string, newOrder int) error {
 	walletInfo := Wallets[addr]
 	walletInfo.ListOrder = newOrder
 	return saveWalletInfo(addr, walletInfo)
+}
+
+func ChangePassword(addr string, password string, newPassword string) error {
+	memory, _, err := OpenWallet(addr, password)
+	if err != nil {
+		return err
+	}
+
+	seed := memory.GetAccount().Keys.Secret
+	newMemory, err := walletapi.Create_Encrypted_Wallet_Memory(newPassword, seed)
+	if err != nil {
+		return err
+	}
+
+	return saveWalletData(newMemory)
 }
 
 func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {

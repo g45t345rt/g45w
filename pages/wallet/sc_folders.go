@@ -86,7 +86,7 @@ func (p *PageSCFolders) Enter() {
 		p.tokenItems = append(p.tokenItems, NewTokenFolderItem())
 	}
 
-	if !page_instance.header.IsHistory(PAGE_CONTACTS) {
+	if !page_instance.header.IsHistory(PAGE_SC_FOLDERS) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}

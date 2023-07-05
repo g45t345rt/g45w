@@ -196,7 +196,7 @@ func (p *PageCreateWalletForm) submitForm() error {
 		return fmt.Errorf("the confirm password does not match")
 	}
 
-	err := wallet_manager.CreateWallet(txtName.Text(), txtPassword.Text())
+	err := wallet_manager.CreateRandomWallet(txtName.Text(), txtPassword.Text())
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,9 @@ func (p *PageCreateWalletForm) submitForm() error {
 	txtPassword.SetText("")
 	txtConfirmPassword.SetText("")
 
+	page_instance.header.ResetHistory()
 	page_instance.pageRouter.SetCurrent(PAGE_SELECT_WALLET)
+	page_instance.header.AddHistory(PAGE_SELECT_WALLET)
 	return nil
 }
 
