@@ -104,11 +104,11 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 			return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is natively encrypted."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtDstPort.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
+			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtDescription.Input.EditorMinY = gtx.Dp(75)
-			return p.txtDescription.Layout(gtx, th, lang.Translate("Destination Port"), "")
+			return p.txtDescription.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
 		},
 	}
 

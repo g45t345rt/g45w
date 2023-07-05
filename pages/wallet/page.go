@@ -58,6 +58,7 @@ var (
 	PAGE_CONTACTS          = "page_contacts"
 	PAGE_CONTACT_FORM      = "page_contact_form"
 	PAGE_SEND_OPTIONS_FORM = "page_send_options_form"
+	PAGE_SC_FOLDERS        = "page_sc_folders"
 )
 
 func New() *Page {
@@ -104,6 +105,9 @@ func New() *Page {
 
 	pageSendOptionsForm := NewPageSendOptionsForm()
 	pageRouter.Add(PAGE_SEND_OPTIONS_FORM, pageSendOptionsForm)
+
+	pageSCFolders := NewPageSCFolders()
+	pageRouter.Add(PAGE_SC_FOLDERS, pageSCFolders)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
@@ -173,21 +177,6 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet == nil {
 		return layout.Dimensions{Size: gtx.Constraints.Max}
-	}
-
-	if p.pageBalanceTokens.displayBalance.buttonSend.Clickable.Clicked() {
-		p.pageRouter.SetCurrent(PAGE_SEND_FORM)
-		p.header.AddHistory(PAGE_SEND_FORM)
-	}
-
-	if p.pageBalanceTokens.displayBalance.buttonReceive.Clickable.Clicked() {
-		p.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
-		p.header.AddHistory(PAGE_RECEIVE_FORM)
-	}
-
-	if p.pageBalanceTokens.tokenBar.buttonAddToken.Clickable.Clicked() {
-		p.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
-		p.header.AddHistory(PAGE_ADD_SC_FORM)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

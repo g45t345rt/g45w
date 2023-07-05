@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 
-	"gioui.org/app"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -24,7 +23,7 @@ type SelectModal struct {
 	selected bool
 }
 
-func NewSelectModal(w *app.Window) *SelectModal {
+func NewSelectModal() *SelectModal {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -75,14 +74,16 @@ func (l *SelectModal) Layout(gtx layout.Context, th *material.Theme, items []*Se
 
 type SelectListItem struct {
 	key       string
-	render    layout.ListElement
+	element   SelectListItemElement
 	clickable *widget.Clickable
 }
 
-func NewSelectListItem(key string, render layout.ListElement) *SelectListItem {
+type SelectListItemElement = func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions
+
+func NewSelectListItem(key string, element SelectListItemElement) *SelectListItem {
 	return &SelectListItem{
 		key:       key,
-		render:    render,
+		element:   element,
 		clickable: new(widget.Clickable),
 	}
 }
@@ -90,7 +91,7 @@ func NewSelectListItem(key string, render layout.ListElement) *SelectListItem {
 func (c *SelectListItem) Layout(gtx layout.Context, th *material.Theme, index int) layout.Dimensions {
 	dims := c.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return c.render(gtx, index)
+			return c.element(gtx, index, th)
 		})
 	})
 

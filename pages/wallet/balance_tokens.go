@@ -390,6 +390,16 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 		wallet = wallet_manager.OpenedWallet.Memory
 	}
 
+	if d.buttonSend.Clickable.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
+		page_instance.header.AddHistory(PAGE_SEND_FORM)
+	}
+
+	if d.buttonReceive.Clickable.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
+		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
+	}
+
 	return layout.Inset{
 		Left: unit.Dp(30), Right: unit.Dp(30),
 		Top: unit.Dp(0), Bottom: unit.Dp(40),
@@ -465,19 +475,10 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 }
 
 type TokenBar struct {
-	buttonAddToken  *components.Button
 	buttonListToken *components.Button
 }
 
 func NewTokenBar(th *material.Theme) *TokenBar {
-	addIcon, _ := widget.NewIcon(icons.ContentAddBox)
-	buttonAddToken := components.NewButton(components.ButtonStyle{
-		Icon:           addIcon,
-		TextColor:      color.NRGBA{A: 100},
-		HoverTextColor: &color.NRGBA{A: 255},
-		Animation:      components.NewButtonAnimationScale(.92),
-	})
-
 	listIcon, _ := widget.NewIcon(icons.ActionViewList)
 	buttonListToken := components.NewButton(components.ButtonStyle{
 		Icon:           listIcon,
@@ -487,7 +488,6 @@ func NewTokenBar(th *material.Theme) *TokenBar {
 	})
 
 	return &TokenBar{
-		buttonAddToken:  buttonAddToken,
 		buttonListToken: buttonListToken,
 	}
 }
@@ -497,6 +497,11 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*Token
 	paint.ColorOp{Color: color.NRGBA{R: 0, G: 0, B: 0, A: 50}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 	cl.Pop()
+
+	if t.buttonListToken.Clickable.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_SC_FOLDERS)
+		page_instance.header.AddHistory(PAGE_SC_FOLDERS)
+	}
 
 	return layout.Inset{
 		Left: unit.Dp(30), Right: unit.Dp(30),
@@ -511,12 +516,6 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*Token
 						labelTokens.Font.Weight = font.Bold
 						return labelTokens.Layout(gtx)
 					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Min.X = gtx.Dp(35)
-						gtx.Constraints.Min.Y = gtx.Dp(35)
-						return t.buttonAddToken.Layout(gtx, th)
-					}),
-					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Min.X = gtx.Dp(35)
 						gtx.Constraints.Min.Y = gtx.Dp(35)

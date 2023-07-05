@@ -13,7 +13,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/contact_manager"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -132,7 +131,9 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	for _, item := range p.contactItems {
-		widgets = append(widgets, item.Layout)
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return item.Layout(gtx, th)
+		})
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -161,7 +162,7 @@ func NewContactListItem(contact contact_manager.Contact) *ContactListItem {
 	}
 }
 
-func (item *ContactListItem) Layout(gtx layout.Context) layout.Dimensions {
+func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if item.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
@@ -181,7 +182,6 @@ func (item *ContactListItem) Layout(gtx layout.Context) layout.Dimensions {
 		Top: unit.Dp(0), Bottom: unit.Dp(10),
 		Right: unit.Dp(30), Left: unit.Dp(30),
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		th := app_instance.Theme
 		m := op.Record(gtx.Ops)
 		dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			dims := layout.Inset{

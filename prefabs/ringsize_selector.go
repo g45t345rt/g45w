@@ -42,17 +42,14 @@ func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 	sizes := []string{"2", "4", "8", "16", "32", "64", "128"}
 	items := []*SelectListItem{}
 
-	th := app_instance.Theme
-	w := app_instance.Window
-
 	for _, size := range sizes {
-		items = append(items, NewSelectListItem(size, func(gtx layout.Context, index int) layout.Dimensions {
+		items = append(items, NewSelectListItem(size, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(20), sizes[index])
 			return lbl.Layout(gtx)
 		}))
 	}
 
-	selectModal := NewSelectModal(w)
+	selectModal := NewSelectModal()
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {

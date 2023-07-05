@@ -44,8 +44,6 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 	buttonSelect.Style.Font.Weight = font.Bold
 
 	items := []*SelectListItem{}
-	th := app_instance.Theme
-	w := app_instance.Window
 
 	languages := lang.SupportedLanguages
 	for _, language := range languages {
@@ -61,7 +59,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 			Rounded:  components.UniformRounded(unit.Dp(5)),
 		}
 
-		items = append(items, NewSelectListItem(language.Key, func(gtx layout.Context, index int) layout.Dimensions {
+		items = append(items, NewSelectListItem(language.Key, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.X = gtx.Dp(45)
@@ -78,7 +76,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 		}))
 	}
 
-	selectModal := NewSelectModal(w)
+	selectModal := NewSelectModal()
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
