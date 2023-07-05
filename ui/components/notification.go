@@ -4,7 +4,6 @@ import (
 	"image/color"
 	"time"
 
-	"gioui.org/app"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/unit"
@@ -33,9 +32,9 @@ type NotificationModal struct {
 	timer    *time.Timer
 }
 
-func NewNotificationErrorModal(w *app.Window) *NotificationModal {
+func NewNotificationErrorModal() *NotificationModal {
 	iconError, _ := widget.NewIcon(icons.AlertError)
-	return NewNotificationModal(w,
+	return NewNotificationModal(
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 255, A: 255},
 			TextColor:  color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -52,9 +51,9 @@ func NewNotificationErrorModal(w *app.Window) *NotificationModal {
 	)
 }
 
-func NewNotificationSuccessModal(w *app.Window) *NotificationModal {
+func NewNotificationSuccessModal() *NotificationModal {
 	iconSuccess, _ := widget.NewIcon(icons.ActionCheckCircle)
-	return NewNotificationModal(w,
+	return NewNotificationModal(
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 0, G: 255, B: 0, A: 255},
 			TextColor:  color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -71,9 +70,9 @@ func NewNotificationSuccessModal(w *app.Window) *NotificationModal {
 	)
 }
 
-func NewNotificationInfoModal(w *app.Window) *NotificationModal {
+func NewNotificationInfoModal() *NotificationModal {
 	iconInfo, _ := widget.NewIcon(icons.ActionInfo)
-	return NewNotificationModal(w,
+	return NewNotificationModal(
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 			TextColor:  color.NRGBA{A: 255},
@@ -90,7 +89,7 @@ func NewNotificationInfoModal(w *app.Window) *NotificationModal {
 	)
 }
 
-func NewNotificationModal(w *app.Window, style NotificationStyle) *NotificationModal {
+func NewNotificationModal(style NotificationStyle) *NotificationModal {
 	modalStyle := ModalStyle{
 		CloseOnOutsideClick: false,
 		CloseOnInsideClick:  true,
