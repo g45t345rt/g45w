@@ -45,9 +45,7 @@ const (
 )
 
 func LoadInstance() *BottomBar {
-	w := app_instance.Window
 	appRouter := app_instance.Router
-	th := app_instance.Theme
 
 	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255} //f32color.Hovered(textColor)
@@ -93,7 +91,7 @@ func LoadInstance() *BottomBar {
 		Animation:      components.NewButtonAnimationScale(animScale),
 	})
 
-	confirmClose := components.NewConfirm(w, th, layout.Center)
+	confirmClose := components.NewConfirm(layout.Center)
 	appRouter.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
@@ -148,7 +146,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	if wallet_manager.OpenedWallet != nil {
 		b.ButtonClose.Button.Disabled = false
 		if b.ButtonClose.Button.Clickable.Clicked() {
-			b.confirmClose.SetVisible(true)
+			b.confirmClose.SetVisible(gtx, true)
 		}
 	} else {
 		b.ButtonClose.Button.Disabled = true
@@ -176,7 +174,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}
 
 	if b.ButtonTxs.Button.Clickable.Clicked() {
-		recent_txs_modal.Instance.SetVisible(true)
+		recent_txs_modal.Instance.SetVisible(gtx, true)
 	}
 
 	return layout.Inset{

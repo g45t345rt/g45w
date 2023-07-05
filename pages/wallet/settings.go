@@ -130,17 +130,17 @@ func (p *PageSettings) Leave() {
 
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if p.buttonDeleteWallet.Clickable.Clicked() {
-		p.modalWalletPassword.Modal.SetVisible(true)
+		p.modalWalletPassword.Modal.SetVisible(gtx, true)
 	}
 
 	if p.buttonSave.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Changes applied successfully"))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
 
@@ -149,7 +149,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		openedWallet := wallet_manager.OpenedWallet
 		err := wallet_manager.DeleteWallet(openedWallet.Info.Addr, text)
 		if err == nil {
-			p.modalWalletPassword.Modal.SetVisible(false)
+			p.modalWalletPassword.Modal.SetVisible(gtx, false)
 			page_instance.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 			app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 			wallet_manager.OpenedWallet = nil
@@ -158,7 +158,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				p.modalWalletPassword.StartWrongPassAnimation()
 			} else {
 				notification_modals.ErrorInstance.SetText("Error", err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 			}
 		}
 	}

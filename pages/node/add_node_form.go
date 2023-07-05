@@ -124,7 +124,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 
 	if p.buttonAddNode.Clickable.Clicked() {
-		p.submitForm()
+		p.submitForm(gtx)
 	}
 
 	widgets := []layout.Widget{
@@ -159,7 +159,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	})
 }
 
-func (p *PageAddNodeForm) submitForm() {
+func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 	if p.submitting {
 		return
 	}
@@ -170,7 +170,7 @@ func (p *PageAddNodeForm) submitForm() {
 		setError := func(err error) {
 			p.submitting = false
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
 		txtName := p.txtName.Editor()
@@ -203,7 +203,7 @@ func (p *PageAddNodeForm) submitForm() {
 
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), "new noded added")
-		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}()
 }

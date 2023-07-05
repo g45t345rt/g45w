@@ -175,7 +175,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 							for _, item := range p.walletList.items {
 								if item.Clickable.Clicked() {
 									p.currentWallet = item.wallet
-									p.modalWalletPassword.Modal.SetVisible(true)
+									p.modalWalletPassword.Modal.SetVisible(gtx, true)
 								}
 							}
 
@@ -185,7 +185,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 					layout.Rigid(layout.Spacer{Height: unit.Dp(30)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						if p.buttonWalletCreate.Clickable.Clicked() {
-							p.modalCreateWalletSelection.modal.SetVisible(true)
+							p.modalCreateWalletSelection.modal.SetVisible(gtx, true)
 						}
 
 						p.buttonWalletCreate.Text = lang.Translate("NEW WALLET")
@@ -202,7 +202,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 			walletMemory, walletInfo, err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
 			if err == nil {
 				wallet_manager.SetOpenWallet(walletMemory, walletInfo)
-				p.modalWalletPassword.Modal.SetVisible(false)
+				p.modalWalletPassword.Modal.SetVisible(gtx, false)
 				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 			} else {
 				if err.Error() == "Invalid Password" {
@@ -210,7 +210,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				} else {
 					//p.modalWalletPassword.Modal.SetVisible(false)
 					notification_modals.ErrorInstance.SetText("Error", err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 				}
 			}
 		}
@@ -226,8 +226,7 @@ type CreateWalletSelectionModal struct {
 }
 
 func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionModal {
-	w := app_instance.Window
-	modal := components.NewModal(w, components.ModalStyle{
+	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.S,
@@ -274,7 +273,7 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 					tag := c.items[index].routerTag
 					page_instance.pageRouter.SetCurrent(tag)
 					page_instance.header.AddHistory(tag)
-					c.modal.SetVisible(false)
+					c.modal.SetVisible(gtx, false)
 				}
 
 				return c.items[index].Layout(gtx, th)

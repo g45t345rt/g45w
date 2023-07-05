@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 
-	"gioui.org/app"
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -114,17 +113,15 @@ type Modal struct {
 	visible      bool
 	clickableOut *widget.Clickable
 	clickableIn  *widget.Clickable
-	window       *app.Window
 }
 
-func NewModal(w *app.Window, style ModalStyle) *Modal {
+func NewModal(style ModalStyle) *Modal {
 	if style.CloseKeySet == "" {
 		style.CloseKeySet = key.NameEscape + "|" + key.NameBack
 	}
 
 	return &Modal{
 		Style:        style,
-		window:       w,
 		visible:      false,
 		clickableOut: new(widget.Clickable),
 		clickableIn:  new(widget.Clickable),
@@ -135,7 +132,7 @@ func (modal *Modal) Visible() bool {
 	return modal.visible
 }
 
-func (modal *Modal) SetVisible(visible bool) {
+func (modal *Modal) SetVisible(gtx layout.Context, visible bool) {
 	if visible {
 		modal.visible = true
 
@@ -146,7 +143,7 @@ func (modal *Modal) SetVisible(visible bool) {
 		modal.Style.Animation.animationEnter.Reset()
 	}
 
-	modal.window.Invalidate()
+	op.InvalidateOp{}.Add(gtx.Ops)
 }
 
 func (modal *Modal) handleKeyClose(gtx layout.Context) {
@@ -159,7 +156,7 @@ func (modal *Modal) handleKeyClose(gtx layout.Context) {
 		switch e := e.(type) {
 		case key.Event:
 			if e.State == key.Press {
-				modal.SetVisible(false)
+				modal.SetVisible(gtx, false)
 			}
 		}
 	}

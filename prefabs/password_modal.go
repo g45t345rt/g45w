@@ -9,7 +9,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
@@ -42,8 +41,7 @@ func NewPasswordModal() *PasswordModal {
 
 	iconLock, _ := widget.NewIcon(icons.ActionLock)
 
-	w := app_instance.Window
-	modal := components.NewModal(w, components.ModalStyle{
+	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.Center,

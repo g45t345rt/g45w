@@ -28,7 +28,7 @@ func NewSelectModal(w *app.Window) *SelectModal {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	modal := components.NewModal(w, components.ModalStyle{
+	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.S,

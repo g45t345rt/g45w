@@ -96,8 +96,7 @@ func NewPageContactForm() *PageContactForm {
 	txtNote.Editor().SingleLine = false
 	txtNote.Editor().Submit = false
 
-	w := app_instance.Window
-	confirmDelete := components.NewConfirm(w, th, layout.Center)
+	confirmDelete := components.NewConfirm(layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
@@ -178,27 +177,27 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New contact added"))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 			p.clearForm()
 		}
 	}
 
 	if p.buttonDelete.Clickable.Clicked() {
-		p.confirmDelete.SetVisible(true)
+		p.confirmDelete.SetVisible(gtx, true)
 	}
 
 	if p.confirmDelete.ClickedYes() {
 		err := page_instance.contactManager.DelContact(p.contact.Addr)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 			p.clearForm()
 		}

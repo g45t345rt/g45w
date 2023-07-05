@@ -158,7 +158,7 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 				Text: walletAddr,
 			}.Add(gtx.Ops)
 			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Addr copied to clipboard"))
-			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.InfoInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,

@@ -3,7 +3,6 @@ package components
 import (
 	"image/color"
 
-	"gioui.org/app"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/text"
@@ -25,8 +24,8 @@ type Confirm struct {
 	clickedNo  bool
 }
 
-func NewConfirm(w *app.Window, th *material.Theme, direction layout.Direction) *Confirm {
-	modal := NewModal(w, ModalStyle{
+func NewConfirm(direction layout.Direction) *Confirm {
+	modal := NewModal(ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           direction,
@@ -76,8 +75,8 @@ func (c *Confirm) ClickedNo() bool {
 	return c.clickedNo
 }
 
-func (c *Confirm) SetVisible(visible bool) {
-	c.Modal.SetVisible(visible)
+func (c *Confirm) SetVisible(gtx layout.Context, visible bool) {
+	c.Modal.SetVisible(gtx, visible)
 }
 
 func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -85,7 +84,7 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 	c.clickedNo = c.buttonNo.Clickable.Clicked()
 
 	if c.clickedYes || c.clickedNo {
-		c.SetVisible(false)
+		c.SetVisible(gtx, false)
 	}
 
 	var lblSize layout.Dimensions

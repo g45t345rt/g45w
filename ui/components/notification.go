@@ -101,7 +101,7 @@ func NewNotificationModal(w *app.Window, style NotificationStyle) *NotificationM
 		Animation:           style.Animation,
 	}
 
-	modal := NewModal(w, modalStyle)
+	modal := NewModal(modalStyle)
 	notification := &NotificationModal{
 		Style: style,
 		Modal: modal,
@@ -114,7 +114,7 @@ func (n *NotificationModal) SetText(title string, subtitle string) {
 	n.subtitle = subtitle
 }
 
-func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
+func (n *NotificationModal) SetVisible(gtx layout.Context, visible bool, closeAfter time.Duration) {
 	if visible {
 		if n.timer != nil {
 			n.timer.Stop()
@@ -122,12 +122,12 @@ func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
 
 		if closeAfter > 0 {
 			n.timer = time.AfterFunc(closeAfter, func() {
-				n.SetVisible(false, 0)
+				n.SetVisible(gtx, false, 0)
 			})
 		}
 	}
 
-	n.Modal.SetVisible(visible)
+	n.Modal.SetVisible(gtx, visible)
 }
 
 func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

@@ -92,8 +92,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonDeleteNode.Label.Alignment = text.Middle
 	buttonDeleteNode.Style.Font.Weight = font.Bold
 
-	w := app_instance.Window
-	confirmDelete := components.NewConfirm(w, th, layout.Center)
+	confirmDelete := components.NewConfirm(layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
@@ -163,21 +162,21 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.buttonEditNode.Clickable.Clicked() {
-		p.submitForm()
+		p.submitForm(gtx)
 	}
 
 	if p.buttonDeleteNode.Clickable.Clicked() {
-		p.confirmDelete.SetVisible(true)
+		p.confirmDelete.SetVisible(gtx, true)
 	}
 
 	if p.confirmDelete.ClickedYes() {
 		err := node_manager.DelNode(p.nodeConn.ID)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 		}
 	}
@@ -226,7 +225,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	})
 }
 
-func (p *PageEditNodeForm) submitForm() {
+func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 	if p.submitting {
 		return
 	}
@@ -237,7 +236,7 @@ func (p *PageEditNodeForm) submitForm() {
 		setError := func(err error) {
 			p.submitting = false
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
 		txtName := p.txtName.Editor()
@@ -271,7 +270,7 @@ func (p *PageEditNodeForm) submitForm() {
 
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText("Success", lang.Translate("Data saved"))
-		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}()
 
