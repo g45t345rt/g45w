@@ -6,7 +6,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -31,15 +30,13 @@ type PageSendOptionsForm struct {
 var _ router.Page = &PageSendOptionsForm{}
 
 func NewPageSendOptionsForm() *PageSendOptionsForm {
-	th := app_instance.Theme
-
-	txtComment := components.NewTextField(th, lang.Translate("Comment"), lang.Translate("The comment is natively encrypted."))
+	txtComment := components.NewTextField()
 	txtComment.Editor().SingleLine = false
 	txtComment.Editor().Submit = false
-	txtDescription := components.NewTextField(th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
+	txtDescription := components.NewTextField()
 	txtDescription.Editor().SingleLine = false
 	txtDescription.Editor().Submit = false
-	txtDstPort := components.NewTextField(th, lang.Translate("Destination Port"), "")
+	txtDstPort := components.NewTextField()
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),
@@ -104,14 +101,14 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtComment.Input.EditorMinY = gtx.Dp(75)
-			return p.txtComment.Layout(gtx, th)
+			return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is natively encrypted."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtDstPort.Layout(gtx, th)
+			return p.txtDstPort.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtDescription.Input.EditorMinY = gtx.Dp(75)
-			return p.txtDescription.Layout(gtx, th)
+			return p.txtDescription.Layout(gtx, th, lang.Translate("Destination Port"), "")
 		},
 	}
 

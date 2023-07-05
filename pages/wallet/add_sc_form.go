@@ -13,7 +13,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
@@ -43,8 +42,6 @@ type PageAddSCForm struct {
 var _ router.Page = &PageAddSCForm{}
 
 func NewPageAddSCForm() *PageAddSCForm {
-	th := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -70,7 +67,7 @@ func NewPageAddSCForm() *PageAddSCForm {
 	buttonCheckSC.Label.Alignment = text.Middle
 	buttonCheckSC.Style.Font.Weight = font.Bold
 
-	txtSCID := components.NewTextField(th, "SCID", "Smart Contract ID")
+	txtSCID := components.NewTextField()
 
 	return &PageAddSCForm{
 		animationEnter: animationEnter,
@@ -134,7 +131,7 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtSCID.Layout(gtx, th)
+			return p.txtSCID.Layout(gtx, th, "SCID", "Smart Contract ID")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonCheckSC.Text = lang.Translate("CHECK SC")

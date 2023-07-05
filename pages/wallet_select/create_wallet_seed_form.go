@@ -9,7 +9,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
@@ -39,7 +38,6 @@ type PageCreateWalletSeedForm struct {
 var _ router.Page = &PageCreateWalletSeedForm{}
 
 func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
-	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -51,11 +49,11 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")
-	txtPassword := components.NewPasswordTextField(th, lang.Translate("Password"), "")
-	txtConfirmPassword := components.NewPasswordTextField(th, lang.Translate("Confirm Password"), "")
+	txtWalletName := components.NewTextField()
+	txtPassword := components.NewPasswordTextField()
+	txtConfirmPassword := components.NewPasswordTextField()
 
-	txtSeed := components.NewTextField(th, lang.Translate("Seed"), lang.Translate("Enter 25 word seed phrase"))
+	txtSeed := components.NewTextField()
 	txtSeed.Editor().SingleLine = false
 	txtSeed.Editor().Submit = false
 
@@ -137,16 +135,16 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtSeed.Input.EditorMinY = gtx.Dp(125)
-			return p.txtSeed.Layout(gtx, th)
+			return p.txtSeed.Layout(gtx, th, lang.Translate("Seed"), lang.Translate("Enter 25 word seed phrase"))
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtWalletName.Layout(gtx, th)
+			return p.txtWalletName.Layout(gtx, th, lang.Translate("Wallet Name"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtPassword.Layout(gtx, th)
+			return p.txtPassword.Layout(gtx, th, lang.Translate("Password"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtConfirmPassword.Layout(gtx, th)
+			return p.txtConfirmPassword.Layout(gtx, th, lang.Translate("Confirm Password"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonCreate.Text = lang.Translate("RECOVER WALLET")

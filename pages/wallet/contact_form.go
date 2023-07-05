@@ -49,8 +49,6 @@ type PageContactForm struct {
 var _ router.Page = &PageContactForm{}
 
 func NewPageContactForm() *PageContactForm {
-	th := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -90,9 +88,9 @@ func NewPageContactForm() *PageContactForm {
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField(th, lang.Translate("Name"), "")
-	txtAddr := components.NewTextField(th, lang.Translate("Address"), "")
-	txtNote := components.NewTextField(th, lang.Translate("Note"), "")
+	txtName := components.NewTextField()
+	txtAddr := components.NewTextField()
+	txtNote := components.NewTextField()
 	txtNote.Editor().SingleLine = false
 	txtNote.Editor().Submit = false
 
@@ -205,14 +203,14 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtName.Layout(gtx, th)
+			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtAddr.Layout(gtx, th)
+			return p.txtAddr.Layout(gtx, th, lang.Translate("Address"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtNote.Input.EditorMinY = gtx.Dp(75)
-			return p.txtNote.Layout(gtx, th)
+			return p.txtNote.Layout(gtx, th, lang.Translate("Note"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonCreate.Text = lang.Translate("ADD CONTACT")

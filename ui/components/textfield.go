@@ -9,30 +9,22 @@ import (
 )
 
 type TextField struct {
-	TitleStyle material.LabelStyle
-	Input      *Input
+	Input *Input
 }
 
-func NewTextField(th *material.Theme, title string, hint string) *TextField {
-	titleStyle := material.Label(th, unit.Sp(20), title)
-	titleStyle.Font.Weight = font.Bold
-	input := NewInput(th, hint)
+func NewTextField() *TextField {
+	input := NewInput()
 
 	return &TextField{
-		TitleStyle: titleStyle,
-		Input:      input,
+		Input: input,
 	}
 }
 
-func NewPasswordTextField(th *material.Theme, title string, hint string) *TextField {
-	titleStyle := material.Label(th, unit.Sp(20), title)
-	titleStyle.Font.Weight = font.Bold
-
-	input := NewPasswordInput(th, hint)
+func NewPasswordTextField() *TextField {
+	input := NewPasswordInput()
 
 	return &TextField{
-		TitleStyle: titleStyle,
-		Input:      input,
+		Input: input,
 	}
 }
 
@@ -45,17 +37,19 @@ func (t *TextField) SetValue(text string) {
 }
 
 func (t *TextField) Editor() *widget.Editor {
-	return t.Input.Editor()
+	return t.Input.Editor
 }
 
-func (t *TextField) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (t *TextField) Layout(gtx layout.Context, th *material.Theme, title string, hint string) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return t.TitleStyle.Layout(gtx)
+			titleStyle := material.Label(th, unit.Sp(20), title)
+			titleStyle.Font.Weight = font.Bold
+			return titleStyle.Layout(gtx)
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return t.Input.Layout(gtx, th)
+			return t.Input.Layout(gtx, th, hint)
 		}),
 	)
 }

@@ -48,8 +48,6 @@ type PageEditNodeForm struct {
 var _ router.Page = &PageEditNodeForm{}
 
 func NewPageEditNodeForm() *PageEditNodeForm {
-	th := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
 	))
@@ -75,8 +73,8 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonEditNode.Label.Alignment = text.Middle
 	buttonEditNode.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField(th, lang.Translate("Name"), "Dero NFTs")
-	txtEndpoint := components.NewTextField(th, lang.Translate("Endpoint"), "wss://node.deronfts.com/ws")
+	txtName := components.NewTextField()
+	txtEndpoint := components.NewTextField()
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteNode := components.NewButton(components.ButtonStyle{
@@ -183,10 +181,10 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtName.Layout(gtx, th)
+			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "Dero NFTs")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtEndpoint.Layout(gtx, th)
+			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "wss://node.deronfts.com/ws")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonEditNode.Text = lang.Translate("SAVE")

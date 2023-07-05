@@ -13,20 +13,20 @@ type AccordionStyle struct {
 }
 
 type Accordion struct {
-	Style   AccordionStyle
-	Visible bool
+	Style  AccordionStyle
+	Opened bool
 }
 
-func NewAccordion(style AccordionStyle, visible bool) *Accordion {
+func NewAccordion(style AccordionStyle, opened bool) *Accordion {
 	return &Accordion{
-		Visible: visible,
-		Style:   style,
+		Opened: opened,
+		Style:  style,
 	}
 }
 
 func (a *Accordion) Layout(gtx layout.Context, th *material.Theme, w layout.Widget) layout.Dimensions {
 	if a.Style.Button.Clickable.Clicked() {
-		a.Visible = !a.Visible
+		a.Opened = !a.Opened
 	}
 
 	return a.Style.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -36,7 +36,7 @@ func (a *Accordion) Layout(gtx layout.Context, th *material.Theme, w layout.Widg
 					return a.Style.Button.Layout(gtx, th)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					if a.Visible {
+					if a.Opened {
 						return w(gtx)
 					}
 

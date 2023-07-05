@@ -42,7 +42,6 @@ type PageSettings struct {
 var _ router.Page = &PageSettings{}
 
 func NewPageSettings() *PageSettings {
-	th := app_instance.Theme
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteWallet := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
@@ -91,7 +90,7 @@ func NewPageSettings() *PageSettings {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	txtWalletName := components.NewTextField(th, lang.Translate("Name"), "")
+	txtWalletName := components.NewTextField()
 
 	return &PageSettings{
 		buttonDeleteWallet:  buttonDeleteWallet,
@@ -184,7 +183,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtWalletName.Layout(gtx, th)
+			return p.txtWalletName.Layout(gtx, th, lang.Translate("Name"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonSave.Text = lang.Translate("SAVE CHANGES")

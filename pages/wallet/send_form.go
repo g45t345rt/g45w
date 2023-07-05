@@ -16,7 +16,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -49,7 +48,6 @@ type PageSendForm struct {
 var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
-	th := app_instance.Theme
 	buildIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
@@ -64,8 +62,8 @@ func NewPageSendForm() *PageSendForm {
 	buttonBuildTx.Label.Alignment = text.Middle
 	buttonBuildTx.Style.Font.Weight = font.Bold
 
-	txtAmount := components.NewTextField(th, lang.Translate("Amount"), "")
-	txtWalletAddr := components.NewInput(th, "")
+	txtAmount := components.NewTextField()
+	txtWalletAddr := components.NewInput()
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
@@ -206,7 +204,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return dims
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtAmount.Layout(gtx, th)
+			return p.txtAmount.Layout(gtx, th, lang.Translate("Amount"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -219,7 +217,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							return p.txtWalletAddr.Layout(gtx, th)
+							return p.txtWalletAddr.Layout(gtx, th, "")
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -228,7 +226,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					addr := p.txtWalletAddr.Editor().Text()
+					addr := p.txtWalletAddr.Editor.Text()
 					contact, ok := page_instance.contactManager.Contacts[addr]
 
 					if ok {

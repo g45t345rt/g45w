@@ -7,6 +7,7 @@ import (
 
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -41,7 +42,6 @@ type PageCreateWalletDiskForm struct {
 var _ router.Page = &PageCreateWalletDiskForm{}
 
 func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
-	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -53,8 +53,8 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtWalletName := components.NewTextField(th, lang.Translate("Wallet Name"), "")
-	txtPassword := components.NewPasswordTextField(th, lang.Translate("Password"), "")
+	txtWalletName := components.NewTextField()
+	txtPassword := components.NewPasswordTextField()
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
@@ -166,19 +166,20 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 			return p.buttonLoad.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			path := lang.Translate("Not file selected.")
+			path := lang.Translate("No file selected.")
 			if p.walletPath != "" {
 				path = p.walletPath
 			}
 
 			lbl := material.Label(th, unit.Sp(16), path)
+			lbl.WrapPolicy = text.WrapGraphemes
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtPassword.Layout(gtx, th)
+			return p.txtPassword.Layout(gtx, th, lang.Translate("Password"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtWalletName.Layout(gtx, th)
+			return p.txtWalletName.Layout(gtx, th, lang.Translate("Wallet Name"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonCreate.Text = lang.Translate("CREATE WALLET")

@@ -12,7 +12,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/registration"
@@ -44,7 +43,6 @@ type PageRegisterWallet struct {
 var _ router.Page = &PageRegisterWallet{}
 
 func NewPageRegisterWallet() *PageRegisterWallet {
-	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -56,7 +54,7 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtThreadCount := components.NewTextField(th, lang.Translate("Worker Count"), "")
+	txtThreadCount := components.NewTextField()
 	txtThreadCount.SetValue("1")
 
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
@@ -156,7 +154,7 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.txtThreadCount.Layout(gtx, th)
+					return p.txtThreadCount.Layout(gtx, th, lang.Translate("Worker Count"), "")
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

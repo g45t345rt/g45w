@@ -72,7 +72,6 @@ type PageCreateWalletFastRegForm struct {
 var _ router.Page = &PageCreateWalletFastRegForm{}
 
 func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
-	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -84,7 +83,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtThreadCount := components.NewTextField(th, lang.Translate("Worker Count"), "")
+	txtThreadCount := components.NewTextField()
 	txtThreadCount.SetValue("1")
 
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
@@ -204,7 +203,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.txtThreadCount.Layout(gtx, th)
+					return p.txtThreadCount.Layout(gtx, th, lang.Translate("Worker Count"), "")
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
