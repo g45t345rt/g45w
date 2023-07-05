@@ -34,7 +34,7 @@ type PageContactForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonCreate  *components.Button
+	buttonSave    *components.Button
 	buttonDelete  *components.Button
 	txtName       *components.TextField
 	txtAddr       *components.TextField
@@ -61,7 +61,7 @@ func NewPageContactForm() *PageContactForm {
 	list.Axis = layout.Vertical
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
-	buttonCreate := components.NewButton(components.ButtonStyle{
+	buttonSave := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            saveIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -71,8 +71,8 @@ func NewPageContactForm() *PageContactForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
-	buttonCreate.Label.Alignment = text.Middle
-	buttonCreate.Style.Font.Weight = font.Bold
+	buttonSave.Label.Alignment = text.Middle
+	buttonSave.Style.Font.Weight = font.Bold
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDelete := components.NewButton(components.ButtonStyle{
@@ -109,7 +109,7 @@ func NewPageContactForm() *PageContactForm {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonCreate:  buttonCreate,
+		buttonSave:    buttonSave,
 		buttonDelete:  buttonDelete,
 		txtName:       txtName,
 		txtAddr:       txtAddr,
@@ -171,7 +171,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}
 	}
 
-	if p.buttonCreate.Clickable.Clicked() {
+	if p.buttonSave.Clickable.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -179,8 +179,8 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New contact added"))
 			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
-			page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
-			p.clearForm()
+			page_instance.header.GoBack()
+			p.ClearForm()
 		}
 	}
 
@@ -196,8 +196,8 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
 			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
-			page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
-			p.clearForm()
+			page_instance.header.GoBack()
+			p.ClearForm()
 		}
 	}
 
@@ -213,8 +213,13 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return p.txtNote.Layout(gtx, th, lang.Translate("Note"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonCreate.Text = lang.Translate("ADD CONTACT")
-			return p.buttonCreate.Layout(gtx, th)
+			if p.contact != nil {
+				p.buttonSave.Text = lang.Translate("EDIT CONTACT")
+			} else {
+				p.buttonSave.Text = lang.Translate("ADD CONTACT")
+			}
+
+			return p.buttonSave.Layout(gtx, th)
 		},
 	}
 
@@ -257,7 +262,8 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	})
 }
 
-func (p *PageContactForm) clearForm() {
+func (p *PageContactForm) ClearForm() {
+	p.contact = nil
 	p.txtName.Editor().SetText("")
 	p.txtAddr.Editor().SetText("")
 	p.txtNote.Editor().SetText("")
@@ -283,6 +289,6 @@ func (p *PageContactForm) submitForm() error {
 		return err
 	}
 
-	p.clearForm()
+	p.ClearForm()
 	return nil
 }

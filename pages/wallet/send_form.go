@@ -104,7 +104,7 @@ func NewPageSendForm() *PageSendForm {
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		Inset: layout.Inset{
-			Top: unit.Dp(14), Bottom: unit.Dp(13),
+			Top: unit.Dp(13), Bottom: unit.Dp(12),
 			Left: unit.Dp(12), Right: unit.Dp(12),
 		},
 		Animation: components.NewButtonAnimationDefault(),
