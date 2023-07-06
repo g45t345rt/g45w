@@ -1,4 +1,4 @@
-name: Build MacOS
+name: Build IOS
 
 on:
   workflow_dispatch:
@@ -22,11 +22,8 @@ jobs:
     - name: Install gogio tool
       run: go install gioui.org/cmd/gogio@latest
 
-    - name: Build macos amd64
-      run: ./build_gio.sh macos amd64
-
-    - name: Build macos arm64
-      run: ./build_gio.sh macos arm64
+    - name: Build ios arm64
+      run: ./build_gio.sh ios arm64
 
     - name: Archive build
       uses: actions/upload-artifact@v3
