@@ -18,6 +18,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	expl "gioui.org/x/explorer"
+	"github.com/deroproject/derohe/globals"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
@@ -89,6 +91,15 @@ func runApp() error {
 }
 
 func main() {
+	globals.Arguments["--testnet"] = false
+	globals.Arguments["--debug"] = false
+	globals.Arguments["--flog-level"] = nil
+	globals.Arguments["--log-dir"] = nil
+	globals.Arguments["--help"] = false
+	globals.Arguments["--version"] = false
+
+	walletapi.Initialize_LookupTable(1, 1<<21)
+
 	err := settings.Load()
 	if err != nil {
 		log.Fatal(err)

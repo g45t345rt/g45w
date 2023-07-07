@@ -16,6 +16,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/globals"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -201,6 +202,8 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 		if submitted {
 			walletMemory, walletInfo, err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
 			if err == nil {
+				walletMemory.SetNetwork(globals.IsMainnet())
+				walletMemory.SetOnlineMode()
 				wallet_manager.SetOpenWallet(walletMemory, walletInfo)
 				p.modalWalletPassword.Modal.SetVisible(gtx, false)
 				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
