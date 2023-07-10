@@ -196,9 +196,24 @@ func (p *PageCreateWalletForm) submitForm() error {
 		return fmt.Errorf("the confirm password does not match")
 	}
 
-	err := wallet_manager.CreateRandomWallet(txtName.Text(), txtPassword.Text())
-	if err != nil {
-		return err
+	if p.regResultContainer != nil {
+		hexSeed := p.regResultContainer.result.HexSeed
+		err := wallet_manager.CreateWalletFromHexSeed(txtName.Text(), txtPassword.Text(), hexSeed)
+		if err != nil {
+			return err
+		}
+
+		txHex := p.regResultContainer.result.TxHex
+		addr := p.regResultContainer.result.Addr
+		err = wallet_manager.SetRegistrationTxHex(addr, txHex)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := wallet_manager.CreateRandomWallet(txtName.Text(), txtPassword.Text())
+		if err != nil {
+			return err
+		}
 	}
 
 	txtName.SetText("")
@@ -212,6 +227,7 @@ func (p *PageCreateWalletForm) submitForm() error {
 }
 
 type RegResultContainer struct {
+	result         *RegResult
 	addrEditor     *widget.Editor
 	wordSeedEditor *widget.Editor
 	hexSeedEditor  *widget.Editor
@@ -234,6 +250,7 @@ func NewRegResultContainer(result *RegResult) *RegResultContainer {
 	hexSeedEditor.ReadOnly = true
 
 	return &RegResultContainer{
+		result:         result,
 		addrEditor:     addrEditor,
 		wordSeedEditor: wordSeedEditor,
 		hexSeedEditor:  hexSeedEditor,

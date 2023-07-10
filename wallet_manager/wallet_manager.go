@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/settings"
 )
@@ -20,8 +21,9 @@ type Wallet struct {
 }
 
 type WalletInfo struct {
-	Name string `json:"name"`
-	Addr string `json:"addr"`
+	Name              string `json:"name"`
+	Addr              string `json:"addr"`
+	RegistrationTxHex string `json:"registration_tx_hex"`
 	//Data      []byte `json:"data"`
 	Timestamp int64 `json:"timestamp"`
 	ListOrder int   `json:"order"` // save item list ordering
@@ -97,6 +99,7 @@ func OpenWallet(addr string, password string) (*walletapi.Wallet_Memory, *Wallet
 		return nil, nil, err
 	}
 
+	wallet.SetNetwork(globals.IsMainnet())
 	return wallet, walletInfo, nil
 }
 
@@ -197,7 +200,15 @@ func ChangePassword(addr string, password string, newPassword string) error {
 	return saveWalletData(newMemory)
 }
 
+func SetRegistrationTxHex(addr string, txHex string) error {
+	walletInfo := Wallets[addr]
+	walletInfo.RegistrationTxHex = txHex
+	return saveWalletInfo(addr, walletInfo)
+}
+
 func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
+	wallet.SetNetwork(globals.IsMainnet())
+
 	addr := wallet.GetAddress().String()
 	walletInfo := &WalletInfo{
 		Addr:      addr,
