@@ -167,7 +167,7 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 		setError := func(err error) {
 			p.submitting = false
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
 		txtName := p.txtName.Editor()
@@ -200,7 +200,7 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), "new noded added")
-		notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
-		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
+		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		page_instance.header.GoBack()
 	}()
 }

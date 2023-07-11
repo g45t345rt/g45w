@@ -132,18 +132,16 @@ func (modal *Modal) Visible() bool {
 	return modal.visible
 }
 
-func (modal *Modal) SetVisible(gtx layout.Context, visible bool) {
+func (modal *Modal) SetVisible(visible bool) {
 	if visible {
 		modal.visible = true
-
 		modal.Style.Animation.animationEnter.Start()
 		modal.Style.Animation.animationLeave.Reset()
 	} else {
+		// modal.visible is set when animation is done check Layout()
 		modal.Style.Animation.animationLeave.Start()
 		modal.Style.Animation.animationEnter.Reset()
 	}
-
-	op.InvalidateOp{}.Add(gtx.Ops)
 }
 
 func (modal *Modal) handleKeyClose(gtx layout.Context) {
@@ -156,7 +154,7 @@ func (modal *Modal) handleKeyClose(gtx layout.Context) {
 		switch e := e.(type) {
 		case key.Event:
 			if e.State == key.Press {
-				modal.SetVisible(gtx, false)
+				modal.SetVisible(false)
 			}
 		}
 	}

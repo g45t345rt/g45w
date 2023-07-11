@@ -164,18 +164,18 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.buttonDeleteNode.Clickable.Clicked() {
-		p.confirmDelete.SetVisible(gtx, true)
+		p.confirmDelete.SetVisible(true)
 	}
 
 	if p.confirmDelete.ClickedYes() {
 		err := node_manager.DelNode(p.nodeConn.ID)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
-			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
-			page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			page_instance.header.GoBack()
 		}
 	}
 
@@ -234,7 +234,7 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 		setError := func(err error) {
 			p.submitting = false
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
 		txtName := p.txtName.Editor()
@@ -268,8 +268,8 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 
 		p.submitting = false
 		notification_modals.SuccessInstance.SetText("Success", lang.Translate("Data saved"))
-		notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
-		page_instance.pageRouter.SetCurrent(PAGE_SELECT_NODE)
+		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		page_instance.header.GoBack()
 	}()
 
 }

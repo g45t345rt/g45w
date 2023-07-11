@@ -53,8 +53,8 @@ func LoadInstance() {
 	})
 }
 
-func (r *RecentTxsModal) SetVisible(gtx layout.Context, visible bool) {
-	r.modal.SetVisible(gtx, visible)
+func (r *RecentTxsModal) SetVisible(visible bool) {
+	r.modal.SetVisible(visible)
 }
 
 func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {

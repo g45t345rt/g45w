@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"time"
 
+	"gioui.org/app"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/unit"
@@ -27,14 +28,15 @@ type NotificationModal struct {
 	Style NotificationStyle
 	Modal *Modal
 
+	window   *app.Window
 	title    string
 	subtitle string
 	timer    *time.Timer
 }
 
-func NewNotificationErrorModal() *NotificationModal {
+func NewNotificationErrorModal(window *app.Window) *NotificationModal {
 	iconError, _ := widget.NewIcon(icons.AlertError)
-	return NewNotificationModal(
+	return NewNotificationModal(window,
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 255, A: 255},
 			TextColor:  color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -51,9 +53,9 @@ func NewNotificationErrorModal() *NotificationModal {
 	)
 }
 
-func NewNotificationSuccessModal() *NotificationModal {
+func NewNotificationSuccessModal(window *app.Window) *NotificationModal {
 	iconSuccess, _ := widget.NewIcon(icons.ActionCheckCircle)
-	return NewNotificationModal(
+	return NewNotificationModal(window,
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 0, G: 255, B: 0, A: 255},
 			TextColor:  color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -70,9 +72,9 @@ func NewNotificationSuccessModal() *NotificationModal {
 	)
 }
 
-func NewNotificationInfoModal() *NotificationModal {
+func NewNotificationInfoModal(window *app.Window) *NotificationModal {
 	iconInfo, _ := widget.NewIcon(icons.ActionInfo)
-	return NewNotificationModal(
+	return NewNotificationModal(window,
 		NotificationStyle{
 			BgColor:    color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 			TextColor:  color.NRGBA{A: 255},
@@ -89,7 +91,7 @@ func NewNotificationInfoModal() *NotificationModal {
 	)
 }
 
-func NewNotificationModal(style NotificationStyle) *NotificationModal {
+func NewNotificationModal(window *app.Window, style NotificationStyle) *NotificationModal {
 	modalStyle := ModalStyle{
 		CloseOnOutsideClick: false,
 		CloseOnInsideClick:  true,
@@ -102,8 +104,9 @@ func NewNotificationModal(style NotificationStyle) *NotificationModal {
 
 	modal := NewModal(modalStyle)
 	notification := &NotificationModal{
-		Style: style,
-		Modal: modal,
+		window: window,
+		Style:  style,
+		Modal:  modal,
 	}
 	return notification
 }
@@ -113,7 +116,7 @@ func (n *NotificationModal) SetText(title string, subtitle string) {
 	n.subtitle = subtitle
 }
 
-func (n *NotificationModal) SetVisible(gtx layout.Context, visible bool, closeAfter time.Duration) {
+func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
 	if visible {
 		if n.timer != nil {
 			n.timer.Stop()
@@ -121,12 +124,13 @@ func (n *NotificationModal) SetVisible(gtx layout.Context, visible bool, closeAf
 
 		if closeAfter > 0 {
 			n.timer = time.AfterFunc(closeAfter, func() {
-				n.SetVisible(gtx, false, 0)
+				n.SetVisible(false, 0)
+				n.window.Invalidate()
 			})
 		}
 	}
 
-	n.Modal.SetVisible(gtx, visible)
+	n.Modal.SetVisible(visible)
 }
 
 func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

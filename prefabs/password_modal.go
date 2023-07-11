@@ -70,6 +70,7 @@ func (w *PasswordModal) Submit() (bool, string) {
 }
 
 func (w *PasswordModal) StartWrongPassAnimation() {
+	w.animationWrongPass.Reset()
 	w.animationWrongPass.Start()
 }
 

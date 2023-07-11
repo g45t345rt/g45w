@@ -146,7 +146,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	if wallet_manager.OpenedWallet != nil {
 		b.ButtonClose.Button.Disabled = false
 		if b.ButtonClose.Button.Clickable.Clicked() {
-			b.confirmClose.SetVisible(gtx, true)
+			b.confirmClose.SetVisible(true)
 		}
 	} else {
 		b.ButtonClose.Button.Disabled = true
@@ -174,7 +174,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}
 
 	if b.ButtonTxs.Button.Clickable.Clicked() {
-		recent_txs_modal.Instance.SetVisible(gtx, true)
+		recent_txs_modal.Instance.SetVisible(true)
 	}
 
 	return layout.Inset{

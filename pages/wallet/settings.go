@@ -135,12 +135,12 @@ func (p *PageSettings) Leave() {
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if p.buttonDeleteWallet.Clickable.Clicked() {
 		p.action = "delete_wallet"
-		p.modalWalletPassword.Modal.SetVisible(gtx, true)
+		p.modalWalletPassword.Modal.SetVisible(true)
 	}
 
 	if p.buttonSave.Clickable.Clicked() {
 		p.action = "save_changes"
-		p.modalWalletPassword.Modal.SetVisible(gtx, true)
+		p.modalWalletPassword.Modal.SetVisible(true)
 	}
 
 	submitted, password := p.modalWalletPassword.Submit()
@@ -152,22 +152,22 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 			if err != nil {
 				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			} else {
-				p.modalWalletPassword.Modal.SetVisible(gtx, false)
+				p.modalWalletPassword.Modal.SetVisible(false)
 				text := lang.Translate("Changes applied successfully")
 				if p.action == "delete_wallet" {
 					text = lang.Translate("Wallet deleted")
 				}
 				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), text)
-				notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			}
 		} else {
 			if err.Error() == "Invalid Password" {
 				p.modalWalletPassword.StartWrongPassAnimation()
 			} else {
 				notification_modals.ErrorInstance.SetText("Error", err.Error())
-				notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			}
 		}
 	}

@@ -74,14 +74,14 @@ func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout
 	r.changed = false
 
 	if r.buttonSelect.Clickable.Clicked() {
-		r.selectModal.Modal.SetVisible(gtx, true)
+		r.selectModal.Modal.SetVisible(true)
 	}
 
 	selected := r.selectModal.Selected()
 	if selected {
 		r.Value = r.selectModal.SelectedKey
 		r.changed = true
-		r.selectModal.Modal.SetVisible(gtx, false)
+		r.selectModal.Modal.SetVisible(false)
 	}
 
 	r.buttonSelect.Text = fmt.Sprintf("Ring size: %s", r.Value)

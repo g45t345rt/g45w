@@ -175,27 +175,27 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New contact added"))
-			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.header.GoBack()
 			p.ClearForm()
 		}
 	}
 
 	if p.buttonDelete.Clickable.Clicked() {
-		p.confirmDelete.SetVisible(gtx, true)
+		p.confirmDelete.SetVisible(true)
 	}
 
 	if p.confirmDelete.ClickedYes() {
 		err := page_instance.contactManager.DelContact(p.contact.Addr)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
-			notification_modals.SuccessInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.header.GoBack()
 			p.ClearForm()
 		}

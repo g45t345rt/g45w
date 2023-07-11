@@ -138,7 +138,7 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 		err := p.startRegistration()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
 

@@ -75,8 +75,8 @@ func (c *Confirm) ClickedNo() bool {
 	return c.clickedNo
 }
 
-func (c *Confirm) SetVisible(gtx layout.Context, visible bool) {
-	c.Modal.SetVisible(gtx, visible)
+func (c *Confirm) SetVisible(visible bool) {
+	c.Modal.SetVisible(visible)
 }
 
 func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -84,7 +84,7 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 	c.clickedNo = c.buttonNo.Clickable.Clicked()
 
 	if c.clickedYes || c.clickedNo {
-		c.SetVisible(gtx, false)
+		c.SetVisible(false)
 	}
 
 	var lblSize layout.Dimensions

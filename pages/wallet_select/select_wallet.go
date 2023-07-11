@@ -175,7 +175,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 							for _, item := range p.walletList.items {
 								if item.Clickable.Clicked() {
 									p.currentWallet = item.wallet
-									p.modalWalletPassword.Modal.SetVisible(gtx, true)
+									p.modalWalletPassword.Modal.SetVisible(true)
 								}
 							}
 
@@ -185,7 +185,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 					layout.Rigid(layout.Spacer{Height: unit.Dp(30)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						if p.buttonWalletCreate.Clickable.Clicked() {
-							p.modalCreateWalletSelection.modal.SetVisible(gtx, true)
+							p.modalCreateWalletSelection.modal.SetVisible(true)
 						}
 
 						p.buttonWalletCreate.Text = lang.Translate("NEW WALLET")
@@ -203,7 +203,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 			if err == nil {
 				walletMemory.SetOnlineMode()
 				wallet_manager.SetOpenWallet(walletMemory, walletInfo)
-				p.modalWalletPassword.Modal.SetVisible(gtx, false)
+				p.modalWalletPassword.Modal.SetVisible(false)
 				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 			} else {
 				if err.Error() == "Invalid Password" {
@@ -211,7 +211,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				} else {
 					//p.modalWalletPassword.Modal.SetVisible(false)
 					notification_modals.ErrorInstance.SetText("Error", err.Error())
-					notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 				}
 			}
 		}
@@ -274,7 +274,7 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 					tag := c.items[index].routerTag
 					page_instance.pageRouter.SetCurrent(tag)
 					page_instance.header.AddHistory(tag)
-					c.modal.SetVisible(gtx, false)
+					c.modal.SetVisible(false)
 				}
 
 				return c.items[index].Layout(gtx, th)

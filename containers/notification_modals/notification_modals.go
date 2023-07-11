@@ -16,9 +16,10 @@ var InfoInstance *components.NotificationModal
 var CLOSE_AFTER_DEFAULT = 3 * time.Second
 
 func LoadInstance() {
-	ErrorInstance = components.NewNotificationErrorModal()
-	SuccessInstance = components.NewNotificationSuccessModal()
-	InfoInstance = components.NewNotificationInfoModal()
+	window := app_instance.Window
+	ErrorInstance = components.NewNotificationErrorModal(window)
+	SuccessInstance = components.NewNotificationSuccessModal(window)
+	InfoInstance = components.NewNotificationInfoModal(window)
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 100,

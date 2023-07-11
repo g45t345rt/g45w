@@ -230,15 +230,15 @@ func (p *PageSelectNode) connect(gtx layout.Context, conn node_manager.NodeConne
 	p.connecting = true
 	go func() {
 		notification_modals.InfoInstance.SetText("Connecting...", conn.Endpoint)
-		notification_modals.InfoInstance.SetVisible(gtx, true, 0)
+		notification_modals.InfoInstance.SetVisible(true, 0)
 		err := node_manager.ConnectNode(conn.ID, true)
 		p.connecting = false
-		notification_modals.InfoInstance.SetVisible(gtx, false, 0)
+		notification_modals.InfoInstance.SetVisible(false, 0)
 
 		if err != nil {
-			notification_modals.InfoInstance.SetVisible(gtx, false, 0)
+			notification_modals.InfoInstance.SetVisible(false, 0)
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(gtx, true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 			page_instance.header.AddHistory(PAGE_REMOTE_NODE)
