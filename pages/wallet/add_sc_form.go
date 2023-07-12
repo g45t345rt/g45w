@@ -17,10 +17,8 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/sc"
-	"github.com/g45t345rt/g45w/token_manager"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
-	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -34,7 +32,6 @@ type PageAddSCForm struct {
 
 	buttonCheckSC *components.Button
 	txtSCID       *components.TextField
-	tokenManager  *token_manager.TokenManager
 
 	list *widget.List
 }
@@ -92,8 +89,6 @@ func (p *PageAddSCForm) Enter() {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
-	addr := wallet_manager.OpenedWallet.Info.Addr
-	p.tokenManager = token_manager.New(addr)
 }
 
 func (p *PageAddSCForm) Leave() {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
@@ -68,6 +69,7 @@ func NewPageCreateWalletSeedForm() *PageCreateWalletSeedForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
+	buttonCreate.Style.Font.Weight = font.Bold
 
 	return &PageCreateWalletSeedForm{
 		list:           list,

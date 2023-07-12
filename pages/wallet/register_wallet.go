@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"encoding/hex"
 	"fmt"
 	"image/color"
 	"math"
@@ -12,6 +13,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/transaction"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/registration"
@@ -31,21 +34,13 @@ type PageRegisterWallet struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	list *widget.List
-
-	txtThreadCount *components.TextField
-	buttonStart    *components.Button
-	buttonStop     *components.Button
-
-	normalReg *registration.NormalReg
+	registerWalletForm   *RegisterWalletForm
+	sendRegistrationForm *SendRegistrationForm
 }
 
 var _ router.Page = &PageRegisterWallet{}
 
 func NewPageRegisterWallet() *PageRegisterWallet {
-	list := new(widget.List)
-	list.Axis = layout.Vertical
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -54,45 +49,14 @@ func NewPageRegisterWallet() *PageRegisterWallet {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtThreadCount := components.NewTextField()
-	txtThreadCount.SetValue("1")
-
-	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
-	buttonStart := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            buildIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-	})
-
-	stopIcon, _ := widget.NewIcon(icons.AVPause)
-	buttonStop := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            stopIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 255, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-	})
-
-	normalReg := registration.NewNormalReg()
+	registerWalletForm := NewRegisterWalletForm()
+	sendRegistrationForm := NewSendRegistrationForm()
 
 	return &PageRegisterWallet{
-		list:           list,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-
-		txtThreadCount: txtThreadCount,
-		buttonStart:    buttonStart,
-		buttonStop:     buttonStop,
-
-		normalReg: normalReg,
+		animationEnter:       animationEnter,
+		animationLeave:       animationLeave,
+		registerWalletForm:   registerWalletForm,
+		sendRegistrationForm: sendRegistrationForm,
 	}
 }
 
@@ -134,6 +98,77 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 	}
 
+	regTxHex := wallet_manager.OpenedWallet.Info.RegistrationTxHex
+	if regTxHex != "" {
+		return p.sendRegistrationForm.Layout(gtx, th)
+	}
+
+	return p.registerWalletForm.Layout(gtx, th)
+}
+
+type RegisterWalletForm struct {
+	list *widget.List
+
+	txtThreadCount *components.TextField
+	buttonStart    *components.Button
+	buttonStop     *components.Button
+
+	normalReg *registration.NormalReg
+}
+
+func NewRegisterWalletForm() *RegisterWalletForm {
+	list := new(widget.List)
+	list.Axis = layout.Vertical
+
+	txtThreadCount := components.NewTextField()
+	txtThreadCount.SetValue("1")
+
+	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
+	buttonStart := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            buildIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+
+	stopIcon, _ := widget.NewIcon(icons.AVPause)
+	buttonStop := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            stopIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 255, A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+
+	w := app_instance.Window
+	normalReg := registration.NewNormalReg()
+	normalReg.OnFound = func(tx *transaction.Transaction) {
+		wallet := wallet_manager.OpenedWallet
+		err := wallet_manager.StoreRegistrationTx(wallet.Info.Addr, tx)
+		if err != nil {
+
+		}
+		w.Invalidate()
+	}
+
+	return &RegisterWalletForm{
+		list:           list,
+		txtThreadCount: txtThreadCount,
+		buttonStart:    buttonStart,
+		buttonStop:     buttonStop,
+
+		normalReg: normalReg,
+	}
+}
+
+func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if p.buttonStart.Clickable.Clicked() {
 		err := p.startRegistration()
 		if err != nil {
@@ -216,7 +251,7 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 	})
 }
 
-func (p *PageRegisterWallet) startRegistration() error {
+func (p *RegisterWalletForm) startRegistration() error {
 	threadCount, err := strconv.ParseUint(p.txtThreadCount.Value(), 10, 64)
 	if err != nil {
 		return err
@@ -224,5 +259,86 @@ func (p *PageRegisterWallet) startRegistration() error {
 
 	wallet := wallet_manager.OpenedWallet.Memory
 	p.normalReg.Start(int(threadCount), wallet)
+	return nil
+}
+
+type SendRegistrationForm struct {
+	list       *widget.List
+	buttonSend *components.Button
+}
+
+func NewSendRegistrationForm() *SendRegistrationForm {
+	list := new(widget.List)
+	list.Axis = layout.Vertical
+
+	sendIcon, _ := widget.NewIcon(icons.ContentSend)
+	buttonSend := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            sendIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+	buttonSend.Style.Font.Weight = font.Bold
+
+	return &SendRegistrationForm{
+		list:       list,
+		buttonSend: buttonSend,
+	}
+}
+
+func (p *SendRegistrationForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if p.buttonSend.Clickable.Clicked() {
+		err := p.sendTransaction()
+		if err != nil {
+			notification_modals.ErrorInstance.SetVisible(true, 0)
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+		}
+	}
+
+	widgets := []layout.Widget{
+		func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("The registration POW has been completed succesfully. You can now send the solution to the network to finalize the registration process."))
+			return lbl.Layout(gtx)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonSend.Text = lang.Translate("SEND TRANSACTION")
+			return p.buttonSend.Layout(gtx, th)
+		},
+	}
+
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+		return layout.Inset{
+			Top: unit.Dp(0), Bottom: unit.Dp(20),
+			Left: unit.Dp(30), Right: unit.Dp(30),
+		}.Layout(gtx, widgets[index])
+	})
+}
+
+func (p *SendRegistrationForm) sendTransaction() error {
+	openedWallet := wallet_manager.OpenedWallet
+	txHex := openedWallet.Info.RegistrationTxHex
+	data, err := hex.DecodeString(txHex)
+	if err != nil {
+		return err
+	}
+
+	tx := new(transaction.Transaction)
+	err = tx.Deserialize(data)
+	if err != nil {
+		return err
+	}
+
+	err = openedWallet.Memory.SendTransaction(tx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

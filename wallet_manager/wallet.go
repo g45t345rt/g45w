@@ -11,6 +11,7 @@ import (
 
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
+	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/settings"
 )
@@ -72,19 +73,10 @@ func Load() error {
 	})
 }
 
-func GetWalletInfo(addr string) (*WalletInfo, error) {
+func OpenWallet(addr string, password string) (*walletapi.Wallet_Memory, *WalletInfo, error) {
 	walletInfo, ok := Wallets[addr]
 	if !ok {
-		return nil, fmt.Errorf("wallet [%s] does not exists", addr)
-	}
-
-	return walletInfo, nil
-}
-
-func OpenWallet(addr string, password string) (*walletapi.Wallet_Memory, *WalletInfo, error) {
-	walletInfo, err := GetWalletInfo(addr)
-	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("wallet [%s] does not exists", addr)
 	}
 
 	walletsDir := settings.WalletsDir
@@ -173,20 +165,18 @@ func CreateRandomWallet(name string, password string) error {
 	return saveWallet(wallet, name)
 }
 
-func RenameWallet(addr string, newName string) error {
-	walletInfo := Wallets[addr]
-	walletInfo.Name = newName
-	return saveWalletInfo(addr, walletInfo)
+func (w *Wallet) Rename(newName string) error {
+	w.Info.Name = newName
+	return saveWalletInfo(w.Info.Addr, w.Info)
 }
 
-func OrderWallet(addr string, newOrder int) error {
-	walletInfo := Wallets[addr]
-	walletInfo.ListOrder = newOrder
-	return saveWalletInfo(addr, walletInfo)
+func (w *Wallet) Order(newOrder int) error {
+	w.Info.ListOrder = newOrder
+	return saveWalletInfo(w.Info.Addr, w.Info)
 }
 
-func ChangePassword(addr string, password string, newPassword string) error {
-	memory, _, err := OpenWallet(addr, password)
+func (w *Wallet) ChangePassword(password string, newPassword string) error {
+	memory, _, err := OpenWallet(w.Info.Addr, password)
 	if err != nil {
 		return err
 	}
@@ -200,10 +190,11 @@ func ChangePassword(addr string, password string, newPassword string) error {
 	return saveWalletData(newMemory)
 }
 
-func SetRegistrationTxHex(addr string, txHex string) error {
-	walletInfo := Wallets[addr]
-	walletInfo.RegistrationTxHex = txHex
-	return saveWalletInfo(addr, walletInfo)
+func StoreRegistrationTx(addr string, tx *transaction.Transaction) error {
+	txHex := hex.EncodeToString(tx.Serialize())
+	wallet := Wallets[addr]
+	wallet.RegistrationTxHex = txHex
+	return saveWalletInfo(addr, wallet)
 }
 
 func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
@@ -66,6 +67,7 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
+	buttonCreate.Style.Font.Weight = font.Bold
 
 	return &PageCreateWalletHexSeedForm{
 		list:           list,

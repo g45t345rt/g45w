@@ -70,6 +70,7 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
+	buttonCreate.Style.Font.Weight = font.Bold
 
 	return &PageCreateWalletForm{
 		list:           list,
@@ -203,9 +204,9 @@ func (p *PageCreateWalletForm) submitForm() error {
 			return err
 		}
 
-		txHex := p.regResultContainer.result.TxHex
+		tx := p.regResultContainer.result.Tx
 		addr := p.regResultContainer.result.Addr
-		err = wallet_manager.SetRegistrationTxHex(addr, txHex)
+		err = wallet_manager.StoreRegistrationTx(addr, tx)
 		if err != nil {
 			return err
 		}

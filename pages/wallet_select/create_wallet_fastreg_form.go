@@ -1,7 +1,6 @@
 package page_wallet_select
 
 import (
-	"encoding/hex"
 	"fmt"
 	"image/color"
 	"math"
@@ -33,7 +32,6 @@ import (
 
 type RegResult struct {
 	TxID     string
-	TxHex    string
 	Tx       *transaction.Transaction
 	Addr     string
 	WordSeed string
@@ -47,7 +45,6 @@ func NewRegResult(tx *transaction.Transaction, secret *big.Int) *RegResult {
 	return &RegResult{
 		Tx:       tx,
 		TxID:     tx.GetHash().String(),
-		TxHex:    hex.EncodeToString(tx.Serialize()),
 		Addr:     addr.String(),
 		WordSeed: wordSeed,
 		HexSeed:  secret.Text(16),
@@ -97,6 +94,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
+	buttonStart.Style.Font.Weight = font.Bold
 
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
@@ -109,6 +107,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
+	buttonStart.Style.Font.Weight = font.Bold
 
 	w := app_instance.Window
 

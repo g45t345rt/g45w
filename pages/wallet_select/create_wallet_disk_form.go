@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"os"
 
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/text"
@@ -67,6 +68,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
+	buttonCreate.Style.Font.Weight = font.Bold
 
 	iconOpen, _ := widget.NewIcon(icons.FileFolderOpen)
 	buttonLoad := components.NewButton(components.ButtonStyle{
@@ -79,6 +81,7 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
+	buttonLoad.Style.Font.Weight = font.Bold
 
 	return &PageCreateWalletDiskForm{
 		list:           list,

@@ -231,12 +231,11 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 }
 
 func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
-	openedWallet := wallet_manager.OpenedWallet
-	walletInfo := openedWallet.Info
+	wallet := wallet_manager.OpenedWallet
 
 	switch p.action {
 	case "delete_wallet":
-		err := wallet_manager.DeleteWallet(walletInfo.Addr, password)
+		err := wallet_manager.DeleteWallet(wallet.Info.Addr, password)
 		if err != nil {
 			return err
 		}
@@ -246,17 +245,16 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 		wallet_manager.OpenedWallet = nil
 	case "save_changes":
 		newWalletName := p.txtWalletName.Value()
-		if walletInfo.Name != newWalletName {
-			err := wallet_manager.RenameWallet(walletInfo.Addr, newWalletName)
+		if wallet.Info.Name != newWalletName {
+			err := wallet.Rename(newWalletName)
 			if err != nil {
 				return err
 			}
-			wallet_manager.OpenedWallet.Info.Name = newWalletName
 		}
 
 		newPassword := p.txtWalletChangePassword.Value()
 		if newPassword != "" {
-			err := wallet_manager.ChangePassword(walletInfo.Addr, password, p.txtWalletChangePassword.Value())
+			err := wallet.ChangePassword(password, p.txtWalletChangePassword.Value())
 			if err != nil {
 				return err
 			}
