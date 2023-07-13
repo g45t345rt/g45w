@@ -22,7 +22,7 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type PageFront struct {
+type PageMain struct {
 	isActive       bool
 	list           *widget.List
 	animationEnter *animation.Animation
@@ -31,9 +31,9 @@ type PageFront struct {
 	buttonInfo     *components.Button
 }
 
-var _ router.Page = &PageFront{}
+var _ router.Page = &PageMain{}
 
-func NewPageFront() *PageFront {
+func NewPageFront() *PageMain {
 	langKey := "en"
 	if settings.App.Language != "" {
 		langKey = settings.App.Language
@@ -70,7 +70,7 @@ func NewPageFront() *PageFront {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	return &PageFront{
+	return &PageMain{
 		list:           list,
 		langSelector:   langSelector,
 		animationEnter: animationEnter,
@@ -79,26 +79,26 @@ func NewPageFront() *PageFront {
 	}
 }
 
-func (p *PageFront) IsActive() bool {
+func (p *PageMain) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageFront) Enter() {
+func (p *PageMain) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Settings"))
 
-	if !page_instance.header.IsHistory(PAGE_FRONT) {
+	if !page_instance.header.IsHistory(PAGE_MAIN) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
 }
 
-func (p *PageFront) Leave() {
+func (p *PageMain) Leave() {
 	p.animationEnter.Reset()
 	p.animationLeave.Start()
 }
 
-func (p *PageFront) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {

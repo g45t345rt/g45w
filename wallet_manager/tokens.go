@@ -21,14 +21,14 @@ type TokenInfo struct {
 
 var MAIN_FOLDER = "__main__"
 
-func (w *Wallet) TokensFolder() string {
+func (w *Wallet) TokensFolderPath() string {
 	walletDir := settings.WalletsDir
 	tokensPath := filepath.Join(walletDir, w.Info.Addr, "tokens")
 	return tokensPath
 }
 
 func (w *Wallet) GetTokens(folder string) ([]interface{}, error) {
-	tokensFolder := filepath.Join(w.TokensFolder(), folder)
+	tokensFolder := filepath.Join(w.TokensFolderPath(), folder)
 
 	var tokens []interface{}
 	err := filepath.Walk(tokensFolder, func(path string, info fs.FileInfo, err error) error {
@@ -60,7 +60,7 @@ func (w *Wallet) GetTokens(folder string) ([]interface{}, error) {
 
 func (w *Wallet) GetFolders() ([]string, error) {
 	var folders []string
-	err := filepath.Walk(w.TokensFolder(), func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(w.TokensFolderPath(), func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			folders = append(folders, info.Name())
 		}
@@ -72,7 +72,7 @@ func (w *Wallet) GetFolders() ([]string, error) {
 }
 
 func (w *Wallet) AddToken(folder string, scId string, data interface{}) error {
-	path := filepath.Join(w.TokensFolder(), folder, fmt.Sprintf("%s.json", scId))
+	path := filepath.Join(w.TokensFolderPath(), folder, fmt.Sprintf("%s.json", scId))
 
 	dataString, err := json.Marshal(data)
 	if err != nil {
@@ -105,18 +105,18 @@ func (w *Wallet) DelToken(path string) error {
 }
 
 func (w *Wallet) AddFolder(name string) error {
-	folderPath := filepath.Join(w.TokensFolder(), name)
+	folderPath := filepath.Join(w.TokensFolderPath(), name)
 	return os.Mkdir(folderPath, os.ModePerm)
 }
 
 func (w *Wallet) DelFolder(name string) error {
-	folderPath := filepath.Join(w.TokensFolder(), name)
+	folderPath := filepath.Join(w.TokensFolderPath(), name)
 	return os.RemoveAll(folderPath)
 }
 
 func (w *Wallet) RenameFolder(name string, newName string) error {
-	oldPath := filepath.Join(w.TokensFolder(), name)
-	newPath := filepath.Join(w.TokensFolder(), newName)
+	oldPath := filepath.Join(w.TokensFolderPath(), name)
+	newPath := filepath.Join(w.TokensFolderPath(), newName)
 	return os.Rename(oldPath, newPath)
 }
 
@@ -130,9 +130,9 @@ func (w *Wallet) ImportTokensFromWallet(walletAddr string) error {
 	}
 
 	for _, fileInfo := range files {
-		sourceFolder := w.TokensFolder()
+		sourceFolder := w.TokensFolderPath()
 		sourcePath := filepath.Join(sourceFolder, fileInfo.Name())
-		destPath := filepath.Join(w.TokensFolder(), fileInfo.Name())
+		destPath := filepath.Join(w.TokensFolderPath(), fileInfo.Name())
 		err := utils.CopyFile(sourcePath, destPath)
 		if err != nil {
 			return err

@@ -199,10 +199,10 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	{
 		submitted, text := p.modalWalletPassword.Submit()
 		if submitted {
-			walletMemory, walletInfo, err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
+			err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
 			if err == nil {
-				walletMemory.SetOnlineMode()
-				wallet_manager.SetOpenWallet(walletMemory, walletInfo)
+				wallet := wallet_manager.OpenedWallet
+				wallet.Memory.SetOnlineMode()
 				p.modalWalletPassword.Modal.SetVisible(false)
 				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 			} else {
@@ -271,10 +271,13 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return c.listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
 				if c.items[index].clickable.Clicked() {
+					c.modal.SetVisible(false)
+
 					tag := c.items[index].routerTag
 					page_instance.pageRouter.SetCurrent(tag)
 					page_instance.header.AddHistory(tag)
-					c.modal.SetVisible(false)
+
+					op.InvalidateOp{}.Add(gtx.Ops) // make sure to invalidate if we are closing modal and changing page
 				}
 
 				return c.items[index].Layout(gtx, th)

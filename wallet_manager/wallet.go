@@ -14,11 +14,16 @@ import (
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/settings"
+
+	"database/sql"
+
+	_ "modernc.org/sqlite" // use CGO free port
 )
 
 type Wallet struct {
 	Info   *WalletInfo
 	Memory *walletapi.Wallet_Memory
+	DB     *sql.DB
 }
 
 type WalletInfo struct {
@@ -73,44 +78,64 @@ func Load() error {
 	})
 }
 
-func OpenWallet(addr string, password string) (*walletapi.Wallet_Memory, *WalletInfo, error) {
-	walletInfo, ok := Wallets[addr]
+func CloseOpenedWallet() {
+	if OpenedWallet != nil {
+		wallet := OpenedWallet
+		go func() {
+			wallet.Memory.Close_Encrypted_Wallet()
+			wallet.Memory.Clean()
+		}()
+		wallet.DB.Close()
+		OpenedWallet = nil
+	}
+}
+
+func OpenWallet(addr string, password string) error {
+	info, ok := Wallets[addr]
 	if !ok {
-		return nil, nil, fmt.Errorf("wallet [%s] does not exists", addr)
+		return fmt.Errorf("wallet [%s] does not exists", addr)
 	}
 
 	walletsDir := settings.WalletsDir
-	path := filepath.Join(walletsDir, addr, "wallet.db")
-	walletData, err := os.ReadFile(path)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	wallet, err := walletapi.Open_Encrypted_Wallet_Memory(password, walletData)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	wallet.SetNetwork(globals.IsMainnet())
-	return wallet, walletInfo, nil
-}
-
-func SetOpenWallet(memory *walletapi.Wallet_Memory, info *WalletInfo) {
-	OpenedWallet = &Wallet{
-		Memory: memory,
-		Info:   info,
-	}
-}
-
-func DeleteWallet(addr string, password string) error {
-	_, _, err := OpenWallet(addr, password)
+	walletPath := filepath.Join(walletsDir, addr, "wallet.db")
+	data, err := os.ReadFile(walletPath)
 	if err != nil {
 		return err
 	}
 
+	memory, err := walletapi.Open_Encrypted_Wallet_Memory(password, data)
+	if err != nil {
+		return err
+	}
+
+	memory.SetNetwork(globals.IsMainnet())
+
+	CloseOpenedWallet()
+	dbPath := filepath.Join(walletsDir, addr, "data.db")
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return err
+	}
+
+	err = initOutgoingTxs(db)
+	if err != nil {
+		return err
+	}
+
+	wallet := &Wallet{
+		Info:   info,
+		Memory: memory,
+		DB:     db,
+	}
+
+	OpenedWallet = wallet
+	return nil
+}
+
+func DeleteWallet(addr string) error {
 	walletsDir := settings.WalletsDir
 	path := filepath.Join(walletsDir, addr)
-	err = os.RemoveAll(path)
+	err := os.RemoveAll(path)
 	if err != nil {
 		return err
 	}
@@ -176,12 +201,7 @@ func (w *Wallet) Order(newOrder int) error {
 }
 
 func (w *Wallet) ChangePassword(password string, newPassword string) error {
-	memory, _, err := OpenWallet(w.Info.Addr, password)
-	if err != nil {
-		return err
-	}
-
-	seed := memory.GetAccount().Keys.Secret
+	seed := w.Memory.GetAccount().Keys.Secret
 	newMemory, err := walletapi.Create_Encrypted_Wallet_Memory(newPassword, seed)
 	if err != nil {
 		return err

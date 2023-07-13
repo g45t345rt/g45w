@@ -16,6 +16,7 @@ import (
 	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/registration"
 	"github.com/g45t345rt/g45w/router"
@@ -296,6 +297,9 @@ func (p *SendRegistrationForm) Layout(gtx layout.Context, th *material.Theme) la
 		if err != nil {
 			notification_modals.ErrorInstance.SetVisible(true, 0)
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+		} else {
+			recent_txs_modal.Instance.SetVisible(true)
+			page_instance.header.GoBack()
 		}
 	}
 
@@ -322,8 +326,8 @@ func (p *SendRegistrationForm) Layout(gtx layout.Context, th *material.Theme) la
 }
 
 func (p *SendRegistrationForm) sendTransaction() error {
-	openedWallet := wallet_manager.OpenedWallet
-	txHex := openedWallet.Info.RegistrationTxHex
+	wallet := wallet_manager.OpenedWallet
+	txHex := wallet.Info.RegistrationTxHex
 	data, err := hex.DecodeString(txHex)
 	if err != nil {
 		return err
@@ -335,7 +339,12 @@ func (p *SendRegistrationForm) sendTransaction() error {
 		return err
 	}
 
-	err = openedWallet.Memory.SendTransaction(tx)
+	err = wallet.StoreOutgoingTx(tx)
+	if err != nil {
+		return err
+	}
+
+	err = wallet.Memory.SendTransaction(tx)
 	if err != nil {
 		return err
 	}

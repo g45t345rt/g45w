@@ -21,7 +21,6 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
-	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
@@ -141,7 +140,6 @@ func (p *PageBalanceTokens) Enter() {
 
 	p.ResetWalletHeader()
 	page_instance.header.ButtonRight = p.buttonSettings
-	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 }
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
@@ -209,58 +207,51 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		page_instance.header.AddHistory(PAGE_SETTINGS)
 	}
 
-	var wallet *walletapi.Wallet_Memory
-	if wallet_manager.OpenedWallet != nil {
-		wallet = wallet_manager.OpenedWallet.Memory
-	}
-
-	if walletapi.Connected && wallet != nil {
-		isRegistered := wallet.IsRegistered()
-
-		if !isRegistered {
-			p.alertBox.Text = lang.Translate("This wallet is not registered on the blockchain.")
-			p.alertBox.SetVisible(true)
-		} else {
-			p.alertBox.SetVisible(false)
-		}
-	} else {
-		p.alertBox.Text = lang.Translate("Wallet is not connected to a node.")
-		p.alertBox.SetVisible(true)
-	}
-
 	if p.buttonRegister.Clickable.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_REGISTER_WALLET)
 		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
 	}
 
-	widgets := []layout.Widget{
-		func(gtx layout.Context) layout.Dimensions {
-			return p.alertBox.Layout(gtx, th)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			if walletapi.Connected && wallet != nil {
-				isRegistered := wallet.IsRegistered()
+	widgets := []layout.Widget{}
 
-				if !isRegistered {
-					return layout.Inset{
-						Top: unit.Dp(0), Bottom: unit.Dp(20),
-						Left: unit.Dp(30), Right: unit.Dp(30),
-					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
-						return p.buttonRegister.Layout(gtx, th)
-					})
-				}
-			}
+	wallet := wallet_manager.OpenedWallet
+	if walletapi.Connected && wallet != nil {
+		isRegistered := wallet.Memory.IsRegistered()
 
-			return layout.Dimensions{}
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return p.displayBalance.Layout(gtx, th)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return p.tokenBar.Layout(gtx, th, p.tokenItems)
-		},
+		if !isRegistered {
+			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+				return p.alertBox.Layout(gtx, th, lang.Translate("This wallet is not registered on the blockchain."))
+			})
+		}
+	} else {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.alertBox.Layout(gtx, th, lang.Translate("Wallet is not connected to a node."))
+		})
 	}
+
+	if walletapi.Connected && wallet != nil {
+		isRegistered := wallet.Memory.IsRegistered()
+
+		if !isRegistered {
+			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{
+					Top: unit.Dp(0), Bottom: unit.Dp(20),
+					Left: unit.Dp(30), Right: unit.Dp(30),
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
+					return p.buttonRegister.Layout(gtx, th)
+				})
+			})
+		}
+	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return p.displayBalance.Layout(gtx, th)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return p.tokenBar.Layout(gtx, th, p.tokenItems)
+	})
 
 	for _, item := range p.tokenItems {
 		widgets = append(widgets, item.Layout)
@@ -284,10 +275,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 }
 
 type AlertBox struct {
-	Text string
-
 	iconWarning *widget.Icon
-	visible     bool
 }
 
 func NewAlertBox() *AlertBox {
@@ -297,16 +285,12 @@ func NewAlertBox() *AlertBox {
 	}
 }
 
-func (n *AlertBox) SetVisible(visible bool) {
-	n.visible = visible
-}
-
-func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if !n.visible {
-		return layout.Dimensions{}
+func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme, text string) layout.Dimensions {
+	border := widget.Border{
+		Color:        color.NRGBA{A: 100},
+		CornerRadius: unit.Dp(5),
+		Width:        unit.Dp(1),
 	}
-
-	border := widget.Border{Color: color.NRGBA{A: 100}, CornerRadius: unit.Dp(5), Width: unit.Dp(1)}
 
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(20),
@@ -320,7 +304,7 @@ func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(14), n.Text)
+						label := material.Label(th, unit.Sp(14), text)
 						label.Color = color.NRGBA{A: 200}
 						return label.Layout(gtx)
 					}),

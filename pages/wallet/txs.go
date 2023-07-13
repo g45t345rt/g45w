@@ -17,7 +17,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/utils"
@@ -86,8 +85,6 @@ func (p *PageTxs) IsActive() bool {
 
 func (p *PageTxs) Enter() {
 	p.isActive = true
-
-	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_TXS)
 
 	if !page_instance.header.IsHistory(PAGE_TXS) {
 		p.animationEnter.Start()

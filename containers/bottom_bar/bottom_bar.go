@@ -154,7 +154,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	if b.confirmClose.ClickedYes() {
 		b.appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
-		wallet_manager.OpenedWallet = nil
+		wallet_manager.CloseOpenedWallet()
 	}
 
 	if b.ButtonNode.Button.Clickable.Clicked() {

@@ -137,6 +137,7 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
+	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true

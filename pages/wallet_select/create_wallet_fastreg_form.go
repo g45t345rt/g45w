@@ -196,7 +196,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), lang.Translate("The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam."))
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam."))
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {

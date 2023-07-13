@@ -23,13 +23,13 @@ type Page struct {
 	header         *prefabs.Header
 	pageRouter     *router.Router
 
-	pageFront *PageFront
-	pageInfo  *PageInfo
+	pageMain *PageMain
+	pageInfo *PageInfo
 }
 
 var (
-	PAGE_FRONT = "page_front"
-	PAGE_INFO  = "page_info"
+	PAGE_MAIN = "page_main"
+	PAGE_INFO = "page_info"
 )
 
 var page_instance *Page
@@ -47,8 +47,8 @@ func New() *Page {
 
 	pageRouter := router.NewRouter()
 
-	pageFront := NewPageFront()
-	pageRouter.Add(PAGE_FRONT, pageFront)
+	pageMain := NewPageFront()
+	pageRouter.Add(PAGE_MAIN, pageMain)
 
 	pageInfo := NewPageInfo()
 	pageRouter.Add(PAGE_INFO, pageInfo)
@@ -63,7 +63,7 @@ func New() *Page {
 		animationLeave: animationLeave,
 		header:         header,
 		pageRouter:     pageRouter,
-		pageFront:      pageFront,
+		pageMain:       pageMain,
 		pageInfo:       pageInfo,
 	}
 
@@ -84,8 +84,8 @@ func (p *Page) Enter() {
 	if lastHistory != nil {
 		p.pageRouter.SetCurrent(lastHistory)
 	} else {
-		p.header.AddHistory(PAGE_FRONT)
-		p.pageRouter.SetCurrent(PAGE_FRONT)
+		p.header.AddHistory(PAGE_MAIN)
+		p.pageRouter.SetCurrent(PAGE_MAIN)
 	}
 
 	p.isActive = true

@@ -145,9 +145,12 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	submitted, password := p.modalWalletPassword.Submit()
 	if submitted {
-		_, _, err := wallet_manager.OpenWallet(wallet_manager.OpenedWallet.Info.Addr, password)
+		wallet := wallet_manager.OpenedWallet
+		validPassword := wallet.Memory.Check_Password(password)
 
-		if err == nil {
+		if !validPassword {
+			p.modalWalletPassword.StartWrongPassAnimation()
+		} else {
 			err := p.submitForm(gtx, password)
 
 			if err != nil {
@@ -161,13 +164,6 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				}
 				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), text)
 				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			}
-		} else {
-			if err.Error() == "Invalid Password" {
-				p.modalWalletPassword.StartWrongPassAnimation()
-			} else {
-				notification_modals.ErrorInstance.SetText("Error", err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			}
 		}
 	}
@@ -235,14 +231,14 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 
 	switch p.action {
 	case "delete_wallet":
-		err := wallet_manager.DeleteWallet(wallet.Info.Addr, password)
+		err := wallet_manager.DeleteWallet(wallet.Info.Addr)
 		if err != nil {
 			return err
 		}
 
 		page_instance.header.GoBack()
 		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
-		wallet_manager.OpenedWallet = nil
+		wallet_manager.CloseOpenedWallet()
 	case "save_changes":
 		newWalletName := p.txtWalletName.Value()
 		if wallet.Info.Name != newWalletName {
