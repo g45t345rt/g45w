@@ -369,10 +369,7 @@ func NewDisplayBalance(th *material.Theme) *DisplayBalance {
 }
 
 func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	var wallet *walletapi.Wallet_Memory
-	if wallet_manager.OpenedWallet != nil {
-		wallet = wallet_manager.OpenedWallet.Memory
-	}
+	wallet := wallet_manager.OpenedWallet
 
 	if d.buttonSend.Clickable.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
@@ -401,7 +398,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						balance := uint64(0)
 						if walletapi.Connected && wallet != nil {
-							balance, _ = wallet.Get_Balance()
+							balance, _ = wallet.Memory.Get_Balance()
 						}
 
 						amount := utils.ShiftNumber{Number: balance, Decimals: 5}.Format()

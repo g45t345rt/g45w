@@ -258,8 +258,8 @@ func (p *RegisterWalletForm) startRegistration() error {
 		return err
 	}
 
-	wallet := wallet_manager.OpenedWallet.Memory
-	p.normalReg.Start(int(threadCount), wallet)
+	wallet := wallet_manager.OpenedWallet
+	p.normalReg.Start(int(threadCount), wallet.Memory)
 	return nil
 }
 
