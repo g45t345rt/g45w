@@ -82,6 +82,7 @@ func CloseOpenedWallet() {
 	if OpenedWallet != nil {
 		wallet := OpenedWallet
 		go func() {
+			close(wallet.Memory.Quit) // make sure to close goroutines when wallet is in online mode
 			wallet.Memory.Close_Encrypted_Wallet()
 			wallet.Memory.Clean()
 		}()

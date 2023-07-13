@@ -1,4 +1,4 @@
-replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230701211001-7d84d9216f09
+replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f
 
 module github.com/g45t345rt/g45w
 
@@ -9,6 +9,7 @@ require (
 	gioui.org v0.0.0-20230627103614-e5fe3a0732f4
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
+	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1
 	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1
 )
@@ -20,8 +21,6 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
-	go.etcd.io/bbolt v1.3.7 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect

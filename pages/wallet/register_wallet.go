@@ -339,7 +339,7 @@ func (p *SendRegistrationForm) sendTransaction() error {
 		return err
 	}
 
-	err = wallet.StoreOutgoingTx(tx)
+	err = wallet.StoreOutgoingTx(tx, "")
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"strconv"
@@ -15,7 +16,10 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -33,7 +37,7 @@ type PageSendForm struct {
 	SCID           string
 	txtAmount      *components.TextField
 	txtWalletAddr  *components.Input
-	buttonBuildTx  *components.Button
+	buttonSendTx   *components.Button
 	buttonContacts *components.Button
 	buttonOptions  *components.Button
 
@@ -48,10 +52,10 @@ type PageSendForm struct {
 var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
-	buildIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
-	buttonBuildTx := components.NewButton(components.ButtonStyle{
+	sendIcon, _ := widget.NewIcon(icons.ContentSend)
+	buttonSendTx := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            buildIcon,
+		Icon:            sendIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
@@ -59,8 +63,8 @@ func NewPageSendForm() *PageSendForm {
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
 	})
-	buttonBuildTx.Label.Alignment = text.Middle
-	buttonBuildTx.Style.Font.Weight = font.Bold
+	buttonSendTx.Label.Alignment = text.Middle
+	buttonSendTx.Style.Font.Weight = font.Bold
 
 	txtAmount := components.NewTextField()
 	txtWalletAddr := components.NewInput()
@@ -113,7 +117,7 @@ func NewPageSendForm() *PageSendForm {
 	return &PageSendForm{
 		txtAmount:        txtAmount,
 		txtWalletAddr:    txtWalletAddr,
-		buttonBuildTx:    buttonBuildTx,
+		buttonSendTx:     buttonSendTx,
 		ringSizeSelector: ringSizeSelector,
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
@@ -161,8 +165,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonBuildTx.Clickable.Clicked() {
-
+	if p.buttonSendTx.Clickable.Clicked() {
+		err := p.submitForm()
+		if err != nil {
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
 	}
 
 	if p.buttonOptions.Clickable.Clicked() {
@@ -262,8 +270,8 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.buttonOptions.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonBuildTx.Text = lang.Translate("BUILD TRANSACTION")
-			return p.buttonBuildTx.Layout(gtx, th)
+			p.buttonSendTx.Text = lang.Translate("SEND TRANSACTION")
+			return p.buttonSendTx.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
@@ -290,11 +298,30 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 }
 
 func (p *PageSendForm) submitForm() error {
-	wallet := wallet_manager.OpenedWallet.Memory
+	wallet := wallet_manager.OpenedWallet
 
-	destination := p.txtWalletAddr.Value()
+	txtAmount := p.txtAmount
+	if txtAmount.Value() == "" {
+		return fmt.Errorf(lang.Translate("Amount cannot be empty."))
+	}
+
+	amount, err := globals.ParseAmount(txtAmount.Value())
+	if err != nil {
+		return err
+	}
+
+	if amount == 0 {
+		return fmt.Errorf(lang.Translate("Amount must be greater than 0."))
+	}
+
+	txtWalletAddr := p.txtWalletAddr
+	if txtWalletAddr.Value() == "" {
+		return fmt.Errorf(lang.Translate("Destination address is empty."))
+	}
+
 	txtComment := page_instance.pageSendOptionsForm.txtComment
 	txtDstPort := page_instance.pageSendOptionsForm.txtDstPort
+	txtDescription := page_instance.pageSendOptionsForm.txtDescription
 
 	var arguments rpc.Arguments
 
@@ -315,7 +342,7 @@ func (p *PageSendForm) submitForm() error {
 
 	scId := crypto.HashHexToHash(p.SCID)
 	transfers := []rpc.Transfer{
-		{SCID: scId, Destination: destination, Amount: 0, Payload_RPC: arguments},
+		{SCID: scId, Destination: txtWalletAddr.Value(), Amount: amount, Payload_RPC: arguments},
 	}
 
 	ringsize, err := strconv.ParseUint(p.ringSizeSelector.Value, 10, 64)
@@ -323,15 +350,29 @@ func (p *PageSendForm) submitForm() error {
 		return err
 	}
 
-	tx, err := wallet.TransferPayload0(transfers, ringsize, false, rpc.Arguments{}, 0, false)
+	tx, err := wallet.Memory.TransferPayload0(transfers, ringsize, false, rpc.Arguments{}, 0, false)
 	if err != nil {
 		return err
 	}
 
-	err = wallet.SendTransaction(tx)
+	err = wallet.StoreOutgoingTx(tx, txtDescription.Value())
 	if err != nil {
 		return err
 	}
+
+	err = wallet.Memory.SendTransaction(tx)
+	if err != nil {
+		return err
+	}
+
+	txtWalletAddr.SetValue("")
+	txtAmount.SetValue("")
+	txtDescription.SetValue("")
+	txtComment.SetValue("")
+	txtDstPort.SetValue("")
+
+	recent_txs_modal.Instance.SetVisible(true)
+	page_instance.header.GoBack()
 
 	return nil
 }

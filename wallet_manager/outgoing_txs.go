@@ -19,6 +19,7 @@ type OutgoingTx struct {
 	TxType      sql.NullInt32
 	HexData     sql.NullString
 	BlockHeight sql.NullInt64
+	Description sql.NullString
 }
 
 func initOutgoingTxs(db *sql.DB) error {
@@ -35,7 +36,8 @@ func initOutgoingTxs(db *sql.DB) error {
 			status VARCHAR,
 			tx_type VARCHAR,
 			hex_data VARCHAR,
-			block_height BIGINT
+			block_height BIGINT,
+			description VARCHAR
 		);
 	`)
 	if err != nil {
@@ -59,6 +61,7 @@ func scanOutgoingTxs(rows *sql.Rows) ([]OutgoingTx, error) {
 			&outgoingTx.TxType,
 			&outgoingTx.HexData,
 			&outgoingTx.BlockHeight,
+			&outgoingTx.Description,
 		)
 		if err != nil {
 			return nil, err
@@ -249,7 +252,7 @@ func (w *Wallet) UpdateOugoingTx(txId string, status string, blockHeight int64) 
 	return nil
 }
 
-func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction) error {
+func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction, description string) error {
 	dbTx, err := w.DB.Begin()
 	if err != nil {
 		return err
@@ -261,9 +264,9 @@ func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction) error {
 	hexData := hex.EncodeToString(tx.Serialize())
 
 	_, err = dbTx.Exec(`
-		INSERT INTO outgoing_txs (tx_id,height_built,tx_type,timestamp,status,hex_data)
-		VALUES (?,?,?,?,?,?);
-	`, txId, height, txType, time.Now().Unix(), "pending", hexData)
+		INSERT INTO outgoing_txs (tx_id,height_built,tx_type,timestamp,status,hex_data,description)
+		VALUES (?,?,?,?,?,?,?);
+	`, txId, height, txType, time.Now().Unix(), "pending", hexData, description)
 	if err != nil {
 		return err
 	}
