@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"gioui.org/font"
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -74,6 +75,8 @@ func NewPageSendForm() *PageSendForm {
 	buttonSendTx.Style.Font.Weight = font.Bold
 
 	txtAmount := components.NewTextField()
+	txtAmount.Editor().InputHint = key.HintNumeric
+
 	txtWalletAddr := components.NewInput()
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(

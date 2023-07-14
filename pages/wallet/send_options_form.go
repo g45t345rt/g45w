@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
@@ -37,6 +38,7 @@ func NewPageSendOptionsForm() *PageSendOptionsForm {
 	txtDescription.Editor().SingleLine = false
 	txtDescription.Editor().Submit = false
 	txtDstPort := components.NewTextField()
+	txtDstPort.Editor().InputHint = key.HintNumeric
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),
