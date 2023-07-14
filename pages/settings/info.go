@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gioui.org/font"
+	"gioui.org/io/clipboard"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -16,12 +17,15 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/ui/animation"
+	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageInfo struct {
@@ -117,8 +121,9 @@ func (p *PageInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 }
 
 type InfoListItem struct {
-	title  string
-	editor *widget.Editor
+	title      string
+	editor     *widget.Editor
+	buttonCopy *components.Button
 }
 
 func NewInfoListItem(title string, value string) *InfoListItem {
@@ -127,22 +132,47 @@ func NewInfoListItem(title string, value string) *InfoListItem {
 	editor.ReadOnly = true
 	editor.SetText(value)
 
+	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
+	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
+	buttonCopy := components.NewButton(components.ButtonStyle{
+		Icon:           copyIcon,
+		TextColor:      textColor,
+		HoverTextColor: &textHoverColor,
+	})
+
 	return &InfoListItem{
-		title:  title,
-		editor: editor,
+		title:      title,
+		editor:     editor,
+		buttonCopy: buttonCopy,
 	}
 }
 
 func (s InfoListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if s.buttonCopy.Clicked() {
+		clipboard.WriteOp{
+			Text: s.editor.Text(),
+		}.Add(gtx.Ops)
+		notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Text copied to clipboard"))
+		notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+	}
+
 	dims := layout.Inset{
 		Top: unit.Dp(10), Bottom: unit.Dp(10),
 		Left: unit.Dp(10), Right: unit.Dp(10),
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), lang.Translate(s.title))
-				label.Font.Weight = font.Bold
-				return label.Layout(gtx)
+				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(18), lang.Translate(s.title))
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return s.buttonCopy.Layout(gtx, th)
+					}),
+				)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {

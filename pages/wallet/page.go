@@ -59,6 +59,7 @@ var (
 	PAGE_CONTACT_FORM      = "page_contact_form"
 	PAGE_SEND_OPTIONS_FORM = "page_send_options_form"
 	PAGE_SC_FOLDERS        = "page_sc_folders"
+	PAGE_WALLET_INFO       = "page_wallet_info"
 )
 
 func New() *Page {
@@ -108,6 +109,9 @@ func New() *Page {
 
 	pageSCFolders := NewPageSCFolders()
 	pageRouter.Add(PAGE_SC_FOLDERS, pageSCFolders)
+
+	pageWalletInfo := NewPageWalletInfo()
+	pageRouter.Add(PAGE_WALLET_INFO, pageWalletInfo)
 
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
 	labelHeaderStyle.Font.Weight = font.Bold
