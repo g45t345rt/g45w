@@ -73,7 +73,6 @@ func NewPageSelectWallet() *PageSelectWallet {
 	})
 
 	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
-
 	buttonWalletCreate := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            addIcon,

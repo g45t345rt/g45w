@@ -77,10 +77,6 @@ func (p *PageSCFolders) Enter() {
 	page_instance.header.ButtonRight = p.buttonAddFolderToken
 
 	p.tokenItems = make([]*TokenFolderItem, 0)
-	//for _, contact := range page_instance.contactManager.Contacts {
-	//item := NewTokenFolderItem()
-	//p.tokenItems = append(p.tokenItems, item)
-	//}
 
 	for i := 0; i < 47; i++ {
 		p.tokenItems = append(p.tokenItems, NewTokenFolderItem())

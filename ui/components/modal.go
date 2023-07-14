@@ -109,10 +109,12 @@ type ModalStyle struct {
 }
 
 type Modal struct {
-	Style        ModalStyle
-	visible      bool
+	Style   ModalStyle
+	Visible bool
+
 	clickableOut *widget.Clickable
 	clickableIn  *widget.Clickable
+	closed       bool
 }
 
 func NewModal(style ModalStyle) *Modal {
@@ -122,19 +124,15 @@ func NewModal(style ModalStyle) *Modal {
 
 	return &Modal{
 		Style:        style,
-		visible:      false,
+		Visible:      false,
 		clickableOut: new(widget.Clickable),
 		clickableIn:  new(widget.Clickable),
 	}
 }
 
-func (modal *Modal) Visible() bool {
-	return modal.visible
-}
-
 func (modal *Modal) SetVisible(visible bool) {
 	if visible {
-		modal.visible = true
+		modal.Visible = true
 		modal.Style.Animation.animationEnter.Start()
 		modal.Style.Animation.animationLeave.Reset()
 	} else {
@@ -142,6 +140,10 @@ func (modal *Modal) SetVisible(visible bool) {
 		modal.Style.Animation.animationLeave.Start()
 		modal.Style.Animation.animationEnter.Reset()
 	}
+}
+
+func (modal *Modal) Closed() bool {
+	return modal.closed
 }
 
 func (modal *Modal) handleKeyClose(gtx layout.Context) {
@@ -161,7 +163,8 @@ func (modal *Modal) handleKeyClose(gtx layout.Context) {
 }
 
 func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Context), w layout.Widget) layout.Dimensions {
-	if !modal.visible {
+	modal.closed = false
+	if !modal.Visible {
 		return layout.Dimensions{Size: gtx.Constraints.Max}
 	}
 
@@ -217,7 +220,8 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 			}
 
 			if state.Finished {
-				modal.visible = false
+				modal.Visible = false
+				modal.closed = true
 				op.InvalidateOp{}.Add(gtx.Ops)
 				//return layout.Dimensions{Size: gtx.Constraints.Max}
 			}

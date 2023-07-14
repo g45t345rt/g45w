@@ -101,10 +101,10 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtComment.Input.EditorMinY = gtx.Dp(75)
-			return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is store on the blockchain and natively encrypted. Only the sender/receiver can decrypt."))
+			return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is store on the blockchain and natively encrypted. Only the sender / receiver can decrypt."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), "Specific service.")
+			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), "Specific service port.")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtDescription.Input.EditorMinY = gtx.Dp(75)

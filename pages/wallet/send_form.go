@@ -58,6 +58,7 @@ var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
 	sendIcon, _ := widget.NewIcon(icons.ContentSend)
+	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonSendTx := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            sendIcon,
@@ -67,6 +68,7 @@ func NewPageSendForm() *PageSendForm {
 		IconGap:         unit.Dp(10),
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
+		LoadingIcon:     loadingIcon,
 	})
 	buttonSendTx.Label.Alignment = text.Middle
 	buttonSendTx.Style.Font.Weight = font.Bold
@@ -180,14 +182,18 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonSendTx.Clickable.Clicked() {
-		err := p.buildTransaction()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			p.modalWalletPassword.Modal.SetVisible(true)
-		}
+	if p.buttonSendTx.Clicked() {
+		p.buttonSendTx.SetLoading(true)
+		go func() {
+			err := p.buildTransaction()
+			if err != nil {
+				p.buttonSendTx.SetLoading(false)
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			} else {
+				p.modalWalletPassword.Modal.SetVisible(true)
+			}
+		}()
 	}
 
 	if p.buttonOptions.Clickable.Clicked() {
@@ -200,15 +206,21 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		page_instance.header.AddHistory(PAGE_CONTACTS)
 	}
 
+	if p.modalWalletPassword.Modal.Closed() {
+		p.buttonSendTx.SetLoading(false)
+	}
+
 	submitted, password := p.modalWalletPassword.Submit()
 	if submitted {
 		wallet := wallet_manager.OpenedWallet
 		validPassword := wallet.Memory.Check_Password(password)
 
 		if !validPassword {
+			p.buttonSendTx.SetLoading(false)
 			p.modalWalletPassword.StartWrongPassAnimation()
 		} else {
 			err := p.sendBuildTransaction()
+			p.buttonSendTx.SetLoading(false)
 			if err != nil {
 				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)

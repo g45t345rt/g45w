@@ -85,7 +85,7 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
-	if w.Modal.Visible() {
+	if w.Modal.Visible {
 		w.editor.Focus()
 	} else {
 		w.editor.SetText("")

@@ -20,12 +20,14 @@ import (
 )
 
 type ButtonAnimation struct {
-	animationEnter *animation.Animation
-	transformEnter animation.TransformFunc
-	animationLeave *animation.Animation
-	transformLeave animation.TransformFunc
-	animationClick *animation.Animation
-	transformClick animation.TransformFunc
+	animationEnter   *animation.Animation
+	transformEnter   animation.TransformFunc
+	animationLeave   *animation.Animation
+	transformLeave   animation.TransformFunc
+	animationClick   *animation.Animation
+	transformClick   animation.TransformFunc
+	animationLoading *animation.Animation
+	transformLoading animation.TransformFunc
 }
 
 type ButtonStyle struct {
@@ -41,6 +43,7 @@ type ButtonStyle struct {
 	HoverTextColor       *color.NRGBA
 	Animation            ButtonAnimation
 	Border               widget.Border
+	LoadingIcon          *widget.Icon
 }
 
 type Button struct {
@@ -50,6 +53,7 @@ type Button struct {
 	Label     *widget.Label
 	Focused   bool
 	Disabled  bool
+	Loading   bool
 
 	animClickable    *widget.Clickable
 	hoverSwitchState bool
@@ -79,13 +83,22 @@ func NewButtonAnimationScale(v float32) ButtonAnimation {
 		),
 	)
 
+	animationLoading := animation.NewAnimation(false,
+		gween.NewSequence(
+			gween.New(0, 1, 1, ease.Linear),
+		),
+	)
+	animationLoading.Sequence.SetLoop(-1)
+
 	return ButtonAnimation{
-		animationEnter: animationEnter,
-		transformEnter: animation.TransformScaleCenter,
-		animationLeave: animationLeave,
-		transformLeave: animation.TransformScaleCenter,
-		animationClick: animationClick,
-		transformClick: animation.TransformScaleCenter,
+		animationEnter:   animationEnter,
+		transformEnter:   animation.TransformScaleCenter,
+		animationLeave:   animationLeave,
+		transformLeave:   animation.TransformScaleCenter,
+		animationClick:   animationClick,
+		transformClick:   animation.TransformScaleCenter,
+		animationLoading: animationLoading,
+		transformLoading: animation.TransformRotate,
 	}
 }
 
@@ -101,6 +114,26 @@ func NewButton(style ButtonStyle) *Button {
 	}
 }
 
+func (btn *Button) SetLoading(loading bool) {
+	btn.Loading = loading
+	btn.Disabled = loading
+
+	animationLoading := btn.Style.Animation.animationLoading
+	if loading {
+		animationLoading.Reset().Start()
+	} else {
+		animationLoading.Pause()
+	}
+}
+
+func (btn *Button) Clicked() bool {
+	if btn.Disabled {
+		return false
+	}
+
+	return btn.Clickable.Clicked()
+}
+
 func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	animationEnter := btn.Style.Animation.animationEnter
 	transformEnter := btn.Style.Animation.transformEnter
@@ -108,6 +141,8 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	transformLeave := btn.Style.Animation.transformLeave
 	animationClick := btn.Style.Animation.animationClick
 	transformClick := btn.Style.Animation.transformClick
+	animationLoading := btn.Style.Animation.animationLoading
+	transformLoading := btn.Style.Animation.transformLoading
 
 	clickable := btn.Clickable
 	animClickable := btn.animClickable
@@ -188,6 +223,10 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 						animationClick.Reset().Start()
 					}
 				}
+			} else {
+				animationLeave.Reset()
+				animationEnter.Reset()
+				animationClick.Reset()
 			}
 
 			c := op.Record(gtx.Ops)
@@ -199,11 +238,29 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 
 					return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							if style.Icon != nil {
-								return style.Icon.Layout(gtx, textColor)
-							}
+							if style.LoadingIcon != nil && btn.Loading {
+								r := op.Record(gtx.Ops)
+								dims := style.LoadingIcon.Layout(gtx, textColor)
+								c := r.Stop()
 
-							return layout.Dimensions{}
+								{
+									gtx.Constraints.Min = dims.Size
+
+									if animationLoading != nil {
+										state := animationLoading.Update(gtx)
+										if state.Active {
+											defer transformLoading(gtx, state.Value).Push(gtx.Ops).Pop()
+										}
+									}
+								}
+
+								c.Add(gtx.Ops)
+								return dims
+							} else if style.Icon != nil {
+								return style.Icon.Layout(gtx, textColor)
+							} else {
+								return layout.Dimensions{}
+							}
 						}),
 						layout.Rigid(layout.Spacer{Width: style.IconGap}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
