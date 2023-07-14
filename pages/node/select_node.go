@@ -34,6 +34,7 @@ type PageSelectNode struct {
 	animationLeave          *animation.Animation
 	buttonSetIntegratedNode *components.Button
 	buttonAddNode           *components.Button
+	buttonResetNodeList     *components.Button
 	connecting              bool
 
 	nodeList *NodeList
@@ -57,6 +58,7 @@ func NewPageSelectNode() *PageSelectNode {
 
 	nodeList := NewNodeList(th, lang.Translate("You didn't add any remote nodes yet."))
 
+	nodeIcon, _ := widget.NewIcon(icons.ActionDNS)
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -64,6 +66,8 @@ func NewPageSelectNode() *PageSelectNode {
 		TextSize:        unit.Sp(16),
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
+		Icon:            nodeIcon,
+		IconGap:         unit.Dp(10),
 	})
 	buttonSetIntegratedNode.Label.Alignment = text.Middle
 	buttonSetIntegratedNode.Style.Font.Weight = font.Bold
@@ -76,6 +80,20 @@ func NewPageSelectNode() *PageSelectNode {
 		Animation:      components.NewButtonAnimationScale(.92),
 	})
 
+	resetIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	buttonResetNodeList := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(16),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+		Icon:            resetIcon,
+		IconGap:         unit.Dp(10),
+	})
+	buttonResetNodeList.Label.Alignment = text.Middle
+	buttonResetNodeList.Style.Font.Weight = font.Bold
+
 	return &PageSelectNode{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -84,6 +102,7 @@ func NewPageSelectNode() *PageSelectNode {
 		nodeList:                nodeList,
 		buttonSetIntegratedNode: buttonSetIntegratedNode,
 		buttonAddNode:           buttonAddNode,
+		buttonResetNodeList:     buttonResetNodeList,
 	}
 }
 
@@ -100,7 +119,7 @@ func (p *PageSelectNode) Enter() {
 		p.animationEnter.Start()
 	}
 
-	p.Load()
+	p.LoadRemoteNodes()
 }
 
 func (p *PageSelectNode) Leave() {
@@ -112,7 +131,7 @@ func (p *PageSelectNode) Leave() {
 	}
 }
 
-func (p *PageSelectNode) Load() {
+func (p *PageSelectNode) LoadRemoteNodes() {
 	items := make([]NodeListItem, 0)
 	for _, nodeInfo := range node_manager.Nodes {
 		items = append(items,
@@ -190,8 +209,27 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonResetNodeList.Text = lang.Translate("Reset node list")
+			return p.buttonResetNodeList.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
 		},
+	}
+
+	if p.buttonResetNodeList.Clicked() {
+		err := node_manager.ReloadTrustedNodes()
+		if err != nil {
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			p.LoadRemoteNodes()
+			notification_modals.SuccessInstance.SetText("Success", lang.Translate("List reset to default."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
 	}
 
 	if p.buttonSetIntegratedNode.Clickable.Clicked() {

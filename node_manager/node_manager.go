@@ -30,9 +30,11 @@ const INTEGRATED_NODE_ID = "integrated"
 const NODE_STATE_FILE = "node_state.json"
 
 var TrustedNodes = map[string]NodeConnection{
-	"deronfts":     {ID: "deronfts", Name: "DeroNFTs", Endpoint: "wss://node.deronfts.com/ws"},
-	"my_srv_cloud": {ID: "my_srv_cloud", Name: "MySrvCloud", Endpoint: "wss://dero-node.mysrv.cloud/ws"},
-	"derostats":    {ID: "derostats", Name: "DeroStats", Endpoint: "ws://derostats.io:10102/ws"},
+	"deronfts":        {ID: "deronfts", Name: "DeroNFTs", Endpoint: "wss://node.deronfts.com/ws"},
+	"my_srv_cloud":    {ID: "my_srv_cloud", Name: "MySrvCloud", Endpoint: "wss://dero-node.mysrv.cloud/ws"},
+	"derostats":       {ID: "derostats", Name: "DeroStats", Endpoint: "ws://derostats.io:10102/ws"},
+	"dero_foundation": {ID: "dero_foundation", Name: "Foundation", Endpoint: "ws://node.derofoundation.org:11012/ws"},
+	"friendspool":     {ID: "friendspool", Name: "Friendspool", Endpoint: "ws://wallet.friendspool.club:10102/ws"},
 }
 
 func Load() error {
