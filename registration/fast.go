@@ -4,6 +4,7 @@ package registration
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"sync"
@@ -608,9 +609,18 @@ func (s *FastReg) run(wIndex int) {
 
 			hash := GetHash(tx)
 			if hash[0] == 0 && hash[1] == 0 && hash[2] == 0 {
+				secret := pList[i].secret
+				hexSeed := secret.Text(16)
+				bHexSeed, err := hex.DecodeString(hexSeed)
+				if err != nil || len(bHexSeed) != 32 {
+					// found correct tx hash but somehow the hex seed is invalid or not 64 char in length
+					// quick hack to just continue searching for a valid registration that meets all criteria
+					continue
+				}
+
 				if tx.IsRegistrationValid() {
 					s.Stop()
-					s.OnFound(tx, pList[i].secret)
+					s.OnFound(tx, secret)
 					break
 				}
 			}

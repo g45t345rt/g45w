@@ -103,6 +103,16 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			}
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			// can't get capslock state with gioui - need to be implemented cross-platform
+			/*if capsLockOn {
+				offset := f32.Point{X: float32(gtx.Dp(30)), Y: float32(gtx.Dp(10))}
+				trans := op.Affine(f32.Affine2D{}.Offset(offset)).Push(gtx.Ops)
+				lbl := material.Label(th, unit.Sp(10), lang.Translate("CAPS LOCK IS ON"))
+				lbl.Font.Weight = font.Bold
+				lbl.Layout(gtx)
+				trans.Pop()
+			}*/
+
 			return layout.UniformInset(unit.Dp(25)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

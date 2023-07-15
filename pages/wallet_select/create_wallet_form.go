@@ -217,6 +217,7 @@ func (p *PageCreateWalletForm) submitForm() error {
 		}
 	}
 
+	p.regResultContainer = nil
 	txtName.SetText("")
 	txtPassword.SetText("")
 	txtConfirmPassword.SetText("")
@@ -258,7 +259,7 @@ func NewRegResultContainer(result *RegResult) *RegResultContainer {
 	}
 }
 
-func (item RegResultContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (item *RegResultContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(16), lang.Translate("The registration process found the POW solution. You can now create your wallet and send the registration transaction."))
