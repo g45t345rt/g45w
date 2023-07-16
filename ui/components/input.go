@@ -23,8 +23,7 @@ type Input struct {
 	Border      widget.Border
 	Inset       layout.Inset
 
-	Clickable  widget.Clickable
-	focusClick widget.Clickable
+	Clickable widget.Clickable
 }
 
 func NewInput() *Input {
@@ -80,31 +79,25 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 
 	gtx.Constraints.Min.Y = t.EditorMinY
 
-	if t.focusClick.Clicked() {
-		t.Editor.Focus()
-	}
-
 	return t.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return t.focusClick.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				macro := op.Record(gtx.Ops)
-				dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					t.EditorStyle = material.Editor(th, t.Editor, hint)
-					if t.TextSize != 0 {
-						t.EditorStyle.TextSize = t.TextSize
-					}
-					return t.EditorStyle.Layout(gtx)
-				})
-				call := macro.Stop()
-
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
-					image.Rectangle{Max: dims.Size},
-					int(t.Border.CornerRadius),
-				).Op(gtx.Ops))
-
-				call.Add(gtx.Ops)
-				return dims
+		return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			macro := op.Record(gtx.Ops)
+			dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				t.EditorStyle = material.Editor(th, t.Editor, hint)
+				if t.TextSize != 0 {
+					t.EditorStyle.TextSize = t.TextSize
+				}
+				return t.EditorStyle.Layout(gtx)
 			})
+			call := macro.Stop()
+
+			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+				image.Rectangle{Max: dims.Size},
+				int(t.Border.CornerRadius),
+			).Op(gtx.Ops))
+
+			call.Add(gtx.Ops)
+			return dims
 		})
 	})
 }

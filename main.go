@@ -10,8 +10,6 @@ import (
 	"gioui.org/app"
 	"gioui.org/font"
 	"gioui.org/font/opentype"
-	"gioui.org/gesture"
-	"gioui.org/io/key"
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -62,9 +60,6 @@ func runApp() error {
 	th := app_instance.Theme
 	router := app_instance.Router
 	explorer := app_instance.Explorer
-
-	var appClick gesture.Click
-
 	for {
 		e := <-window.Events()
 		explorer.ListenEvents(e)
@@ -73,17 +68,6 @@ func runApp() error {
 			return e.Err
 		case system.FrameEvent:
 			gtx := layout.NewContext(&ops, e)
-
-			// Reset click on every frame by default
-			// Clicking input will overwrite this and focus appropriately
-			for _, ev := range appClick.Events(gtx) {
-				switch ev.Type {
-				case gesture.TypeClick:
-					key.FocusOp{Tag: nil}.Add(gtx.Ops)
-				}
-			}
-			appClick.Add(gtx.Ops)
-
 			router.Layout(gtx, th)
 			e.Frame(gtx.Ops)
 		}

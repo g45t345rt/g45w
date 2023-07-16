@@ -91,6 +91,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 
+	registerIcon, _ := widget.NewIcon(icons.ActionAssignmentTurnedIn)
 	buttonRegister := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
@@ -98,6 +99,8 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		TextSize:        unit.Sp(14),
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
+		Icon:            registerIcon,
+		IconGap:         unit.Dp(10),
 	})
 	buttonRegister.Label.Alignment = text.Middle
 	buttonRegister.Style.Font.Weight = font.Bold
