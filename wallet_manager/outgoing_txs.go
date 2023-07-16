@@ -244,12 +244,7 @@ func (w *Wallet) UpdateOugoingTx(txId string, status string, blockHeight int64) 
 		return err
 	}
 
-	err = dbTx.Commit()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return handleCommit(dbTx)
 }
 
 func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction, description string) error {
@@ -265,13 +260,14 @@ func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction, description string
 
 	_, err = dbTx.Exec(`
 		INSERT INTO outgoing_txs (tx_id,height_built,tx_type,timestamp,status,hex_data,description)
-		VALUES (?,?,?,?,?,?,?);
+		VALUES (?,?,?,?,?,?,?)
+		ON CONFLICT DO NOTHING;
 	`, txId, height, txType, time.Now().Unix(), "pending", hexData, description)
 	if err != nil {
 		return err
 	}
 
-	return dbTx.Commit()
+	return handleCommit(dbTx)
 }
 
 func (w *Wallet) DelOutgoingTx(txId string) error {
@@ -288,5 +284,17 @@ func (w *Wallet) DelOutgoingTx(txId string) error {
 		return err
 	}
 
-	return dbTx.Commit()
+	return handleCommit(dbTx)
+}
+
+func handleCommit(tx *sql.Tx) error {
+	err := tx.Commit()
+	if err != nil {
+		err = tx.Rollback() // hopefully release acquired lock if commit fails
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
