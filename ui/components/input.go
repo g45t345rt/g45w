@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -15,6 +16,7 @@ import (
 )
 
 type Input struct {
+	TextSize    unit.Sp
 	Editor      *widget.Editor
 	EditorStyle material.EditorStyle
 	EditorMinY  int
@@ -29,6 +31,7 @@ func NewInput() *Input {
 	editor := new(widget.Editor)
 	editor.SingleLine = true
 	editor.Submit = true
+	editor.InputHint = key.HintText // Cap sentence flag
 	border := widget.Border{Color: color.NRGBA{A: 240}, CornerRadius: unit.Dp(5), Width: unit.Dp(1)}
 
 	return &Input{
@@ -45,7 +48,8 @@ func NewPasswordInput() *Input {
 	editor := new(widget.Editor)
 	editor.SingleLine = true
 	editor.Submit = true
-	editor.Mask = rune(42) // mask with *
+	editor.InputHint = key.HintAny // use key.HintPassword when implemented
+	editor.Mask = rune(42)         // mask with *
 	border := widget.Border{Color: color.NRGBA{A: 240}, CornerRadius: unit.Dp(5), Width: unit.Dp(1)}
 
 	return &Input{
@@ -86,6 +90,9 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 				macro := op.Record(gtx.Ops)
 				dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					t.EditorStyle = material.Editor(th, t.Editor, hint)
+					if t.TextSize != 0 {
+						t.EditorStyle.TextSize = t.TextSize
+					}
 					return t.EditorStyle.Layout(gtx)
 				})
 				call := macro.Stop()
