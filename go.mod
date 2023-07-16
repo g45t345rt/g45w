@@ -8,6 +8,7 @@ require (
 	eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d
 	gioui.org v0.0.0-20230627103614-e5fe3a0732f4
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
+	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1
@@ -16,11 +17,15 @@ require (
 
 require (
 	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
+	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/tklauser/go-sysconf v0.3.11 // indirect
+	github.com/tklauser/numcpus v0.6.0 // indirect
+	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect

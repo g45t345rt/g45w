@@ -320,7 +320,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.buttonOptions.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonSendTx.Text = lang.Translate("SEND TRANSACTION")
+			if p.buttonSendTx.Loading {
+				p.buttonSendTx.Text = lang.Translate("BUILDING...")
+			} else {
+				p.buttonSendTx.Text = lang.Translate("SEND TRANSACTION")
+			}
+
 			return p.buttonSendTx.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {

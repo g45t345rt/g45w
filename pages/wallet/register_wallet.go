@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"math"
 	"strconv"
+	"time"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -24,6 +25,7 @@ import (
 	"github.com/g45t345rt/g45w/ui/components"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
+	"github.com/shirou/gopsutil/cpu"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -115,6 +117,12 @@ type RegisterWalletForm struct {
 	buttonStop     *components.Button
 
 	normalReg *registration.NormalReg
+
+	// updated every second if normalreg running
+	statusText       string
+	cpuUsageText     string
+	progressBarValue float64
+	probabilityText  string
 }
 
 func NewRegisterWalletForm() *RegisterWalletForm {
@@ -122,7 +130,15 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 	list.Axis = layout.Vertical
 
 	txtThreadCount := components.NewTextField()
-	txtThreadCount.SetValue("1")
+
+	logicalCores, err := cpu.Counts(true)
+	if err != nil {
+		txtThreadCount.SetValue("1")
+	} else {
+		// recommend for normal reg is different than the fast reg
+		recommendedWorkers := math.Floor(float64(logicalCores) * 6)
+		txtThreadCount.SetValue(fmt.Sprint(recommendedWorkers))
+	}
 
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonStart := components.NewButton(components.ButtonStyle{
@@ -159,7 +175,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 		w.Invalidate()
 	}
 
-	return &RegisterWalletForm{
+	page := &RegisterWalletForm{
 		list:           list,
 		txtThreadCount: txtThreadCount,
 		buttonStart:    buttonStart,
@@ -167,6 +183,37 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 
 		normalReg: normalReg,
 	}
+
+	ticker := time.NewTicker(1 * time.Second)
+	go func() {
+		for range ticker.C {
+			if normalReg.Running {
+				percent, err := cpu.Percent(0, false)
+				if len(percent) == 1 && err == nil {
+					page.cpuUsageText = fmt.Sprintf("CPU Usage: %.2f%%", percent[0])
+				}
+
+				hashRateText := utils.FormatHashRate(normalReg.HashRate())
+				page.statusText = fmt.Sprintf("%d | %s", normalReg.HashCount(), hashRateText)
+
+				// https://bitcoin.stackexchange.com/questions/114580/finding-hash-with-11-leading-zeroes
+				target := float64(3)
+				probability := 1 - math.Pow(1-math.Pow(16, -(target*2)), float64(normalReg.HashCount()))
+				page.probabilityText = fmt.Sprintf("Probability: %.2f%%", probability*100)
+				page.progressBarValue = probability
+
+				w.Invalidate()
+			} else {
+				page.cpuUsageText = ""
+				page.probabilityText = ""
+				page.progressBarValue = 0
+				hashRateText := utils.FormatHashRate(0)
+				page.statusText = fmt.Sprintf("%d | %s", 0, hashRateText)
+			}
+		}
+	}()
+
+	return page
 }
 
 func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -182,64 +229,78 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 		p.normalReg.Stop()
 	}
 
-	widgets := []layout.Widget{
-		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), lang.Translate("The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam."))
-			return lbl.Layout(gtx)
-		},
-		func(gtx layout.Context) layout.Dimensions {
+	widgets := []layout.Widget{}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		lbl := material.Label(th, unit.Sp(14), lang.Translate("The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam."))
+		return lbl.Layout(gtx)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return p.txtThreadCount.Layout(gtx, th, lang.Translate("Worker Count"), "")
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(13), lang.Translate("By default, the worker count is set to the recommended value for your device. More workers is faster but takes more cpu ressources."))
+				return lbl.Layout(gtx)
+			}),
+		)
+	})
+
+	if p.cpuUsageText != "" {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.txtThreadCount.Layout(gtx, th, lang.Translate("Worker Count"), "")
+					lbl := material.Label(th, unit.Sp(14), p.cpuUsageText)
+					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(13), lang.Translate("More workers is faster but takes more cpu ressources. You decide!"))
+					lbl := material.Label(th, unit.Sp(14), p.probabilityText)
 					return lbl.Layout(gtx)
 				}),
 			)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(16), lang.Translate("Progress"))
-					label.Font.Weight = font.Bold
-					return label.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					target := float64(3)
-
-					// https://bitcoin.stackexchange.com/questions/114580/finding-hash-with-11-leading-zeroes
-					value := 1 - math.Pow(1-math.Pow(16, -(target*2)), float64(p.normalReg.HashCount()))
-					return components.ProgressBar{
-						Value:   float32(value),
-						Color:   color.NRGBA{A: 255},
-						BgColor: color.NRGBA{R: 255, G: 255, B: 255, A: 200},
-						Rounded: unit.Dp(5),
-						Height:  unit.Dp(20),
-					}.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					hashRate := utils.FormatHashRate(p.normalReg.HashRate())
-					status := fmt.Sprintf("%d | %s", p.normalReg.HashCount(), hashRate)
-					label := material.Label(th, unit.Sp(16), status)
-					label.Font.Weight = font.Bold
-					return label.Layout(gtx)
-				}),
-			)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			if p.normalReg.Running {
-				p.buttonStop.Text = lang.Translate("STOP")
-				return p.buttonStop.Layout(gtx, th)
-			}
-
-			p.buttonStart.Text = lang.Translate("START")
-			return p.buttonStart.Layout(gtx, th)
-		},
+		})
 	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				label := material.Label(th, unit.Sp(16), lang.Translate("Progress"))
+				label.Font.Weight = font.Bold
+				return label.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return components.ProgressBar{
+					Value:   float32(p.progressBarValue),
+					Color:   color.NRGBA{A: 255},
+					BgColor: color.NRGBA{R: 255, G: 255, B: 255, A: 200},
+					Rounded: unit.Dp(5),
+					Height:  unit.Dp(20),
+				}.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+
+				label := material.Label(th, unit.Sp(16), p.statusText)
+				label.Font.Weight = font.Bold
+				return label.Layout(gtx)
+			}),
+		)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		if p.normalReg.Running {
+			p.buttonStop.Text = lang.Translate("STOP")
+			return p.buttonStop.Layout(gtx, th)
+		}
+
+		p.buttonStart.Text = lang.Translate("START")
+		return p.buttonStart.Layout(gtx, th)
+	})
 
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
