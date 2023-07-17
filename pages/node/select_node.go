@@ -235,6 +235,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	if p.buttonSetIntegratedNode.Clickable.Clicked() {
 		node_manager.ConnectNode(node_manager.INTEGRATED_NODE_ID, true)
 		page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
+		page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
 	}
 
 	for _, item := range p.nodeList.items {

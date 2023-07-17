@@ -19,12 +19,16 @@ import (
 
 var Chain *blockchain.Blockchain
 var RPCServer *derodrpc.RPCServer
+var Running bool
 
 func Start() error {
+	if Running {
+		return nil
+	}
+
 	nodeDir := settings.NodeDir
 
 	runtime.MemProfileRate = 0
-	globals.Arguments = make(map[string]interface{})
 
 	globals.Arguments["--timeisinsync"] = false
 	globals.Arguments["--p2p-bind"] = nil
@@ -75,6 +79,7 @@ func Start() error {
 	}
 
 	globals.Cron.Start()
+	Running = true
 	return nil
 }
 
@@ -84,6 +89,7 @@ func Stop() {
 	Chain.Shutdown()
 	globals.Cron.Stop()
 	metrics.Set.UnregisterAllMetrics()
+	Running = false
 }
 
 type NodeStatus struct {
