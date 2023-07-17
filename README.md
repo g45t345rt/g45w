@@ -40,6 +40,21 @@ You can build your own version by following build steps bellow or use available 
 
 ## How to build
 
+If you have Git installed, clone the repository.
+
+```bash
+git clone https://github.com/g45t345rt/g45w.git
+```
+
+Download and install GO.  
+<https://go.dev/doc/install>
+
+Install latest version of GioUI build tool.
+
+```bash
+go install gioui.org/cmd/gogio@latest
+```
+
 Check Github workflows for more build information.  
 <https://github.com/g45t345rt/g45w/tree/master/.github/workflows>
 
@@ -47,13 +62,27 @@ Check Github workflows for more build information.
 
 Install Android SDK with NDK bundle!
 
-Run `./build_gio.sh android arm64`  
-Use `./adb_install.sh` to install apk, if your phone is connected with developer mode.
+Build the app.
+
+```bash
+./build_gio.sh android arm64
+```
+
+If your phone is connected and developer monde is on, install the APK directly with this command.
+
+```bash
+./adb_install.sh
+```
 
 ### IOS
 
 Xcode is required!  
-Run `./build_gio.sh ios arm64`
+
+Build the app.
+
+```bash
+./build_gio.sh ios arm64
+```
 
 ### Linux
 
@@ -71,16 +100,28 @@ Ubuntu 18.04+
 apt install gcc pkg-config libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libgles2-mesa-dev libegl1-mesa-dev libffi-dev libxcursor-dev libvulkan-dev
 ```
 
-Run `./build_go.sh linux amd64`
+Build the app.
+
+```bash
+./build_go.sh linux amd64
+```
 
 ### Windows
 
-Run `./build_gio.sh windows amd64`
+Build the app.
+
+```bash
+./build_gio.sh windows amd64
+```
 
 ### MacOS
 
 Xcode is required!  
-Run `./build_gio.sh macos amd64`
+Build the app.
+
+``` bash
+./build_gio.sh macos amd64
+```
 
 ### Outputs
 
@@ -89,6 +130,7 @@ Run `./build_gio.sh macos amd64`
 `/build/g45w_macos_amd64.app`  
 `/build/g45w_ios_arm64.app`  
 `/build/g45w_android_arm64.apk`  
+`/build/g45w_android_arm.apk`  
 
 ## License
 
