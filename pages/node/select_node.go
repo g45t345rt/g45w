@@ -23,6 +23,7 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/ui/animation"
 	"github.com/g45t345rt/g45w/ui/components"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -227,15 +228,28 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 			p.LoadRemoteNodes()
+			node_manager.CurrentNode = "" // deselect node
 			notification_modals.SuccessInstance.SetText("Success", lang.Translate("List reset to default."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
 
 	if p.buttonSetIntegratedNode.Clickable.Clicked() {
-		node_manager.ConnectNode(node_manager.INTEGRATED_NODE_ID, true)
-		page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
-		page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
+		err := node_manager.ConnectNode(node_manager.INTEGRATED_NODE_ID, true)
+		if err != nil {
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			wallet := wallet_manager.OpenedWallet
+			if wallet != nil {
+				wallet.Memory.Clean()
+			}
+
+			page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
+			page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Integrated node selected"))
+			notification_modals.SuccessInstance.SetVisible(true, 0)
+		}
 	}
 
 	for _, item := range p.nodeList.items {
@@ -268,7 +282,7 @@ func (p *PageSelectNode) connect(gtx layout.Context, conn node_manager.NodeConne
 
 	p.connecting = true
 	go func() {
-		notification_modals.InfoInstance.SetText("Connecting...", conn.Endpoint)
+		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), conn.Endpoint)
 		notification_modals.InfoInstance.SetVisible(true, 0)
 		err := node_manager.ConnectNode(conn.ID, true)
 		p.connecting = false
@@ -276,12 +290,19 @@ func (p *PageSelectNode) connect(gtx layout.Context, conn node_manager.NodeConne
 
 		if err != nil {
 			notification_modals.InfoInstance.SetVisible(false, 0)
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
+			wallet := wallet_manager.OpenedWallet
+			if wallet != nil {
+				wallet.Memory.Clean()
+			}
+
 			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 			page_instance.header.AddHistory(PAGE_REMOTE_NODE)
 			app_instance.Window.Invalidate()
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node selected"))
+			notification_modals.SuccessInstance.SetVisible(true, 0)
 		}
 	}()
 }

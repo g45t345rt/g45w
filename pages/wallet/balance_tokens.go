@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"strings"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -21,8 +22,10 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
+	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/ui/animation"
@@ -216,34 +219,55 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	widgets := []layout.Widget{}
-
 	wallet := wallet_manager.OpenedWallet
-	if walletapi.Connected && wallet != nil {
-		isRegistered := wallet.Memory.IsRegistered()
 
-		if !isRegistered {
-			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-				return p.alertBox.Layout(gtx, th, lang.Translate("This wallet is not registered on the blockchain."))
-			})
-		}
-	} else {
+	currentNode := node_manager.CurrentNode
+	if currentNode == "" {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			return p.alertBox.Layout(gtx, th, lang.Translate("Wallet is not connected to a node."))
+			return p.alertBox.Layout(gtx, th, lang.Translate("Unassigned node! Select your node from the node management page."))
 		})
-	}
+	} else {
+		if walletapi.Connected && wallet != nil {
+			synced := false
+			walletHeight := wallet.Memory.Get_Height()
+			networkHeight := uint64(0)
 
-	if walletapi.Connected && wallet != nil {
-		isRegistered := wallet.Memory.IsRegistered()
+			if currentNode == node_manager.INTEGRATED_NODE_ID {
+				nodeStatus := node_status_bar.Instance.IntegratedNodeStatus
+				networkHeight = uint64(nodeStatus.BestHeight)
+				synced = walletHeight >= networkHeight-8
+			} else {
+				nodeStatus := node_status_bar.Instance.RemoteNodeInfo.Result
+				networkHeight = uint64(nodeStatus.StableHeight)
+				synced = walletHeight >= networkHeight
+			}
 
-		if !isRegistered {
-			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-				return layout.Inset{
-					Top: unit.Dp(0), Bottom: unit.Dp(20),
-					Left: unit.Dp(30), Right: unit.Dp(30),
-				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
-					return p.buttonRegister.Layout(gtx, th)
+			isRegistered := wallet.Memory.IsRegistered()
+			if synced {
+				if !isRegistered {
+					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+						return p.alertBox.Layout(gtx, th, lang.Translate("This wallet is not registered on the blockchain."))
+					})
+
+					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+						return layout.Inset{
+							Top: unit.Dp(0), Bottom: unit.Dp(20),
+							Left: unit.Dp(30), Right: unit.Dp(30),
+						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
+							return p.buttonRegister.Layout(gtx, th)
+						})
+					})
+				}
+			} else {
+				widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+					text := lang.Translate("The wallet is out of synced. Please wait and let it sync. The network height is currently {}.")
+					return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
 				})
+			}
+		} else {
+			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+				return p.alertBox.Layout(gtx, th, lang.Translate("The wallet is not connected to a node."))
 			})
 		}
 	}

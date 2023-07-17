@@ -53,8 +53,11 @@ func (p *PageIntegratedNode) IsActive() bool {
 func (p *PageIntegratedNode) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Integrated Node"))
-	p.animationLeave.Reset()
-	p.animationEnter.Start()
+
+	if !page_instance.header.IsHistory(PAGE_INTEGRATED_NODE) {
+		p.animationLeave.Reset()
+		p.animationEnter.Start()
+	}
 }
 
 func (p *PageIntegratedNode) Leave() {

@@ -95,6 +95,7 @@ func Stop() {
 type NodeStatus struct {
 	Height          int64
 	BestHeight      int64
+	StableHeight    int64
 	MemCount        int
 	RegCount        int
 	PeerInCount     uint64
@@ -138,6 +139,7 @@ func (n *NodeStatus) update() {
 
 	n.Height = Chain.Get_Height()
 	bestHeight, _ := p2p.Best_Peer_Height()
+	n.StableHeight = Chain.Get_Stable_Height()
 	n.BestHeight = bestHeight
 	//topo_height := chain.Load_TOPO_HEIGHT()
 
