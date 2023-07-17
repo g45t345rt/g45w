@@ -34,6 +34,9 @@ jobs:
       - name: Build android arm64
         run: bash build_gio.sh android arm64
 
+      - name: Build android arm
+        run: bash build_gio.sh android arm
+
       - name: Archive build
         uses: actions/upload-artifact@v3
         with:
