@@ -47,8 +47,8 @@ func NewPasswordInput() *Input {
 	editor := new(widget.Editor)
 	editor.SingleLine = true
 	editor.Submit = true
-	editor.InputHint = key.HintAny // use key.HintPassword when implemented
-	editor.Mask = rune(42)         // mask with *
+	editor.InputHint = key.HintPassword
+	editor.Mask = rune(42) // mask with *
 	border := widget.Border{Color: color.NRGBA{A: 240}, CornerRadius: unit.Dp(5), Width: unit.Dp(1)}
 
 	return &Input{

@@ -1,4 +1,5 @@
 replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f
+replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230717204944-74a87b109208
 
 module github.com/g45t345rt/g45w
 
@@ -6,7 +7,7 @@ go 1.19
 
 require (
 	eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d
-	gioui.org v0.0.0-20230627103614-e5fe3a0732f4
+	gioui.org v0.1.0
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e

@@ -1,8 +1,6 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d h1:ARo7NCVvN2NdhLlJE9xAbKweuI9L6UgfTbYb0YwPacY=
 eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d/go.mod h1:OYVuxibdk9OSLX8vAqydtRPP87PyTFcT9uH3MlEGBQA=
-gioui.org v0.0.0-20230627103614-e5fe3a0732f4 h1:ZkFOs0eyTIyGgZ0xkGl95h+4DnITdUKg0Mp78+h8GnM=
-gioui.org v0.0.0-20230627103614-e5fe3a0732f4/go.mod h1:a3hz8FyrPMkt899D9YrxMGtyRzpPrJpz1Lzbssn81vI=
 gioui.org/cpu v0.0.0-20210808092351-bfe733dd3334/go.mod h1:A8M0Cn5o+vY5LTMlnRoK3O5kG+rH0kWfJjeKd9QpBmQ=
 gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 h1:AGDDxsJE1RpcXTAxPG2B4jrwVUJGFDjINIPi1jtO6pc=
 gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2/go.mod h1:A8M0Cn5o+vY5LTMlnRoK3O5kG+rH0kWfJjeKd9QpBmQ=
@@ -56,6 +54,8 @@ github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD
 github.com/fxamacker/cbor/v2 v2.4.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
 github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f h1:V35UWCxuvg2//d92Fof4JrFfqt38v849EPV7eCuDkp8=
 github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f/go.mod h1:oNz7lyXVe/P8qJ6chyHMRkgGHfNOY/t15ZC9zWZSRg4=
+github.com/g45t345rt/gio v0.0.0-20230717204944-74a87b109208 h1:Qqjr01zs/ATM6o27xbXNij1yW6QEAzvntzTXuI+sLVU=
+github.com/g45t345rt/gio v0.0.0-20230717204944-74a87b109208/go.mod h1:a3hz8FyrPMkt899D9YrxMGtyRzpPrJpz1Lzbssn81vI=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
 github.com/gin-gonic/gin v1.6.3 h1:ahKqKTFpO5KTPHxWZjEdPScmYaGtLo8Y4DMHoEsnp14=
