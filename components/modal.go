@@ -12,7 +12,7 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"github.com/g45t345rt/g45w/ui/animation"
+	"github.com/g45t345rt/g45w/animation"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )

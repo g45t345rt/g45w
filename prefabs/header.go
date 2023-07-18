@@ -8,8 +8,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
-	"github.com/g45t345rt/g45w/ui/components"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
