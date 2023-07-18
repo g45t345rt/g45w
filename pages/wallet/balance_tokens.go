@@ -228,22 +228,28 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		})
 	} else {
 		if walletapi.Connected && wallet != nil {
-			synced := false
+			nodeSynced := false
+			walletSynced := false
+
 			walletHeight := wallet.Memory.Get_Height()
 			networkHeight := uint64(0)
 
 			if currentNode == node_manager.INTEGRATED_NODE_ID {
 				nodeStatus := node_status_bar.Instance.IntegratedNodeStatus
+				nodeHeight := uint64(nodeStatus.Height)
 				networkHeight = uint64(nodeStatus.BestHeight)
-				synced = walletHeight >= networkHeight-8
+				nodeSynced = nodeHeight >= networkHeight-8
+				walletSynced = walletHeight >= networkHeight-8
 			} else {
 				nodeStatus := node_status_bar.Instance.RemoteNodeInfo.Result
+				nodeHeight := uint64(nodeStatus.Height)
 				networkHeight = uint64(nodeStatus.StableHeight)
-				synced = walletHeight >= networkHeight
+				nodeSynced = nodeHeight >= networkHeight
+				walletSynced = walletHeight >= networkHeight
 			}
 
-			isRegistered := wallet.Memory.IsRegistered()
-			if synced {
+			if nodeSynced {
+				isRegistered := wallet.Memory.IsRegistered()
 				if !isRegistered {
 					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 						return p.alertBox.Layout(gtx, th, lang.Translate("This wallet is not registered on the blockchain."))
@@ -258,10 +264,15 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 							return p.buttonRegister.Layout(gtx, th)
 						})
 					})
+				} else if !walletSynced {
+					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+						text := lang.Translate("The wallet is out of synced. Please wait and let it sync. The network height is currently {}.")
+						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
+					})
 				}
 			} else {
 				widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-					text := lang.Translate("The wallet is out of synced. Please wait and let it sync. The network height is currently {}.")
+					text := lang.Translate("The node is out of synced. Please wait and let it sync. The network height is currently {}.")
 					return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
 				})
 			}
