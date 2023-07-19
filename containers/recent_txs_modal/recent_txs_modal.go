@@ -87,7 +87,12 @@ func (r *RecentTxsModal) LoadOutgoingTxs() {
 
 	wallet := wallet_manager.OpenedWallet
 	if wallet != nil {
-		outgoingTxs, err := wallet.GetLastOutgoingTxs()
+		limit := uint64(10)
+		outgoingTxs, err := wallet.GetOutgoingTxs(wallet_manager.GetOutgoingTxsParams{
+			OrderBy:    "timestamp",
+			Descending: true,
+			Limit:      &limit,
+		})
 		if err != nil {
 			fmt.Println(err)
 			return

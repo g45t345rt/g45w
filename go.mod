@@ -1,4 +1,5 @@
 replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f
+
 replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230717204944-74a87b109208
 
 module github.com/g45t345rt/g45w
@@ -18,10 +19,13 @@ require (
 
 require (
 	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
+	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
+	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect

@@ -1,143 +1,219 @@
 package wallet_manager
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
+	"database/sql"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/g45t345rt/g45w/sc"
-	"github.com/g45t345rt/g45w/settings"
-	"github.com/g45t345rt/g45w/utils"
 )
 
-type TokenInfo struct {
-	SCID      string    `json:"scid"`
-	Type      sc.SCType `json:"type"`
-	JsonData  string    `json:"data"`
-	ListOrder int       `json:"order"`
+type TokenFolder struct {
+	ID       int
+	Name     string
+	ParentId int
 }
 
-var MAIN_FOLDER = "__main__"
-
-func (w *Wallet) TokensFolderPath() string {
-	walletDir := settings.WalletsDir
-	tokensPath := filepath.Join(walletDir, w.Info.Addr, "tokens")
-	return tokensPath
+type Token struct {
+	SCID              string
+	Name              sql.NullString
+	MaxSupply         sql.NullInt64 // 1 is an NFT
+	Decimals          sql.NullInt32 // native dero decimals is 5
+	StandardType      sc.SCType
+	Metadata          sql.NullString
+	IsFavorite        sql.NullBool
+	ListOrderFavorite sql.NullInt32
 }
 
-func (w *Wallet) GetTokens(folder string) ([]interface{}, error) {
-	tokensFolder := filepath.Join(w.TokensFolderPath(), folder)
+func initDatabaseTokens(db *sql.DB) error {
+	dbTx, err := db.Begin()
+	if err != nil {
+		return err
+	}
 
-	var tokens []interface{}
-	err := filepath.Walk(tokensFolder, func(path string, info fs.FileInfo, err error) error {
+	_, err = dbTx.Exec(`
+			CREATE TABLE IF NOT EXISTS token_folders (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				name VARCHAR NOT NULL,
+				parent_id INTEGER,
+				FOREIGN KEY (parent_id) REFERENCES token_folders(id) ON DELETE CASCADE
+			);
+
+			CREATE TABLE IF NOT EXISTS folder_tokens (
+				folder_id INTEGER,
+				sc_id VARCHAR,
+				PRIMARY KEY (folder_id,sc_id),
+				FOREIGN KEY (folder_id) REFERENCES token_folders(id) ON DELETE CASCADE
+			);
+
+			CREATE TABLE IF NOT EXISTS tokens (
+				sc_id VARCHAR PRIMARY KEY,
+				name VARCHAR,
+				max_supply BIGINT,
+				decimals INTEGER,
+				standard_type VARCHAR,
+				metadata VARCHAR,
+				is_favorite BOOL,
+				list_order_favorite INTEGER
+			);
+		`)
+	if err != nil {
+		return err
+	}
+
+	return handleDatabaseCommit(dbTx)
+}
+
+func (w *Wallet) GetTokenFolders(id *int) ([]TokenFolder, error) {
+	query := sq.Select("*").From("token_folders").Where(sq.Eq{"parent_id": id})
+
+	rows, err := w.DB.Query(query.ToSql())
+	if err != nil {
+		return nil, err
+	}
+
+	var folders []TokenFolder
+	for rows.Next() {
+		var folder TokenFolder
+		err := rows.Scan(
+			&folder.ID,
+			&folder.Name,
+			&folder.ParentId,
+		)
 		if err != nil {
-			return err
+			return folders, err
 		}
 
-		if info.IsDir() {
-			return nil
+		folders = append(folders, folder)
+	}
+
+	return folders, nil
+}
+
+type GetTokensParams struct {
+	Descending bool
+	OrderBy    string
+	IsFavorite *bool
+	FolderId   *int
+	IsNFT      *bool
+}
+
+func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
+	query := sq.Select("*").From("tokens")
+
+	if params.IsFavorite != nil {
+		query = query.Where(sq.Eq{"is_favorite": params.IsFavorite})
+	}
+
+	if params.FolderId != nil {
+		query = query.RightJoin("folder_tokens ON id = folder_id")
+	}
+
+	if params.IsNFT != nil {
+		if *params.IsNFT {
+			query = query.Where(sq.Eq{"max_supply": 1})
+		} else {
+			query = query.Where(sq.Gt{"max_supply": 1})
+		}
+	}
+
+	if len(params.OrderBy) > 0 {
+		direction := "ASC"
+		if params.Descending {
+			direction = "DESC"
 		}
 
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
+		query = query.OrderBy(params.OrderBy, direction)
+	}
 
-		var token interface{}
-		err = json.Unmarshal(data, &token)
+	rows, err := w.DB.Query(query.ToSql())
+	if err != nil {
+		return nil, err
+	}
+
+	return rowsScanTokens(rows)
+}
+
+func rowsScanTokens(rows *sql.Rows) ([]Token, error) {
+	var tokens []Token
+	for rows.Next() {
+		var token Token
+		err := rows.Scan(
+			&token.SCID,
+			&token.Name,
+			&token.MaxSupply,
+			&token.Decimals,
+			&token.StandardType,
+			&token.Metadata,
+			&token.IsFavorite,
+			&token.ListOrderFavorite,
+		)
 		if err != nil {
-			return err
+			return tokens, err
 		}
 
 		tokens = append(tokens, token)
-		return nil
-	})
+	}
 
-	return tokens, err
+	return tokens, nil
 }
 
-func (w *Wallet) GetFolders() ([]string, error) {
-	var folders []string
-	err := filepath.Walk(w.TokensFolderPath(), func(path string, info fs.FileInfo, err error) error {
-		if info.IsDir() {
-			folders = append(folders, info.Name())
-		}
-
-		return nil
-	})
-
-	return folders, err
-}
-
-func (w *Wallet) AddToken(folder string, scId string, data interface{}) error {
-	path := filepath.Join(w.TokensFolderPath(), folder, fmt.Sprintf("%s.json", scId))
-
-	dataString, err := json.Marshal(data)
+func (w *Wallet) StoreToken(token Token) error {
+	tx, err := w.DB.Begin()
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(path, []byte(dataString), os.ModePerm)
-}
-
-func (w *Wallet) MoveToken(path string, newPath string) error {
-	err := utils.CopyFile(path, newPath)
+	_, err = tx.Exec(`
+		INSERT INTO tokens (sc_id,name,max_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite)
+		VALUES (?,?,?,?,?,?,?,?,?,?)
+		ON CONFLICT(sc_id) DO UPDATE SET
+		name = excluded.name,
+		max_supply = excluded.max_supply,
+		decimals = excluded.decimals,
+		standard_type = excluded.standard_type,
+		metadata = excluded.metadata,
+		is_favorite = excluded.is_favorite,
+		list_order_favorite = excluded.list_order_favorite;
+	`, token.SCID, token.Name, token.MaxSupply, token.Decimals, token.StandardType,
+		token.Metadata, token.IsFavorite,
+		token.ListOrderFavorite)
 	if err != nil {
 		return err
 	}
 
-	err = os.Remove(path)
+	return handleDatabaseCommit(tx)
+}
+
+func (w *Wallet) DelTokenFolder(id int) error {
+	tx, err := w.DB.Begin()
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (w *Wallet) DupToken(path string, newPath string) error {
-	return utils.CopyFile(path, newPath)
-}
-
-func (w *Wallet) DelToken(path string) error {
-	return os.Remove(path)
-}
-
-func (w *Wallet) AddFolder(name string) error {
-	folderPath := filepath.Join(w.TokensFolderPath(), name)
-	return os.Mkdir(folderPath, os.ModePerm)
-}
-
-func (w *Wallet) DelFolder(name string) error {
-	folderPath := filepath.Join(w.TokensFolderPath(), name)
-	return os.RemoveAll(folderPath)
-}
-
-func (w *Wallet) RenameFolder(name string, newName string) error {
-	oldPath := filepath.Join(w.TokensFolderPath(), name)
-	newPath := filepath.Join(w.TokensFolderPath(), newName)
-	return os.Rename(oldPath, newPath)
-}
-
-func (w *Wallet) ImportTokensFromWallet(walletAddr string) error {
-	walletDir := settings.WalletsDir
-	tokensFolder := filepath.Join(walletDir, walletAddr)
-
-	files, err := os.ReadDir(tokensFolder)
+	_, err = tx.Exec(`
+		DELETE FROM token_folders
+		WHERE id = ?;
+	`, id)
 	if err != nil {
 		return err
 	}
 
-	for _, fileInfo := range files {
-		sourceFolder := w.TokensFolderPath()
-		sourcePath := filepath.Join(sourceFolder, fileInfo.Name())
-		destPath := filepath.Join(w.TokensFolderPath(), fileInfo.Name())
-		err := utils.CopyFile(sourcePath, destPath)
-		if err != nil {
-			return err
-		}
+	return handleDatabaseCommit(tx)
+}
+
+func (w *Wallet) DelToken(scId string) error {
+	tx, err := w.DB.Begin()
+	if err != nil {
+		return err
 	}
 
-	return nil
+	_, err = tx.Exec(`
+		DELETE FROM tokens
+		WHERE sc_id = ?;
+	`, scId)
+	if err != nil {
+		return err
+	}
+
+	return handleDatabaseCommit(tx)
 }

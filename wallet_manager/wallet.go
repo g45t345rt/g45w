@@ -118,7 +118,12 @@ func OpenWallet(addr string, password string) error {
 		return err
 	}
 
-	err = initOutgoingTxs(db)
+	err = initDatabaseOutgoingTxs(db)
+	if err != nil {
+		return err
+	}
+
+	err = initDatabaseTokens(db)
 	if err != nil {
 		return err
 	}
@@ -281,6 +286,18 @@ func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 	err = os.WriteFile(path, walletData, fs.ModePerm)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func handleDatabaseCommit(tx *sql.Tx) error {
+	err := tx.Commit()
+	if err != nil {
+		err = tx.Rollback() // hopefully release acquired lock if commit fails
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

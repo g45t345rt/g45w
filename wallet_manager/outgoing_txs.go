@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/deroproject/derohe/block"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
@@ -22,7 +23,7 @@ type OutgoingTx struct {
 	Description sql.NullString
 }
 
-func initOutgoingTxs(db *sql.DB) error {
+func initDatabaseOutgoingTxs(db *sql.DB) error {
 	dbTx, err := db.Begin()
 	if err != nil {
 		return err
@@ -44,10 +45,10 @@ func initOutgoingTxs(db *sql.DB) error {
 		return err
 	}
 
-	return dbTx.Commit()
+	return handleDatabaseCommit(dbTx)
 }
 
-func scanOutgoingTxs(rows *sql.Rows) ([]OutgoingTx, error) {
+func rowsScanOutgoingTxs(rows *sql.Rows) ([]OutgoingTx, error) {
 	defer rows.Close()
 
 	var outgoingTxs []OutgoingTx
@@ -78,17 +79,39 @@ func scanOutgoingTxs(rows *sql.Rows) ([]OutgoingTx, error) {
 	return outgoingTxs, nil
 }
 
-func (w *Wallet) GetLastOutgoingTxs() ([]OutgoingTx, error) {
-	rows, err := w.DB.Query(`
-		SELECT *
-		FROM outgoing_txs
-		ORDER BY timestamp DESC
-		LIMIT 10;
-	`)
+type GetOutgoingTxsParams struct {
+	Descending bool
+	OrderBy    string
+	Limit      *uint64
+	TxType     *transaction.TransactionType
+}
+
+func (w *Wallet) GetOutgoingTxs(params GetOutgoingTxsParams) ([]OutgoingTx, error) {
+	query := sq.Select("*").From("outgoing_txs")
+
+	if params.TxType != nil {
+		query = query.Where(sq.Eq{"tx_type": params.TxType})
+	}
+
+	if len(params.OrderBy) > 0 {
+		direction := "ASC"
+		if params.Descending {
+			direction = "DESC"
+		}
+
+		query = query.OrderBy(params.OrderBy, direction)
+	}
+
+	if params.Limit != nil {
+		query = query.Limit(*params.Limit)
+	}
+
+	rows, err := w.DB.Query(query.ToSql())
 	if err != nil {
 		return nil, err
 	}
-	return scanOutgoingTxs(rows)
+
+	return rowsScanOutgoingTxs(rows)
 }
 
 var pendingTries map[string]int
@@ -145,7 +168,7 @@ func (w *Wallet) UpdatePendingOutgoingTxs() (int, error) {
 		return 0, err
 	}
 
-	outgoingTxs, err := scanOutgoingTxs(rows)
+	outgoingTxs, err := rowsScanOutgoingTxs(rows)
 	if err != nil {
 		return 0, err
 	}
@@ -244,7 +267,7 @@ func (w *Wallet) UpdateOugoingTx(txId string, status string, blockHeight int64) 
 		return err
 	}
 
-	return handleCommit(dbTx)
+	return handleDatabaseCommit(dbTx)
 }
 
 func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction, description string) error {
@@ -267,7 +290,7 @@ func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction, description string
 		return err
 	}
 
-	return handleCommit(dbTx)
+	return handleDatabaseCommit(dbTx)
 }
 
 func (w *Wallet) DelOutgoingTx(txId string) error {
@@ -284,17 +307,5 @@ func (w *Wallet) DelOutgoingTx(txId string) error {
 		return err
 	}
 
-	return handleCommit(dbTx)
-}
-
-func handleCommit(tx *sql.Tx) error {
-	err := tx.Commit()
-	if err != nil {
-		err = tx.Rollback() // hopefully release acquired lock if commit fails
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
+	return handleDatabaseCommit(dbTx)
 }
