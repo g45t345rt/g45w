@@ -8,9 +8,9 @@ import (
 )
 
 type TokenFolder struct {
-	ID       int
+	ID       int32
 	Name     string
-	ParentId int
+	ParentId sql.NullInt32
 }
 
 type Token struct {
@@ -63,10 +63,65 @@ func initDatabaseTokens(db *sql.DB) error {
 	return handleDatabaseCommit(dbTx)
 }
 
-func (w *Wallet) GetTokenFolders(id *int) ([]TokenFolder, error) {
+func (w *Wallet) GetTokenFolder(id int32) (*TokenFolder, error) {
+	query := sq.Select("*").From("token_folders").Where(sq.Eq{"id": id})
+
+	rows, err := query.RunWith(w.DB).Query()
+	if err != nil {
+		return nil, err
+	}
+
+	var folder TokenFolder
+	for rows.Next() {
+		err = rows.Scan(
+			&folder.ID,
+			&folder.Name,
+			&folder.ParentId,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &folder, nil
+}
+
+func (w *Wallet) GetTokenFolderPath(id sql.NullInt32) (string, error) {
+	if !id.Valid {
+		return "root", nil
+	}
+
+	query := sq.Select("*").From("token_folders").Where(sq.Eq{"id": id})
+
+	rows, err := query.RunWith(w.DB).Query()
+	if err != nil {
+		return "", err
+	}
+
+	var folder TokenFolder
+	for rows.Next() {
+		err = rows.Scan(
+			&folder.ID,
+			&folder.Name,
+			&folder.ParentId,
+		)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	parentName, err := w.GetTokenFolderPath(folder.ParentId)
+	if err != nil {
+		return "", err
+	}
+
+	return parentName + "/" + folder.Name, nil
+}
+
+func (w *Wallet) GetTokenFolderFolders(id sql.NullInt32) ([]TokenFolder, error) {
 	query := sq.Select("*").From("token_folders").Where(sq.Eq{"parent_id": id})
 
-	rows, err := w.DB.Query(query.ToSql())
+	rows, err := query.RunWith(w.DB).Query()
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +142,34 @@ func (w *Wallet) GetTokenFolders(id *int) ([]TokenFolder, error) {
 	}
 
 	return folders, nil
+}
+
+func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
+	tx, err := w.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	result, err := tx.Exec(`
+		INSERT INTO token_folders (name,parent_id)
+		VALUES (?,?);
+	`, folder.Name, folder.ParentId)
+	if err != nil {
+		return err
+	}
+
+	err = handleDatabaseCommit(tx)
+	if err != nil {
+		return err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	folder.ID = int32(id)
+	return nil
 }
 
 type GetTokensParams struct {
@@ -125,15 +208,11 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 		query = query.OrderBy(params.OrderBy, direction)
 	}
 
-	rows, err := w.DB.Query(query.ToSql())
+	rows, err := query.RunWith(w.DB).Query()
 	if err != nil {
 		return nil, err
 	}
 
-	return rowsScanTokens(rows)
-}
-
-func rowsScanTokens(rows *sql.Rows) ([]Token, error) {
 	var tokens []Token
 	for rows.Next() {
 		var token Token
@@ -184,7 +263,7 @@ func (w *Wallet) StoreToken(token Token) error {
 	return handleDatabaseCommit(tx)
 }
 
-func (w *Wallet) DelTokenFolder(id int) error {
+func (w *Wallet) DelTokenFolder(id int32) error {
 	tx, err := w.DB.Begin()
 	if err != nil {
 		return err

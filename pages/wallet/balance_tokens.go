@@ -153,9 +153,8 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 	title := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name)
 	page_instance.header.SetTitle(title)
 
-	th := app_instance.Theme
 	page_instance.header.ButtonRight = nil
-	page_instance.header.Subtitle = func(gtx layout.Context) layout.Dimensions {
+	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		walletAddr := openedWallet.Info.Addr
 		if p.buttonCopyAddr.Clickable.Clicked() {
 			clipboard.WriteOp{
@@ -288,7 +287,17 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return p.tokenBar.Layout(gtx, th, p.tokenItems)
+		return p.tokenBar.Layout(gtx, th)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Inset{
+			Top: unit.Dp(0), Bottom: unit.Dp(20),
+			Left: unit.Dp(30), Right: unit.Dp(30),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any favorite tokens. Click the menu icon to manage tokens."))
+			return lbl.Layout(gtx)
+		})
 	})
 
 	for _, item := range p.tokenItems {
@@ -511,7 +520,7 @@ func NewTokenBar(th *material.Theme) *TokenBar {
 	}
 }
 
-func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*TokenListItem) layout.Dimensions {
+func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	cl := clip.Rect{Max: image.Pt(gtx.Constraints.Max.X, gtx.Dp(1))}.Push(gtx.Ops)
 	paint.ColorOp{Color: color.NRGBA{R: 0, G: 0, B: 0, A: 50}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
@@ -530,10 +539,19 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, items []*Token
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						labelTokens := material.Label(th, unit.Sp(17), lang.Translate("YOUR TOKENS"))
-						labelTokens.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
-						labelTokens.Font.Weight = font.Bold
-						return labelTokens.Layout(gtx)
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(17), lang.Translate("YOUR TOKENS"))
+								lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
+								lbl.Font.Weight = font.Bold
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(14), lang.Translate("Favorites"))
+								lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+								return lbl.Layout(gtx)
+							}),
+						)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Min.X = gtx.Dp(35)
@@ -663,7 +681,7 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 		m := op.Record(gtx.Ops)
 		dims := item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
-				Top: unit.Dp(10), Bottom: unit.Dp(10),
+				Top: unit.Dp(13), Bottom: unit.Dp(13),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
@@ -708,10 +726,8 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 		paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 			clip.RRect{
 				Rect: image.Rectangle{Max: dims.Size},
-				SE:   gtx.Dp(10),
-				NW:   gtx.Dp(10),
-				NE:   gtx.Dp(10),
-				SW:   gtx.Dp(10),
+				NW:   gtx.Dp(10), NE: gtx.Dp(10),
+				SE: gtx.Dp(10), SW: gtx.Dp(10),
 			}.Op(gtx.Ops))
 
 		c.Add(gtx.Ops)

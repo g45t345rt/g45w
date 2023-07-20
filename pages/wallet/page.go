@@ -36,6 +36,7 @@ type Page struct {
 	pageSCToken         *PageSCToken
 	pageContactForm     *PageContactForm
 	pageSendOptionsForm *PageSendOptionsForm
+	pageSCFolders       *PageSCFolders
 
 	contactManager *contact_manager.ContactManager
 
@@ -129,6 +130,7 @@ func New() *Page {
 		pageSCToken:         pageSCToken,
 		pageContactForm:     pageContactForm,
 		pageSendOptionsForm: pageSendOptionsForm,
+		pageSCFolders:       pageSCFolders,
 
 		pageRouter: pageRouter,
 	}

@@ -17,6 +17,8 @@ import (
 	"gioui.org/layout"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 // From gio material theme
@@ -152,6 +154,11 @@ func (s ShiftNumber) Value() float64 {
 func (s ShiftNumber) Format() string {
 	v := fmt.Sprintf("%%.%df", s.Decimals)
 	return fmt.Sprintf(v, s.Value())
+}
+
+func (s ShiftNumber) LocaleString(t language.Tag) string {
+	printer := message.NewPrinter(t)
+	return printer.Sprintf("%s", s.Format())
 }
 
 func ReduceAddr(addr string) string {

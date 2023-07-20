@@ -7,7 +7,6 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/tanema/gween"
@@ -53,8 +52,7 @@ func (p *PageSCToken) Enter() {
 	p.isActive = true
 
 	page_instance.header.SetTitle(lang.Translate("Token"))
-	th := app_instance.Theme
-	page_instance.header.Subtitle = func(gtx layout.Context) layout.Dimensions {
+	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		lbl := material.Label(th, unit.Sp(16), "00000...00000")
 		return lbl.Layout(gtx)
 	}

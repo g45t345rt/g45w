@@ -15,7 +15,7 @@ import (
 
 type Header struct {
 	LabelTitle  material.LabelStyle
-	Subtitle    layout.Widget
+	Subtitle    func(gtx layout.Context, th *material.Theme) layout.Dimensions
 	ButtonRight *components.Button
 
 	buttonGoBack *components.Button
@@ -136,7 +136,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimension
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					if h.Subtitle != nil {
-						return h.Subtitle(gtx)
+						return h.Subtitle(gtx, th)
 					}
 					return layout.Dimensions{}
 				}),
