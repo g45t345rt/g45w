@@ -128,6 +128,11 @@ func OpenWallet(addr string, password string) error {
 		return err
 	}
 
+	err = initDatabaseContacts(db)
+	if err != nil {
+		return err
+	}
+
 	wallet := &Wallet{
 		Info:   info,
 		Memory: memory,

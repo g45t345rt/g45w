@@ -14,7 +14,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/contact_manager"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -37,8 +36,7 @@ type Page struct {
 	pageContactForm     *PageContactForm
 	pageSendOptionsForm *PageSendOptionsForm
 	pageSCFolders       *PageSCFolders
-
-	contactManager *contact_manager.ContactManager
+	pageContacts        *PageContacts
 
 	pageRouter *router.Router
 }
@@ -131,6 +129,7 @@ func New() *Page {
 		pageContactForm:     pageContactForm,
 		pageSendOptionsForm: pageSendOptionsForm,
 		pageSCFolders:       pageSCFolders,
+		pageContacts:        pageContacts,
 
 		pageRouter: pageRouter,
 	}
@@ -149,10 +148,6 @@ func (p *Page) Enter() {
 		p.isActive = true
 		w := app_instance.Window
 		w.Option(app.StatusColor(color.NRGBA{A: 255}))
-
-		addr := openedWallet.Info.Addr
-		p.contactManager = contact_manager.NewContactManager(addr)
-		p.contactManager.Load()
 
 		p.animationLeave.Reset()
 		p.animationEnter.Start()

@@ -285,9 +285,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					addr := p.txtWalletAddr.Editor.Text()
-					contact, ok := page_instance.contactManager.Contacts[addr]
 
-					if ok {
+					wallet := wallet_manager.OpenedWallet
+
+					contact, _ := wallet.GetContact(addr)
+
+					if contact != nil {
 						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 							layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {

@@ -15,11 +15,11 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/contact_manager"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -59,8 +59,9 @@ func NewPageContacts() *PageContacts {
 	})
 
 	return &PageContacts{
-		animationEnter:   animationEnter,
-		animationLeave:   animationLeave,
+		animationEnter: animationEnter,
+		animationLeave: animationLeave,
+
 		list:             list,
 		buttonAddContact: buttonAddContact,
 	}
@@ -76,21 +77,34 @@ func (p *PageContacts) Enter() {
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = p.buttonAddContact
 
-	p.contactItems = make([]*ContactListItem, 0)
-	for _, contact := range page_instance.contactManager.Contacts {
-		item := NewContactListItem(contact)
-		p.contactItems = append(p.contactItems, item)
-	}
-
 	if !page_instance.header.IsHistory(PAGE_CONTACTS) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
+
+	p.Load()
 }
 
 func (p *PageContacts) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
+}
+
+func (p *PageContacts) Load() error {
+	p.contactItems = make([]*ContactListItem, 0)
+
+	wallet := wallet_manager.OpenedWallet
+	contacts, err := wallet.GetContacts(wallet_manager.GetContactsParams{})
+	if err != nil {
+		return err
+	}
+
+	for _, contact := range contacts {
+		item := NewContactListItem(contact)
+		p.contactItems = append(p.contactItems, item)
+	}
+
+	return nil
 }
 
 func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -119,7 +133,7 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
 	}
 
-	widgets := []layout.Widget{}
+	widgets := []layout.ListElement{}
 
 	if len(p.contactItems) == 0 {
 		return layout.Inset{
@@ -130,13 +144,13 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		})
 	}
 
-	for _, item := range p.contactItems {
-		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			return item.Layout(gtx, th)
+	for i := 0; i < len(p.contactItems); i++ {
+		widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
+			return p.contactItems[index].Layout(gtx, th)
 		})
 	}
 
-	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
 	})
 
@@ -144,17 +158,17 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	listStyle.AnchorStrategy = material.Overlay
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
-		return widgets[index](gtx)
+		return widgets[index](gtx, index)
 	})
 }
 
 type ContactListItem struct {
-	contact        contact_manager.Contact
+	contact        wallet_manager.Contact
 	listItemSelect *prefabs.ListItemSelectEdit
 	clickable      *widget.Clickable
 }
 
-func NewContactListItem(contact contact_manager.Contact) *ContactListItem {
+func NewContactListItem(contact wallet_manager.Contact) *ContactListItem {
 	return &ContactListItem{
 		contact:        contact,
 		listItemSelect: prefabs.NewListItemSelectEdit(),

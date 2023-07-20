@@ -71,8 +71,9 @@ func (w *Wallet) GetTokenFolder(id int32) (*TokenFolder, error) {
 		return nil, err
 	}
 
-	var folder TokenFolder
+	var folder *TokenFolder
 	for rows.Next() {
+		folder = &TokenFolder{}
 		err = rows.Scan(
 			&folder.ID,
 			&folder.Name,
@@ -83,7 +84,7 @@ func (w *Wallet) GetTokenFolder(id int32) (*TokenFolder, error) {
 		}
 	}
 
-	return &folder, nil
+	return folder, nil
 }
 
 func (w *Wallet) GetTokenFolderPath(id sql.NullInt32) (string, error) {
