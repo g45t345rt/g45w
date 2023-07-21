@@ -1,10 +1,10 @@
 package page_wallet
 
 import (
+	"database/sql"
 	"fmt"
 	"image"
 	"image/color"
-	"log"
 	"strings"
 
 	"gioui.org/f32"
@@ -57,25 +57,6 @@ type PageBalanceTokens struct {
 var _ router.Page = &PageBalanceTokens{}
 
 func NewPageBalanceTokens() *PageBalanceTokens {
-	th := app_instance.Theme
-
-	img, err := assets.GetImage("dero.jpg")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	tokenItems := []*TokenListItem{}
-	for i := 0; i < 10; i++ {
-		tokenItems = append(tokenItems, &TokenListItem{
-			tokenImageItem: NewTokenImageItem(img),
-			tokenName:      fmt.Sprintf("Dero %d", i),
-			tokenId:        "00000...00000",
-			tokenBalance:   "342.35546",
-			Clickable:      new(widget.Clickable),
-			//ImageClickable: new(widget.Clickable),
-		})
-	}
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),
 	))
@@ -119,10 +100,9 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	})
 
 	return &PageBalanceTokens{
-		displayBalance: NewDisplayBalance(th),
-		tokenBar:       NewTokenBar(th),
+		displayBalance: NewDisplayBalance(),
+		tokenBar:       NewTokenBar(),
 		alertBox:       NewAlertBox(),
-		tokenItems:     tokenItems,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		list:           list,
@@ -146,6 +126,27 @@ func (p *PageBalanceTokens) Enter() {
 
 	p.ResetWalletHeader()
 	page_instance.header.ButtonRight = p.buttonSettings
+	p.Load()
+}
+
+func (p *PageBalanceTokens) Load() error {
+	wallet := wallet_manager.OpenedWallet
+
+	tokens, err := wallet.GetTokens(wallet_manager.GetTokensParams{
+		IsFavorite: sql.NullBool{Bool: true, Valid: true},
+	})
+	if err != nil {
+		return err
+	}
+
+	tokenItems := []*TokenListItem{}
+	for _, token := range tokens {
+		tokenItems = append(tokenItems, NewTokenListItem(token))
+	}
+
+	p.tokenItems = tokenItems
+	p.tokenBar.tokenCount = len(tokenItems)
+	return nil
 }
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
@@ -290,23 +291,20 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		return p.tokenBar.Layout(gtx, th)
 	})
 
-	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return layout.Inset{
-			Top: unit.Dp(0), Bottom: unit.Dp(20),
-			Left: unit.Dp(30), Right: unit.Dp(30),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any favorite tokens. Click the menu icon to manage tokens."))
-			return lbl.Layout(gtx)
+	if len(p.tokenItems) == 0 {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return layout.Inset{
+				Top: unit.Dp(0), Bottom: unit.Dp(20),
+				Left: unit.Dp(30), Right: unit.Dp(30),
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any favorite tokens. Click the menu icon to manage tokens."))
+				return lbl.Layout(gtx)
+			})
 		})
-	})
+	}
 
 	for _, item := range p.tokenItems {
 		widgets = append(widgets, item.Layout)
-
-		if item.Clickable.Clicked() {
-			page_instance.header.AddHistory(PAGE_SC_TOKEN)
-			page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
-		}
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -370,7 +368,7 @@ type DisplayBalance struct {
 	showBalanceIcon *widget.Icon
 }
 
-func NewDisplayBalance(th *material.Theme) *DisplayBalance {
+func NewDisplayBalance() *DisplayBalance {
 	sendIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
 	buttonSend := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
@@ -504,9 +502,10 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 type TokenBar struct {
 	buttonListToken *components.Button
+	tokenCount      int
 }
 
-func NewTokenBar(th *material.Theme) *TokenBar {
+func NewTokenBar() *TokenBar {
 	listIcon, _ := widget.NewIcon(icons.ActionViewList)
 	buttonListToken := components.NewButton(components.ButtonStyle{
 		Icon:           listIcon,
@@ -547,7 +546,9 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 								return lbl.Layout(gtx)
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(14), lang.Translate("Favorites"))
+								text := lang.Translate("Favorites ({})")
+								text = strings.Replace(text, "{}", fmt.Sprint(t.tokenCount), -1)
+								lbl := material.Label(th, unit.Sp(14), text)
 								lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
 								return lbl.Layout(gtx)
 							}),
@@ -660,17 +661,30 @@ func (item *TokenImageItem) Layout(gtx layout.Context) layout.Dimensions {
 }
 
 type TokenListItem struct {
-	tokenName    string
-	tokenId      string
-	tokenBalance string
+	token     wallet_manager.Token
+	clickable *widget.Clickable
+	image     *TokenImageItem
+}
 
-	Clickable      *widget.Clickable
-	tokenImageItem *TokenImageItem
+func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
+	img, _ := assets.GetImage("token.png")
+
+	return &TokenListItem{
+		token:     token,
+		image:     NewTokenImageItem(img),
+		clickable: new(widget.Clickable),
+	}
 }
 
 func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
-	if item.Clickable.Hovered() {
+	if item.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
+	}
+
+	if item.clickable.Clicked() {
+		//page_instance.pageSCToken.Token = item.token
+		page_instance.header.AddHistory(PAGE_SC_TOKEN)
+		page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
 	}
 
 	return layout.Inset{
@@ -679,7 +693,7 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		th := app_instance.Theme
 		m := op.Record(gtx.Ops)
-		dims := item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
 				Top: unit.Dp(13), Bottom: unit.Dp(13),
 				Left: unit.Dp(15), Right: unit.Dp(15),
@@ -688,7 +702,7 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Max.X = gtx.Dp(50)
 						gtx.Constraints.Max.Y = gtx.Dp(50)
-						return item.tokenImageItem.Layout(gtx)
+						return item.image.Layout(gtx)
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -699,12 +713,12 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										label := material.Label(th, unit.Sp(18), item.tokenName)
+										label := material.Label(th, unit.Sp(18), item.token.Name)
 										label.Font.Weight = font.Bold
 										return label.Layout(gtx)
 									}),
 									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										label := material.Label(th, unit.Sp(14), item.tokenId)
+										label := material.Label(th, unit.Sp(14), utils.ReduceTxId(item.token.SCID))
 										label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
 										return label.Layout(gtx)
 									}),
@@ -712,7 +726,7 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 							}),
 							layout.Flexed(1, layout.Spacer{}.Layout),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								label := material.Label(th, unit.Sp(18), item.tokenBalance)
+								label := material.Label(th, unit.Sp(18), "0")
 								label.Font.Weight = font.Bold
 								return label.Layout(gtx)
 							}),

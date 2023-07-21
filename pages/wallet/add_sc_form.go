@@ -2,6 +2,7 @@ package page_wallet
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"image"
 	"image/color"
@@ -23,8 +24,10 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/sc"
+	"github.com/g45t345rt/g45w/sc/dex_sc"
 	"github.com/g45t345rt/g45w/sc/g45_sc"
 	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -201,28 +204,21 @@ type SCDetailsContainer struct {
 	standardTypeEditor *widget.Editor
 	maxSupplyEditor    *widget.Editor
 	nameEditor         *widget.Editor
-	buttonAddToken     *components.Button
+	symbolEditor       *widget.Editor
 
-	list *widget.List
+	buttonAddToken *components.Button
+	token          wallet_manager.Token
+	list           *widget.List
 }
 
 func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Result) *SCDetailsContainer {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	scIdEditor := new(widget.Editor)
-	scIdEditor.SetText(scId)
-	scIdEditor.WrapPolicy = text.WrapGraphemes
-	scIdEditor.ReadOnly = true
-
-	standardTypeEditor := new(widget.Editor)
-	standardTypeEditor.SetText(string(scType))
-	standardTypeEditor.WrapPolicy = text.WrapGraphemes
-	standardTypeEditor.ReadOnly = true
-
-	name := "?"
-	decimals := "?"
-	maxSupply := "?"
+	token := wallet_manager.Token{
+		SCID:         scId,
+		StandardType: scType,
+	}
 
 	switch scType {
 	case sc.G45_FAT_TYPE:
@@ -238,9 +234,12 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 			fmt.Println(err)
 		}
 
-		name = metadata.Name
-		decimals = fmt.Sprintf("%d", fat.Decimals)
-		maxSupply = utils.ShiftNumber{Number: fat.MaxSupply, Decimals: int(fat.Decimals)}.LocaleString(language.English)
+		token.Name = metadata.Name
+		token.Decimals = int32(fat.Decimals)
+		token.MaxSupply = sql.NullInt64{Int64: int64(fat.MaxSupply), Valid: true}
+		token.Image = sql.NullString{String: metadata.Image, Valid: true}
+		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
+		token.Metadata = sql.NullString{String: fat.Metadata, Valid: true}
 	case sc.G45_AT_TYPE:
 		at := g45_sc.G45_AT{}
 		err := at.Parse(scId, scResult.VariableStringKeys)
@@ -254,9 +253,12 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 			fmt.Println(err)
 		}
 
-		name = metadata.Name
-		decimals = fmt.Sprintf("%d", at.Decimals)
-		maxSupply = utils.ShiftNumber{Number: at.MaxSupply, Decimals: int(at.Decimals)}.LocaleString(language.English)
+		token.Name = metadata.Name
+		token.Decimals = int32(at.Decimals)
+		token.MaxSupply = sql.NullInt64{Int64: int64(at.MaxSupply), Valid: true}
+		token.Image = sql.NullString{String: metadata.Image, Valid: true}
+		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
+		token.Metadata = sql.NullString{String: at.Metadata, Valid: true}
 	case sc.G45_NFT_TYPE:
 		nft := g45_sc.G45_NFT{}
 		err := nft.Parse(scId, scResult.VariableStringKeys)
@@ -270,25 +272,62 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 			fmt.Println(err)
 		}
 
-		name = metadata.Name
-		decimals = "0"
-		maxSupply = "1 (this is an NFT)"
+		token.Name = metadata.Name
+		token.Decimals = 0
+		token.MaxSupply = sql.NullInt64{Int64: 1, Valid: true}
+		token.Image = sql.NullString{String: metadata.Image, Valid: true}
+		token.Metadata = sql.NullString{String: nft.Metadata, Valid: true}
+	case sc.DEX_SC_TYPE:
+		dex := dex_sc.DEX_SC{}
+		err := dex.Parse(scId, scResult.VariableStringKeys)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		token.Name = dex.Name
+		token.Decimals = int32(dex.Decimals)
+		token.Image = sql.NullString{String: dex.ImageUrl, Valid: true}
+		token.Symbol = sql.NullString{String: dex.Symbol, Valid: true}
 	}
 
+	scIdEditor := new(widget.Editor)
+	scIdEditor.SetText(token.SCID)
+	scIdEditor.WrapPolicy = text.WrapGraphemes
+	scIdEditor.ReadOnly = true
+
+	standardTypeEditor := new(widget.Editor)
+	standardTypeEditor.SetText(string(scType))
+	standardTypeEditor.WrapPolicy = text.WrapGraphemes
+	standardTypeEditor.ReadOnly = true
+
 	nameEditor := new(widget.Editor)
-	nameEditor.SetText(name)
+	nameEditor.SetText(token.Name)
 	nameEditor.WrapPolicy = text.WrapGraphemes
 	nameEditor.ReadOnly = true
 
 	maxSupplyEditor := new(widget.Editor)
+	maxSupply := "?"
+	if token.MaxSupply.Valid {
+		maxSupply = utils.ShiftNumber{Number: uint64(token.MaxSupply.Int64), Decimals: int(token.Decimals)}.LocaleString(language.English)
+	}
 	maxSupplyEditor.SetText(maxSupply)
 	maxSupplyEditor.WrapPolicy = text.WrapGraphemes
 	maxSupplyEditor.ReadOnly = true
 
 	decimalsEditor := new(widget.Editor)
+	decimals := fmt.Sprintf("%d", token.Decimals)
 	decimalsEditor.SetText(decimals)
 	decimalsEditor.WrapPolicy = text.WrapGraphemes
 	decimalsEditor.ReadOnly = true
+
+	symbolEditor := new(widget.Editor)
+	symbol := "?"
+	if token.Symbol.Valid {
+		symbol = token.Symbol.String
+	}
+	symbolEditor.SetText(symbol)
+	symbolEditor.WrapPolicy = text.WrapGraphemes
+	symbolEditor.ReadOnly = true
 
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	buttonAddToken := components.NewButton(components.ButtonStyle{
@@ -310,12 +349,29 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		decimalsEditor:     decimalsEditor,
 		maxSupplyEditor:    maxSupplyEditor,
 		standardTypeEditor: standardTypeEditor,
-		buttonAddToken:     buttonAddToken,
-		list:               list,
+		symbolEditor:       symbolEditor,
+
+		token:          token,
+		buttonAddToken: buttonAddToken,
+		list:           list,
 	}
 }
 
 func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+
+	if sc.buttonAddToken.Clickable.Clicked() {
+		wallet := wallet_manager.OpenedWallet
+		err := wallet.StoreToken(sc.token)
+		if err != nil {
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			notification_modals.SuccessInstance.SetText("Success", lang.Translate("New token added."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			page_instance.header.GoBack()
+		}
+	}
+
 	var widgets []layout.Widget
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -371,6 +427,17 @@ func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) lay
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					editor := material.Editor(th, sc.decimalsEditor, "")
+					editor.TextSize = unit.Sp(14)
+					return editor.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(16), lang.Translate("Symbol"))
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					editor := material.Editor(th, sc.symbolEditor, "")
 					editor.TextSize = unit.Sp(14)
 					return editor.Layout(gtx)
 				}),

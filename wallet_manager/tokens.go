@@ -15,13 +15,16 @@ type TokenFolder struct {
 
 type Token struct {
 	SCID              string
-	Name              sql.NullString
+	Name              string
 	MaxSupply         sql.NullInt64 // 1 is an NFT
-	Decimals          sql.NullInt32 // native dero decimals is 5
+	TotalSupply       sql.NullInt64
+	Decimals          int32 // native dero decimals is 5
 	StandardType      sc.SCType
 	Metadata          sql.NullString
 	IsFavorite        sql.NullBool
 	ListOrderFavorite sql.NullInt32
+	Image             sql.NullString
+	Symbol            sql.NullString
 }
 
 func initDatabaseTokens(db *sql.DB) error {
@@ -32,14 +35,14 @@ func initDatabaseTokens(db *sql.DB) error {
 
 	_, err = dbTx.Exec(`
 			CREATE TABLE IF NOT EXISTS token_folders (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				id INT PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR NOT NULL,
-				parent_id INTEGER,
+				parent_id INT,
 				FOREIGN KEY (parent_id) REFERENCES token_folders(id) ON DELETE CASCADE
 			);
 
 			CREATE TABLE IF NOT EXISTS folder_tokens (
-				folder_id INTEGER,
+				folder_id INT,
 				sc_id VARCHAR,
 				PRIMARY KEY (folder_id,sc_id),
 				FOREIGN KEY (folder_id) REFERENCES token_folders(id) ON DELETE CASCADE
@@ -47,13 +50,16 @@ func initDatabaseTokens(db *sql.DB) error {
 
 			CREATE TABLE IF NOT EXISTS tokens (
 				sc_id VARCHAR PRIMARY KEY,
-				name VARCHAR,
+				name VARCHAR NOT NULL,
 				max_supply BIGINT,
-				decimals INTEGER,
-				standard_type VARCHAR,
+				total_supply BIGINT,
+				decimals INT NOT NULL,
+				standard_type VARCHAR NOT NULL,
 				metadata VARCHAR,
 				is_favorite BOOL,
-				list_order_favorite INTEGER
+				list_order_favorite INT,
+				image VARCHAR,
+				symbol VARCHAR
 			);
 		`)
 	if err != nil {
@@ -176,24 +182,25 @@ func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
 type GetTokensParams struct {
 	Descending bool
 	OrderBy    string
-	IsFavorite *bool
-	FolderId   *int
-	IsNFT      *bool
+	IsFavorite sql.NullBool
+	FolderId   sql.NullInt32
+	IsNFT      sql.NullBool
 }
 
 func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 	query := sq.Select("*").From("tokens")
 
-	if params.IsFavorite != nil {
-		query = query.Where(sq.Eq{"is_favorite": params.IsFavorite})
+	if params.IsFavorite.Valid {
+		query = query.Where(sq.Eq{"is_favorite": params.IsFavorite.Bool})
 	}
 
-	if params.FolderId != nil {
-		query = query.RightJoin("folder_tokens ON id = folder_id")
+	if params.FolderId.Valid {
+		query = query.RightJoin("folder_tokens ON tokens.sc_id = folder_tokens.sc_id").
+			Where(sq.Eq{"folder_tokens.folder_id": params.FolderId.Int32})
 	}
 
-	if params.IsNFT != nil {
-		if *params.IsNFT {
+	if params.IsNFT.Valid {
+		if params.IsNFT.Bool {
 			query = query.Where(sq.Eq{"max_supply": 1})
 		} else {
 			query = query.Where(sq.Gt{"max_supply": 1})
@@ -221,11 +228,14 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 			&token.SCID,
 			&token.Name,
 			&token.MaxSupply,
+			&token.TotalSupply,
 			&token.Decimals,
 			&token.StandardType,
 			&token.Metadata,
 			&token.IsFavorite,
 			&token.ListOrderFavorite,
+			&token.Image,
+			&token.Symbol,
 		)
 		if err != nil {
 			return tokens, err
@@ -244,19 +254,22 @@ func (w *Wallet) StoreToken(token Token) error {
 	}
 
 	_, err = tx.Exec(`
-		INSERT INTO tokens (sc_id,name,max_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite)
-		VALUES (?,?,?,?,?,?,?,?,?,?)
+		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?)
 		ON CONFLICT(sc_id) DO UPDATE SET
 		name = excluded.name,
 		max_supply = excluded.max_supply,
+		total_supply = excluded.total_supply,
 		decimals = excluded.decimals,
 		standard_type = excluded.standard_type,
 		metadata = excluded.metadata,
 		is_favorite = excluded.is_favorite,
-		list_order_favorite = excluded.list_order_favorite;
-	`, token.SCID, token.Name, token.MaxSupply, token.Decimals, token.StandardType,
-		token.Metadata, token.IsFavorite,
-		token.ListOrderFavorite)
+		list_order_favorite = excluded.list_order_favorite,
+		image = excluded.image,
+		symbol = excluded.symbol;
+	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
+		token.StandardType, token.Metadata, token.IsFavorite,
+		token.ListOrderFavorite, token.Image, token.Symbol)
 	if err != nil {
 		return err
 	}

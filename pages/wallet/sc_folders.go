@@ -140,18 +140,18 @@ func (p *PageSCFolders) Load() error {
 	wallet := wallet_manager.OpenedWallet
 	folder := p.currentFolder
 
-	id := sql.NullInt32{}
+	folderId := sql.NullInt32{}
 	if folder != nil {
-		id.Scan(folder.ID)
+		folderId.Scan(folder.ID)
 	}
 
-	folderPath, err := wallet.GetTokenFolderPath(id)
+	folderPath, err := wallet.GetTokenFolderPath(folderId)
 	if err != nil {
 		return err
 	}
 	p.folderPath = folderPath
 
-	folders, err := wallet.GetTokenFolderFolders(id)
+	folders, err := wallet.GetTokenFolderFolders(folderId)
 	if err != nil {
 		return err
 	}
@@ -163,6 +163,16 @@ func (p *PageSCFolders) Load() error {
 	}
 
 	p.folderCount = len(folders)
+
+	tokens, err := wallet.GetTokens(wallet_manager.GetTokensParams{
+		FolderId: folderId,
+	})
+	if err != nil {
+		return err
+	}
+
+	p.tokenCount = len(tokens)
+
 	app_instance.Window.Invalidate()
 	return nil
 }
@@ -254,7 +264,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 						})
 						c := r.Stop()
 
-						paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100}, clip.UniformRRect(image.Rectangle{
+						paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 50}, clip.UniformRRect(image.Rectangle{
 							Max: dims.Size,
 						}, gtx.Dp(10)).Op(gtx.Ops))
 
@@ -398,8 +408,7 @@ func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layou
 			tokenFolder := wallet_manager.TokenFolder{Name: e.Text}
 			currentFolder := page_instance.pageSCFolders.currentFolder
 			if currentFolder != nil {
-				parentId := sql.NullInt32{}
-				parentId.Scan(currentFolder.ID)
+				parentId := sql.NullInt32{Int32: currentFolder.ID, Valid: true}
 				tokenFolder.ParentId = parentId
 			}
 
@@ -456,9 +465,8 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 	}
 
 	if item.clickable.Clicked() {
-		v := sql.NullInt32{}
-		v.Scan(item.folder.ID)
-		page_instance.pageSCFolders.changeFolder(v)
+		id := sql.NullInt32{Int32: item.folder.ID, Valid: true}
+		page_instance.pageSCFolders.changeFolder(id)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -481,7 +489,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)
 		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(12), "? tokens")
 			lbl.Alignment = text.Middle
