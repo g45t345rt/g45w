@@ -28,8 +28,9 @@ type Page struct {
 }
 
 var (
-	PAGE_MAIN = "page_main"
-	PAGE_INFO = "page_info"
+	PAGE_MAIN          = "page_main"
+	PAGE_INFO          = "page_info"
+	PAGE_IPFS_GATEWAYS = "page_ipfs_gateways"
 )
 
 var page_instance *Page
@@ -52,6 +53,9 @@ func New() *Page {
 
 	pageInfo := NewPageInfo()
 	pageRouter.Add(PAGE_INFO, pageInfo)
+
+	pageIPFSGateways := NewPageIPFSGateways()
+	pageRouter.Add(PAGE_IPFS_GATEWAYS, pageIPFSGateways)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")

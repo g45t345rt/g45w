@@ -27,8 +27,10 @@ type PageMain struct {
 	list           *widget.List
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
-	langSelector   *prefabs.LangSelector
-	buttonInfo     *components.Button
+
+	langSelector      *prefabs.LangSelector
+	buttonInfo        *components.Button
+	buttonIpfsGateway *components.Button
 }
 
 var _ router.Page = &PageMain{}
@@ -67,15 +69,35 @@ func NewPageFront() *PageMain {
 	buttonInfo.Label.Alignment = text.Middle
 	buttonInfo.Style.Font.Weight = font.Bold
 
+	gatewayIcon, _ := widget.NewIcon(icons.HardwareDeviceHub)
+	buttonIpfsGateway := components.NewButton(components.ButtonStyle{
+		Icon:            gatewayIcon,
+		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		BackgroundColor: color.NRGBA{A: 0},
+		TextSize:        unit.Sp(16),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+	})
+	buttonIpfsGateway.Label.Alignment = text.Middle
+	buttonIpfsGateway.Style.Font.Weight = font.Bold
+
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
 	return &PageMain{
 		list:           list,
-		langSelector:   langSelector,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
-		buttonInfo:     buttonInfo,
+
+		langSelector:      langSelector,
+		buttonInfo:        buttonInfo,
+		buttonIpfsGateway: buttonIpfsGateway,
 	}
 }
 
@@ -86,6 +108,8 @@ func (p *PageMain) IsActive() bool {
 func (p *PageMain) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Settings"))
+	page_instance.header.Subtitle = nil
+	page_instance.header.ButtonRight = nil
 
 	if !page_instance.header.IsHistory(PAGE_MAIN) {
 		p.animationEnter.Start()
@@ -123,10 +147,19 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		page_instance.header.AddHistory(PAGE_INFO)
 	}
 
+	if p.buttonIpfsGateway.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_IPFS_GATEWAYS)
+		page_instance.header.AddHistory(PAGE_IPFS_GATEWAYS)
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonInfo.Text = lang.Translate("App Information")
 			return p.buttonInfo.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonIpfsGateway.Text = lang.Translate("IPFS Gateways")
+			return p.buttonIpfsGateway.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			if p.langSelector.Changed() {
