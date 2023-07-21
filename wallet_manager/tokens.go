@@ -2,6 +2,7 @@ package wallet_manager
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/g45t345rt/g45w/sc"
@@ -35,17 +36,21 @@ func initDatabaseTokens(db *sql.DB) error {
 
 	_, err = dbTx.Exec(`
 			CREATE TABLE IF NOT EXISTS token_folders (
-				id INT PRIMARY KEY AUTOINCREMENT,
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR NOT NULL,
-				parent_id INT,
-				FOREIGN KEY (parent_id) REFERENCES token_folders(id) ON DELETE CASCADE
+				parent_id INTEGER
 			);
 
+			CREATE TRIGGER IF NOT EXISTS delete_token_folders
+			AFTER DELETE ON token_folders
+			BEGIN
+				DELETE FROM token_folders WHERE parent_id = OLD.id;
+			END;
+
 			CREATE TABLE IF NOT EXISTS folder_tokens (
-				folder_id INT,
+				folder_id INTEGER,
 				sc_id VARCHAR,
-				PRIMARY KEY (folder_id,sc_id),
-				FOREIGN KEY (folder_id) REFERENCES token_folders(id) ON DELETE CASCADE
+				PRIMARY KEY (folder_id,sc_id)
 			);
 
 			CREATE TABLE IF NOT EXISTS tokens (
@@ -53,11 +58,11 @@ func initDatabaseTokens(db *sql.DB) error {
 				name VARCHAR NOT NULL,
 				max_supply BIGINT,
 				total_supply BIGINT,
-				decimals INT NOT NULL,
+				decimals INTEGER NOT NULL,
 				standard_type VARCHAR NOT NULL,
 				metadata VARCHAR,
 				is_favorite BOOL,
-				list_order_favorite INT,
+				list_order_favorite INTEGER,
 				image VARCHAR,
 				symbol VARCHAR
 			);
@@ -152,6 +157,30 @@ func (w *Wallet) GetTokenFolderFolders(id sql.NullInt32) ([]TokenFolder, error) 
 }
 
 func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
+	// can't use UNIQUE() constraint because null does not count as towards uniqueness
+	// https://stackoverflow.com/questions/22699409/sqlite-null-and-unique
+	// we check manually instead
+
+	query := sq.Select("COUNT(*)").From("token_folders").Where(sq.Eq{"name": folder.Name})
+
+	if folder.ParentId.Valid {
+		query = query.Where(sq.Eq{"parent_id": folder.ParentId.Int32})
+	} else {
+		query = query.Where(sq.Eq{"parent_id": nil})
+	}
+
+	row := query.RunWith(w.DB).QueryRow()
+
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	if count >= 1 {
+		return fmt.Errorf("folder already exists")
+	}
+
 	tx, err := w.DB.Begin()
 	if err != nil {
 		return err
@@ -284,8 +313,10 @@ func (w *Wallet) DelTokenFolder(id int32) error {
 	}
 
 	_, err = tx.Exec(`
+		PRAGMA recursive_triggers = ON;
 		DELETE FROM token_folders
 		WHERE id = ?;
+		PRAGMA recursive_triggers = OFF;
 	`, id)
 	if err != nil {
 		return err

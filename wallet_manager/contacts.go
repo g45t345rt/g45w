@@ -27,7 +27,7 @@ func initDatabaseContacts(db *sql.DB) error {
 				name VARCHAR UNIQUE,
 				note VARCHAR,
 				timestamp BIGINT,
-				list_order INT
+				list_order INTEGER
 			);
 		`)
 	if err != nil {
