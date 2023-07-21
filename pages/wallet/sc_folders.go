@@ -140,7 +140,7 @@ func (p *PageSCFolders) Load() error {
 	wallet := wallet_manager.OpenedWallet
 	folder := p.currentFolder
 
-	folderId := sql.NullInt32{}
+	folderId := sql.NullInt64{}
 	if folder != nil {
 		folderId.Scan(folder.ID)
 	}
@@ -221,7 +221,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder deleted and all subfolders."))
+			notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			p.changeFolder(p.currentFolder.ParentId)
 		}
@@ -301,9 +301,10 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					)
 				})
 
-				itemIndex := 0
 				for i := 0; i < len(p.tokenItems); i += 3 {
 					widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
+						itemIndex := (index - 2) * 3
+
 						dims := layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 								if itemIndex < len(p.tokenItems) {
@@ -326,8 +327,6 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 								return layout.Dimensions{}
 							}),
 						)
-
-						itemIndex += 3
 						return dims
 					})
 				}
@@ -358,9 +357,9 @@ func (p *PageSCFolders) deleteCurrentFolder() error {
 	return wallet.DelTokenFolder(p.currentFolder.ID)
 }
 
-func (p *PageSCFolders) changeFolder(id sql.NullInt32) error {
+func (p *PageSCFolders) changeFolder(id sql.NullInt64) error {
 	if id.Valid {
-		tokenFolder, _ := wallet_manager.OpenedWallet.GetTokenFolder(id.Int32)
+		tokenFolder, _ := wallet_manager.OpenedWallet.GetTokenFolder(id.Int64)
 		p.currentFolder = tokenFolder
 	} else {
 		p.currentFolder = nil
@@ -408,7 +407,7 @@ func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layou
 			tokenFolder := wallet_manager.TokenFolder{Name: e.Text}
 			currentFolder := page_instance.pageSCFolders.currentFolder
 			if currentFolder != nil {
-				parentId := sql.NullInt32{Int32: currentFolder.ID, Valid: true}
+				parentId := sql.NullInt64{Int64: currentFolder.ID, Valid: true}
 				tokenFolder.ParentId = parentId
 			}
 
@@ -465,7 +464,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 	}
 
 	if item.clickable.Clicked() {
-		id := sql.NullInt32{Int32: item.folder.ID, Valid: true}
+		id := sql.NullInt64{Int64: item.folder.ID, Valid: true}
 		page_instance.pageSCFolders.changeFolder(id)
 	}
 

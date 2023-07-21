@@ -9,9 +9,9 @@ import (
 )
 
 type TokenFolder struct {
-	ID       int32
+	ID       int64
 	Name     string
-	ParentId sql.NullInt32
+	ParentId sql.NullInt64
 }
 
 type Token struct {
@@ -19,13 +19,14 @@ type Token struct {
 	Name              string
 	MaxSupply         sql.NullInt64 // 1 is an NFT
 	TotalSupply       sql.NullInt64
-	Decimals          int32 // native dero decimals is 5
+	Decimals          int64 // native dero decimals is 5
 	StandardType      sc.SCType
 	Metadata          sql.NullString
 	IsFavorite        sql.NullBool
-	ListOrderFavorite sql.NullInt32
+	ListOrderFavorite sql.NullInt64
 	Image             sql.NullString
 	Symbol            sql.NullString
+	FolderId          sql.NullInt64
 }
 
 func initDatabaseTokens(db *sql.DB) error {
@@ -45,16 +46,11 @@ func initDatabaseTokens(db *sql.DB) error {
 			AFTER DELETE ON token_folders
 			BEGIN
 				DELETE FROM token_folders WHERE parent_id = OLD.id;
+				DELETE FROM tokens WHERE folder_id = OLD.id;
 			END;
 
-			CREATE TABLE IF NOT EXISTS folder_tokens (
-				folder_id INTEGER,
-				sc_id VARCHAR,
-				PRIMARY KEY (folder_id,sc_id)
-			);
-
 			CREATE TABLE IF NOT EXISTS tokens (
-				sc_id VARCHAR PRIMARY KEY,
+				sc_id VARCHAR,
 				name VARCHAR NOT NULL,
 				max_supply BIGINT,
 				total_supply BIGINT,
@@ -64,7 +60,9 @@ func initDatabaseTokens(db *sql.DB) error {
 				is_favorite BOOL,
 				list_order_favorite INTEGER,
 				image VARCHAR,
-				symbol VARCHAR
+				symbol VARCHAR,
+				folder_id INTEGER,
+				PRIMARY KEY(sc_id,folder_id)
 			);
 		`)
 	if err != nil {
@@ -74,7 +72,7 @@ func initDatabaseTokens(db *sql.DB) error {
 	return handleDatabaseCommit(dbTx)
 }
 
-func (w *Wallet) GetTokenFolder(id int32) (*TokenFolder, error) {
+func (w *Wallet) GetTokenFolder(id int64) (*TokenFolder, error) {
 	query := sq.Select("*").From("token_folders").Where(sq.Eq{"id": id})
 
 	rows, err := query.RunWith(w.DB).Query()
@@ -98,7 +96,7 @@ func (w *Wallet) GetTokenFolder(id int32) (*TokenFolder, error) {
 	return folder, nil
 }
 
-func (w *Wallet) GetTokenFolderPath(id sql.NullInt32) (string, error) {
+func (w *Wallet) GetTokenFolderPath(id sql.NullInt64) (string, error) {
 	if !id.Valid {
 		return "root", nil
 	}
@@ -130,7 +128,7 @@ func (w *Wallet) GetTokenFolderPath(id sql.NullInt32) (string, error) {
 	return parentName + "/" + folder.Name, nil
 }
 
-func (w *Wallet) GetTokenFolderFolders(id sql.NullInt32) ([]TokenFolder, error) {
+func (w *Wallet) GetTokenFolderFolders(id sql.NullInt64) ([]TokenFolder, error) {
 	query := sq.Select("*").From("token_folders").Where(sq.Eq{"parent_id": id})
 
 	rows, err := query.RunWith(w.DB).Query()
@@ -164,7 +162,7 @@ func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
 	query := sq.Select("COUNT(*)").From("token_folders").Where(sq.Eq{"name": folder.Name})
 
 	if folder.ParentId.Valid {
-		query = query.Where(sq.Eq{"parent_id": folder.ParentId.Int32})
+		query = query.Where(sq.Eq{"parent_id": folder.ParentId.Int64})
 	} else {
 		query = query.Where(sq.Eq{"parent_id": nil})
 	}
@@ -204,15 +202,48 @@ func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
 		return err
 	}
 
-	folder.ID = int32(id)
+	folder.ID = id
 	return nil
+}
+
+func (w *Wallet) GetToken(scId string, folderId sql.NullInt64) (*Token, error) {
+	query := sq.Select("*").From("tokens").Where(sq.Eq{"sc_id": scId})
+
+	if folderId.Valid {
+		query = query.Where(sq.Eq{"folder_id": folderId.Int64})
+	} else {
+		query = query.Where(sq.Eq{"folder_id": nil})
+	}
+
+	row := query.RunWith(w.DB).QueryRow()
+
+	var token Token
+	err := row.Scan(
+		&token.SCID,
+		&token.Name,
+		&token.MaxSupply,
+		&token.TotalSupply,
+		&token.Decimals,
+		&token.StandardType,
+		&token.Metadata,
+		&token.IsFavorite,
+		&token.ListOrderFavorite,
+		&token.Image,
+		&token.Symbol,
+		&token.FolderId,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
 }
 
 type GetTokensParams struct {
 	Descending bool
 	OrderBy    string
 	IsFavorite sql.NullBool
-	FolderId   sql.NullInt32
+	FolderId   sql.NullInt64
 	IsNFT      sql.NullBool
 }
 
@@ -224,8 +255,7 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 	}
 
 	if params.FolderId.Valid {
-		query = query.RightJoin("folder_tokens ON tokens.sc_id = folder_tokens.sc_id").
-			Where(sq.Eq{"folder_tokens.folder_id": params.FolderId.Int32})
+		query = query.Where(sq.Eq{"folder_id": params.FolderId.Int64})
 	}
 
 	if params.IsNFT.Valid {
@@ -265,6 +295,7 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 			&token.ListOrderFavorite,
 			&token.Image,
 			&token.Symbol,
+			&token.FolderId,
 		)
 		if err != nil {
 			return tokens, err
@@ -283,9 +314,9 @@ func (w *Wallet) StoreToken(token Token) error {
 	}
 
 	_, err = tx.Exec(`
-		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?)
-		ON CONFLICT(sc_id) DO UPDATE SET
+		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+		ON CONFLICT(sc_id,folder_id) DO UPDATE SET
 		name = excluded.name,
 		max_supply = excluded.max_supply,
 		total_supply = excluded.total_supply,
@@ -295,10 +326,11 @@ func (w *Wallet) StoreToken(token Token) error {
 		is_favorite = excluded.is_favorite,
 		list_order_favorite = excluded.list_order_favorite,
 		image = excluded.image,
-		symbol = excluded.symbol;
+		symbol = excluded.symbol,
+		folder_id = excluded.folder_id;
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite,
-		token.ListOrderFavorite, token.Image, token.Symbol)
+		token.ListOrderFavorite, token.Image, token.Symbol, token.FolderId)
 	if err != nil {
 		return err
 	}
@@ -306,7 +338,7 @@ func (w *Wallet) StoreToken(token Token) error {
 	return handleDatabaseCommit(tx)
 }
 
-func (w *Wallet) DelTokenFolder(id int32) error {
+func (w *Wallet) DelTokenFolder(id int64) error {
 	tx, err := w.DB.Begin()
 	if err != nil {
 		return err

@@ -235,7 +235,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		}
 
 		token.Name = metadata.Name
-		token.Decimals = int32(fat.Decimals)
+		token.Decimals = int64(fat.Decimals)
 		token.MaxSupply = sql.NullInt64{Int64: int64(fat.MaxSupply), Valid: true}
 		token.Image = sql.NullString{String: metadata.Image, Valid: true}
 		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
@@ -254,7 +254,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		}
 
 		token.Name = metadata.Name
-		token.Decimals = int32(at.Decimals)
+		token.Decimals = int64(at.Decimals)
 		token.MaxSupply = sql.NullInt64{Int64: int64(at.MaxSupply), Valid: true}
 		token.Image = sql.NullString{String: metadata.Image, Valid: true}
 		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
@@ -285,7 +285,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		}
 
 		token.Name = dex.Name
-		token.Decimals = int32(dex.Decimals)
+		token.Decimals = int64(dex.Decimals)
 		token.Image = sql.NullString{String: dex.ImageUrl, Valid: true}
 		token.Symbol = sql.NullString{String: dex.Symbol, Valid: true}
 	}
@@ -357,11 +357,20 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 	}
 }
 
-func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (sc *SCDetailsContainer) addToken() error {
+	token := sc.token
+	wallet := wallet_manager.OpenedWallet
+	currentFolder := page_instance.pageSCFolders.currentFolder
+	if currentFolder != nil {
+		token.FolderId = sql.NullInt64{Int64: currentFolder.ID, Valid: true}
+	}
 
+	return wallet.StoreToken(token)
+}
+
+func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if sc.buttonAddToken.Clickable.Clicked() {
-		wallet := wallet_manager.OpenedWallet
-		err := wallet.StoreToken(sc.token)
+		err := sc.addToken()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
