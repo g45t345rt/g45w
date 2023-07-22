@@ -81,13 +81,17 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			daemonHeight := wallet.Memory.Get_Daemon_Height()
 			out := n.RemoteNodeInfo.Result.Outgoing_connections_count
 
-			if walletHeight < daemonHeight {
-				statusDotColor = color.NRGBA{R: 255, G: 255, B: 0, A: 255}
-			} else {
-				statusDotColor = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
-			}
+			if n.RemoteNodeInfo.Err == nil {
+				if walletHeight < daemonHeight {
+					statusDotColor = color.NRGBA{R: 255, G: 255, B: 0, A: 255}
+				} else {
+					statusDotColor = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
+				}
 
-			status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, nodeConn.Name)
+				status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, nodeConn.Name)
+			} else {
+				status = fmt.Sprintf("%s (%s)", lang.Translate("Connection error"), nodeConn.Name)
+			}
 		}
 	}
 

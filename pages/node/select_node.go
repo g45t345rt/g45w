@@ -260,7 +260,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 
 		if item.listItemSelect.SelectClicked() {
-			p.connect(gtx, item.conn)
+			p.connect(item.conn)
 		}
 	}
 
@@ -275,7 +275,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	})
 }
 
-func (p *PageSelectNode) connect(gtx layout.Context, conn node_manager.NodeConnection) {
+func (p *PageSelectNode) connect(conn node_manager.NodeConnection) {
 	if p.connecting {
 		return
 	}
@@ -301,7 +301,7 @@ func (p *PageSelectNode) connect(gtx layout.Context, conn node_manager.NodeConne
 			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 			page_instance.header.AddHistory(PAGE_REMOTE_NODE)
 			app_instance.Window.Invalidate()
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node selected"))
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node connected."))
 			notification_modals.SuccessInstance.SetVisible(true, 0)
 		}
 	}()

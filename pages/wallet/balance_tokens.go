@@ -250,7 +250,12 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 			if nodeSynced {
 				isRegistered := wallet.Memory.IsRegistered()
-				if !isRegistered {
+				if !walletSynced {
+					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+						text := lang.Translate("The wallet is not synced. Please wait and let it sync. The network height is currently {}.")
+						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
+					})
+				} else if !isRegistered {
 					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 						return p.alertBox.Layout(gtx, th, lang.Translate("This wallet is not registered on the blockchain."))
 					})
@@ -263,11 +268,6 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 							p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
 							return p.buttonRegister.Layout(gtx, th)
 						})
-					})
-				} else if !walletSynced {
-					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-						text := lang.Translate("The wallet is out of synced. Please wait and let it sync. The network height is currently {}.")
-						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
 					})
 				}
 			} else {

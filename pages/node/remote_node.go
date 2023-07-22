@@ -7,22 +7,29 @@ import (
 	"image/color"
 	"time"
 
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
+	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageRemoteNode struct {
@@ -31,7 +38,9 @@ type PageRemoteNode struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	nodeInfo *RemoteNodeInfo
+	buttonReconnect *components.Button
+	nodeInfo        *RemoteNodeInfo
+	connecting      bool
 }
 
 var _ router.Page = &PageRemoteNode{}
@@ -45,10 +54,27 @@ func NewPageRemoteNode() *PageRemoteNode {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
+	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	buttonReconnect := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            refreshIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+	buttonReconnect.Label.Alignment = text.Middle
+	buttonReconnect.Style.Font.Weight = font.Bold
+
+	nodeInfo := NewRemoteNodeInfo(3 * time.Second)
+
 	return &PageRemoteNode{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		nodeInfo:       NewRemoteNodeInfo(3 * time.Second),
+		animationEnter:  animationEnter,
+		animationLeave:  animationLeave,
+		nodeInfo:        nodeInfo,
+		buttonReconnect: buttonReconnect,
 	}
 }
 
@@ -92,9 +118,13 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	currentNode := node_manager.CurrentNode
-	nodeInfo := node_manager.Nodes[currentNode]
+	conn := node_manager.Nodes[currentNode]
 
 	p.nodeInfo.Active()
+
+	if p.buttonReconnect.Clicked() {
+		p.reconnect()
+	}
 
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(30),
@@ -106,12 +136,12 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(22), nodeInfo.Name)
+							label := material.Label(th, unit.Sp(22), conn.Name)
 							label.Color = color.NRGBA{A: 255}
 							return label.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(16), nodeInfo.Endpoint)
+							label := material.Label(th, unit.Sp(16), conn.Endpoint)
 							label.Color = color.NRGBA{A: 150}
 							return label.Layout(gtx)
 						}),
@@ -130,64 +160,122 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), lang.Translate("Node Height"))
-				label.Color = color.NRGBA{A: 150}
-				return label.Layout(gtx)
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				status := fmt.Sprintf("%d", p.nodeInfo.Result.Height)
-				label := material.Label(th, unit.Sp(22), status)
-				label.Color = color.NRGBA{A: 255}
-				return label.Layout(gtx)
-			}),
+				if p.nodeInfo.Err != nil {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(18), lang.Translate("Error"))
+							lbl.Font.Weight = font.Bold
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(16), p.nodeInfo.Err.Error())
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							p.buttonReconnect.Text = lang.Translate("Reconnect")
+							return p.buttonReconnect.Layout(gtx, th)
+						}),
+					)
+				}
 
-			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
-				label.Color = color.NRGBA{A: 150}
-				return label.Layout(gtx)
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				inc := p.nodeInfo.Result.Incoming_connections_count
-				out := p.nodeInfo.Result.Outgoing_connections_count
-				status := fmt.Sprintf("%d / %d", inc, out)
-				label := material.Label(th, unit.Sp(22), status)
-				label.Color = color.NRGBA{A: 255}
-				return label.Layout(gtx)
-			}),
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						label := material.Label(th, unit.Sp(18), lang.Translate("Node Height"))
+						label.Color = color.NRGBA{A: 150}
+						return label.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						status := fmt.Sprintf("%d", p.nodeInfo.Result.Height)
+						label := material.Label(th, unit.Sp(22), status)
+						label.Color = color.NRGBA{A: 255}
+						return label.Layout(gtx)
+					}),
 
-			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
-				label.Color = color.NRGBA{A: 150}
-				return label.Layout(gtx)
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				diff := p.nodeInfo.Result.Difficulty
-				status := utils.FormatHashRate(diff)
-				label := material.Label(th, unit.Sp(22), status)
-				label.Color = color.NRGBA{A: 255}
-				return label.Layout(gtx)
-			}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
+						label.Color = color.NRGBA{A: 150}
+						return label.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						inc := p.nodeInfo.Result.Incoming_connections_count
+						out := p.nodeInfo.Result.Outgoing_connections_count
+						status := fmt.Sprintf("%d / %d", inc, out)
+						label := material.Label(th, unit.Sp(22), status)
+						label.Color = color.NRGBA{A: 255}
+						return label.Layout(gtx)
+					}),
 
-			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(18), lang.Translate("Version"))
-				label.Color = color.NRGBA{A: 150}
-				return label.Layout(gtx)
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				version := p.nodeInfo.Result.Version
-				label := material.Label(th, unit.Sp(16), version)
-				label.Color = color.NRGBA{A: 255}
-				return label.Layout(gtx)
+					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
+						label.Color = color.NRGBA{A: 150}
+						return label.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						diff := p.nodeInfo.Result.Difficulty
+						status := utils.FormatHashRate(diff)
+						label := material.Label(th, unit.Sp(22), status)
+						label.Color = color.NRGBA{A: 255}
+						return label.Layout(gtx)
+					}),
+
+					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						label := material.Label(th, unit.Sp(18), lang.Translate("Version"))
+						label.Color = color.NRGBA{A: 150}
+						return label.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						version := p.nodeInfo.Result.Version
+						label := material.Label(th, unit.Sp(16), version)
+						label.Color = color.NRGBA{A: 255}
+						return label.Layout(gtx)
+					}),
+				)
 			}),
 		)
 	})
 }
 
+func (p *PageRemoteNode) reconnect() {
+	if p.connecting {
+		return
+	}
+
+	p.connecting = true
+	go func() {
+		currentNode := node_manager.CurrentNode
+		conn := node_manager.Nodes[currentNode]
+
+		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), conn.Endpoint)
+		notification_modals.InfoInstance.SetVisible(true, 0)
+		err := node_manager.ConnectNode(conn.ID, true)
+		p.connecting = false
+		notification_modals.InfoInstance.SetVisible(false, 0)
+
+		if err != nil {
+			notification_modals.InfoInstance.SetVisible(false, 0)
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			wallet := wallet_manager.OpenedWallet
+			if wallet != nil {
+				wallet.Memory.Clean()
+			}
+
+			app_instance.Window.Invalidate()
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node reconnected."))
+			notification_modals.SuccessInstance.SetVisible(true, 0)
+		}
+	}()
+}
+
 type RemoteNodeInfo struct {
 	Result rpc.GetInfo_Result
+	Err    error
 
 	isActive bool
 }
@@ -220,5 +308,5 @@ func (n *RemoteNodeInfo) update() {
 		return
 	}
 
-	walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetInfo", nil, &n.Result)
+	n.Err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetInfo", nil, &n.Result)
 }
