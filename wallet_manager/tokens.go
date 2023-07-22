@@ -155,7 +155,7 @@ func (w *Wallet) GetTokenFolderFolders(id sql.NullInt64) ([]TokenFolder, error) 
 	return folders, nil
 }
 
-func (w *Wallet) UpdateFolderToken(folder *TokenFolder) error {
+func (w *Wallet) UpdateFolderToken(folder TokenFolder) error {
 	exists, err := w.FolderTokenExists(folder)
 	if err != nil {
 		return err
@@ -188,7 +188,7 @@ func (w *Wallet) UpdateFolderToken(folder *TokenFolder) error {
 	return nil
 }
 
-func (w *Wallet) FolderTokenExists(folder *TokenFolder) (bool, error) {
+func (w *Wallet) FolderTokenExists(folder TokenFolder) (bool, error) {
 	query := sq.Select("COUNT(*)").From("token_folders").Where(sq.Eq{"name": folder.Name})
 
 	if folder.ParentId.Valid {
@@ -208,7 +208,7 @@ func (w *Wallet) FolderTokenExists(folder *TokenFolder) (bool, error) {
 	return count >= 1, nil
 }
 
-func (w *Wallet) InsertFolderToken(folder *TokenFolder) error {
+func (w *Wallet) InsertFolderToken(folder TokenFolder) error {
 	// can't use UNIQUE() constraint because null does not count as towards uniqueness
 	// https://stackoverflow.com/questions/22699409/sqlite-null-and-unique
 	// we check manually instead
@@ -295,7 +295,7 @@ type GetTokensParams struct {
 	Descending bool
 	OrderBy    string
 	IsFavorite sql.NullBool
-	FolderId   sql.NullInt64
+	FolderId   *sql.NullInt64
 	IsNFT      sql.NullBool
 }
 
@@ -306,8 +306,12 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 		query = query.Where(sq.Eq{"is_favorite": params.IsFavorite.Bool})
 	}
 
-	if params.FolderId.Valid {
-		query = query.Where(sq.Eq{"folder_id": params.FolderId.Int64})
+	if params.FolderId != nil {
+		if params.FolderId.Valid {
+			query = query.Where(sq.Eq{"folder_id": params.FolderId})
+		} else {
+			query = query.Where(sq.Eq{"folder_id": nil})
+		}
 	}
 
 	if params.IsNFT.Valid {
@@ -360,7 +364,7 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 	return tokens, nil
 }
 
-func (w *Wallet) StoreToken(token Token) error {
+func (w *Wallet) InsertToken(token Token) error {
 	tx, err := w.DB.Begin()
 	if err != nil {
 		return err
@@ -368,23 +372,41 @@ func (w *Wallet) StoreToken(token Token) error {
 
 	_, err = tx.Exec(`
 		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-		ON CONFLICT(id) DO UPDATE SET
-		sc_id = excluded.sc_id,
-		name = excluded.name,
-		max_supply = excluded.max_supply,
-		total_supply = excluded.total_supply,
-		decimals = excluded.decimals,
-		standard_type = excluded.standard_type,
-		metadata = excluded.metadata,
-		is_favorite = excluded.is_favorite,
-		list_order_favorite = excluded.list_order_favorite,
-		image = excluded.image,
-		symbol = excluded.symbol,
-		folder_id = excluded.folder_id;
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?);
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite,
 		token.ListOrderFavorite, token.Image, token.Symbol, token.FolderId)
+	if err != nil {
+		return err
+	}
+
+	return handleDatabaseCommit(tx)
+}
+
+func (w *Wallet) UpdateToken(token Token) error {
+	tx, err := w.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`
+		UPDATE tokens
+		SET sc_id = ?,
+				name = ?,
+				max_supply = ?,
+				total_supply = ?,
+				decimals = ?,
+				standard_type = ?,
+				metadata = ?,
+				is_Favorite = ?,
+				list_order_favorite = ?,
+				image = ?,
+				symbol = ?,
+				folder_id = ?
+		WHERE id = ?;
+	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
+		token.StandardType, token.Metadata, token.IsFavorite, token.ListOrderFavorite,
+		token.Image, token.Symbol, token.FolderId, token.ID)
 	if err != nil {
 		return err
 	}

@@ -16,11 +16,11 @@ import (
 )
 
 type SelectModal struct {
-	SelectedKey string
-	Modal       *components.Modal
+	Modal *components.Modal
 
-	list     *widget.List
-	selected bool
+	list        *widget.List
+	selected    bool
+	selectedKey string
 }
 
 func NewSelectModal() *SelectModal {
@@ -44,8 +44,8 @@ func NewSelectModal() *SelectModal {
 	}
 }
 
-func (l *SelectModal) Selected() bool {
-	return l.selected
+func (l *SelectModal) Selected() (bool, string) {
+	return l.selected, l.selectedKey
 }
 
 func (l *SelectModal) Layout(gtx layout.Context, th *material.Theme, items []*SelectListItem) layout.Dimensions {
@@ -61,7 +61,7 @@ func (l *SelectModal) Layout(gtx layout.Context, th *material.Theme, items []*Se
 
 			return listStyle.Layout(gtx, len(items), func(gtx layout.Context, index int) layout.Dimensions {
 				if items[index].clickable.Clicked() {
-					l.SelectedKey = items[index].Key
+					l.selectedKey = items[index].Key
 					l.selected = true
 					op.InvalidateOp{}.Add(gtx.Ops)
 				}

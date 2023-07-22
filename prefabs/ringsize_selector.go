@@ -77,9 +77,9 @@ func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout
 		r.selectModal.Modal.SetVisible(true)
 	}
 
-	selected := r.selectModal.Selected()
+	selected, key := r.selectModal.Selected()
 	if selected {
-		r.Value = r.selectModal.SelectedKey
+		r.Value = key
 		r.changed = true
 		r.selectModal.Modal.SetVisible(false)
 	}

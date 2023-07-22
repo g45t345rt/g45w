@@ -365,7 +365,7 @@ func (sc *SCDetailsContainer) addToken() error {
 		token.FolderId = sql.NullInt64{Int64: currentFolder.ID, Valid: true}
 	}
 
-	return wallet.StoreToken(token)
+	return wallet.InsertToken(token)
 }
 
 func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

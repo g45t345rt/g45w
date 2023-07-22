@@ -42,7 +42,7 @@ type PageSCFolders struct {
 
 	list                *widget.List
 	buttonOpenMenu      *components.Button
-	tokenMenuSelect     *TokenMenuSelect
+	folderMenuSelect    *FolderMenuSelect
 	createFolderModal   *CreateFolderModal
 	deleteFolderConfirm *components.Confirm
 	buttonFolderGoBack  *components.Button
@@ -100,7 +100,7 @@ func NewPageSCFolders() *PageSCFolders {
 		animationLeave:      animationLeave,
 		list:                list,
 		buttonOpenMenu:      buttonOpenMenu,
-		tokenMenuSelect:     NewTokenMenuSelect(),
+		folderMenuSelect:    NewFolderMenuSelect(),
 		createFolderModal:   createFolderModal,
 		deleteFolderConfirm: deleteFolderConfirm,
 		buttonFolderGoBack:  buttonFolderGoBack,
@@ -172,7 +172,7 @@ func (p *PageSCFolders) Load() error {
 	p.folderCount = len(folders)
 
 	tokens, err := wallet.GetTokens(wallet_manager.GetTokensParams{
-		FolderId: folderId,
+		FolderId: &folderId,
 	})
 	if err != nil {
 		return err
@@ -209,13 +209,12 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if p.buttonOpenMenu.Clickable.Clicked() {
-		p.tokenMenuSelect.SelectModal.Modal.SetVisible(true)
+		p.folderMenuSelect.SelectModal.Modal.SetVisible(true)
 	}
 
-	selected := p.tokenMenuSelect.SelectModal.Selected()
+	selected, key := p.folderMenuSelect.SelectModal.Selected()
 	if selected {
-		selectedKey := p.tokenMenuSelect.SelectModal.SelectedKey
-		switch selectedKey {
+		switch key {
 		case "add_token":
 			page_instance.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
 			page_instance.header.AddHistory(PAGE_ADD_SC_FORM)
@@ -228,7 +227,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		case "delete_folder":
 			p.deleteFolderConfirm.SetVisible(true)
 		}
-		p.tokenMenuSelect.SelectModal.Modal.SetVisible(false)
+		p.folderMenuSelect.SelectModal.Modal.SetVisible(false)
 	}
 
 	if p.deleteFolderConfirm.ClickedYes() {
@@ -252,7 +251,8 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{
-						Left: unit.Dp(30), Right: unit.Dp(30),
+						Bottom: unit.Dp(10),
+						Left:   unit.Dp(30), Right: unit.Dp(30),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						r := op.Record(gtx.Ops)
 						dims := layout.Inset{
@@ -291,11 +291,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			widgets := []layout.ListElement{
-				func(gtx layout.Context, index int) layout.Dimensions {
-					return layout.Spacer{Height: unit.Dp(10)}.Layout(gtx)
-				},
-			}
+			widgets := []layout.ListElement{}
 
 			if len(p.items) == 0 {
 				widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
@@ -430,7 +426,7 @@ func (c *CreateFolderModal) addFolder(name string) error {
 		tokenFolder.ParentId = parentId
 	}
 
-	return wallet.InsertFolderToken(&tokenFolder)
+	return wallet.InsertFolderToken(tokenFolder)
 }
 
 func (c *CreateFolderModal) renameFolder(name string) error {
@@ -439,7 +435,7 @@ func (c *CreateFolderModal) renameFolder(name string) error {
 	}
 
 	wallet := wallet_manager.OpenedWallet
-	err := wallet.UpdateFolderToken(&wallet_manager.TokenFolder{
+	err := wallet.UpdateFolderToken(wallet_manager.TokenFolder{
 		ID:       c.folder.ID,
 		Name:     name,
 		ParentId: c.folder.ParentId,
@@ -567,8 +563,9 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 
 		if item.token != nil {
-			page_instance.header.AddHistory(PAGE_SC_TOKEN)
+			page_instance.pageSCToken.token = item.token
 			page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
+			page_instance.header.AddHistory(PAGE_SC_TOKEN)
 			app_instance.Window.Invalidate()
 		}
 	}
@@ -613,13 +610,13 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 	)
 }
 
-type TokenMenuItem struct {
+type FolderMenuItem struct {
 	Key   string
 	Icon  *widget.Icon
 	Title string
 }
 
-func (t TokenMenuItem) Layout(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
+func (t FolderMenuItem) Layout(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.X = gtx.Dp(45)
@@ -634,44 +631,44 @@ func (t TokenMenuItem) Layout(gtx layout.Context, index int, th *material.Theme)
 	)
 }
 
-type TokenMenuSelect struct {
+type FolderMenuSelect struct {
 	SelectModal *prefabs.SelectModal
 }
 
-func NewTokenMenuSelect() *TokenMenuSelect {
+func NewFolderMenuSelect() *FolderMenuSelect {
 	var items []*prefabs.SelectListItem
 	addIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
-	items = append(items, prefabs.NewSelectListItem("add_token", TokenMenuItem{
+	items = append(items, prefabs.NewSelectListItem("add_token", FolderMenuItem{
 		Icon:  addIcon,
 		Title: "Add token", //@lang.Translate("Add token")
 	}.Layout))
 
 	folderIcon, _ := widget.NewIcon(icons.FileCreateNewFolder)
-	items = append(items, prefabs.NewSelectListItem("new_folder", TokenMenuItem{
+	items = append(items, prefabs.NewSelectListItem("new_folder", FolderMenuItem{
 		Icon:  folderIcon,
 		Title: "New folder", //@lang.Translate("New folder")
 	}.Layout))
 
 	editIcon, _ := widget.NewIcon(icons.EditorBorderColor)
-	items = append(items, prefabs.NewSelectListItem("rename_folder", TokenMenuItem{
+	items = append(items, prefabs.NewSelectListItem("rename_folder", FolderMenuItem{
 		Icon:  editIcon,
 		Title: "Rename folder", //@lang.Translate("Rename folder")
 	}.Layout))
 
 	listIcon, _ := widget.NewIcon(icons.ActionList)
-	items = append(items, prefabs.NewSelectListItem("view_list", TokenMenuItem{
+	items = append(items, prefabs.NewSelectListItem("view_list", FolderMenuItem{
 		Icon:  listIcon,
 		Title: "View list", //@lang.Translate("View list")
 	}.Layout))
 
 	viewFolderIcon, _ := widget.NewIcon(icons.FileFolder)
-	items = append(items, prefabs.NewSelectListItem("view_folder", TokenMenuItem{
+	items = append(items, prefabs.NewSelectListItem("view_folder", FolderMenuItem{
 		Icon:  viewFolderIcon,
 		Title: "View folder", //@lang.Translate("View folder")
 	}.Layout))
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
-	items = append(items, prefabs.NewSelectListItem("delete_folder", TokenMenuItem{
+	items = append(items, prefabs.NewSelectListItem("delete_folder", FolderMenuItem{
 		Icon:  deleteIcon,
 		Title: "Delete this folder", //@lang.Translate("Delete this folder")
 	}.Layout))
@@ -699,7 +696,7 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 		},
 	})
 
-	return &TokenMenuSelect{
+	return &FolderMenuSelect{
 		SelectModal: selectModal,
 	}
 }

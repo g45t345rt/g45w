@@ -661,7 +661,7 @@ func (item *TokenImageItem) Layout(gtx layout.Context) layout.Dimensions {
 }
 
 type TokenListItem struct {
-	token     wallet_manager.Token
+	token     *wallet_manager.Token
 	clickable *widget.Clickable
 	image     *TokenImageItem
 }
@@ -670,7 +670,7 @@ func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
 	img, _ := assets.GetImage("token.png")
 
 	return &TokenListItem{
-		token:     token,
+		token:     &token,
 		image:     NewTokenImageItem(img),
 		clickable: new(widget.Clickable),
 	}
@@ -682,9 +682,9 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 	}
 
 	if item.clickable.Clicked() {
-		//page_instance.pageSCToken.Token = item.token
-		page_instance.header.AddHistory(PAGE_SC_TOKEN)
+		page_instance.pageSCToken.token = item.token
 		page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
+		page_instance.header.AddHistory(PAGE_SC_TOKEN)
 	}
 
 	return layout.Inset{

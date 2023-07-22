@@ -105,9 +105,9 @@ func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		r.SelectModal.Modal.SetVisible(true)
 	}
 
-	selected := r.SelectModal.Selected()
+	selected, key := r.SelectModal.Selected()
 	if selected {
-		r.Value = r.SelectModal.SelectedKey
+		r.Value = key
 		r.changed = true
 		r.SelectModal.Modal.SetVisible(false)
 	}
