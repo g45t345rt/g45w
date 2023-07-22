@@ -61,7 +61,7 @@ func (l *SelectModal) Layout(gtx layout.Context, th *material.Theme, items []*Se
 
 			return listStyle.Layout(gtx, len(items), func(gtx layout.Context, index int) layout.Dimensions {
 				if items[index].clickable.Clicked() {
-					l.SelectedKey = items[index].key
+					l.SelectedKey = items[index].Key
 					l.selected = true
 					op.InvalidateOp{}.Add(gtx.Ops)
 				}
@@ -73,7 +73,7 @@ func (l *SelectModal) Layout(gtx layout.Context, th *material.Theme, items []*Se
 }
 
 type SelectListItem struct {
-	key       string
+	Key       string
 	element   SelectListItemElement
 	clickable *widget.Clickable
 }
@@ -82,7 +82,7 @@ type SelectListItemElement = func(gtx layout.Context, index int, th *material.Th
 
 func NewSelectListItem(key string, element SelectListItemElement) *SelectListItem {
 	return &SelectListItem{
-		key:       key,
+		Key:       key,
 		element:   element,
 		clickable: new(widget.Clickable),
 	}

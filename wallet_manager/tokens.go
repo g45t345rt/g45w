@@ -15,6 +15,7 @@ type TokenFolder struct {
 }
 
 type Token struct {
+	ID                int64
 	SCID              string
 	Name              string
 	MaxSupply         sql.NullInt64 // 1 is an NFT
@@ -50,7 +51,8 @@ func initDatabaseTokens(db *sql.DB) error {
 			END;
 
 			CREATE TABLE IF NOT EXISTS tokens (
-				sc_id VARCHAR,
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				sc_id VARCHAR NOT NULL,
 				name VARCHAR NOT NULL,
 				max_supply BIGINT,
 				total_supply BIGINT,
@@ -61,8 +63,7 @@ func initDatabaseTokens(db *sql.DB) error {
 				list_order_favorite INTEGER,
 				image VARCHAR,
 				symbol VARCHAR,
-				folder_id INTEGER,
-				PRIMARY KEY(sc_id,folder_id)
+				folder_id INTEGER
 			);
 		`)
 	if err != nil {
@@ -154,11 +155,40 @@ func (w *Wallet) GetTokenFolderFolders(id sql.NullInt64) ([]TokenFolder, error) 
 	return folders, nil
 }
 
-func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
-	// can't use UNIQUE() constraint because null does not count as towards uniqueness
-	// https://stackoverflow.com/questions/22699409/sqlite-null-and-unique
-	// we check manually instead
+func (w *Wallet) UpdateFolderToken(folder *TokenFolder) error {
+	exists, err := w.FolderTokenExists(folder)
+	if err != nil {
+		return err
+	}
 
+	if exists {
+		return fmt.Errorf("folder already exists")
+	}
+
+	tx, err := w.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`
+		UPDATE token_folders
+		SET name = ?,
+				parent_id = ?
+		WHERE id = ?;
+	`, folder.Name, folder.ParentId, folder.ID)
+	if err != nil {
+		return err
+	}
+
+	err = handleDatabaseCommit(tx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *Wallet) FolderTokenExists(folder *TokenFolder) (bool, error) {
 	query := sq.Select("COUNT(*)").From("token_folders").Where(sq.Eq{"name": folder.Name})
 
 	if folder.ParentId.Valid {
@@ -172,10 +202,22 @@ func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
 	var count int
 	err := row.Scan(&count)
 	if err != nil {
+		return false, err
+	}
+
+	return count >= 1, nil
+}
+
+func (w *Wallet) InsertFolderToken(folder *TokenFolder) error {
+	// can't use UNIQUE() constraint because null does not count as towards uniqueness
+	// https://stackoverflow.com/questions/22699409/sqlite-null-and-unique
+	// we check manually instead
+	exists, err := w.FolderTokenExists(folder)
+	if err != nil {
 		return err
 	}
 
-	if count >= 1 {
+	if exists {
 		return fmt.Errorf("folder already exists")
 	}
 
@@ -206,19 +248,13 @@ func (w *Wallet) StoreFolderToken(folder *TokenFolder) error {
 	return nil
 }
 
-func (w *Wallet) GetToken(scId string, folderId sql.NullInt64) (*Token, error) {
-	query := sq.Select("*").From("tokens").Where(sq.Eq{"sc_id": scId})
-
-	if folderId.Valid {
-		query = query.Where(sq.Eq{"folder_id": folderId.Int64})
-	} else {
-		query = query.Where(sq.Eq{"folder_id": nil})
-	}
-
+func (w *Wallet) GetToken(id int64) (*Token, error) {
+	query := sq.Select("*").From("tokens").Where(sq.Eq{"id": id})
 	row := query.RunWith(w.DB).QueryRow()
 
 	var token Token
 	err := row.Scan(
+		&token.ID,
 		&token.SCID,
 		&token.Name,
 		&token.MaxSupply,
@@ -284,6 +320,7 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 	for rows.Next() {
 		var token Token
 		err := rows.Scan(
+			&token.ID,
 			&token.SCID,
 			&token.Name,
 			&token.MaxSupply,
@@ -316,7 +353,8 @@ func (w *Wallet) StoreToken(token Token) error {
 	_, err = tx.Exec(`
 		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-		ON CONFLICT(sc_id,folder_id) DO UPDATE SET
+		ON CONFLICT(id) DO UPDATE SET
+		sc_id = excluded.sc_id,
 		name = excluded.name,
 		max_supply = excluded.max_supply,
 		total_supply = excluded.total_supply,
@@ -357,7 +395,7 @@ func (w *Wallet) DelTokenFolder(id int64) error {
 	return handleDatabaseCommit(tx)
 }
 
-func (w *Wallet) DelToken(scId string) error {
+func (w *Wallet) DelToken(id int64) error {
 	tx, err := w.DB.Begin()
 	if err != nil {
 		return err
@@ -365,8 +403,8 @@ func (w *Wallet) DelToken(scId string) error {
 
 	_, err = tx.Exec(`
 		DELETE FROM tokens
-		WHERE sc_id = ?;
-	`, scId)
+		WHERE id = ?;
+	`, id)
 	if err != nil {
 		return err
 	}

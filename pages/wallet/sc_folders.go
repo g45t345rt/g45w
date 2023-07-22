@@ -203,11 +203,16 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	selected := p.tokenMenuSelect.SelectModal.Selected()
 	if selected {
-		switch p.tokenMenuSelect.SelectModal.SelectedKey {
+		selectedKey := p.tokenMenuSelect.SelectModal.SelectedKey
+		switch selectedKey {
 		case "add_token":
 			page_instance.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
 			page_instance.header.AddHistory(PAGE_ADD_SC_FORM)
 		case "new_folder":
+			p.createFolderModal.setFolder(nil)
+			p.createFolderModal.modal.SetVisible(true)
+		case "rename_folder":
+			p.createFolderModal.setFolder(p.currentFolder)
 			p.createFolderModal.modal.SetVisible(true)
 		case "delete_folder":
 			p.deleteFolderConfirm.SetVisible(true)
@@ -301,9 +306,10 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					)
 				})
 
+				start := len(widgets)
 				for i := 0; i < len(p.tokenItems); i += 3 {
 					widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
-						itemIndex := (index - 2) * 3
+						itemIndex := (index - start) * 3
 
 						dims := layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -369,6 +375,7 @@ func (p *PageSCFolders) changeFolder(id sql.NullInt64) error {
 }
 
 type CreateFolderModal struct {
+	folder        *wallet_manager.TokenFolder
 	modal         *components.Modal
 	txtFolderName *components.Input
 }
@@ -398,20 +405,67 @@ func NewCreateFolderModal() *CreateFolderModal {
 	}
 }
 
+func (c *CreateFolderModal) addFolder(name string) error {
+	if name == "" {
+		return fmt.Errorf("name is empty")
+	}
+
+	wallet := wallet_manager.OpenedWallet
+
+	tokenFolder := wallet_manager.TokenFolder{Name: name}
+	currentFolder := page_instance.pageSCFolders.currentFolder
+	if currentFolder != nil {
+		parentId := sql.NullInt64{Int64: currentFolder.ID, Valid: true}
+		tokenFolder.ParentId = parentId
+	}
+
+	return wallet.InsertFolderToken(&tokenFolder)
+}
+
+func (c *CreateFolderModal) renameFolder(name string) error {
+	if name == "" {
+		return fmt.Errorf("name is empty")
+	}
+
+	wallet := wallet_manager.OpenedWallet
+	err := wallet.UpdateFolderToken(&wallet_manager.TokenFolder{
+		ID:       c.folder.ID,
+		Name:     name,
+		ParentId: c.folder.ParentId,
+	})
+	if err != nil {
+		return err
+	}
+
+	c.folder.Name = name
+	return nil
+}
+
+func (c *CreateFolderModal) setFolder(folder *wallet_manager.TokenFolder) {
+	c.folder = folder
+
+	if c.folder != nil {
+		c.txtFolderName.SetValue(c.folder.Name)
+	} else {
+		c.txtFolderName.SetValue("")
+	}
+}
+
 func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	for _, e := range c.txtFolderName.Editor.Events() {
 		e, ok := e.(widget.SubmitEvent)
 		if ok {
-			wallet := wallet_manager.OpenedWallet
+			successMsg := ""
+			var err error
 
-			tokenFolder := wallet_manager.TokenFolder{Name: e.Text}
-			currentFolder := page_instance.pageSCFolders.currentFolder
-			if currentFolder != nil {
-				parentId := sql.NullInt64{Int64: currentFolder.ID, Valid: true}
-				tokenFolder.ParentId = parentId
+			if c.folder == nil {
+				err = c.addFolder(e.Text)
+				successMsg = lang.Translate("New folder created.")
+			} else {
+				err = c.renameFolder(e.Text)
+				successMsg = lang.Translate("Folder renamed.")
 			}
 
-			err := wallet.StoreFolderToken(&tokenFolder)
 			if err != nil {
 				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -419,7 +473,7 @@ func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layou
 				c.txtFolderName.SetValue("")
 				c.modal.SetVisible(false)
 				page_instance.pageSCFolders.Load()
-				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New folder created."))
+				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
 				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			}
 		}
@@ -499,6 +553,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 }
 
 type TokenMenuItem struct {
+	Key   string
 	Icon  *widget.Icon
 	Title string
 }
@@ -523,11 +578,10 @@ type TokenMenuSelect struct {
 }
 
 func NewTokenMenuSelect() *TokenMenuSelect {
-	items := []*prefabs.SelectListItem{}
-
-	contractIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
+	var items []*prefabs.SelectListItem
+	addIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
 	items = append(items, prefabs.NewSelectListItem("add_token", TokenMenuItem{
-		Icon:  contractIcon,
+		Icon:  addIcon,
 		Title: "Add token", //@lang.Translate("Add token")
 	}.Layout))
 
@@ -535,6 +589,12 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 	items = append(items, prefabs.NewSelectListItem("new_folder", TokenMenuItem{
 		Icon:  folderIcon,
 		Title: "New folder", //@lang.Translate("New folder")
+	}.Layout))
+
+	editIcon, _ := widget.NewIcon(icons.EditorBorderColor)
+	items = append(items, prefabs.NewSelectListItem("rename_folder", TokenMenuItem{
+		Icon:  editIcon,
+		Title: "Rename folder", //@lang.Translate("Rename folder")
 	}.Layout))
 
 	listIcon, _ := widget.NewIcon(icons.ActionList)
@@ -559,7 +619,22 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			selectModal.Layout(gtx, th, items)
+			var filteredItems []*prefabs.SelectListItem
+			for _, item := range items {
+				add := true
+				switch item.Key {
+				case "rename_folder":
+					add = page_instance.pageSCFolders.currentFolder != nil
+				case "delete_folder":
+					add = page_instance.pageSCFolders.currentFolder != nil
+				}
+
+				if add {
+					filteredItems = append(filteredItems, item)
+				}
+			}
+
+			selectModal.Layout(gtx, th, filteredItems)
 		},
 	})
 
