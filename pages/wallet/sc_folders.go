@@ -19,11 +19,13 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -36,7 +38,7 @@ type PageSCFolders struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	tokenItems []*TokenFolderItem
+	items []*TokenFolderItem
 
 	list                *widget.List
 	buttonOpenMenu      *components.Button
@@ -156,7 +158,7 @@ func (p *PageSCFolders) Load() error {
 		return err
 	}
 
-	p.tokenItems = make([]*TokenFolderItem, 0)
+	p.items = make([]*TokenFolderItem, 0)
 
 	for _, folder := range folders {
 		count, err := wallet.GetTokenCount(sql.NullInt64{Int64: folder.ID, Valid: true})
@@ -164,7 +166,7 @@ func (p *PageSCFolders) Load() error {
 			return err
 		}
 
-		p.tokenItems = append(p.tokenItems, NewTokenFolderItem(folder, count))
+		p.items = append(p.items, NewTokenFolderItemFolder(folder, count))
 	}
 
 	p.folderCount = len(folders)
@@ -174,6 +176,10 @@ func (p *PageSCFolders) Load() error {
 	})
 	if err != nil {
 		return err
+	}
+
+	for _, token := range tokens {
+		p.items = append(p.items, NewTokenFolderItemToken(token))
 	}
 
 	p.tokenCount = len(tokens)
@@ -291,7 +297,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				},
 			}
 
-			if len(p.tokenItems) == 0 {
+			if len(p.items) == 0 {
 				widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), lang.Translate("This folder is empty. Click the menu button to add folders or more tokens."))
 					return lbl.Layout(gtx)
@@ -312,28 +318,28 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				})
 
 				start := len(widgets)
-				for i := 0; i < len(p.tokenItems); i += 3 {
+				for i := 0; i < len(p.items); i += 3 {
 					widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
 						itemIndex := (index - start) * 3
 
 						dims := layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								if itemIndex < len(p.tokenItems) {
-									return p.tokenItems[itemIndex].Layout(gtx, th)
+								if itemIndex < len(p.items) {
+									return p.items[itemIndex].Layout(gtx, th)
 								}
 								return layout.Dimensions{}
 							}),
 							layout.Rigid(layout.Spacer{Width: unit.Dp(20)}.Layout),
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								if itemIndex+1 < len(p.tokenItems) {
-									return p.tokenItems[itemIndex+1].Layout(gtx, th)
+								if itemIndex+1 < len(p.items) {
+									return p.items[itemIndex+1].Layout(gtx, th)
 								}
 								return layout.Dimensions{}
 							}),
 							layout.Rigid(layout.Spacer{Width: unit.Dp(20)}.Layout),
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								if itemIndex+2 < len(p.tokenItems) {
-									return p.tokenItems[itemIndex+2].Layout(gtx, th)
+								if itemIndex+2 < len(p.items) {
+									return p.items[itemIndex+2].Layout(gtx, th)
 								}
 								return layout.Dimensions{}
 							}),
@@ -503,19 +509,49 @@ func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layou
 }
 
 type TokenFolderItem struct {
+	clickable *widget.Clickable
+
+	token      *wallet_manager.Token
+	tokenImage *components.Image
+
+	folder     *wallet_manager.TokenFolder
 	folderIcon *widget.Icon
-	clickable  *widget.Clickable
-	folder     wallet_manager.TokenFolder
-	tokenCount int
+
+	name   string
+	status string
 }
 
-func NewTokenFolderItem(folder wallet_manager.TokenFolder, count int) *TokenFolderItem {
-	folderIcon, _ := widget.NewIcon(icons.FileFolder)
+func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
+	img, _ := assets.GetImage("token.png")
+	status := utils.ReduceTxId(token.SCID)
+
+	tokenImage := &components.Image{
+		Src:     paint.NewImageOp(img),
+		Fit:     components.Cover,
+		Rounded: components.UniformRounded(unit.Dp(10)),
+	}
+
 	return &TokenFolderItem{
-		folder:     folder,
+		token:      &token,
+		clickable:  new(widget.Clickable),
+		tokenImage: tokenImage,
+		name:       token.Name,
+		status:     status,
+	}
+}
+
+func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int) *TokenFolderItem {
+	folderIcon, _ := widget.NewIcon(icons.FileFolder)
+
+	status := lang.Translate("{} tokens")
+	status = strings.Replace(status, "{}", fmt.Sprint(tokenCount), -1)
+
+	return &TokenFolderItem{
+		folder:     &folder,
 		folderIcon: folderIcon,
 		clickable:  new(widget.Clickable),
-		tokenCount: count,
+		name:       folder.Name,
+		status:     status,
 	}
 }
 
@@ -525,8 +561,16 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 	}
 
 	if item.clickable.Clicked() {
-		id := sql.NullInt64{Int64: item.folder.ID, Valid: true}
-		page_instance.pageSCFolders.changeFolder(id)
+		if item.folder != nil {
+			id := sql.NullInt64{Int64: item.folder.ID, Valid: true}
+			page_instance.pageSCFolders.changeFolder(id)
+		}
+
+		if item.token != nil {
+			page_instance.header.AddHistory(PAGE_SC_TOKEN)
+			page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
+			app_instance.Window.Invalidate()
+		}
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -537,23 +581,31 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 					Max: gtx.Constraints.Max,
 				}, gtx.Dp(10)).Op(gtx.Ops))
 
-				return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return item.folderIcon.Layout(gtx, color.NRGBA{A: 255})
-				})
+				if item.folderIcon != nil {
+					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return item.folderIcon.Layout(gtx, color.NRGBA{A: 255})
+					})
+				}
+
+				if item.tokenImage != nil {
+					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return item.tokenImage.Layout(gtx)
+					})
+				}
+
+				return layout.Dimensions{}
 			})
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), item.folder.Name)
+			lbl := material.Label(th, unit.Sp(16), item.name)
 			lbl.Alignment = text.Middle
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			value := lang.Translate("{} tokens")
-			value = strings.Replace(value, "{}", fmt.Sprint(item.tokenCount), -1)
-			lbl := material.Label(th, unit.Sp(12), value)
+			lbl := material.Label(th, unit.Sp(12), item.status)
 			lbl.Alignment = text.Middle
 			return lbl.Layout(gtx)
 		}),

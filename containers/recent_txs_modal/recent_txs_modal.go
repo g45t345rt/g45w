@@ -82,7 +82,7 @@ func (r *RecentTxsModal) startCheckingPendingTxs() {
 	}()
 }
 
-func (r *RecentTxsModal) LoadOutgoingTxs() {
+func (r *RecentTxsModal) LoadOutgoingTxs() error {
 	r.txItems = make([]TxItem, 0)
 
 	wallet := wallet_manager.OpenedWallet
@@ -94,14 +94,15 @@ func (r *RecentTxsModal) LoadOutgoingTxs() {
 			Limit:      &limit,
 		})
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 
 		for _, tx := range outgoingTxs {
 			r.txItems = append(r.txItems, *NewTxItem(tx))
 		}
 	}
+
+	return nil
 }
 
 func (r *RecentTxsModal) SetVisible(visible bool) {

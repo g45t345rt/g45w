@@ -56,6 +56,7 @@ func (p *PageSCToken) Enter() {
 		lbl := material.Label(th, unit.Sp(16), "00000...00000")
 		return lbl.Layout(gtx)
 	}
+	page_instance.header.ButtonRight = nil
 
 	if !page_instance.header.IsHistory(PAGE_SC_TOKEN) {
 		p.animationEnter.Start()
