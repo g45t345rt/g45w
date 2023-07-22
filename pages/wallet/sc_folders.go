@@ -159,7 +159,12 @@ func (p *PageSCFolders) Load() error {
 	p.tokenItems = make([]*TokenFolderItem, 0)
 
 	for _, folder := range folders {
-		p.tokenItems = append(p.tokenItems, NewTokenFolderItem(folder))
+		count, err := wallet.GetTokenCount(sql.NullInt64{Int64: folder.ID, Valid: true})
+		if err != nil {
+			return err
+		}
+
+		p.tokenItems = append(p.tokenItems, NewTokenFolderItem(folder, count))
 	}
 
 	p.folderCount = len(folders)
@@ -501,14 +506,16 @@ type TokenFolderItem struct {
 	folderIcon *widget.Icon
 	clickable  *widget.Clickable
 	folder     wallet_manager.TokenFolder
+	tokenCount int
 }
 
-func NewTokenFolderItem(folder wallet_manager.TokenFolder) *TokenFolderItem {
+func NewTokenFolderItem(folder wallet_manager.TokenFolder, count int) *TokenFolderItem {
 	folderIcon, _ := widget.NewIcon(icons.FileFolder)
 	return &TokenFolderItem{
 		folder:     folder,
 		folderIcon: folderIcon,
 		clickable:  new(widget.Clickable),
+		tokenCount: count,
 	}
 }
 
@@ -544,7 +551,9 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(12), "? tokens")
+			value := lang.Translate("{} tokens")
+			value = strings.Replace(value, "{}", fmt.Sprint(item.tokenCount), -1)
+			lbl := material.Label(th, unit.Sp(12), value)
 			lbl.Alignment = text.Middle
 			return lbl.Layout(gtx)
 		}),

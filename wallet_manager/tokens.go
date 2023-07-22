@@ -275,6 +275,22 @@ func (w *Wallet) GetToken(id int64) (*Token, error) {
 	return &token, nil
 }
 
+func (w *Wallet) GetTokenCount(folderId sql.NullInt64) (int, error) {
+	query := sq.Select("COUNT(*)").From("tokens")
+
+	if folderId.Valid {
+		query = query.Where(sq.Eq{"folder_id": folderId.Int64})
+	} else {
+		query = query.Where(sq.Eq{"folder_id": nil})
+	}
+
+	row := query.RunWith(w.DB).QueryRow()
+
+	var count int
+	err := row.Scan(&count)
+	return count, err
+}
+
 type GetTokensParams struct {
 	Descending bool
 	OrderBy    string
