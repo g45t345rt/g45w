@@ -250,12 +250,8 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 			if nodeSynced {
 				isRegistered := wallet.Memory.IsRegistered()
-				if !walletSynced {
-					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-						text := lang.Translate("The wallet is not synced. Please wait and let it sync. The network height is currently {}.")
-						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
-					})
-				} else if !isRegistered {
+				// check registration first because the wallet will never be synced if not registered
+				if !isRegistered {
 					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 						return p.alertBox.Layout(gtx, th, lang.Translate("This wallet is not registered on the blockchain."))
 					})
@@ -268,6 +264,11 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 							p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
 							return p.buttonRegister.Layout(gtx, th)
 						})
+					})
+				} else if !walletSynced {
+					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+						text := lang.Translate("The wallet is not synced. Please wait and let it sync. The network height is currently {}.")
+						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
 					})
 				}
 			} else {
@@ -724,12 +725,6 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 									}),
 								)
 							}),
-							layout.Flexed(1, layout.Spacer{}.Layout),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								label := material.Label(th, unit.Sp(18), "0")
-								label.Font.Weight = font.Bold
-								return label.Layout(gtx)
-							}),
 						)
 					}),
 				)
@@ -746,22 +741,36 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 
 		c.Add(gtx.Ops)
 
+		if !settings.App.HideBalance {
+			layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				r := op.Record(gtx.Ops)
+				labelDims := layout.Inset{
+					Left: unit.Dp(8), Right: unit.Dp(8),
+					Bottom: unit.Dp(5), Top: unit.Dp(5),
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					label := material.Label(th, unit.Sp(18), "2345.35499")
+					label.Font.Weight = font.Bold
+					return label.Layout(gtx)
+				})
+				c := r.Stop()
+
+				x := float32(gtx.Dp(5))
+				y := float32(dims.Size.Y/2 - labelDims.Size.Y/2)
+				offset := f32.Affine2D{}.Offset(f32.Pt(x, y))
+				defer op.Affine(offset).Push(gtx.Ops).Pop()
+
+				paint.FillShape(gtx.Ops, color.NRGBA{R: 225, G: 225, B: 225, A: 255},
+					clip.RRect{
+						Rect: image.Rectangle{Max: labelDims.Size},
+						NW:   gtx.Dp(5), NE: gtx.Dp(5),
+						SE: gtx.Dp(5), SW: gtx.Dp(5),
+					}.Op(gtx.Ops))
+
+				c.Add(gtx.Ops)
+				return labelDims
+			})
+		}
+
 		return dims
 	})
-	/*
-		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return dims
-			}),
-			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-		)
-
-
-			if item.Clickable.Hovered() {
-				pointer.CursorPointer.Add(gtx.Ops)
-				bounds := image.Rect(0, 0, dims.Size.X, dims.Size.Y)
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
-					clip.UniformRRect(bounds, 10).Op(gtx.Ops),
-				)
-			}*/
 }
