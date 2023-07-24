@@ -2,23 +2,29 @@ package page_wallet
 
 import (
 	"database/sql"
+	"fmt"
 	"image"
 	"image/color"
 
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -32,10 +38,17 @@ type PageSCToken struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonOpenMenu  *components.Button
-	tokenMenuSelect *TokenMenuSelect
+	buttonOpenMenu     *components.Button
+	tokenMenuSelect    *TokenMenuSelect
+	sendReceiveButtons *SendReceiveButtons
+	confirmRemoveToken *components.Confirm
+	buttonHideBalance  *ButtonHideBalance
 
-	token *wallet_manager.Token
+	token      *wallet_manager.Token
+	tokenImage *prefabs.ImageHoverClick
+	scIdEditor *widget.Editor
+
+	balance uint64
 
 	list *widget.List
 }
@@ -61,12 +74,38 @@ func NewPageSCToken() *PageSCToken {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	src, _ := assets.GetImage("token.png")
+	image := prefabs.NewImageHoverClick(src)
+
+	scIdEditor := new(widget.Editor)
+	scIdEditor.WrapPolicy = text.WrapGraphemes
+	scIdEditor.ReadOnly = true
+
+	sendReceiveButtons := NewSendReceiveButtons()
+	buttonHideBalance := NewButtonHideBalance()
+
+	confirmRemoveToken := components.NewConfirm(layout.Center)
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			confirmRemoveToken.Prompt = lang.Translate("Are you sure?")
+			confirmRemoveToken.NoText = lang.Translate("NO")
+			confirmRemoveToken.YesText = lang.Translate("YES")
+			confirmRemoveToken.Layout(gtx, th)
+		},
+	})
+
 	return &PageSCToken{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonOpenMenu:  buttonOpenMenu,
-		tokenMenuSelect: NewTokenMenuSelect(),
+		buttonOpenMenu:     buttonOpenMenu,
+		tokenMenuSelect:    NewTokenMenuSelect(),
+		tokenImage:         image,
+		scIdEditor:         scIdEditor,
+		sendReceiveButtons: sendReceiveButtons,
+		confirmRemoveToken: confirmRemoveToken,
+		buttonHideBalance:  buttonHideBalance,
 
 		list: list,
 	}
@@ -79,13 +118,18 @@ func (p *PageSCToken) IsActive() bool {
 func (p *PageSCToken) Enter() {
 	p.isActive = true
 
-	page_instance.header.SetTitle(lang.Translate("Token"))
+	page_instance.header.SetTitle(p.token.Name)
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		scId := utils.ReduceTxId(p.token.SCID)
+		if p.token.Symbol.Valid {
+			scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
+		}
+
 		lbl := material.Label(th, unit.Sp(16), scId)
 		return lbl.Layout(gtx)
 	}
 	page_instance.header.ButtonRight = p.buttonOpenMenu
+	p.scIdEditor.SetText(p.token.SCID)
 
 	if !page_instance.header.IsHistory(PAGE_SC_TOKEN) {
 		p.animationEnter.Start()
@@ -96,6 +140,12 @@ func (p *PageSCToken) Enter() {
 func (p *PageSCToken) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
+}
+
+func (p *PageSCToken) RefreshBalance() {
+	wallet := wallet_manager.OpenedWallet
+	scId := crypto.HashHexToHash(p.token.SCID)
+	p.balance, _ = wallet.Memory.Get_Balance_scid(scId)
 }
 
 func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -122,6 +172,21 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		p.tokenMenuSelect.SelectModal.Modal.SetVisible(true)
 	}
 
+	if p.confirmRemoveToken.ClickedYes() {
+		wallet := wallet_manager.OpenedWallet
+		err := wallet.DelToken(p.token.ID)
+
+		if err != nil {
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			page_instance.header.GoBack()
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			p.tokenMenuSelect.SelectModal.Modal.SetVisible(false)
+		}
+	}
+
 	selected, key := p.tokenMenuSelect.SelectModal.Selected()
 	if selected {
 		wallet := wallet_manager.OpenedWallet
@@ -138,15 +203,13 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			err = wallet.UpdateToken(*p.token)
 			successMsg = lang.Translate("Token removed from favorites.")
 		case "remove_token":
-			err = wallet.DelToken(p.token.ID)
-			successMsg = lang.Translate("Token removed.")
-			page_instance.header.GoBack()
+			p.confirmRemoveToken.SetVisible(true)
 		}
 
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
+		} else if successMsg != "" {
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			p.tokenMenuSelect.SelectModal.Modal.SetVisible(false)
@@ -163,16 +226,19 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				r := op.Record(gtx.Ops)
 				dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					return layout.Flex{
+						Axis:      layout.Horizontal,
+						Alignment: layout.Middle,
+					}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(22), p.token.Name)
-							label.Color = color.NRGBA{A: 255}
-							return label.Layout(gtx)
+							gtx.Constraints.Max.X = gtx.Dp(50)
+							gtx.Constraints.Max.Y = gtx.Dp(50)
+							return p.tokenImage.Layout(gtx)
 						}),
+						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(16), p.token.SCID)
-							label.Color = color.NRGBA{A: 150}
-							return label.Layout(gtx)
+							editor := material.Editor(th, p.scIdEditor, "")
+							return editor.Layout(gtx)
 						}),
 					)
 				})
@@ -188,6 +254,68 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 				return dims
 			}),
 		)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				r := op.Record(gtx.Ops)
+				dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{
+						Axis:      layout.Horizontal,
+						Alignment: layout.Middle,
+					}.Layout(gtx,
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{
+								Axis: layout.Vertical,
+							}.Layout(gtx,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
+									lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									balance := utils.ShiftNumber{Number: p.balance, Decimals: int(p.token.Decimals)}
+									lbl := material.Label(th, unit.Sp(34), balance.Format())
+									lbl.Font.Weight = font.Bold
+
+									dims := lbl.Layout(gtx)
+
+									if settings.App.HideBalance {
+										paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{
+											Max: dims.Size,
+										}.Op())
+									}
+
+									return dims
+								}),
+							)
+						}),
+						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							gtx.Constraints.Min.Y = gtx.Dp(30)
+							gtx.Constraints.Min.X = gtx.Dp(30)
+							return p.buttonHideBalance.Layout(gtx, th)
+						}),
+					)
+				})
+				c := r.Stop()
+
+				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+					clip.UniformRRect(
+						image.Rectangle{Max: dims.Size},
+						gtx.Dp(15),
+					).Op(gtx.Ops))
+
+				c.Add(gtx.Ops)
+				return dims
+			}),
+		)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return p.sendReceiveButtons.Layout(gtx, th)
 	})
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {

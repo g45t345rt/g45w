@@ -28,6 +28,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -37,13 +38,14 @@ import (
 type PageSendForm struct {
 	isActive bool
 
-	SCID                string
 	txtAmount           *components.TextField
 	txtWalletAddr       *components.Input
 	buttonSendTx        *components.Button
 	buttonContacts      *components.Button
 	buttonOptions       *components.Button
 	modalWalletPassword *prefabs.PasswordModal
+
+	token wallet_manager.Token
 
 	ringSizeSelector *prefabs.RingSizeSelector
 
@@ -75,6 +77,8 @@ func NewPageSendForm() *PageSendForm {
 	buttonSendTx.Style.Font.Weight = font.Bold
 
 	txtAmount := components.NewTextField()
+	txtAmount.Input.TextSize = unit.Sp(26)
+	txtAmount.Input.FontWeight = font.Bold
 	txtAmount.Editor().InputHint = key.HintNumeric
 
 	txtWalletAddr := components.NewInput()
@@ -213,7 +217,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		p.buttonSendTx.SetLoading(false)
 	}
 
-	submitted, password := p.modalWalletPassword.Submit()
+	submitted, password := p.modalWalletPassword.Input.Submitted()
 	if submitted {
 		wallet := wallet_manager.OpenedWallet
 		validPassword := wallet.Memory.Check_Password(password)
@@ -235,34 +239,51 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(20), "Selected Token")
+					lbl.Font.Weight = font.Bold
+					lbl.Color = color.NRGBA{A: 150}
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					r := op.Record(gtx.Ops)
+					dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(22), p.token.Name)
+								lbl.Font.Weight = font.Bold
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								scId := utils.ReduceTxId(p.token.SCID)
 
-			r := op.Record(gtx.Ops)
-			dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(18), "Selected Asset [DERO]")
-						lbl.Font.Weight = font.Bold
-						return lbl.Layout(gtx)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), "00000...00000")
-						lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
-						return lbl.Layout(gtx)
-					}),
-				)
-			})
-			c := r.Stop()
+								if p.token.Symbol.Valid {
+									scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
+								}
 
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
-				image.Rectangle{Max: dims.Size},
-				gtx.Dp(10),
-			).Op(gtx.Ops))
+								lbl := material.Label(th, unit.Sp(16), scId)
+								lbl.Color = color.NRGBA{A: 150}
+								return lbl.Layout(gtx)
+							}),
+						)
+					})
+					c := r.Stop()
 
-			c.Add(gtx.Ops)
-			return dims
+					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+						image.Rectangle{Max: dims.Size},
+						gtx.Dp(10),
+					).Op(gtx.Ops))
+
+					c.Add(gtx.Ops)
+					return dims
+				}),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtAmount.Layout(gtx, th, lang.Translate("Amount"), "")
+			v := utils.ShiftNumber{Number: 0, Decimals: int(p.token.Decimals)}
+			return p.txtAmount.Layout(gtx, th, lang.Translate("Amount"), v.Format())
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -434,7 +455,7 @@ func (p *PageSendForm) buildTransaction() error {
 		arguments = append(arguments, rpc.Argument{Name: rpc.RPC_DESTINATION_PORT, DataType: rpc.DataUint64, Value: destPort})
 	}
 
-	scId := crypto.HashHexToHash(p.SCID)
+	scId := crypto.HashHexToHash(p.token.SCID)
 	transfers := []rpc.Transfer{
 		{SCID: scId, Destination: txtWalletAddr.Value(), Amount: amount, Payload_RPC: arguments},
 	}

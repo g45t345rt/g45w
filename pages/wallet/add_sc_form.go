@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"strings"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -176,7 +177,7 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 }
 
 func (p *PageAddSCForm) submitForm() (scType sc.SCType, result *rpc.GetSC_Result, err error) {
-	scId := p.txtSCID.Value()
+	scId := strings.TrimSpace(p.txtSCID.Value())
 	if scId == "" {
 		return sc.UNKNOWN_TYPE, nil, fmt.Errorf("scid is empty")
 	}

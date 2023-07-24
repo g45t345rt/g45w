@@ -168,7 +168,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		p.modalWalletPassword.Modal.SetVisible(true)
 	}
 
-	submitted, password := p.modalWalletPassword.Submit()
+	submitted, password := p.modalWalletPassword.Input.Submitted()
 	if submitted {
 		wallet := wallet_manager.OpenedWallet
 		validPassword := wallet.Memory.Check_Password(password)

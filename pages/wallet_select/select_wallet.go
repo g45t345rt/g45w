@@ -196,7 +196,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	)
 
 	{
-		submitted, text := p.modalWalletPassword.Submit()
+		submitted, text := p.modalWalletPassword.Input.Submitted()
 		if submitted {
 			err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
 			if err == nil {

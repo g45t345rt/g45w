@@ -117,14 +117,14 @@ func NewNodeStatus(d time.Duration) *NodeStatus {
 	go func() {
 		for range ticker.C {
 			if nodeStatus.isActive {
-				nodeStatus.update()
+				nodeStatus.Update()
 				window.Invalidate()
 				nodeStatus.isActive = false
 			}
 		}
 	}()
 
-	nodeStatus.update()
+	nodeStatus.Update()
 	return nodeStatus
 }
 
@@ -132,7 +132,7 @@ func (n *NodeStatus) Active() {
 	n.isActive = true
 }
 
-func (n *NodeStatus) update() {
+func (n *NodeStatus) Update() {
 	if Chain == nil {
 		return
 	}

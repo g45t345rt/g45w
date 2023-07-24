@@ -18,13 +18,11 @@ import (
 )
 
 type PasswordModal struct {
-	input              *components.Input
+	Input              *components.Input
 	animationWrongPass *animation.Animation
 	iconLock           *widget.Icon
 
-	Modal      *components.Modal
-	submitted  bool
-	submitText string
+	Modal *components.Modal
 }
 
 func NewPasswordModal() *PasswordModal {
@@ -52,20 +50,11 @@ func NewPasswordModal() *PasswordModal {
 	})
 
 	return &PasswordModal{
-		input:              input,
+		Input:              input,
 		Modal:              modal,
 		animationWrongPass: animationWrongPass,
 		iconLock:           iconLock,
 	}
-}
-
-func (w *PasswordModal) Submit() (bool, string) {
-	if w.submitted {
-		w.submitted = false
-		return true, w.submitText
-	}
-
-	return false, w.submitText
 }
 
 func (w *PasswordModal) StartWrongPassAnimation() {
@@ -74,22 +63,12 @@ func (w *PasswordModal) StartWrongPassAnimation() {
 }
 
 func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	for _, e := range w.input.Editor.Events() {
-		e, ok := e.(widget.SubmitEvent)
-		if ok {
-			//w.animationWrongPass.Start()
-			w.input.SetValue("")
-			w.submitText = e.Text
-			w.submitted = true
-		}
-	}
-
 	if w.Modal.Visible {
-		if !w.input.Editor.Focused() {
-			w.input.Editor.Focus()
+		if !w.Input.Editor.Focused() {
+			w.Input.Editor.Focus()
 		}
 	} else {
-		w.input.SetValue("")
+		w.Input.SetValue("")
 	}
 
 	return w.Modal.Layout(gtx,
@@ -123,8 +102,8 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(3, func(gtx layout.Context) layout.Dimensions {
-						w.input.TextSize = unit.Sp(20)
-						return w.input.Layout(gtx, th, lang.Translate("Enter password"))
+						w.Input.TextSize = unit.Sp(20)
+						return w.Input.Layout(gtx, th, lang.Translate("Enter password"))
 					}),
 				)
 			})

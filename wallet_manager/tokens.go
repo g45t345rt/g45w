@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/g45t345rt/g45w/sc"
 )
 
@@ -28,6 +29,18 @@ type Token struct {
 	Image             sql.NullString
 	Symbol            sql.NullString
 	FolderId          sql.NullInt64
+}
+
+func DeroToken() Token {
+	scId := crypto.ZEROHASH.String()
+	return Token{
+		ID:        -1,
+		SCID:      scId,
+		Decimals:  5,
+		Name:      "Dero",
+		Symbol:    sql.NullString{String: "DERO", Valid: true},
+		MaxSupply: sql.NullInt64{Int64: 2100000000000, Valid: true}, // max supply is 21,000,000 but don't forget 5 decimals
+	}
 }
 
 func initDatabaseTokens(db *sql.DB) error {

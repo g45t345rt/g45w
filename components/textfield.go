@@ -43,9 +43,9 @@ func (t *TextField) Editor() *widget.Editor {
 func (t *TextField) Layout(gtx layout.Context, th *material.Theme, title string, hint string) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			titleStyle := material.Label(th, unit.Sp(20), title)
-			titleStyle.Font.Weight = font.Bold
-			return titleStyle.Layout(gtx)
+			lbl := material.Label(th, unit.Sp(20), title)
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

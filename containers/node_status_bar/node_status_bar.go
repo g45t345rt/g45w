@@ -39,6 +39,17 @@ func LoadInstance() *NodeStatusBar {
 	return nodeStatusBar
 }
 
+func (n *NodeStatusBar) Update() {
+	currentNode := node_manager.CurrentNode
+	if currentNode != "" {
+		if currentNode == node_manager.INTEGRATED_NODE_ID {
+			n.IntegratedNodeStatus.Update()
+		} else {
+			n.RemoteNodeInfo.Update()
+		}
+	}
+}
+
 func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	paint.FillShape(gtx.Ops, color.NRGBA{A: 255}, clip.Rect{
 		Max: gtx.Constraints.Max,

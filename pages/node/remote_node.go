@@ -266,6 +266,7 @@ func (p *PageRemoteNode) reconnect() {
 				wallet.Memory.Clean()
 			}
 
+			p.nodeInfo.Update()
 			app_instance.Window.Invalidate()
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node reconnected."))
 			notification_modals.SuccessInstance.SetVisible(true, 0)
@@ -288,14 +289,14 @@ func NewRemoteNodeInfo(d time.Duration) *RemoteNodeInfo {
 	go func() {
 		for range ticker.C {
 			if nodeInfo.isActive {
-				nodeInfo.update()
+				nodeInfo.Update()
 				window.Invalidate()
 				nodeInfo.isActive = false
 			}
 		}
 	}()
 
-	nodeInfo.update()
+	nodeInfo.Update()
 	return nodeInfo
 }
 
@@ -303,7 +304,7 @@ func (n *RemoteNodeInfo) Active() {
 	n.isActive = true
 }
 
-func (n *RemoteNodeInfo) update() {
+func (n *RemoteNodeInfo) Update() {
 	if walletapi.RPC_Client.RPC == nil {
 		return
 	}

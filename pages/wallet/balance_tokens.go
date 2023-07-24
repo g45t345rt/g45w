@@ -19,6 +19,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	crypto "github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
@@ -28,6 +29,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
@@ -146,7 +148,17 @@ func (p *PageBalanceTokens) Load() error {
 
 	p.tokenItems = tokenItems
 	p.tokenBar.tokenCount = len(tokenItems)
+	p.RefreshTokensBalance()
 	return nil
+}
+
+func (p *PageBalanceTokens) RefreshTokensBalance() {
+	wallet := wallet_manager.OpenedWallet
+	for _, tokenItem := range p.tokenItems {
+		scId := crypto.HashHexToHash(tokenItem.token.SCID)
+		b, _ := wallet.Memory.Get_Balance_scid(scId)
+		tokenItem.balance = b
+	}
 }
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
@@ -360,16 +372,12 @@ func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme, text string) l
 	})
 }
 
-type DisplayBalance struct {
-	buttonSend        *components.Button
-	buttonReceive     *components.Button
-	buttonHideBalance *components.Button
-
-	hideBalanceIcon *widget.Icon
-	showBalanceIcon *widget.Icon
+type SendReceiveButtons struct {
+	ButtonSend    *components.Button
+	ButtonReceive *components.Button
 }
 
-func NewDisplayBalance() *DisplayBalance {
+func NewSendReceiveButtons() *SendReceiveButtons {
 	sendIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
 	buttonSend := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
@@ -398,6 +406,36 @@ func NewDisplayBalance() *DisplayBalance {
 	buttonReceive.Label.Alignment = text.Middle
 	buttonReceive.Style.Font.Weight = font.Bold
 
+	return &SendReceiveButtons{
+		ButtonSend:    buttonSend,
+		ButtonReceive: buttonReceive,
+	}
+}
+
+func (s *SendReceiveButtons) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Max.Y = gtx.Dp(40)
+			s.ButtonSend.Text = lang.Translate("SEND")
+			return s.ButtonSend.Layout(gtx, th)
+		}),
+		layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
+		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Max.Y = gtx.Dp(40)
+			s.ButtonReceive.Text = lang.Translate("RECEIVE")
+			return s.ButtonReceive.Layout(gtx, th)
+		}),
+	)
+}
+
+type ButtonHideBalance struct {
+	Button *components.Button
+
+	hideBalanceIcon *widget.Icon
+	showBalanceIcon *widget.Icon
+}
+
+func NewButtonHideBalance() *ButtonHideBalance {
 	hideBalanceIcon, _ := widget.NewIcon(icons.ActionVisibility)
 	showBalanceIcon, _ := widget.NewIcon(icons.ActionVisibilityOff)
 	buttonHideBalance := components.NewButton(components.ButtonStyle{
@@ -405,24 +443,54 @@ func NewDisplayBalance() *DisplayBalance {
 		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 	})
 
+	return &ButtonHideBalance{
+		Button:          buttonHideBalance,
+		hideBalanceIcon: hideBalanceIcon,
+		showBalanceIcon: showBalanceIcon,
+	}
+}
+
+func (b *ButtonHideBalance) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if settings.App.HideBalance {
+		b.Button.Style.Icon = b.showBalanceIcon
+	} else {
+		b.Button.Style.Icon = b.hideBalanceIcon
+	}
+
+	if b.Button.Clickable.Clicked() {
+		settings.App.HideBalance = !settings.App.HideBalance
+		settings.Save()
+		op.InvalidateOp{}.Add(gtx.Ops)
+	}
+
+	return b.Button.Layout(gtx, th)
+}
+
+type DisplayBalance struct {
+	sendReceiveButtons *SendReceiveButtons
+	buttonHideBalance  *ButtonHideBalance
+}
+
+func NewDisplayBalance() *DisplayBalance {
+	sendReceiveButtons := NewSendReceiveButtons()
+	buttonHideBalance := NewButtonHideBalance()
+
 	return &DisplayBalance{
-		buttonSend:        buttonSend,
-		buttonReceive:     buttonReceive,
-		buttonHideBalance: buttonHideBalance,
-		hideBalanceIcon:   hideBalanceIcon,
-		showBalanceIcon:   showBalanceIcon,
+		buttonHideBalance:  buttonHideBalance,
+		sendReceiveButtons: sendReceiveButtons,
 	}
 }
 
 func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	wallet := wallet_manager.OpenedWallet
 
-	if d.buttonSend.Clickable.Clicked() {
+	if d.sendReceiveButtons.ButtonSend.Clickable.Clicked() {
+		page_instance.pageSendForm.token = wallet_manager.DeroToken()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
 
-	if d.buttonReceive.Clickable.Clicked() {
+	if d.sendReceiveButtons.ButtonReceive.Clickable.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
 		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
 	}
@@ -433,10 +501,10 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				lblTitle := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
-				lblTitle.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+				lbl := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
+				lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
 
-				return lblTitle.Layout(gtx)
+				return lbl.Layout(gtx)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -464,38 +532,13 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Min.Y = gtx.Dp(30)
 						gtx.Constraints.Min.X = gtx.Dp(30)
-
-						if settings.App.HideBalance {
-							d.buttonHideBalance.Style.Icon = d.showBalanceIcon
-						} else {
-							d.buttonHideBalance.Style.Icon = d.hideBalanceIcon
-						}
-
-						if d.buttonHideBalance.Clickable.Clicked() {
-							settings.App.HideBalance = !settings.App.HideBalance
-							settings.Save()
-							op.InvalidateOp{}.Add(gtx.Ops)
-						}
-
 						return d.buttonHideBalance.Layout(gtx, th)
 					}),
 				)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Max.Y = gtx.Dp(40)
-						d.buttonSend.Text = lang.Translate("SEND")
-						return d.buttonSend.Layout(gtx, th)
-					}),
-					layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Max.Y = gtx.Dp(40)
-						d.buttonReceive.Text = lang.Translate("RECEIVE")
-						return d.buttonReceive.Layout(gtx, th)
-					}),
-				)
+				return d.sendReceiveButtons.Layout(gtx, th)
 			}),
 		)
 	})
@@ -566,105 +609,12 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	})
 }
 
-type TokenImageItem struct {
-	Image     *components.Image
-	Clickable *widget.Clickable
-
-	AnimationEnter   *animation.Animation
-	AnimationLeave   *animation.Animation
-	hoverSwitchState bool
-}
-
-func NewTokenImageItem(src image.Image) *TokenImageItem {
-	image := &components.Image{
-		Src:     paint.NewImageOp(src),
-		Fit:     components.Cover,
-		Rounded: components.UniformRounded(unit.Dp(10)),
-	}
-
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 1.1, .1, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1.1, 1, .1, ease.Linear),
-	))
-
-	return &TokenImageItem{
-		Image:          image,
-		Clickable:      new(widget.Clickable),
-		AnimationEnter: animationEnter,
-		AnimationLeave: animationLeave,
-	}
-}
-
-func (item *TokenImageItem) Layout(gtx layout.Context) layout.Dimensions {
-	return item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		{
-			state := item.AnimationEnter.Update(gtx)
-			if state.Active {
-				item.Image.Transform = func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
-					pt := dims.Size.Div(2)
-					origin := f32.Pt(float32(pt.X), float32(pt.Y))
-					return trans.Scale(origin, f32.Pt(state.Value, state.Value))
-				}
-			}
-		}
-
-		{
-			state := item.AnimationLeave.Update(gtx)
-			if state.Active {
-				item.Image.Transform = func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
-					pt := dims.Size.Div(2)
-					origin := f32.Pt(float32(pt.X), float32(pt.Y))
-					return trans.Scale(origin, f32.Pt(state.Value, state.Value))
-				}
-			}
-		}
-
-		/*
-			v1, a1, _ := item.AnimationEnter.Update(gtx)
-			v2, a2, _ := item.AnimationLeave.Update(gtx)
-
-			item.Image.Transform = func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
-				pt := dims.Size.Div(2)
-				origin := f32.Pt(float32(pt.X), float32(pt.Y))
-
-				if a1 {
-					trans = trans.Scale(origin, f32.Pt(v1, v1))
-				}
-
-				if a2 {
-					trans = trans.Scale(origin, f32.Pt(v2, v2))
-				}
-
-				return trans
-			}*/
-
-		if item.Clickable.Hovered() {
-			pointer.CursorPointer.Add(gtx.Ops)
-		}
-
-		if item.Clickable.Hovered() && !item.hoverSwitchState {
-			item.hoverSwitchState = true
-			item.AnimationEnter.Start()
-			item.AnimationLeave.Reset()
-		}
-
-		if !item.Clickable.Hovered() && item.hoverSwitchState {
-			item.hoverSwitchState = false
-			item.AnimationLeave.Start()
-			item.AnimationEnter.Reset()
-		}
-
-		return item.Image.Layout(gtx)
-	})
-}
-
 type TokenListItem struct {
 	token     *wallet_manager.Token
 	clickable *widget.Clickable
-	image     *TokenImageItem
+	image     *prefabs.ImageHoverClick
+
+	balance uint64
 }
 
 func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
@@ -672,7 +622,7 @@ func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
 
 	return &TokenListItem{
 		token:     &token,
-		image:     NewTokenImageItem(img),
+		image:     prefabs.NewImageHoverClick(img),
 		clickable: new(widget.Clickable),
 	}
 }
@@ -714,14 +664,19 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										label := material.Label(th, unit.Sp(18), item.token.Name)
-										label.Font.Weight = font.Bold
-										return label.Layout(gtx)
+										lbl := material.Label(th, unit.Sp(18), item.token.Name)
+										lbl.Font.Weight = font.Bold
+										return lbl.Layout(gtx)
 									}),
 									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										label := material.Label(th, unit.Sp(14), utils.ReduceTxId(item.token.SCID))
-										label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
-										return label.Layout(gtx)
+										scId := utils.ReduceTxId(item.token.SCID)
+										if item.token.Symbol.Valid {
+											scId = fmt.Sprintf("%s (%s)", scId, item.token.Symbol.String)
+										}
+
+										lbl := material.Label(th, unit.Sp(14), scId)
+										lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+										return lbl.Layout(gtx)
 									}),
 								)
 							}),
@@ -748,7 +703,8 @@ func (item *TokenListItem) Layout(gtx layout.Context) layout.Dimensions {
 					Left: unit.Dp(8), Right: unit.Dp(8),
 					Bottom: unit.Dp(5), Top: unit.Dp(5),
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(18), "2345.35499")
+					balance := utils.ShiftNumber{Number: uint64(item.balance), Decimals: int(item.token.Decimals)}
+					label := material.Label(th, unit.Sp(18), balance.Format())
 					label.Font.Weight = font.Bold
 					return label.Layout(gtx)
 				})
