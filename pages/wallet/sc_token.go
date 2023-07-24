@@ -216,6 +216,17 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
+	if p.sendReceiveButtons.ButtonSend.Clickable.Clicked() {
+		page_instance.pageSendForm.token = *p.token
+		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
+		page_instance.header.AddHistory(PAGE_SEND_FORM)
+	}
+
+	if p.sendReceiveButtons.ButtonReceive.Clickable.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
+		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
+	}
+
 	widgets := []layout.Widget{}
 
 	listStyle := material.List(th, p.list)
@@ -342,6 +353,12 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 	items = append(items, prefabs.NewSelectListItem("remove_favorite", FolderMenuItem{
 		Icon:  delFavIcon,
 		Title: "Remove from favorites", //@lang.Translate("Remove from favorites")
+	}.Layout))
+
+	editIcon, _ := widget.NewIcon(icons.ActionInput)
+	items = append(items, prefabs.NewSelectListItem("edit_token", FolderMenuItem{
+		Icon:  editIcon,
+		Title: "Edit token", //@lang.Translate("Edit token")
 	}.Layout))
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
