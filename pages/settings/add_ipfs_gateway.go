@@ -1,4 +1,4 @@
-package page_node
+package page_settings
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type PageAddNodeForm struct {
+type PageAddIPFSGateway struct {
 	isActive bool
 
 	animationEnter *animation.Animation
@@ -36,15 +36,15 @@ type PageAddNodeForm struct {
 	list *widget.List
 }
 
-var _ router.Page = &PageAddNodeForm{}
+var _ router.Page = &PageAddIPFSGateway{}
 
-func NewPageAddNodeForm() *PageAddNodeForm {
+func NewPageAddIPFSGateway() *PageAddIPFSGateway {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
+		gween.New(-1, 0, .25, ease.OutCubic),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
+		gween.New(0, -1, .25, ease.OutCubic),
 	))
 
 	list := new(widget.List)
@@ -69,7 +69,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	txtName := components.NewTextField()
 	txtEndpoint := components.NewTextField()
 
-	return &PageAddNodeForm{
+	return &PageAddIPFSGateway{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
@@ -81,19 +81,21 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	}
 }
 
-func (p *PageAddNodeForm) IsActive() bool {
+func (p *PageAddIPFSGateway) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageAddNodeForm) Enter() {
+func (p *PageAddIPFSGateway) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Add Node"))
+	page_instance.header.SetTitle(lang.Translate("Add IPFS Gateway"))
+	page_instance.header.Subtitle = nil
+	page_instance.header.ButtonRight = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 }
 
-func (p *PageAddNodeForm) Leave() {
-	if page_instance.header.IsHistory(PAGE_ADD_NODE_FORM) {
+func (p *PageAddIPFSGateway) Leave() {
+	if page_instance.header.IsHistory(PAGE_ADD_IPFS_GATEWAY) {
 		p.animationEnter.Reset()
 		p.animationLeave.Start()
 	} else {
@@ -101,7 +103,7 @@ func (p *PageAddNodeForm) Leave() {
 	}
 }
 
-func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *PageAddIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -127,17 +129,17 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), lang.Translate("Here, you can add your own remote node. The endpoint connection must be a WebSocket connection, starting with ws:// or wss:// for TLS connection."))
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("Here, you can add your own IPFS Gateway. The endpoint connection must be a HTTP connection, starting with http:// or https:// for TLS connection."))
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "Dero NFTs")
+			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "deronfts.com")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "wss://node.deronfts.com/ws")
+			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "https://ipfs.deronfts.com/ipfs/")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonAdd.Text = lang.Translate("ADD NODE")
+			p.buttonAdd.Text = lang.Translate("ADD GATEWAY")
 			return p.buttonAdd.Layout(gtx, th)
 		},
 	}
@@ -161,7 +163,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	})
 }
 
-func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
+func (p *PageAddIPFSGateway) submitForm(gtx layout.Context) {
 	p.buttonAdd.SetLoading(true)
 	go func() {
 		setError := func(err error) {
@@ -189,7 +191,7 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = app_data.InsertNodeConnection(app_data.NodeConnection{
+		err = app_data.InsertIPFSGateway(app_data.IPFSGateway{
 			Name:     txtName.Text(),
 			Endpoint: txtEndpoint.Text(),
 		})

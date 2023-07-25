@@ -1,4 +1,4 @@
-package page_node
+package page_settings
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type PageEditNodeForm struct {
+type PageEditIPFSGateway struct {
 	isActive bool
 
 	animationEnter *animation.Animation
@@ -39,22 +39,22 @@ type PageEditNodeForm struct {
 	buttonDelete *components.Button
 	txtEndpoint  *components.TextField
 	txtName      *components.TextField
-	nodeConn     app_data.NodeConnection
+	gateway      app_data.IPFSGateway
 
 	confirmDelete *components.Confirm
 
 	list *widget.List
 }
 
-var _ router.Page = &PageEditNodeForm{}
+var _ router.Page = &PageEditIPFSGateway{}
 
-func NewPageEditNodeForm() *PageEditNodeForm {
+func NewPageEditIPFSGateway() *PageEditIPFSGateway {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
+		gween.New(-1, 0, .25, ease.OutCubic),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
+		gween.New(0, -1, .25, ease.OutCubic),
 	))
 
 	list := new(widget.List)
@@ -104,7 +104,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 		},
 	})
 
-	return &PageEditNodeForm{
+	return &PageEditIPFSGateway{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
@@ -119,22 +119,22 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	}
 }
 
-func (p *PageEditNodeForm) IsActive() bool {
+func (p *PageEditIPFSGateway) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageEditNodeForm) Enter() {
+func (p *PageEditIPFSGateway) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Edit Node"))
+	page_instance.header.SetTitle(lang.Translate("Edit IPFS Gateway"))
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
-	p.txtEndpoint.SetValue(p.nodeConn.Endpoint)
-	p.txtName.SetValue(p.nodeConn.Name)
+	p.txtEndpoint.SetValue(p.gateway.Endpoint)
+	p.txtName.SetValue(p.gateway.Name)
 }
 
-func (p *PageEditNodeForm) Leave() {
-	if page_instance.header.IsHistory(PAGE_EDIT_NODE_FORM) {
+func (p *PageEditIPFSGateway) Leave() {
+	if page_instance.header.IsHistory(PAGE_EDIT_IPFS_GATEWAY) {
 		p.animationEnter.Reset()
 		p.animationLeave.Start()
 	} else {
@@ -142,7 +142,7 @@ func (p *PageEditNodeForm) Leave() {
 	}
 }
 
-func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
@@ -171,13 +171,13 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.confirmDelete.ClickedYes() {
-		err := p.removeNode()
+		err := p.removeGateway()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
 
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Gateway deleted"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.header.GoBack()
 		}
@@ -227,9 +227,9 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	})
 }
 
-func (p *PageEditNodeForm) removeNode() error {
-	endpoint := p.nodeConn.Endpoint
-	err := app_data.DelNodeConnection(endpoint)
+func (p *PageEditIPFSGateway) removeGateway() error {
+	endpoint := p.gateway.Endpoint
+	err := app_data.DelIPFSGateway(0)
 	if err != nil {
 		return err
 	}
@@ -250,7 +250,7 @@ func (p *PageEditNodeForm) removeNode() error {
 	return nil
 }
 
-func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
+func (p *PageEditIPFSGateway) submitForm(gtx layout.Context) {
 	p.buttonEdit.SetLoading(true)
 	go func() {
 		setError := func(err error) {
@@ -278,7 +278,7 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = app_data.UpdateNodeConnection(app_data.NodeConnection{
+		err = app_data.UpdateIPFSGatway(app_data.IPFSGateway{
 			Name:     txtName.Text(),
 			Endpoint: txtEnpoint.Text(),
 		})

@@ -53,11 +53,10 @@ func NewPageSelectNode() *PageSelectNode {
 		gween.New(0, -1, .5, ease.OutCubic),
 	))
 
-	th := app_instance.Theme
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	nodeList := NewNodeList(th, lang.Translate("You didn't add any remote nodes yet."))
+	nodeList := NewNodeList()
 
 	nodeIcon, _ := widget.NewIcon(icons.ActionDNS)
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
@@ -208,7 +207,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.nodeList.Layout(gtx, th)
+					return p.nodeList.Layout(gtx, th, lang.Translate("You don't have any remote nodes available."))
 				}),
 			)
 		},
@@ -225,7 +224,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonResetNodeList.Clicked() {
-		/*err := node_manager.ReloadTrustedNodes()
+		err := app_data.StoreTrustedNodeConnections()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -234,11 +233,11 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			node_manager.CurrentNode = nil // deselect node
 			notification_modals.SuccessInstance.SetText("Success", lang.Translate("List reset to default."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		}*/
+		}
 	}
 
 	if p.buttonSetIntegratedNode.Clicked() {
-		err := node_manager.Connect(app_data.INTEGRATED_NODE_CONN, true)
+		err := node_manager.Connect(app_data.INTEGRATED_NODE_CONNECTION, true)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -311,38 +310,35 @@ func (p *PageSelectNode) connect(nodeConn app_data.NodeConnection) {
 }
 
 type NodeList struct {
-	emptyText string
-	items     []NodeListItem
-	listStyle material.ListStyle
+	items []NodeListItem
+	list  *widget.List
 }
 
-func NewNodeList(th *material.Theme, emptyText string) *NodeList {
+func NewNodeList() *NodeList {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
-	listStyle.Indicator.MinorWidth = unit.Dp(10)
-	listStyle.Indicator.CornerRadius = unit.Dp(5)
-	black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-	listStyle.Indicator.Color = black
-	//listStyle.Indicator.HoverColor = f32color.Hovered(black)
-
 	return &NodeList{
-		listStyle: listStyle,
-		emptyText: emptyText,
-		items:     make([]NodeListItem, 0),
+		list:  list,
+		items: make([]NodeListItem, 0),
 	}
 }
 
-func (l *NodeList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText string) layout.Dimensions {
 	r := op.Record(gtx.Ops)
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		if len(l.items) == 0 {
-			lbl := material.Label(th, unit.Sp(14), l.emptyText)
+			lbl := material.Label(th, unit.Sp(16), emptyText)
 			return lbl.Layout(gtx)
 		} else {
-			return l.listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
+			listStyle := material.List(th, l.list)
+			listStyle.AnchorStrategy = material.Overlay
+			listStyle.Indicator.MinorWidth = unit.Dp(10)
+			listStyle.Indicator.CornerRadius = unit.Dp(5)
+			black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+			listStyle.Indicator.Color = black
+
+			return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
 				return l.items[i].Layout(gtx, th)
 			})
 		}

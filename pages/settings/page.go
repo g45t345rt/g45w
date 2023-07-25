@@ -28,9 +28,11 @@ type Page struct {
 }
 
 var (
-	PAGE_MAIN          = "page_main"
-	PAGE_INFO          = "page_info"
-	PAGE_IPFS_GATEWAYS = "page_ipfs_gateways"
+	PAGE_MAIN              = "page_main"
+	PAGE_INFO              = "page_info"
+	PAGE_IPFS_GATEWAYS     = "page_ipfs_gateways"
+	PAGE_ADD_IPFS_GATEWAY  = "page_add_ipfs_gateway"
+	PAGE_EDIT_IPFS_GATEWAY = "page_edit_ipfs_gateway"
 )
 
 var page_instance *Page
@@ -56,6 +58,12 @@ func New() *Page {
 
 	pageIPFSGateways := NewPageIPFSGateways()
 	pageRouter.Add(PAGE_IPFS_GATEWAYS, pageIPFSGateways)
+
+	pageAddIPFSGateway := NewPageAddIPFSGateway()
+	pageRouter.Add(PAGE_ADD_IPFS_GATEWAY, pageAddIPFSGateway)
+
+	pageEditIPFSGateway := NewPageEditIPFSGateway()
+	pageRouter.Add(PAGE_EDIT_IPFS_GATEWAY, pageEditIPFSGateway)
 
 	th := app_instance.Theme
 	labelHeaderStyle := material.Label(th, unit.Sp(22), "")

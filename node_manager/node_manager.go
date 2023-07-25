@@ -10,25 +10,14 @@ import (
 var CurrentNode *app_data.NodeConnection
 
 func Load() error {
-	count, err := app_data.GetNodeCount()
-	if err != nil {
-		return err
-	}
-
-	if count == 0 {
-		err = app_data.StoreTrustedNodeConnections()
-		if err != nil {
-			return err
-		}
-	}
-
 	endpoint := settings.App.NodeEndpoint
 	if endpoint != "" {
 		var nodeConn *app_data.NodeConnection
-		if endpoint == app_data.INTEGRATED_NODE_CONN.Endpoint {
-			nodeConn = &app_data.INTEGRATED_NODE_CONN
+		integratedNodeConn := app_data.INTEGRATED_NODE_CONNECTION
+		if endpoint == integratedNodeConn.Endpoint {
+			nodeConn = &integratedNodeConn
 		} else {
-			nodeConn, err = app_data.GetNodeConnection(endpoint)
+			nodeConn, err := app_data.GetNodeConnection(endpoint)
 			if err != nil {
 				return err
 			}
@@ -41,7 +30,7 @@ func Load() error {
 			}
 		}
 
-		err = Connect(*nodeConn, false)
+		err := Connect(*nodeConn, false)
 		if err != nil {
 			return err
 		}
@@ -66,7 +55,7 @@ func Connect(nodeConn app_data.NodeConnection, save bool) error {
 	}
 
 	if integrated_node.Running &&
-		settings.App.NodeEndpoint == app_data.INTEGRATED_NODE_CONN.Endpoint {
+		settings.App.NodeEndpoint == app_data.INTEGRATED_NODE_CONNECTION.Endpoint {
 		integrated_node.Stop()
 	}
 

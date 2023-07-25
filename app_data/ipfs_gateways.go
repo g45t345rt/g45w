@@ -1,6 +1,7 @@
 package app_data
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
@@ -11,18 +12,49 @@ type IPFSGateway struct {
 	Name         string
 	Endpoint     string
 	FetchHeaders map[string]string
+	Use          bool
+}
+
+var TRUSTED_IPFS_GATEWAYS = []IPFSGateway{
+	{Name: "deronfts.com", Endpoint: "https://ipfs.deronfts.com/ipfs/"},
+	{Name: "ipfs.io", Endpoint: "https://ipfs.io/ipfs/"},
+	{Name: "pinata.cloud", Endpoint: "https://gateway.pinata.cloud/ipfs/"},
+	{Name: "dweb.link", Endpoint: "https://dweb.link/ipfs/"},
+	{Name: "nftstorage.link", Endpoint: "https://nftstorage.link/ipfs"},
 }
 
 func initDatabaseIPFSGateways() error {
 	_, err := DB.Exec(`
 		CREATE TABLE IF NOT EXISTS ipfs_gateways (
-			id INTEGER AUTOINCREMENT,
+			endpoint VARCHAR PRIMARY KEY,
 			name VARCHAR,
-			endpoint VARCHAR,
-			fetch_headers VARCHAR
+			fetch_headers VARCHAR,
+			use BOOL
 		);
 	`)
 	return err
+}
+
+func StoreTrustedIPFSGateways() error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	for _, gateway := range TRUSTED_IPFS_GATEWAYS {
+		_, err = tx.Exec(`
+			INSERT INTO ipfs_gateways (endpoint, name, use)
+			VALUES (?,?,?)
+			ON CONFLICT (endpoint) DO UPDATE SET
+			name = ?;
+		`, gateway.Endpoint, gateway.Name, true, gateway.Name)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 func GetIPFSGateways() ([]IPFSGateway, error) {
@@ -37,19 +69,22 @@ func GetIPFSGateways() ([]IPFSGateway, error) {
 	for rows.Next() {
 		var ipfsGateway IPFSGateway
 
-		var fetchHeaders string
+		var fetchHeaders sql.NullString
 		err = rows.Scan(
-			&ipfsGateway.Name,
 			&ipfsGateway.Endpoint,
+			&ipfsGateway.Name,
 			&fetchHeaders,
+			&ipfsGateway.Use,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		err = json.Unmarshal([]byte(fetchHeaders), &ipfsGateway.FetchHeaders)
-		if err != nil {
-			return nil, err
+		if fetchHeaders.Valid {
+			err = json.Unmarshal([]byte(fetchHeaders.String), &ipfsGateway.FetchHeaders)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		ipfsGateways = append(ipfsGateways, ipfsGateway)

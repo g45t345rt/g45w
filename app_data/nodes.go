@@ -12,13 +12,13 @@ type NodeConnection struct {
 	Integrated bool
 }
 
-var INTEGRATED_NODE_CONN = NodeConnection{
+var INTEGRATED_NODE_CONNECTION = NodeConnection{
 	Endpoint:   "ws://127.0.0.1:10102/ws",
 	Name:       "Integrated",
 	Integrated: true,
 }
 
-var TRUSTED_NODE_CONN = []NodeConnection{
+var TRUSTED_NODE_CONNECTIONS = []NodeConnection{
 	{Endpoint: "wss://node.deronfts.com/ws", Name: "DeroNFTs"},
 	{Endpoint: "wss://dero-node.mysrv.cloud/ws", Name: "MySrvCloud"},
 	{Endpoint: "ws://derostats.io:10102/ws", Name: "DeroStats"},
@@ -42,7 +42,7 @@ func StoreTrustedNodeConnections() error {
 		return err
 	}
 
-	for _, nodeConn := range TRUSTED_NODE_CONN {
+	for _, nodeConn := range TRUSTED_NODE_CONNECTIONS {
 		_, err = tx.Exec(`
 			INSERT INTO nodes (endpoint, name)
 			VALUES (?,?)

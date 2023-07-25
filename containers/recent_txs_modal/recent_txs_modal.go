@@ -121,7 +121,7 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(20), fmt.Sprintf("%s (%d)", lang.Translate("Recent Transactions"), len(r.txItems)))
+					lbl := material.Label(th, unit.Sp(20), fmt.Sprintf("%s (%d)", lang.Translate("Outgoing Transactions"), len(r.txItems)))
 					lbl.Font.Weight = font.Bold
 					return lbl.Layout(gtx)
 				}),
