@@ -145,7 +145,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	if wallet_manager.OpenedWallet != nil {
 		b.ButtonClose.Button.Disabled = false
-		if b.ButtonClose.Button.Clickable.Clicked() {
+		if b.ButtonClose.Button.Clicked() {
 			b.confirmClose.SetVisible(true)
 		}
 	} else {
@@ -157,11 +157,11 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		wallet_manager.CloseOpenedWallet()
 	}
 
-	if b.ButtonNode.Button.Clickable.Clicked() {
+	if b.ButtonNode.Button.Clicked() {
 		b.appRouter.SetCurrent(app_instance.PAGE_NODE)
 	}
 
-	if b.ButtonWallet.Button.Clickable.Clicked() {
+	if b.ButtonWallet.Button.Clicked() {
 		if b.appRouter.Current == app_instance.PAGE_WALLET {
 			b.appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 		} else {
@@ -169,11 +169,11 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		}
 	}
 
-	if b.ButtonSettings.Button.Clickable.Clicked() {
+	if b.ButtonSettings.Button.Clicked() {
 		b.appRouter.SetCurrent(app_instance.PAGE_SETTINGS)
 	}
 
-	if b.ButtonTxs.Button.Clickable.Clicked() {
+	if b.ButtonTxs.Button.Clicked() {
 		recent_txs_modal.Instance.SetVisible(true)
 	}
 

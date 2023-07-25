@@ -67,9 +67,8 @@ func (w *Wallet) GetContact(addr string) (*Contact, error) {
 		return nil, err
 	}
 
-	var contact *Contact
+	var contact Contact
 	for rows.Next() {
-		contact = &Contact{}
 		err := rows.Scan(
 			&contact.Addr,
 			&contact.Name,
@@ -82,7 +81,7 @@ func (w *Wallet) GetContact(addr string) (*Contact, error) {
 		}
 	}
 
-	return contact, nil
+	return &contact, nil
 }
 
 func (w *Wallet) StoreContact(contact Contact) error {

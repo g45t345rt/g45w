@@ -65,11 +65,11 @@ func NewListItemSelectEdit() *ListItemSelectEdit {
 }
 
 func (n *ListItemSelectEdit) EditClicked() bool {
-	return n.ButtonEdit.Clickable.Clicked()
+	return n.ButtonEdit.Clicked()
 }
 
 func (n *ListItemSelectEdit) SelectClicked() bool {
-	return n.ButtonSelect.Clickable.Clicked()
+	return n.ButtonSelect.Clicked()
 }
 
 func (n *ListItemSelectEdit) Toggle() {

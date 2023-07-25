@@ -121,7 +121,7 @@ func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Th
 		}
 	}
 
-	if p.buttonCreate.Clickable.Clicked() {
+	if p.buttonCreate.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())

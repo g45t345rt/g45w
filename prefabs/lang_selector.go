@@ -101,7 +101,7 @@ func (r *LangSelector) Changed() bool {
 func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	r.changed = false
 
-	if r.ButtonSelect.Clickable.Clicked() {
+	if r.ButtonSelect.Clicked() {
 		r.SelectModal.Modal.SetVisible(true)
 	}
 

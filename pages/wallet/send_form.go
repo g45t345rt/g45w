@@ -203,12 +203,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}()
 	}
 
-	if p.buttonOptions.Clickable.Clicked() {
+	if p.buttonOptions.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_OPTIONS_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_OPTIONS_FORM)
 	}
 
-	if p.buttonContacts.Clickable.Clicked() {
+	if p.buttonContacts.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 		page_instance.header.AddHistory(PAGE_CONTACTS)
 	}

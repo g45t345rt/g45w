@@ -200,7 +200,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	date := time.Unix(item.tx.Timestamp.Int64, 0)
 
-	if item.buttonOpen.Clickable.Clicked() {
+	if item.buttonOpen.Clicked() {
 		go open.Run(fmt.Sprintf("https://explorer.dero.io/tx/%s", txId))
 	}
 

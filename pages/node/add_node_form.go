@@ -32,7 +32,6 @@ type PageAddNodeForm struct {
 	buttonAddNode *components.Button
 	txtEndpoint   *components.TextField
 	txtName       *components.TextField
-	submitting    bool
 
 	list *widget.List
 }
@@ -52,6 +51,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	list.Axis = layout.Vertical
 
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
+	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            addIcon,
@@ -61,6 +61,7 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 		IconGap:         unit.Dp(10),
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
+		LoadingIcon:     loadingIcon,
 	})
 	buttonAddNode.Label.Alignment = text.Middle
 	buttonAddNode.Style.Font.Weight = font.Bold
@@ -120,7 +121,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}
 	}
 
-	if p.buttonAddNode.Clickable.Clicked() {
+	if p.buttonAddNode.Clicked() {
 		p.submitForm(gtx)
 	}
 
@@ -161,15 +162,10 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 }
 
 func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
-	if p.submitting {
-		return
-	}
-
-	p.submitting = true
-
+	p.buttonAddNode.SetLoading(true)
 	go func() {
 		setError := func(err error) {
-			p.submitting = false
+			p.buttonAddNode.SetLoading(false)
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
@@ -202,7 +198,7 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		p.submitting = false
+		p.buttonAddNode.SetLoading(false)
 		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), "new noded added")
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.header.GoBack()

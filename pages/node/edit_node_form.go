@@ -40,7 +40,6 @@ type PageEditNodeForm struct {
 	txtEndpoint      *components.TextField
 	txtName          *components.TextField
 	nodeConn         app_data.NodeConnection
-	submitting       bool
 
 	confirmDelete *components.Confirm
 
@@ -62,6 +61,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	list.Axis = layout.Vertical
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
+	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonEditNode := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
 		Icon:            saveIcon,
@@ -71,6 +71,7 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 		IconGap:         unit.Dp(10),
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
+		LoadingIcon:     loadingIcon,
 	})
 	buttonEditNode.Label.Alignment = text.Middle
 	buttonEditNode.Style.Font.Weight = font.Bold
@@ -161,11 +162,11 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		}
 	}
 
-	if p.buttonEditNode.Clickable.Clicked() {
+	if p.buttonEditNode.Clicked() {
 		p.submitForm(gtx)
 	}
 
-	if p.buttonDeleteNode.Clickable.Clicked() {
+	if p.buttonDeleteNode.Clicked() {
 		p.confirmDelete.SetVisible(true)
 	}
 
@@ -250,15 +251,10 @@ func (p *PageEditNodeForm) removeNode() error {
 }
 
 func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
-	if p.submitting {
-		return
-	}
-
-	p.submitting = true
-
+	p.buttonEditNode.SetLoading(true)
 	go func() {
 		setError := func(err error) {
-			p.submitting = false
+			p.buttonEditNode.SetLoading(false)
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
@@ -291,7 +287,7 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		p.submitting = false
+		p.buttonEditNode.SetLoading(false)
 		notification_modals.SuccessInstance.SetText("Success", lang.Translate("Data saved"))
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.header.GoBack()

@@ -183,7 +183,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(30)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						if p.buttonWalletCreate.Clickable.Clicked() {
+						if p.buttonWalletCreate.Clicked() {
 							p.modalCreateWalletSelection.modal.SetVisible(true)
 						}
 

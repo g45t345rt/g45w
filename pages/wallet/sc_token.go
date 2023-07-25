@@ -216,13 +216,13 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
-	if p.sendReceiveButtons.ButtonSend.Clickable.Clicked() {
+	if p.sendReceiveButtons.ButtonSend.Clicked() {
 		page_instance.pageSendForm.token = *p.token
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
 
-	if p.sendReceiveButtons.ButtonReceive.Clickable.Clicked() {
+	if p.sendReceiveButtons.ButtonReceive.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
 		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
 	}

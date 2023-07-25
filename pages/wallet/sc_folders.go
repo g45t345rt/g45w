@@ -208,7 +208,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
-	if p.buttonOpenMenu.Clickable.Clicked() {
+	if p.buttonOpenMenu.Clicked() {
 		p.folderMenuSelect.SelectModal.Modal.SetVisible(true)
 	}
 
@@ -242,7 +242,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
-	if p.buttonFolderGoBack.Clickable.Clicked() {
+	if p.buttonFolderGoBack.Clicked() {
 		p.changeFolder(p.currentFolder.ParentId)
 	}
 

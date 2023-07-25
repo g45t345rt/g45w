@@ -130,7 +130,7 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
-	if p.buttonFetchData.Clickable.Clicked() {
+	if p.buttonFetchData.Clicked() {
 		p.scDetailsContainer = nil
 		scId := p.txtSCID.Value()
 		p.buttonFetchData.SetLoading(true)
@@ -370,7 +370,7 @@ func (sc *SCDetailsContainer) addToken() error {
 }
 
 func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if sc.buttonAddToken.Clickable.Clicked() {
+	if sc.buttonAddToken.Clicked() {
 		err := sc.addToken()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())

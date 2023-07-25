@@ -80,8 +80,8 @@ func (c *Confirm) SetVisible(visible bool) {
 }
 
 func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	c.clickedYes = c.buttonYes.Clickable.Clicked()
-	c.clickedNo = c.buttonNo.Clickable.Clicked()
+	c.clickedYes = c.buttonYes.Clicked()
+	c.clickedNo = c.buttonNo.Clicked()
 
 	if c.clickedYes || c.clickedNo {
 		c.SetVisible(false)

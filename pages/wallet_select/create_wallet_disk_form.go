@@ -135,7 +135,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		}
 	}
 
-	if p.buttonLoad.Clickable.Clicked() {
+	if p.buttonLoad.Clicked() {
 		go func() {
 			read, err := app_instance.Explorer.ChooseFile()
 			if err != nil {
@@ -152,7 +152,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		}()
 	}
 
-	if p.buttonCreate.Clickable.Clicked() {
+	if p.buttonCreate.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())

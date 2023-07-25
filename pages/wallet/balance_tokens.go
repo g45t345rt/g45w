@@ -169,7 +169,7 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 	page_instance.header.ButtonRight = nil
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		walletAddr := openedWallet.Info.Addr
-		if p.buttonCopyAddr.Clickable.Clicked() {
+		if p.buttonCopyAddr.Clicked() {
 			clipboard.WriteOp{
 				Text: walletAddr,
 			}.Add(gtx.Ops)
@@ -220,12 +220,12 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		}
 	}
 
-	if p.buttonSettings.Clickable.Clicked() {
+	if p.buttonSettings.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_SETTINGS)
 		page_instance.header.AddHistory(PAGE_SETTINGS)
 	}
 
-	if p.buttonRegister.Clickable.Clicked() {
+	if p.buttonRegister.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_REGISTER_WALLET)
 		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
 	}
@@ -457,7 +457,7 @@ func (b *ButtonHideBalance) Layout(gtx layout.Context, th *material.Theme) layou
 		b.Button.Style.Icon = b.hideBalanceIcon
 	}
 
-	if b.Button.Clickable.Clicked() {
+	if b.Button.Clicked() {
 		settings.App.HideBalance = !settings.App.HideBalance
 		settings.Save()
 		op.InvalidateOp{}.Add(gtx.Ops)
@@ -484,13 +484,13 @@ func NewDisplayBalance() *DisplayBalance {
 func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	wallet := wallet_manager.OpenedWallet
 
-	if d.sendReceiveButtons.ButtonSend.Clickable.Clicked() {
+	if d.sendReceiveButtons.ButtonSend.Clicked() {
 		page_instance.pageSendForm.token = wallet_manager.DeroToken()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
 
-	if d.sendReceiveButtons.ButtonReceive.Clickable.Clicked() {
+	if d.sendReceiveButtons.ButtonReceive.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
 		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
 	}
@@ -569,7 +569,7 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	paint.PaintOp{}.Add(gtx.Ops)
 	cl.Pop()
 
-	if t.buttonListToken.Clickable.Clicked() {
+	if t.buttonListToken.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_SC_FOLDERS)
 		page_instance.header.AddHistory(PAGE_SC_FOLDERS)
 	}

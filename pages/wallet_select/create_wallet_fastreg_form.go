@@ -219,7 +219,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 		}
 	}
 
-	if p.buttonStart.Clickable.Clicked() {
+	if p.buttonStart.Clicked() {
 		err := p.startRegistration()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -227,7 +227,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 		}
 	}
 
-	if p.buttonStop.Clickable.Clicked() {
+	if p.buttonStop.Clicked() {
 		p.fastReg.Stop()
 	}
 

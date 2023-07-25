@@ -115,7 +115,7 @@ func (p *Page) Leave() {
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if bottom_bar.Instance.ButtonWallet.Button.Clickable.Clicked() {
+	if bottom_bar.Instance.ButtonWallet.Button.Clicked() {
 		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
 	}
 

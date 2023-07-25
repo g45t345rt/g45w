@@ -170,7 +170,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 	}
 
-	if p.buttonAddNode.Clickable.Clicked() {
+	if p.buttonAddNode.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_ADD_NODE_FORM)
 		page_instance.header.AddHistory(PAGE_ADD_NODE_FORM)
 	}
@@ -237,7 +237,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}*/
 	}
 
-	if p.buttonSetIntegratedNode.Clickable.Clicked() {
+	if p.buttonSetIntegratedNode.Clicked() {
 		err := node_manager.Connect(app_data.INTEGRATED_NODE_CONN, true)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())

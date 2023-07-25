@@ -153,12 +153,12 @@ func (p *PageSettings) Leave() {
 }
 
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if p.buttonDeleteWallet.Clickable.Clicked() {
+	if p.buttonDeleteWallet.Clicked() {
 		p.action = "delete_wallet"
 		p.modalWalletPassword.Modal.SetVisible(true)
 	}
 
-	if p.buttonSave.Clickable.Clicked() {
+	if p.buttonSave.Clicked() {
 		p.action = "save_changes"
 		p.modalWalletPassword.Modal.SetVisible(true)
 	}

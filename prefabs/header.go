@@ -102,7 +102,7 @@ func (h *Header) handleKeyBack(gtx layout.Context) {
 func (h *Header) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	h.handleKeyBack(gtx)
 
-	if h.buttonGoBack.Clickable.Clicked() {
+	if h.buttonGoBack.Clicked() {
 		h.GoBack()
 	}
 

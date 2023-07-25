@@ -171,7 +171,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}
 	}
 
-	if p.buttonSave.Clickable.Clicked() {
+	if p.buttonSave.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -185,7 +185,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}
 	}
 
-	if p.buttonDelete.Clickable.Clicked() {
+	if p.buttonDelete.Clicked() {
 		p.confirmDelete.SetVisible(true)
 	}
 

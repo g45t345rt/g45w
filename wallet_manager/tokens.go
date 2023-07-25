@@ -82,7 +82,7 @@ func (w *Wallet) GetTokenFolder(id int64) (*TokenFolder, error) {
 
 	row := query.RunWith(w.DB).QueryRow()
 
-	var folder *TokenFolder
+	var folder TokenFolder
 	err := row.Scan(
 		&folder.ID,
 		&folder.Name,
@@ -96,7 +96,7 @@ func (w *Wallet) GetTokenFolder(id int64) (*TokenFolder, error) {
 		return nil, err
 	}
 
-	return folder, nil
+	return &folder, nil
 }
 
 func (w *Wallet) GetTokenFolderPath(id sql.NullInt64) (string, error) {

@@ -142,7 +142,7 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		}
 	}
 
-	if p.buttonInfo.Clickable.Clicked() {
+	if p.buttonInfo.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_INFO)
 		page_instance.header.AddHistory(PAGE_INFO)
 	}

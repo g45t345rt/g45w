@@ -73,7 +73,7 @@ func (r *RingSizeSelector) Changed() bool {
 func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	r.changed = false
 
-	if r.buttonSelect.Clickable.Clicked() {
+	if r.buttonSelect.Clicked() {
 		r.selectModal.Modal.SetVisible(true)
 	}
 

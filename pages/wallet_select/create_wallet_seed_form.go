@@ -123,7 +123,7 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 		}
 	}
 
-	if p.buttonCreate.Clickable.Clicked() {
+	if p.buttonCreate.Clicked() {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
