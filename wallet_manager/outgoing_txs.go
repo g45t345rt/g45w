@@ -24,12 +24,7 @@ type OutgoingTx struct {
 }
 
 func initDatabaseOutgoingTxs(db *sql.DB) error {
-	dbTx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = dbTx.Exec(`
+	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS outgoing_txs (
 			tx_id VARCHAR PRIMARY KEY,
 			height_built BIGINT,
@@ -41,11 +36,7 @@ func initDatabaseOutgoingTxs(db *sql.DB) error {
 			description VARCHAR
 		);
 	`)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(dbTx)
+	return err
 }
 
 func rowsScanOutgoingTxs(rows *sql.Rows) ([]OutgoingTx, error) {
@@ -253,59 +244,32 @@ func (w *Wallet) UpdatePendingOutgoingTxs() (int, error) {
 }
 
 func (w *Wallet) UpdateOugoingTx(txId string, status string, blockHeight int64) error {
-	dbTx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = dbTx.Exec(`
+	_, err := w.DB.Exec(`
 		UPDATE outgoing_txs
 		SET status = ?, block_height = ?
 		WHERE tx_id = ?;
 	`, status, blockHeight, txId)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(dbTx)
+	return err
 }
 
 func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction, description string) error {
-	dbTx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
 	txId := tx.GetHash().String()
 	height := tx.Height
 	txType := tx.TransactionType
 	hexData := hex.EncodeToString(tx.Serialize())
 
-	_, err = dbTx.Exec(`
+	_, err := w.DB.Exec(`
 		INSERT INTO outgoing_txs (tx_id,height_built,tx_type,timestamp,status,hex_data,description)
 		VALUES (?,?,?,?,?,?,?)
 		ON CONFLICT DO NOTHING;
 	`, txId, height, txType, time.Now().Unix(), "pending", hexData, description)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(dbTx)
+	return err
 }
 
 func (w *Wallet) DelOutgoingTx(txId string) error {
-	dbTx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = dbTx.Exec(`
+	_, err := w.DB.Exec(`
 		DELETE FROM outgoing_txs
 		WHERE tx_id = ?;
 	`, txId)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(dbTx)
+	return err
 }

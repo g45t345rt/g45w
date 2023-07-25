@@ -18,6 +18,7 @@ import (
 	expl "gioui.org/x/explorer"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/walletapi"
+	"github.com/g45t345rt/g45w/app_data"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
@@ -94,6 +95,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = app_data.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = wallet_manager.Load()
 	if err != nil {
 		log.Fatal(err)
@@ -102,10 +108,6 @@ func main() {
 	err = node_manager.Load()
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if node_manager.CurrentNode != "" {
-		node_manager.ConnectNode(node_manager.CurrentNode, false)
 	}
 
 	// window

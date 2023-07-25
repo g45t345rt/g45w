@@ -16,12 +16,14 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_data"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -37,7 +39,7 @@ type PageEditNodeForm struct {
 	buttonDeleteNode *components.Button
 	txtEndpoint      *components.TextField
 	txtName          *components.TextField
-	nodeConn         node_manager.NodeConnection
+	nodeConn         app_data.NodeConnection
 	submitting       bool
 
 	confirmDelete *components.Confirm
@@ -168,11 +170,12 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.confirmDelete.ClickedYes() {
-		err := node_manager.DelNode(p.nodeConn.ID)
+		err := p.removeNode()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
+
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			page_instance.header.GoBack()
@@ -223,6 +226,29 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	})
 }
 
+func (p *PageEditNodeForm) removeNode() error {
+	endpoint := p.nodeConn.Endpoint
+	err := app_data.DelNodeConnection(p.nodeConn.Endpoint)
+	if err != nil {
+		return err
+	}
+
+	if node_manager.CurrentNode != nil {
+		if node_manager.CurrentNode.Endpoint == endpoint {
+			node_manager.CurrentNode = nil
+			walletapi.Connected = false
+
+			settings.App.NodeEndpoint = ""
+			err := settings.Save()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 	if p.submitting {
 		return
@@ -256,8 +282,7 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = node_manager.EditNode(node_manager.NodeConnection{
-			ID:       p.nodeConn.ID,
+		err = app_data.UpdateNodeConnection(app_data.NodeConnection{
 			Name:     txtName.Text(),
 			Endpoint: txtEnpoint.Text(),
 		})

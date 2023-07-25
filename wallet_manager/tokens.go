@@ -44,12 +44,7 @@ func DeroToken() Token {
 }
 
 func initDatabaseTokens(db *sql.DB) error {
-	dbTx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = dbTx.Exec(`
+	_, err := db.Exec(`
 			CREATE TABLE IF NOT EXISTS token_folders (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR NOT NULL,
@@ -79,32 +74,26 @@ func initDatabaseTokens(db *sql.DB) error {
 				folder_id INTEGER
 			);
 		`)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(dbTx)
+	return err
 }
 
 func (w *Wallet) GetTokenFolder(id int64) (*TokenFolder, error) {
 	query := sq.Select("*").From("token_folders").Where(sq.Eq{"id": id})
 
-	rows, err := query.RunWith(w.DB).Query()
-	if err != nil {
-		return nil, err
-	}
+	row := query.RunWith(w.DB).QueryRow()
 
 	var folder *TokenFolder
-	for rows.Next() {
-		folder = &TokenFolder{}
-		err = rows.Scan(
-			&folder.ID,
-			&folder.Name,
-			&folder.ParentId,
-		)
-		if err != nil {
-			return nil, err
+	err := row.Scan(
+		&folder.ID,
+		&folder.Name,
+		&folder.ParentId,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
 		}
+
+		return nil, err
 	}
 
 	return folder, nil
@@ -117,21 +106,16 @@ func (w *Wallet) GetTokenFolderPath(id sql.NullInt64) (string, error) {
 
 	query := sq.Select("*").From("token_folders").Where(sq.Eq{"id": id})
 
-	rows, err := query.RunWith(w.DB).Query()
-	if err != nil {
-		return "", err
-	}
+	row := query.RunWith(w.DB).QueryRow()
 
 	var folder TokenFolder
-	for rows.Next() {
-		err = rows.Scan(
-			&folder.ID,
-			&folder.Name,
-			&folder.ParentId,
-		)
-		if err != nil {
-			return "", err
-		}
+	err := row.Scan(
+		&folder.ID,
+		&folder.Name,
+		&folder.ParentId,
+	)
+	if err != nil {
+		return "", err
 	}
 
 	parentName, err := w.GetTokenFolderPath(folder.ParentId)
@@ -178,27 +162,13 @@ func (w *Wallet) UpdateFolderToken(folder TokenFolder) error {
 		return fmt.Errorf("folder already exists")
 	}
 
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`
+	_, err = w.DB.Exec(`
 		UPDATE token_folders
 		SET name = ?,
 				parent_id = ?
 		WHERE id = ?;
 	`, folder.Name, folder.ParentId, folder.ID)
-	if err != nil {
-		return err
-	}
-
-	err = handleDatabaseCommit(tx)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (w *Wallet) FolderTokenExists(folder TokenFolder) (bool, error) {
@@ -234,20 +204,10 @@ func (w *Wallet) InsertFolderToken(folder TokenFolder) error {
 		return fmt.Errorf("folder already exists")
 	}
 
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	result, err := tx.Exec(`
+	result, err := w.DB.Exec(`
 		INSERT INTO token_folders (name,parent_id)
 		VALUES (?,?);
 	`, folder.Name, folder.ParentId)
-	if err != nil {
-		return err
-	}
-
-	err = handleDatabaseCommit(tx)
 	if err != nil {
 		return err
 	}
@@ -282,6 +242,10 @@ func (w *Wallet) GetToken(id int64) (*Token, error) {
 		&token.FolderId,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 
@@ -378,31 +342,17 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 }
 
 func (w *Wallet) InsertToken(token Token) error {
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`
+	_, err := w.DB.Exec(`
 		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?);
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite,
 		token.ListOrderFavorite, token.Image, token.Symbol, token.FolderId)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(tx)
+	return err
 }
 
 func (w *Wallet) UpdateToken(token Token) error {
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`
+	_, err := w.DB.Exec(`
 		UPDATE tokens
 		SET sc_id = ?,
 				name = ?,
@@ -420,45 +370,23 @@ func (w *Wallet) UpdateToken(token Token) error {
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite, token.ListOrderFavorite,
 		token.Image, token.Symbol, token.FolderId, token.ID)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(tx)
+	return err
 }
 
 func (w *Wallet) DelTokenFolder(id int64) error {
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`
+	_, err := w.DB.Exec(`
 		PRAGMA recursive_triggers = ON;
 		DELETE FROM token_folders
 		WHERE id = ?;
 		PRAGMA recursive_triggers = OFF;
 	`, id)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(tx)
+	return err
 }
 
 func (w *Wallet) DelToken(id int64) error {
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`
+	_, err := w.DB.Exec(`
 		DELETE FROM tokens
 		WHERE id = ?;
 	`, id)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(tx)
+	return err
 }

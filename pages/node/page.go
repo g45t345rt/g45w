@@ -104,8 +104,8 @@ func (p *Page) Enter() {
 
 	p.header.ResetHistory()
 	p.header.AddHistory(PAGE_SELECT_NODE)
-	if currentNode != "" {
-		if currentNode == node_manager.INTEGRATED_NODE_ID {
+	if currentNode != nil {
+		if currentNode.Integrated {
 			p.header.AddHistory(PAGE_INTEGRATED_NODE)
 			p.pageIntegratedNode.animationLeave.Reset()
 			p.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)

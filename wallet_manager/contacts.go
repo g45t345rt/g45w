@@ -16,12 +16,7 @@ type Contact struct {
 }
 
 func initDatabaseContacts(db *sql.DB) error {
-	dbTx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = dbTx.Exec(`
+	_, err := db.Exec(`
 			CREATE TABLE IF NOT EXISTS contacts (
 				addr VARCHAR PRIMARY KEY,
 				name VARCHAR UNIQUE,
@@ -30,11 +25,7 @@ func initDatabaseContacts(db *sql.DB) error {
 				list_order INTEGER
 			);
 		`)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(dbTx)
+	return err
 }
 
 type GetContactsParams struct {
@@ -95,38 +86,20 @@ func (w *Wallet) GetContact(addr string) (*Contact, error) {
 }
 
 func (w *Wallet) StoreContact(contact Contact) error {
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`
+	_, err := w.DB.Exec(`
 		INSERT INTO contacts (addr,name,note,timestamp)
 		VALUES (?,?,?,?)
 		ON CONFLICT (addr) DO UPDATE SET
 		name = excluded.name,
 		note = excluded.note;
 	`, contact.Addr, contact.Name, contact.Note, time.Now().UnixMilli())
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(tx)
+	return err
 }
 
 func (w *Wallet) DelContact(addr string) error {
-	tx, err := w.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`
+	_, err := w.DB.Exec(`
 		DELETE FROM contacts
 		WHERE addr = ?;
 	`, addr)
-	if err != nil {
-		return err
-	}
-
-	return handleDatabaseCommit(tx)
+	return err
 }

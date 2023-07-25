@@ -234,7 +234,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	wallet := wallet_manager.OpenedWallet
 
 	currentNode := node_manager.CurrentNode
-	if currentNode == "" {
+	if currentNode == nil {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return p.alertBox.Layout(gtx, th, lang.Translate("Unassigned node! Select your node from the node management page."))
 		})
@@ -246,7 +246,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			walletHeight := wallet.Memory.Get_Height()
 			networkHeight := uint64(0)
 
-			if currentNode == node_manager.INTEGRATED_NODE_ID {
+			if currentNode.Integrated {
 				nodeStatus := node_status_bar.Instance.IntegratedNodeStatus
 				nodeHeight := uint64(nodeStatus.Height)
 				networkHeight = uint64(nodeStatus.BestHeight)

@@ -295,15 +295,3 @@ func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 
 	return nil
 }
-
-func handleDatabaseCommit(tx *sql.Tx) error {
-	err := tx.Commit()
-	if err != nil {
-		err = tx.Rollback() // hopefully release acquired lock if commit fails
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}

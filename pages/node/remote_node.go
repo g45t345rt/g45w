@@ -118,7 +118,9 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	currentNode := node_manager.CurrentNode
-	conn := node_manager.Nodes[currentNode]
+	if currentNode == nil {
+		return layout.Dimensions{}
+	}
 
 	p.nodeInfo.Active()
 
@@ -136,12 +138,12 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(22), conn.Name)
+							label := material.Label(th, unit.Sp(22), currentNode.Name)
 							label.Color = color.NRGBA{A: 255}
 							return label.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(16), conn.Endpoint)
+							label := material.Label(th, unit.Sp(16), currentNode.Endpoint)
 							label.Color = color.NRGBA{A: 150}
 							return label.Layout(gtx)
 						}),
@@ -248,11 +250,10 @@ func (p *PageRemoteNode) reconnect() {
 	p.connecting = true
 	go func() {
 		currentNode := node_manager.CurrentNode
-		conn := node_manager.Nodes[currentNode]
 
-		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), conn.Endpoint)
+		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), currentNode.Endpoint)
 		notification_modals.InfoInstance.SetVisible(true, 0)
-		err := node_manager.ConnectNode(conn.ID, true)
+		err := node_manager.Connect(*currentNode, true)
 		p.connecting = false
 		notification_modals.InfoInstance.SetVisible(false, 0)
 

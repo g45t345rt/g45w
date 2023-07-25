@@ -13,10 +13,10 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_data"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
-	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -193,7 +193,7 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = node_manager.AddNode(node_manager.NodeConnection{
+		err = app_data.InsertNodeConnection(app_data.NodeConnection{
 			Name:     txtName.Text(),
 			Endpoint: txtEndpoint.Text(),
 		})

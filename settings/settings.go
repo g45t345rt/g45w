@@ -12,12 +12,13 @@ type AppSettings struct {
 	Language     string `json:"language"`
 	HideBalance  bool   `json:"hide_balance"`
 	SendRingSize int    `json:"send_ring_size"`
+	NodeEndpoint string `json:"node_endpoint"`
 }
 
 var (
-	AppDir     string
-	NodeDir    string
-	WalletsDir string
+	AppDir            string
+	IntegratedNodeDir string
+	WalletsDir        string
 )
 
 var App AppSettings
@@ -34,11 +35,11 @@ func Load() error {
 	}
 
 	appDir := filepath.Join(dataDir, "g45w")
-	nodeDir := filepath.Join(appDir, "node")
+	integratedNodeDir := filepath.Join(appDir, "node")
 	walletsDir := filepath.Join(appDir, "wallets")
 
 	AppDir = appDir
-	NodeDir = nodeDir
+	IntegratedNodeDir = integratedNodeDir
 	WalletsDir = walletsDir
 
 	path := filepath.Join(AppDir, "settings.json")

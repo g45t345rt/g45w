@@ -26,7 +26,7 @@ func Start() error {
 		return nil
 	}
 
-	nodeDir := settings.NodeDir
+	nodeDir := settings.IntegratedNodeDir
 
 	runtime.MemProfileRate = 0
 
@@ -192,7 +192,7 @@ func (n *NodeSize) Active() {
 }
 
 func (n *NodeSize) update() {
-	nodeDir := settings.NodeDir
+	nodeDir := settings.IntegratedNodeDir
 	size, _ := utils.GetFolderSize(nodeDir)
 	n.Size = size
 }
