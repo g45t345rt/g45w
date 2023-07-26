@@ -228,14 +228,13 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 }
 
 func (p *PageEditNodeForm) removeNode() error {
-	endpoint := p.nodeConn.Endpoint
-	err := app_data.DelNodeConnection(endpoint)
+	err := app_data.DelNodeConnection(p.nodeConn.ID)
 	if err != nil {
 		return err
 	}
 
 	if node_manager.CurrentNode != nil {
-		if node_manager.CurrentNode.Endpoint == endpoint {
+		if node_manager.CurrentNode.Endpoint == p.nodeConn.Endpoint {
 			node_manager.CurrentNode = nil
 			walletapi.Connected = false
 
@@ -260,19 +259,19 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 		}
 
 		txtName := p.txtName.Editor()
-		txtEnpoint := p.txtEndpoint.Editor()
+		txtEndpoint := p.txtEndpoint.Editor()
 
 		if txtName.Text() == "" {
 			setError(fmt.Errorf("enter name"))
 			return
 		}
 
-		if txtEnpoint.Text() == "" {
+		if txtEndpoint.Text() == "" {
 			setError(fmt.Errorf("enter endpoint"))
 			return
 		}
 
-		_, err := walletapi.TestConnect(txtEnpoint.Text())
+		_, err := walletapi.TestConnect(txtEndpoint.Text())
 		if err != nil {
 			setError(err)
 			return
@@ -280,7 +279,7 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 
 		err = app_data.UpdateNodeConnection(app_data.NodeConnection{
 			Name:     txtName.Text(),
-			Endpoint: txtEnpoint.Text(),
+			Endpoint: txtEndpoint.Text(),
 		})
 		if err != nil {
 			setError(err)

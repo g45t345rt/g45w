@@ -15,6 +15,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
@@ -28,6 +29,8 @@ type PageIPFSGateways struct {
 	list           *widget.List
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
+	buttonInfo     *components.Button
+	modalInfo      *components.Modal
 
 	gatewayList *GatewayList
 
@@ -56,12 +59,59 @@ func NewPageIPFSGateways() *PageIPFSGateways {
 
 	gatewayList := NewGatewayList()
 
+	infoIcon, _ := widget.NewIcon(icons.ActionInfo)
+	buttonInfo := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            infoIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+
+	modalInfo := components.NewModal(components.ModalStyle{
+		CloseOnOutsideClick: true,
+		CloseOnInsideClick:  true,
+		Direction:           layout.Center,
+		Inset:               layout.UniformInset(unit.Dp(30)),
+		Rounded:             components.UniformRounded(unit.Dp(10)),
+		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		Animation:           components.NewModalAnimationScaleBounce(),
+		Backdrop:            components.NewModalBackground(),
+	})
+
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			modalInfo.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+				return layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(20), lang.Translate("Why use IPFS?"))
+							lbl.Font.Weight = font.Bold
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(16), lang.Translate("Storing data on Dero can be expensive. An alternative approach is to utilize IPFS for storing images, files, and other content, while saving only the corresponding links. This section let you add multiple IPFS gateways, ensuring seamless access to IPFS content within Dero smart contracts."))
+							return lbl.Layout(gtx)
+						}),
+					)
+				})
+			})
+		},
+	})
+
 	return &PageIPFSGateways{
 		list:           list,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		gatewayList:    gatewayList,
 		buttonAdd:      buttonAdd,
+		buttonInfo:     buttonInfo,
+		modalInfo:      modalInfo,
 	}
 }
 
@@ -132,11 +182,15 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 		page_instance.header.AddHistory(PAGE_ADD_IPFS_GATEWAY)
 	}
 
+	p.buttonInfo.Text = lang.Translate("Why use IPFS?")
+	if p.buttonInfo.Clicked() {
+		p.modalInfo.SetVisible(true)
+	}
+
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(16), lang.Translate("Storing data on Dero can be expensive. An alternative approach is to utilize IPFS for storing images, files, and other content, while saving only the corresponding links. This section let you add multiple IPFS gateways, ensuring seamless access to IPFS content within Dero smart contracts."))
-		return lbl.Layout(gtx)
+		return p.buttonInfo.Layout(gtx, th)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -205,19 +259,29 @@ type GatewayListItem struct {
 	gateway   app_data.IPFSGateway
 	clickable *widget.Clickable
 	rounded   unit.Dp
+	checkIcon *widget.Icon
 }
 
 func NewGatewayListItem(gateway app_data.IPFSGateway) GatewayListItem {
+	checkIcon, _ := widget.NewIcon(icons.NavigationCheck)
+
 	return GatewayListItem{
 		gateway:   gateway,
 		clickable: new(widget.Clickable),
 		rounded:   unit.Dp(12),
+		checkIcon: checkIcon,
 	}
 }
 
 func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			if item.gateway.Active {
+				layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return item.checkIcon.Layout(gtx, color.NRGBA{A: 255})
+				})
+			}
+
 			return layout.Flex{Alignment: layout.Start}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -251,7 +315,9 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 
 		if item.clickable.Clicked() {
-
+			page_instance.pageEditIPFSGateway.gateway = item.gateway
+			page_instance.pageRouter.SetCurrent(PAGE_EDIT_IPFS_GATEWAY)
+			page_instance.header.AddHistory(PAGE_EDIT_IPFS_GATEWAY)
 		}
 
 		return dims

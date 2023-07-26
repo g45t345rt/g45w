@@ -7,12 +7,14 @@ import (
 )
 
 type NodeConnection struct {
+	ID         int64
 	Endpoint   string
 	Name       string
 	Integrated bool
 }
 
 var INTEGRATED_NODE_CONNECTION = NodeConnection{
+	ID:         -1,
 	Endpoint:   "ws://127.0.0.1:10102/ws",
 	Name:       "Integrated",
 	Integrated: true,
@@ -29,7 +31,8 @@ var TRUSTED_NODE_CONNECTIONS = []NodeConnection{
 func initDatabaseNodes() error {
 	_, err := DB.Exec(`
 		CREATE TABLE IF NOT EXISTS nodes (
-			endpoint VARCHAR PRIMARY KEY,
+			id INTEGER PRIMARY KEY,
+			endpoint VARCHAR,
 			name VARCHAR
 		);
 	`)
@@ -45,9 +48,7 @@ func StoreTrustedNodeConnections() error {
 	for _, nodeConn := range TRUSTED_NODE_CONNECTIONS {
 		_, err = tx.Exec(`
 			INSERT INTO nodes (endpoint, name)
-			VALUES (?,?)
-			ON CONFLICT (endpoint) DO UPDATE SET
-			name = ?;
+			VALUES (?,?);
 		`, nodeConn.Endpoint, nodeConn.Name, nodeConn.Name)
 		if err != nil {
 			tx.Rollback()
@@ -70,6 +71,7 @@ func GetNodeConnections() ([]NodeConnection, error) {
 	for rows.Next() {
 		var node NodeConnection
 		err = rows.Scan(
+			&node.ID,
 			&node.Endpoint,
 			&node.Name,
 		)
@@ -90,6 +92,7 @@ func GetNodeConnection(endpoint string) (*NodeConnection, error) {
 
 	var nodeConn NodeConnection
 	err := row.Scan(
+		&nodeConn.ID,
 		&nodeConn.Endpoint,
 		&nodeConn.Name,
 	)
@@ -115,17 +118,17 @@ func InsertNodeConnection(nodeConn NodeConnection) error {
 func UpdateNodeConnection(nodeConn NodeConnection) error {
 	_, err := DB.Exec(`
 		UPDATE nodes
-		SET name = ?
-		WHERE endpoint = ?;
-	`, nodeConn.Name, nodeConn.Endpoint)
+		SET name = ?, endpoint = ?
+		WHERE id = ?;
+	`, nodeConn.Name, nodeConn.Endpoint, nodeConn.ID)
 	return err
 }
 
-func DelNodeConnection(endpoint string) error {
+func DelNodeConnection(id int64) error {
 	_, err := DB.Exec(`
 		DELETE FROM nodes
-		WHERE endpoint = ?;
-	`, endpoint)
+		WHERE id = ?;
+	`, id)
 	return err
 }
 

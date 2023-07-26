@@ -11,7 +11,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_data"
 	"github.com/g45t345rt/g45w/components"
@@ -40,11 +39,11 @@ var _ router.Page = &PageAddIPFSGateway{}
 
 func NewPageAddIPFSGateway() *PageAddIPFSGateway {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.OutCubic),
+		gween.New(-1, 0, .25, ease.Linear),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.OutCubic),
+		gween.New(0, -1, .25, ease.Linear),
 	))
 
 	list := new(widget.List)
@@ -129,14 +128,14 @@ func (p *PageAddIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layo
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), lang.Translate("Here, you can add your own IPFS Gateway. The endpoint connection must be a HTTP connection, starting with http:// or https:// for TLS connection."))
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("Here, you can add your own IPFS Gateway. The endpoint connection must be a HTTP connection, starting with http:// or https:// for TLS connection. Use {cid} to set where the content identifier must be pasted."))
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "deronfts.com")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "https://ipfs.deronfts.com/ipfs/")
+			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "https://ipfs.deronfts.com/ipfs/{cid}")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonAdd.Text = lang.Translate("ADD GATEWAY")
@@ -185,16 +184,20 @@ func (p *PageAddIPFSGateway) submitForm(gtx layout.Context) {
 			return
 		}
 
-		_, err := walletapi.TestConnect(txtEndpoint.Text())
+		endpoint := txtEndpoint.Text()
+		gateway := app_data.IPFSGateway{
+			Name:     txtName.Text(),
+			Endpoint: endpoint,
+			Active:   true,
+		}
+
+		err := gateway.TestFetch()
 		if err != nil {
 			setError(err)
 			return
 		}
 
-		err = app_data.InsertIPFSGateway(app_data.IPFSGateway{
-			Name:     txtName.Text(),
-			Endpoint: txtEndpoint.Text(),
-		})
+		err = app_data.InsertIPFSGateway(gateway)
 		if err != nil {
 			setError(err)
 			return

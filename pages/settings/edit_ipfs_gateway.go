@@ -39,7 +39,9 @@ type PageEditIPFSGateway struct {
 	buttonDelete *components.Button
 	txtEndpoint  *components.TextField
 	txtName      *components.TextField
-	gateway      app_data.IPFSGateway
+	switchActive *widget.Bool
+
+	gateway app_data.IPFSGateway
 
 	confirmDelete *components.Confirm
 
@@ -50,11 +52,11 @@ var _ router.Page = &PageEditIPFSGateway{}
 
 func NewPageEditIPFSGateway() *PageEditIPFSGateway {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.OutCubic),
+		gween.New(-1, 0, .25, ease.Linear),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.OutCubic),
+		gween.New(0, -1, .25, ease.Linear),
 	))
 
 	list := new(widget.List)
@@ -112,6 +114,7 @@ func NewPageEditIPFSGateway() *PageEditIPFSGateway {
 		buttonDelete: buttonDelete,
 		txtName:      txtName,
 		txtEndpoint:  txtEndpoint,
+		switchActive: new(widget.Bool),
 
 		confirmDelete: confirmDelete,
 
@@ -126,11 +129,13 @@ func (p *PageEditIPFSGateway) IsActive() bool {
 func (p *PageEditIPFSGateway) Enter() {
 	p.isActive = true
 	page_instance.header.SetTitle(lang.Translate("Edit IPFS Gateway"))
+	page_instance.header.ButtonRight = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 
 	p.txtEndpoint.SetValue(p.gateway.Endpoint)
 	p.txtName.SetValue(p.gateway.Name)
+	p.switchActive.Value = p.gateway.Active
 }
 
 func (p *PageEditIPFSGateway) Leave() {
@@ -185,10 +190,30 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "Dero NFTs")
+			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "deronfts.com")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "wss://node.deronfts.com/ws")
+			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "https://ipfs.deronfts.com/ipfs")
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(20), lang.Translate("Active"))
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					s := material.Switch(th, p.switchActive, lang.Translate("Set Active Gateway"))
+					s.Color.Enabled = color.NRGBA{A: 255}
+					return s.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Inactive gateway will not be used when fetching IPFS content."))
+					return lbl.Layout(gtx)
+				}),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonEdit.Text = lang.Translate("SAVE")
@@ -203,7 +228,7 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 			return layout.Dimensions{Size: max}
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonDelete.Text = lang.Translate("DELETE NODE")
+			p.buttonDelete.Text = lang.Translate("DELETE GATEWAY")
 			return p.buttonDelete.Layout(gtx, th)
 		},
 	}
@@ -260,28 +285,33 @@ func (p *PageEditIPFSGateway) submitForm(gtx layout.Context) {
 		}
 
 		txtName := p.txtName.Editor()
-		txtEnpoint := p.txtEndpoint.Editor()
+		txtEndpoint := p.txtEndpoint.Editor()
 
 		if txtName.Text() == "" {
 			setError(fmt.Errorf("enter name"))
 			return
 		}
 
-		if txtEnpoint.Text() == "" {
+		if txtEndpoint.Text() == "" {
 			setError(fmt.Errorf("enter endpoint"))
 			return
 		}
 
-		_, err := walletapi.TestConnect(txtEnpoint.Text())
+		endpoint := txtEndpoint.Text()
+		gateway := app_data.IPFSGateway{
+			ID:       p.gateway.ID,
+			Name:     txtName.Text(),
+			Endpoint: endpoint,
+			Active:   p.switchActive.Value,
+		}
+
+		err := gateway.TestFetch()
 		if err != nil {
 			setError(err)
 			return
 		}
 
-		err = app_data.UpdateIPFSGatway(app_data.IPFSGateway{
-			Name:     txtName.Text(),
-			Endpoint: txtEnpoint.Text(),
-		})
+		err = app_data.UpdateIPFSGateway(gateway)
 		if err != nil {
 			setError(err)
 			return

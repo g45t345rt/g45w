@@ -23,6 +23,8 @@ type Page struct {
 	header         *prefabs.Header
 	pageRouter     *router.Router
 
+	pageEditIPFSGateway *PageEditIPFSGateway
+
 	pageMain *PageMain
 	pageInfo *PageInfo
 }
@@ -71,12 +73,13 @@ func New() *Page {
 	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
 
 	page := &Page{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		header:         header,
-		pageRouter:     pageRouter,
-		pageMain:       pageMain,
-		pageInfo:       pageInfo,
+		animationEnter:      animationEnter,
+		animationLeave:      animationLeave,
+		header:              header,
+		pageRouter:          pageRouter,
+		pageMain:            pageMain,
+		pageInfo:            pageInfo,
+		pageEditIPFSGateway: pageEditIPFSGateway,
 	}
 
 	page_instance = page

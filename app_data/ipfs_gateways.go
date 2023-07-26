@@ -3,6 +3,9 @@ package app_data
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -12,24 +15,25 @@ type IPFSGateway struct {
 	Name         string
 	Endpoint     string
 	FetchHeaders map[string]string
-	Use          bool
+	Active       bool
 }
 
 var TRUSTED_IPFS_GATEWAYS = []IPFSGateway{
-	{Name: "deronfts.com", Endpoint: "https://ipfs.deronfts.com/ipfs/"},
-	{Name: "ipfs.io", Endpoint: "https://ipfs.io/ipfs/"},
-	{Name: "pinata.cloud", Endpoint: "https://gateway.pinata.cloud/ipfs/"},
-	{Name: "dweb.link", Endpoint: "https://dweb.link/ipfs/"},
-	{Name: "nftstorage.link", Endpoint: "https://nftstorage.link/ipfs"},
+	{Name: "deronfts.com", Endpoint: "https://ipfs.deronfts.com/ipfs/{cid}"},
+	{Name: "ipfs.io", Endpoint: "https://ipfs.io/ipfs/{cid}"},
+	{Name: "pinata.cloud", Endpoint: "https://gateway.pinata.cloud/ipfs/{cid}"},
+	{Name: "dweb.link", Endpoint: "https://dweb.link/ipfs/{cid}"},
+	{Name: "nftstorage.link", Endpoint: "https://{cid}.ipfs.nftstorage.link"},
 }
 
 func initDatabaseIPFSGateways() error {
 	_, err := DB.Exec(`
 		CREATE TABLE IF NOT EXISTS ipfs_gateways (
-			endpoint VARCHAR PRIMARY KEY,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			endpoint VARCHAR,
 			name VARCHAR,
 			fetch_headers VARCHAR,
-			use BOOL
+			active BOOL
 		);
 	`)
 	return err
@@ -43,11 +47,9 @@ func StoreTrustedIPFSGateways() error {
 
 	for _, gateway := range TRUSTED_IPFS_GATEWAYS {
 		_, err = tx.Exec(`
-			INSERT INTO ipfs_gateways (endpoint, name, use)
-			VALUES (?,?,?)
-			ON CONFLICT (endpoint) DO UPDATE SET
-			name = ?;
-		`, gateway.Endpoint, gateway.Name, true, gateway.Name)
+			INSERT INTO ipfs_gateways (endpoint, name, active)
+			VALUES (?,?,?);
+		`, gateway.Endpoint, gateway.Name, true)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -71,10 +73,11 @@ func GetIPFSGateways() ([]IPFSGateway, error) {
 
 		var fetchHeaders sql.NullString
 		err = rows.Scan(
+			&ipfsGateway.ID,
 			&ipfsGateway.Endpoint,
 			&ipfsGateway.Name,
 			&fetchHeaders,
-			&ipfsGateway.Use,
+			&ipfsGateway.Active,
 		)
 		if err != nil {
 			return nil, err
@@ -100,9 +103,9 @@ func InsertIPFSGateway(gateway IPFSGateway) error {
 	}
 
 	result, err := DB.Exec(`
-		INSERT INTO node_list (name,endpoint,fetch_headers)
-		VALUES (?,?,?);
-	`, gateway.Name, gateway.Endpoint, string(fetchHeadersBytes))
+		INSERT INTO ipfs_gateways (name,endpoint,fetch_headers,active)
+		VALUES (?,?,?,?);
+	`, gateway.Name, gateway.Endpoint, string(fetchHeadersBytes), gateway.Active)
 	if err != nil {
 		return err
 	}
@@ -116,17 +119,17 @@ func InsertIPFSGateway(gateway IPFSGateway) error {
 	return nil
 }
 
-func UpdateIPFSGatway(gateway IPFSGateway) error {
+func UpdateIPFSGateway(gateway IPFSGateway) error {
 	fetchHeadersBytes, err := json.Marshal(gateway.FetchHeaders)
 	if err != nil {
 		return err
 	}
 
 	_, err = DB.Exec(`
-		UPDATE node_list
-		SET name = ?, endpoint = ?, fetch_headers = ?
+		UPDATE ipfs_gateways
+		SET name = ?, endpoint = ?, fetch_headers = ?, active = ?
 		WHERE id = ?;
-	`, gateway.Name, gateway.Endpoint, string(fetchHeadersBytes), gateway.ID)
+	`, gateway.Name, gateway.Endpoint, string(fetchHeadersBytes), gateway.Active, gateway.ID)
 	return err
 }
 
@@ -136,4 +139,28 @@ func DelIPFSGateway(id int64) error {
 		WHERE id = ?;
 	`, id)
 	return err
+}
+
+func (i IPFSGateway) Fetch(cId string) (*http.Response, error) {
+	endpoint := strings.Replace(i.Endpoint, "{cid}", cId, -1)
+	res, err := http.Get(endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (i IPFSGateway) TestFetch() error {
+	cId := "bafybeibozpulxtpv5nhfa2ue3dcjx23ndh3gwr5vwllk7ptoyfwnfjjr4q"
+	res, err := i.Fetch(cId)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != 200 {
+		return fmt.Errorf("%d", res.StatusCode)
+	}
+
+	return nil
 }
