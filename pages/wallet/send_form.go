@@ -19,12 +19,10 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/build_tx_modal.go"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
-	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -38,12 +36,11 @@ import (
 type PageSendForm struct {
 	isActive bool
 
-	txtAmount           *components.TextField
-	txtWalletAddr       *components.Input
-	buttonSendTx        *components.Button
-	buttonContacts      *components.Button
-	buttonOptions       *components.Button
-	modalWalletPassword *prefabs.PasswordModal
+	txtAmount      *components.TextField
+	txtWalletAddr  *components.Input
+	buttonBuildTx  *components.Button
+	buttonContacts *components.Button
+	buttonOptions  *components.Button
 
 	token wallet_manager.Token
 
@@ -52,29 +49,25 @@ type PageSendForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buildTx *transaction.Transaction
-
 	list *widget.List
 }
 
 var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
-	sendIcon, _ := widget.NewIcon(icons.ContentSend)
-	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-	buttonSendTx := components.NewButton(components.ButtonStyle{
+	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
+	buttonBuildTx := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            sendIcon,
+		Icon:            buildIcon,
 		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		TextSize:        unit.Sp(14),
 		IconGap:         unit.Dp(10),
 		Inset:           layout.UniformInset(unit.Dp(10)),
 		Animation:       components.NewButtonAnimationDefault(),
-		LoadingIcon:     loadingIcon,
 	})
-	buttonSendTx.Label.Alignment = text.Middle
-	buttonSendTx.Style.Font.Weight = font.Bold
+	buttonBuildTx.Label.Alignment = text.Middle
+	buttonBuildTx.Style.Font.Weight = font.Bold
 
 	txtAmount := components.NewTextField()
 	txtAmount.Input.TextSize = unit.Sp(26)
@@ -128,26 +121,16 @@ func NewPageSendForm() *PageSendForm {
 		Animation: components.NewButtonAnimationDefault(),
 	})
 
-	modalWalletPassword := prefabs.NewPasswordModal()
-
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			modalWalletPassword.Layout(gtx, th)
-		},
-	})
-
 	return &PageSendForm{
-		txtAmount:           txtAmount,
-		txtWalletAddr:       txtWalletAddr,
-		buttonSendTx:        buttonSendTx,
-		ringSizeSelector:    ringSizeSelector,
-		animationEnter:      animationEnter,
-		animationLeave:      animationLeave,
-		list:                list,
-		buttonContacts:      buttonContacts,
-		buttonOptions:       buttonOptions,
-		modalWalletPassword: modalWalletPassword,
+		txtAmount:        txtAmount,
+		txtWalletAddr:    txtWalletAddr,
+		buttonBuildTx:    buttonBuildTx,
+		ringSizeSelector: ringSizeSelector,
+		animationEnter:   animationEnter,
+		animationLeave:   animationLeave,
+		list:             list,
+		buttonContacts:   buttonContacts,
+		buttonOptions:    buttonOptions,
 	}
 }
 
@@ -189,16 +172,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonSendTx.Clicked() {
-		p.buttonSendTx.SetLoading(true)
+	if p.buttonBuildTx.Clicked() {
 		go func() {
-			err := p.buildTransaction()
+			err := p.prepareTx()
 			if err != nil {
-				p.buttonSendTx.SetLoading(false)
 				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			} else {
-				p.modalWalletPassword.Modal.SetVisible(true)
 			}
 		}()
 	}
@@ -213,29 +192,30 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		page_instance.header.AddHistory(PAGE_CONTACTS)
 	}
 
-	if p.modalWalletPassword.Modal.Closed() {
-		p.buttonSendTx.SetLoading(false)
-	}
-
-	submitted, password := p.modalWalletPassword.Input.Submitted()
-	if submitted {
-		wallet := wallet_manager.OpenedWallet
-		validPassword := wallet.Memory.Check_Password(password)
-
-		if !validPassword {
+	/*
+		if p.modalWalletPassword.Modal.Closed() {
 			p.buttonSendTx.SetLoading(false)
-			p.modalWalletPassword.StartWrongPassAnimation()
-		} else {
-			err := p.sendBuildTransaction()
-			p.buttonSendTx.SetLoading(false)
-			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			} else {
-				p.modalWalletPassword.Modal.SetVisible(false)
-			}
 		}
-	}
+
+		submitted, password := p.modalWalletPassword.Input.Submitted()
+		if submitted {
+			wallet := wallet_manager.OpenedWallet
+			validPassword := wallet.Memory.Check_Password(password)
+
+			if !validPassword {
+				p.buttonSendTx.SetLoading(false)
+				p.modalWalletPassword.StartWrongPassAnimation()
+			} else {
+				err := p.sendBuildTransaction()
+				p.buttonSendTx.SetLoading(false)
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					p.modalWalletPassword.Modal.SetVisible(false)
+				}
+			}
+		}*/
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
@@ -337,13 +317,8 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.buttonOptions.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			if p.buttonSendTx.Loading {
-				p.buttonSendTx.Text = lang.Translate("BUILDING...")
-			} else {
-				p.buttonSendTx.Text = lang.Translate("SEND TRANSACTION")
-			}
-
-			return p.buttonSendTx.Layout(gtx, th)
+			p.buttonBuildTx.Text = lang.Translate("BUILD TRANSACTION")
+			return p.buttonBuildTx.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
@@ -369,28 +344,6 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	})
 }
 
-func (p *PageSendForm) sendBuildTransaction() error {
-	txtDescription := page_instance.pageSendOptionsForm.txtDescription
-	wallet := wallet_manager.OpenedWallet
-	tx := p.buildTx
-
-	err := wallet.StoreOutgoingTx(tx, txtDescription.Value())
-	if err != nil {
-		return err
-	}
-
-	err = wallet.Memory.SendTransaction(tx)
-	if err != nil {
-		return err
-	}
-
-	recent_txs_modal.Instance.SetVisible(true)
-	page_instance.header.GoBack()
-	p.clearForm()
-
-	return nil
-}
-
 func (p *PageSendForm) clearForm() {
 	txtAmount := p.txtAmount
 	txtWalletAddr := p.txtWalletAddr
@@ -405,10 +358,7 @@ func (p *PageSendForm) clearForm() {
 	txtDstPort.SetValue("")
 }
 
-func (p *PageSendForm) buildTransaction() error {
-	p.buildTx = nil
-	wallet := wallet_manager.OpenedWallet
-
+func (p *PageSendForm) prepareTx() error {
 	txtAmount := p.txtAmount
 	if txtAmount.Value() == "" {
 		return fmt.Errorf(lang.Translate("Amount cannot be empty."))
@@ -458,11 +408,11 @@ func (p *PageSendForm) buildTransaction() error {
 		return err
 	}
 
-	tx, err := wallet.Memory.TransferPayload0(transfers, ringsize, false, rpc.Arguments{}, 0, false)
-	if err != nil {
-		return err
-	}
+	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
+		Transfers: transfers,
+		Ringsize:  ringsize,
+		SCData:    rpc.Arguments{},
+	})
 
-	p.buildTx = tx
 	return nil
 }

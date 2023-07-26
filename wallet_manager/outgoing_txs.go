@@ -3,6 +3,7 @@ package wallet_manager
 import (
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -90,14 +91,14 @@ func (w *Wallet) GetOutgoingTxs(params GetOutgoingTxsParams) ([]OutgoingTx, erro
 			direction = "DESC"
 		}
 
-		query = query.OrderBy(params.OrderBy, direction)
+		query = query.OrderBy(fmt.Sprintf("%s %s", params.OrderBy, direction))
 	}
 
 	if params.Limit != nil {
 		query = query.Limit(*params.Limit)
 	}
 
-	rows, err := w.DB.Query(query.ToSql())
+	rows, err := query.RunWith(w.DB).Query()
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +253,7 @@ func (w *Wallet) UpdateOugoingTx(txId string, status string, blockHeight int64) 
 	return err
 }
 
-func (w *Wallet) StoreOutgoingTx(tx *transaction.Transaction, description string) error {
+func (w *Wallet) InsertOutgoingTx(tx *transaction.Transaction, description string) error {
 	txId := tx.GetHash().String()
 	height := tx.Height
 	txType := tx.TransactionType
