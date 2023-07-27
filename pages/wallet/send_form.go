@@ -192,30 +192,9 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		page_instance.header.AddHistory(PAGE_CONTACTS)
 	}
 
-	/*
-		if p.modalWalletPassword.Modal.Closed() {
-			p.buttonSendTx.SetLoading(false)
-		}
-
-		submitted, password := p.modalWalletPassword.Input.Submitted()
-		if submitted {
-			wallet := wallet_manager.OpenedWallet
-			validPassword := wallet.Memory.Check_Password(password)
-
-			if !validPassword {
-				p.buttonSendTx.SetLoading(false)
-				p.modalWalletPassword.StartWrongPassAnimation()
-			} else {
-				err := p.sendBuildTransaction()
-				p.buttonSendTx.SetLoading(false)
-				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				} else {
-					p.modalWalletPassword.Modal.SetVisible(false)
-				}
-			}
-		}*/
+	if build_tx_modal.Instance.TxSent() {
+		p.clearForm()
+	}
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {

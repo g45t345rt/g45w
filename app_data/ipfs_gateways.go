@@ -1,11 +1,13 @@
 package app_data
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -59,10 +61,18 @@ func StoreTrustedIPFSGateways() error {
 	return tx.Commit()
 }
 
-func GetIPFSGateways() ([]IPFSGateway, error) {
-	sq := sq.Select("*").From("ipfs_gateways")
+type GetIPFSGatewaysParams struct {
+	Active sql.NullBool
+}
 
-	rows, err := sq.RunWith(DB).Query()
+func GetIPFSGateways(params GetIPFSGatewaysParams) ([]IPFSGateway, error) {
+	query := sq.Select("*").From("ipfs_gateways")
+
+	if params.Active.Valid {
+		query = query.Where(sq.Eq{"active": params.Active.Bool})
+	}
+
+	rows, err := query.RunWith(DB).Query()
 	if err != nil {
 		return nil, err
 	}
@@ -141,9 +151,44 @@ func DelIPFSGateway(id int64) error {
 	return err
 }
 
+func IPFSFetch(cId string) (*http.Response, error) {
+	gateways, err := GetIPFSGateways(GetIPFSGatewaysParams{
+		Active: sql.NullBool{Bool: true, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, gateway := range gateways {
+		res, err := gateway.Fetch(cId)
+		if err != nil {
+			continue
+		}
+
+		if res.StatusCode != 200 {
+			continue
+		}
+
+		return res, nil
+	}
+
+	return nil, fmt.Errorf("unavailable")
+}
+
 func (i IPFSGateway) Fetch(cId string) (*http.Response, error) {
 	endpoint := strings.Replace(i.Endpoint, "{cid}", cId, -1)
-	res, err := http.Get(endpoint)
+
+	client := new(http.Client)
+
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}

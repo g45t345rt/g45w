@@ -144,7 +144,7 @@ func (p *PageIPFSGateways) Leave() {
 func (p *PageIPFSGateways) LoadGateways() error {
 	items := make([]GatewayListItem, 0)
 
-	gateways, err := app_data.GetIPFSGateways()
+	gateways, err := app_data.GetIPFSGateways(app_data.GetIPFSGatewaysParams{})
 	if err != nil {
 		return err
 	}

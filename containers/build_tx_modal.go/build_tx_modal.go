@@ -46,6 +46,7 @@ type BuildTxModal struct {
 	building bool
 	buildTx  *transaction.Transaction
 	buildErr error
+	txSent   bool
 
 	txPayload TxPayload
 }
@@ -116,6 +117,7 @@ func LoadInstance() {
 }
 
 func (b *BuildTxModal) Open(txPayload TxPayload) {
+	b.txSent = false
 	b.txPayload = txPayload
 
 	b.modal.SetVisible(true)
@@ -131,6 +133,15 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 	b.building = false
 	b.animationLoading.Pause()
 	b.buildTx = tx
+}
+
+func (b *BuildTxModal) TxSent() bool {
+	if b.txSent {
+		b.txSent = false
+		return true
+	}
+
+	return false
 }
 
 func (b *BuildTxModal) sendTx() error {
@@ -152,6 +163,7 @@ func (b *BuildTxModal) sendTx() error {
 	b.buttonSend.SetLoading(false)
 	b.modal.SetVisible(false)
 	recent_txs_modal.Instance.SetVisible(true)
+	b.txSent = true
 	return nil
 }
 
