@@ -110,7 +110,8 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 			TextSize: unit.Sp(18),
 		}),
 	}
-	tabBars := components.NewTabBars("tokens", tabBarsItems)
+	defaultTabKey := settings.App.TabBarsKey
+	tabBars := components.NewTabBars(defaultTabKey, tabBarsItems)
 
 	return &PageBalanceTokens{
 		displayBalance: NewDisplayBalance(),
@@ -338,6 +339,14 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			return p.tabBars.Layout(gtx, th, text)
 		})
 	})
+
+	{
+		changed, key := p.tabBars.Changed()
+		if changed {
+			settings.App.TabBarsKey = key
+			settings.Save()
+		}
+	}
 
 	if p.tabBars.Key == "tokens" {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {

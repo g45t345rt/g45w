@@ -3,6 +3,7 @@ package prefabs
 import (
 	"fmt"
 	"image/color"
+	"strconv"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -21,10 +22,10 @@ type RingSizeSelector struct {
 	selectModal  *SelectModal
 
 	changed bool
-	Value   string
+	Value   int
 }
 
-func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
+func NewRingSizeSelector(defaultSize int) *RingSizeSelector {
 	tuneIcon, _ := widget.NewIcon(icons.ActionTrackChanges)
 	buttonSelect := components.NewButton(components.ButtonStyle{
 		Rounded:         components.UniformRounded(unit.Dp(5)),
@@ -66,8 +67,8 @@ func NewRingSizeSelector(defaultSize string) *RingSizeSelector {
 	return r
 }
 
-func (r *RingSizeSelector) Changed() bool {
-	return r.changed
+func (r *RingSizeSelector) Changed() (bool, int) {
+	return r.changed, r.Value
 }
 
 func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -79,11 +80,12 @@ func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout
 
 	selected, key := r.selectModal.Selected()
 	if selected {
-		r.Value = key
+		v, _ := strconv.Atoi(key)
+		r.Value = v
 		r.changed = true
 		r.selectModal.Modal.SetVisible(false)
 	}
 
-	r.buttonSelect.Text = fmt.Sprintf("Ring size: %s", r.Value)
+	r.buttonSelect.Text = fmt.Sprintf("Ring size: %s", fmt.Sprint(r.Value))
 	return r.buttonSelect.Layout(gtx, th)
 }

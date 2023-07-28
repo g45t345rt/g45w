@@ -13,6 +13,7 @@ type AppSettings struct {
 	HideBalance  bool   `json:"hide_balance"`
 	SendRingSize int    `json:"send_ring_size"`
 	NodeEndpoint string `json:"node_endpoint"`
+	TabBarsKey   string `json:"tab_bars_key"`
 }
 
 var (
@@ -51,10 +52,21 @@ func Load() error {
 			return err
 		}
 
-		err = json.Unmarshal(data, &App)
+		// settings with default values
+		appSettings := AppSettings{
+			Language:     "en",
+			HideBalance:  false,
+			SendRingSize: 16,
+			NodeEndpoint: "",
+			TabBarsKey:   "tokens",
+		}
+
+		err = json.Unmarshal(data, &appSettings)
 		if err != nil {
 			return err
 		}
+
+		App = appSettings
 	}
 
 	return nil

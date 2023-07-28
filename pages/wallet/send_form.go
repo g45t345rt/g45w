@@ -26,6 +26,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -87,7 +88,8 @@ func NewPageSendForm() *PageSendForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	ringSizeSelector := prefabs.NewRingSizeSelector("16")
+	defaultRingSize := settings.App.SendRingSize
+	ringSizeSelector := prefabs.NewRingSizeSelector(defaultRingSize)
 
 	optionIcon, _ := widget.NewIcon(icons.ActionSettingsEthernet)
 	buttonOptions := components.NewButton(components.ButtonStyle{
@@ -194,6 +196,14 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	if build_tx_modal.Instance.TxSent() {
 		p.clearForm()
+	}
+
+	{
+		changed, value := p.ringSizeSelector.Changed()
+		if changed {
+			settings.App.SendRingSize = value
+			settings.Save()
+		}
 	}
 
 	widgets := []layout.Widget{
@@ -382,10 +392,7 @@ func (p *PageSendForm) prepareTx() error {
 		{SCID: scId, Destination: txtWalletAddr.Value(), Amount: amount, Payload_RPC: arguments},
 	}
 
-	ringsize, err := strconv.ParseUint(p.ringSizeSelector.Value, 10, 64)
-	if err != nil {
-		return err
-	}
+	ringsize := uint64(p.ringSizeSelector.Value)
 
 	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
 		Transfers: transfers,
