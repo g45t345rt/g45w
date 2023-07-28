@@ -26,7 +26,6 @@ import (
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/utils"
-	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -262,11 +261,6 @@ func (p *PageRemoteNode) reconnect() {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			wallet := wallet_manager.OpenedWallet
-			if wallet != nil {
-				wallet.Memory.Clean()
-			}
-
 			p.nodeInfo.Update()
 			app_instance.Window.Invalidate()
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node reconnected."))

@@ -342,6 +342,9 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 }
 
 func (w *Wallet) InsertToken(token Token) error {
+	scId := crypto.HashHexToHash(token.SCID)
+	w.Memory.TokenAdd(scId) // we don't check error because the only possible error is if the token was already added
+
 	_, err := w.DB.Exec(`
 		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?);
