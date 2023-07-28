@@ -34,6 +34,7 @@ type PageSettings struct {
 	txtWalletChangePassword *components.TextField
 	buttonSave              *components.Button
 	modalWalletPassword     *prefabs.PasswordModal
+	buttonCleanWallet       *components.Button
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -59,6 +60,20 @@ func NewPageSettings() *PageSettings {
 	})
 	buttonDeleteWallet.Label.Alignment = text.Middle
 	buttonDeleteWallet.Style.Font.Weight = font.Bold
+
+	cleanIcon, _ := widget.NewIcon(icons.ContentDeleteSweep)
+	buttonCleanWallet := components.NewButton(components.ButtonStyle{
+		Rounded:         components.UniformRounded(unit.Dp(5)),
+		Icon:            cleanIcon,
+		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		TextSize:        unit.Sp(14),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+	})
+	buttonCleanWallet.Label.Alignment = text.Middle
+	buttonCleanWallet.Style.Font.Weight = font.Bold
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonSave := components.NewButton(components.ButtonStyle{
@@ -125,6 +140,7 @@ func NewPageSettings() *PageSettings {
 		txtWalletChangePassword: txtWalletChangePassword,
 		buttonSave:              buttonSave,
 		buttonInfo:              buttonInfo,
+		buttonCleanWallet:       buttonCleanWallet,
 	}
 }
 
@@ -165,6 +181,11 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	if p.buttonInfo.Clicked() {
 		p.action = "wallet_info"
+		p.modalWalletPassword.Modal.SetVisible(true)
+	}
+
+	if p.buttonCleanWallet.Clicked() {
+		p.action = "clean_wallet"
 		p.modalWalletPassword.Modal.SetVisible(true)
 	}
 
@@ -240,6 +261,20 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return layout.Dimensions{Size: gtx.Constraints.Max}
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonCleanWallet.Text = lang.Translate("CLEAN WALLET")
+
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return p.buttonCleanWallet.Layout(gtx, th)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Delete most data and rescan."))
+					return lbl.Layout(gtx)
+				}),
+			)
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			p.buttonDeleteWallet.Text = lang.Translate("DELETE WALLET")
 			return p.buttonDeleteWallet.Layout(gtx, th)
 		},
@@ -266,6 +301,11 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 	case "wallet_info":
 		page_instance.pageRouter.SetCurrent(PAGE_WALLET_INFO)
 		page_instance.header.AddHistory(PAGE_WALLET_INFO)
+	case "clean_wallet":
+		wallet.Memory.Clean()
+
+		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Wallet cleaned"))
+		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 	case "delete_wallet":
 		err := wallet_manager.DeleteWallet(wallet.Info.Addr)
 		if err != nil {
