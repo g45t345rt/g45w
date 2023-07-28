@@ -1,8 +1,6 @@
 package prefabs
 
 import (
-	"image"
-
 	"gioui.org/f32"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -24,9 +22,9 @@ type ImageHoverClick struct {
 	hoverSwitchState bool
 }
 
-func NewImageHoverClick(src image.Image) *ImageHoverClick {
+func NewImageHoverClick(src paint.ImageOp) *ImageHoverClick {
 	image := &components.Image{
-		Src:     paint.NewImageOp(src),
+		Src:     src,
 		Fit:     components.Cover,
 		Rounded: components.UniformRounded(unit.Dp(10)),
 	}

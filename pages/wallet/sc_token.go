@@ -75,7 +75,7 @@ func NewPageSCToken() *PageSCToken {
 	list.Axis = layout.Vertical
 
 	src, _ := assets.GetImage("token.png")
-	image := prefabs.NewImageHoverClick(src)
+	image := prefabs.NewImageHoverClick(paint.NewImageOp(src))
 
 	scIdEditor := new(widget.Editor)
 	scIdEditor.WrapPolicy = text.WrapGraphemes

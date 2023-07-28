@@ -88,9 +88,6 @@ func New() *Page {
 	pageAddSCForm := NewPageAddSCForm()
 	pageRouter.Add(PAGE_ADD_SC_FORM, pageAddSCForm)
 
-	pageTxs := NewPageTxs()
-	pageRouter.Add(PAGE_TXS, pageTxs)
-
 	pageSCToken := NewPageSCToken()
 	pageRouter.Add(PAGE_SC_TOKEN, pageSCToken)
 

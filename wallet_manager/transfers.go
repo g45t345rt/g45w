@@ -24,13 +24,9 @@ type GetTransfersParams struct {
 	Limit                    sql.NullInt64
 }
 
-type ByTime []rpc.Entry
-
-func (t ByTime) Len() int           { return len(t) }
-func (t ByTime) Swap(a, b int)      { t[a], t[b] = t[b], t[a] }
-func (t ByTime) Less(a, b int) bool { return t[a].Time.Unix() < t[b].Time.Unix() }
-
 func filterEntries(allEntries []rpc.Entry, params GetTransfersParams, start, end int, entryChan chan<- rpc.Entry, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	for i := start; i < end; i++ {
 		e := allEntries[i]
 		add := true
@@ -103,24 +99,32 @@ func (w *Wallet) GetTransfers(scId string, params GetTransfersParams) []rpc.Entr
 		go filterEntries(allEntries, params, start, end, entryChan, &wg)
 	}
 
+	var entries []rpc.Entry
 	go func() {
-		wg.Wait()
-		close(entryChan)
+		for e := range entryChan {
+			entries = append(entries, e)
+		}
 	}()
 
-	var entries []rpc.Entry
-	for e := range entryChan {
-		entries = append(entries, e)
-	}
+	wg.Wait()
+	close(entryChan)
 
-	sort.Sort(ByTime(entries))
+	sort.Slice(entries, func(a, b int) bool {
+		return entries[a].Time.Unix() > entries[b].Time.Unix()
+	})
 
 	if params.Offset.Valid {
-		entries = entries[params.Offset.Int64:]
+		offset := params.Offset.Int64
+		if len(entries) > int(offset) {
+			entries = entries[offset:]
+		}
 	}
 
 	if params.Limit.Valid {
-		entries = entries[:params.Limit.Int64]
+		limit := params.Limit.Int64
+		if len(entries) > int(limit) {
+			entries = entries[:limit]
+		}
 	}
 
 	return entries
