@@ -22,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -242,58 +243,86 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							return editor.Layout(gtx)
 						}))
 				} else {
+					totalTransfer := uint64(0)
+					for _, transfer := range b.txPayload.Transfers {
+						if transfer.SCID.IsZero() {
+							totalTransfer += transfer.Amount
+						}
+					}
+
 					childrens = append(childrens,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(16), lang.Translate("TX fees"))
+							lbl := material.Label(th, unit.Sp(22), lang.Translate("Confirm"))
 							lbl.Font.Weight = font.Bold
 							return lbl.Layout(gtx)
 						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							fees := globals.FormatMoney(b.buildTx.Fees())
-							lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", fees))
-							return lbl.Layout(gtx)
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), lang.Translate("Transfer"))
+									lbl.Color = color.NRGBA{A: 200}
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(totalTransfer)))
+									return lbl.Layout(gtx)
+								}),
+							)
 						}),
 						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(16), lang.Translate("New balance"))
-							lbl.Font.Weight = font.Bold
-							return lbl.Layout(gtx)
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), lang.Translate("TX fees"))
+									lbl.Color = color.NRGBA{A: 200}
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									fees := globals.FormatMoney(b.buildTx.Fees())
+									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", fees))
+									return lbl.Layout(gtx)
+								}),
+							)
 						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							balance, _ := wallet.Memory.Get_Balance()
-							newBalance := balance
-							fees := b.buildTx.Fees()
-							newBalance -= fees
-
-							totalTransfer := uint64(0)
-							for _, transfer := range b.txPayload.Transfers {
-								if transfer.SCID.IsZero() {
-									totalTransfer += transfer.Amount
-								}
-							}
-							newBalance -= totalTransfer
-
-							status := fmt.Sprintf("%s - %s - %s",
-								globals.FormatMoney(balance),
-								globals.FormatMoney(totalTransfer),
-								globals.FormatMoney(fees),
-							)
-
-							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(newBalance)))
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), lang.Translate("Receiver"))
+									lbl.Color = color.NRGBA{A: 200}
 									return lbl.Layout(gtx)
 								}),
-								layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(12), status)
+									txt := ""
+									if len(b.txPayload.Transfers) > 1 {
+										txt = "Multiple receivers"
+									} else {
+										addr := b.txPayload.Transfers[0].Destination
+										txt = utils.ReduceAddr(addr)
+									}
+
+									lbl := material.Label(th, unit.Sp(16), txt)
 									return lbl.Layout(gtx)
 								}),
 							)
 						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), lang.Translate("Total"))
+									lbl.Color = color.NRGBA{A: 200}
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									total := globals.FormatMoney(totalTransfer + b.buildTx.Fees())
+									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", total))
+									return lbl.Layout(gtx)
+								}),
+							)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return b.buttonSend.Layout(gtx, th)
 						}))

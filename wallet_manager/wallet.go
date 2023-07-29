@@ -23,7 +23,7 @@ import (
 
 type Wallet struct {
 	Info   *WalletInfo
-	Memory *walletapi.Wallet_Memory
+	Memory *walletapi.Wallet_Disk
 	DB     *sql.DB
 }
 
@@ -99,12 +99,8 @@ func OpenWallet(addr string, password string) error {
 
 	walletsDir := settings.WalletsDir
 	walletPath := filepath.Join(walletsDir, addr, "wallet.db")
-	data, err := os.ReadFile(walletPath)
-	if err != nil {
-		return err
-	}
 
-	memory, err := walletapi.Open_Encrypted_Wallet_Memory(password, data)
+	memory, err := walletapi.Open_Encrypted_Wallet(walletPath, password)
 	if err != nil {
 		return err
 	}

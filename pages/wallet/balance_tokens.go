@@ -386,7 +386,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
-			Top: unit.Dp(20), Bottom: unit.Dp(10),
+			Top: unit.Dp(20), Bottom: unit.Dp(15),
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			text := make(map[string]string)

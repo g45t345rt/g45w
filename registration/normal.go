@@ -13,7 +13,7 @@ type NormalReg struct {
 	Running bool
 	OnFound func(tx *transaction.Transaction)
 
-	wallet    *walletapi.Wallet_Memory
+	wallet    *walletapi.Wallet_Disk
 	hashRate  map[int]uint64
 	hashCount map[int]uint64
 	mutex     sync.RWMutex
@@ -26,7 +26,7 @@ func NewNormalReg() *NormalReg {
 	}
 }
 
-func (s *NormalReg) Start(workers int, wallet *walletapi.Wallet_Memory) {
+func (s *NormalReg) Start(workers int, wallet *walletapi.Wallet_Disk) {
 	s.wallet = wallet
 	s.Running = true
 	for i := 0; i < workers; i++ {
