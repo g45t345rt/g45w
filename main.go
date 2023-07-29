@@ -55,11 +55,10 @@ func loadFontCollection() ([]font.FontFace, error) {
 	return fontCollection, nil
 }
 
-func runApp() error {
+func runApp(th *material.Theme) error {
 	var ops op.Ops
 
 	window := app_instance.Window
-	th := app_instance.Theme
 	router := app_instance.Router
 	explorer := app_instance.Explorer
 	for {
@@ -149,7 +148,6 @@ func main() {
 
 	// app instance to give guick access to every package
 	app_instance.Window = window
-	app_instance.Theme = theme
 	app_instance.Router = appRouter
 	app_instance.Explorer = explorer
 
@@ -166,7 +164,7 @@ func main() {
 	appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 
 	go func() {
-		err := runApp()
+		err := runApp(theme)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -70,10 +70,7 @@ func New() *Page {
 	pageCreateWalletDiskForm := NewPageCreateWalletDiskForm()
 	pageRouter.Add(PAGE_CREATE_WALLET_DISK_FORM, pageCreateWalletDiskForm)
 
-	th := app_instance.Theme
-	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
-	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
+	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
 		animationEnter:       animationEnter,
@@ -148,7 +145,12 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						Top: unit.Dp(30), Bottom: unit.Dp(30),
 						Left: unit.Dp(30), Right: unit.Dp(30),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return p.header.Layout(gtx, th)
+						return p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(22), title)
+							lbl.Font.Weight = font.Bold
+
+							return lbl.Layout(gtx)
+						})
 					})
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

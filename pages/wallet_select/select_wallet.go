@@ -49,8 +49,6 @@ type PageSelectWallet struct {
 var _ router.Page = &PageSelectWallet{}
 
 func NewPageSelectWallet() *PageSelectWallet {
-	theme := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),
 	))
@@ -59,10 +57,10 @@ func NewPageSelectWallet() *PageSelectWallet {
 		gween.New(0, -1, .25, ease.Linear),
 	))
 
-	walletList := NewWalletList(theme)
+	walletList := NewWalletList()
 
 	modalWalletPassword := prefabs.NewPasswordModal()
-	modalCreateWalletSelection := NewCreateWalletSelectionModal(theme)
+	modalCreateWalletSelection := NewCreateWalletSelectionModal()
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
@@ -122,13 +120,11 @@ func (p *PageSelectWallet) Leave() {
 }
 
 func (p *PageSelectWallet) Load() {
-	theme := app_instance.Theme
-
 	wallets := wallet_manager.Wallets
 	items := make([]WalletListItem, 0)
 	for _, wallet := range wallets {
 		items = append(items,
-			NewWalletListItem(theme, wallet),
+			NewWalletListItem(wallet),
 		)
 	}
 
@@ -220,12 +216,12 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 }
 
 type CreateWalletSelectionModal struct {
-	modal     *components.Modal
-	listStyle material.ListStyle
-	items     []*CreateWalletListItem
+	modal *components.Modal
+	list  *widget.List
+	items []*CreateWalletListItem
 }
 
-func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionModal {
+func NewCreateWalletSelectionModal() *CreateWalletSelectionModal {
 	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
@@ -239,8 +235,6 @@ func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionMod
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-
-	listStyle := material.List(th, list)
 
 	fastIcon, _ := widget.NewIcon(icons.ImageFlashOn)
 	newIcon, _ := widget.NewIcon(icons.ContentAddCircle)
@@ -256,9 +250,9 @@ func NewCreateWalletSelectionModal(th *material.Theme) *CreateWalletSelectionMod
 	}
 
 	return &CreateWalletSelectionModal{
-		modal:     modal,
-		listStyle: listStyle,
-		items:     items,
+		modal: modal,
+		list:  list,
+		items: items,
 	}
 }
 
@@ -268,7 +262,9 @@ func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.The
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
 			Left: unit.Dp(10), Right: unit.Dp(0),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return c.listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
+			listStyle := material.List(th, c.list)
+
+			return listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
 				if c.items[index].clickable.Clicked() {
 					c.modal.SetVisible(false)
 
@@ -332,29 +328,21 @@ func (c *CreateWalletListItem) Layout(gtx layout.Context, th *material.Theme) la
 }
 
 type WalletList struct {
-	listStyle material.ListStyle
-	items     []WalletListItem
+	list  *widget.List
+	items []WalletListItem
 }
 
-func NewWalletList(th *material.Theme) *WalletList {
+func NewWalletList() *WalletList {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	listStyle := material.List(th, list)
-	listStyle.AnchorStrategy = material.Overlay
-	listStyle.Indicator.MinorWidth = unit.Dp(10)
-	listStyle.Indicator.CornerRadius = unit.Dp(5)
-	black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-	listStyle.Indicator.Color = black
-	//listStyle.Indicator.HoverColor = f32color.Hovered(black)
-
 	return &WalletList{
-		listStyle: listStyle,
-		items:     []WalletListItem{},
+		list:  list,
+		items: []WalletListItem{},
 	}
 }
 
-func (l *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (w *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		clip.UniformRRect(
 			image.Rectangle{Max: gtx.Constraints.Max},
@@ -363,11 +351,17 @@ func (l *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	)
 
 	return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return l.listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
-			return l.items[i].Layout(gtx, th)
+		listStyle := material.List(th, w.list)
+		listStyle.AnchorStrategy = material.Overlay
+		listStyle.Indicator.MinorWidth = unit.Dp(10)
+		listStyle.Indicator.CornerRadius = unit.Dp(5)
+		black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+		listStyle.Indicator.Color = black
+
+		return listStyle.Layout(gtx, len(w.items), func(gtx layout.Context, i int) layout.Dimensions {
+			return w.items[i].Layout(gtx, th)
 		})
 	})
-
 }
 
 type WalletListItem struct {
@@ -376,8 +370,7 @@ type WalletListItem struct {
 	rounded   unit.Dp
 }
 
-func NewWalletListItem(th *material.Theme, wallet *wallet_manager.WalletInfo) WalletListItem {
-
+func NewWalletListItem(wallet *wallet_manager.WalletInfo) WalletListItem {
 	return WalletListItem{
 		wallet:    wallet,
 		Clickable: &widget.Clickable{},

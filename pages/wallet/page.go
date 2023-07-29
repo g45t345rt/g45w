@@ -37,6 +37,7 @@ type Page struct {
 	pageSendOptionsForm *PageSendOptionsForm
 	pageSCFolders       *PageSCFolders
 	pageContacts        *PageContacts
+	pageTransaction     *PageTransaction
 
 	pageRouter *router.Router
 }
@@ -59,11 +60,10 @@ var (
 	PAGE_SEND_OPTIONS_FORM = "page_send_options_form"
 	PAGE_SC_FOLDERS        = "page_sc_folders"
 	PAGE_WALLET_INFO       = "page_wallet_info"
+	PAGE_TRANSACTION       = "page_transaction"
 )
 
 func New() *Page {
-	th := app_instance.Theme
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .5, ease.OutCubic),
 	))
@@ -109,10 +109,10 @@ func New() *Page {
 	pageWalletInfo := NewPageWalletInfo()
 	pageRouter.Add(PAGE_WALLET_INFO, pageWalletInfo)
 
-	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
-	labelHeaderStyle.Font.Weight = font.Bold
+	pageTransaction := NewPageTransaction()
+	pageRouter.Add(PAGE_TRANSACTION, pageTransaction)
 
-	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
+	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
 		animationEnter: animationEnter,
@@ -212,7 +212,11 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						Left: unit.Dp(30), Right: unit.Dp(30),
 						Top: unit.Dp(30), Bottom: unit.Dp(20),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return p.header.Layout(gtx, th)
+						return p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(22), title)
+							lbl.Font.Weight = font.Bold
+							return lbl.Layout(gtx)
+						})
 					})
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

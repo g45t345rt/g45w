@@ -7,7 +7,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -69,10 +68,7 @@ func New() *Page {
 	pageRemoteNode := NewPageRemoteNode()
 	pageRouter.Add(PAGE_REMOTE_NODE, pageRemoteNode)
 
-	th := app_instance.Theme
-	labelHeaderStyle := material.Label(th, unit.Sp(22), "")
-	labelHeaderStyle.Font.Weight = font.Bold
-	header := prefabs.NewHeader(labelHeaderStyle, pageRouter)
+	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
 		pageRouter:         pageRouter,
@@ -158,7 +154,11 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						Top: unit.Dp(30), Bottom: unit.Dp(20),
 						Left: unit.Dp(30), Right: unit.Dp(30),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return p.header.Layout(gtx, th)
+						return p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(22), title)
+							lbl.Font.Weight = font.Bold
+							return lbl.Layout(gtx)
+						})
 					})
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
