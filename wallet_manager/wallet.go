@@ -11,6 +11,7 @@ import (
 
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
+	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/settings"
@@ -130,6 +131,12 @@ func OpenWallet(addr string, password string) error {
 	err = initDatabaseContacts(db)
 	if err != nil {
 		return err
+	}
+
+	account := memory.GetAccount()
+	// fix: looks like EntriesNative is not instantiated on startup but only in InsertReplace func???
+	if account.EntriesNative == nil {
+		account.EntriesNative = make(map[crypto.Hash][]rpc.Entry)
 	}
 
 	wallet := &Wallet{

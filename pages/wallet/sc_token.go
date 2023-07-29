@@ -43,6 +43,10 @@ type PageSCToken struct {
 	sendReceiveButtons *SendReceiveButtons
 	confirmRemoveToken *components.Confirm
 	buttonHideBalance  *ButtonHideBalance
+	tabBars            *components.TabBars
+	txBar              *TxBar
+	getTransfersParams wallet_manager.GetTransfersParams
+	txItems            []*TxListItem
 
 	token      *wallet_manager.Token
 	tokenImage *prefabs.ImageHoverClick
@@ -84,9 +88,19 @@ func NewPageSCToken() *PageSCToken {
 	sendReceiveButtons := NewSendReceiveButtons()
 	buttonHideBalance := NewButtonHideBalance()
 
+	tabBarsItems := []*components.TabBarsItem{
+		components.NewTabBarItem("txs", components.TabBarItemStyle{
+			TextSize: unit.Sp(18),
+		}),
+	}
+
+	tabBars := components.NewTabBars("txs", tabBarsItems)
+
+	txBar := NewTxBar()
+
 	confirmRemoveToken := components.NewConfirm(layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
+		DrawIndex: 2,
 		Layout: func(gtx layout.Context, th *material.Theme) {
 			confirmRemoveToken.Prompt = lang.Translate("Are you sure?")
 			confirmRemoveToken.NoText = lang.Translate("NO")
@@ -106,6 +120,8 @@ func NewPageSCToken() *PageSCToken {
 		sendReceiveButtons: sendReceiveButtons,
 		confirmRemoveToken: confirmRemoveToken,
 		buttonHideBalance:  buttonHideBalance,
+		tabBars:            tabBars,
+		txBar:              txBar,
 
 		list: list,
 	}
@@ -117,6 +133,10 @@ func (p *PageSCToken) IsActive() bool {
 
 func (p *PageSCToken) Enter() {
 	p.isActive = true
+
+	wallet := wallet_manager.OpenedWallet
+	scId := crypto.HashHexToHash(p.token.SCID)
+	wallet.Memory.TokenAdd(scId) // we don't check error because the only possible error is if the token was already added
 
 	page_instance.header.SetTitle(p.token.Name)
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -146,6 +166,41 @@ func (p *PageSCToken) RefreshBalance() {
 	wallet := wallet_manager.OpenedWallet
 	scId := crypto.HashHexToHash(p.token.SCID)
 	p.balance, _ = wallet.Memory.Get_Balance_scid(scId)
+}
+
+func (p *PageSCToken) LoadTxs() {
+	wallet := wallet_manager.OpenedWallet
+	entries := wallet.GetTransfers(p.token.SCID, p.getTransfersParams)
+
+	txItems := []*TxListItem{}
+
+	imgUp, _ := assets.GetImage("arrow_up_arc.png")
+	srcImgUp := paint.NewImageOp(imgUp)
+
+	imgDown, _ := assets.GetImage("arrow_down_arc.png")
+	srcImgDown := paint.NewImageOp(imgDown)
+
+	imgCoinbase, _ := assets.GetImage("coinbase.png")
+	srcImgCoinbase := paint.NewImageOp(imgCoinbase)
+
+	for _, entry := range entries {
+		var img paint.ImageOp
+
+		if entry.Incoming {
+			img = srcImgDown
+		} else {
+			img = srcImgUp
+		}
+
+		if entry.Coinbase {
+			img = srcImgCoinbase
+		}
+
+		txItems = append(txItems, NewTxListItem(entry, img))
+	}
+
+	p.txItems = txItems
+	p.txBar.txCount = len(entries)
 }
 
 func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -328,6 +383,30 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return p.sendReceiveButtons.Layout(gtx, th)
 	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		text := make(map[string]string)
+		text["txs"] = lang.Translate("Transactions")
+		return p.tabBars.Layout(gtx, th, text)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return p.txBar.Layout(gtx, th)
+	})
+
+	if len(p.txItems) == 0 {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any txs. Try adjusting filering options."))
+			return lbl.Layout(gtx)
+		})
+	}
+
+	for i := range p.txItems {
+		idx := i
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.txItems[idx].Layout(gtx, th)
+		})
+	}
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{

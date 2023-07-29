@@ -45,16 +45,17 @@ type PageBalanceTokens struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	alertBox       *AlertBox
-	displayBalance *DisplayBalance
-	tokenBar       *TokenBar
-	tokenItems     []*TokenListItem
-	buttonSettings *components.Button
-	buttonRegister *components.Button
-	buttonCopyAddr *components.Button
-	tabBars        *components.TabBars
-	txBar          *TxBar
-	txItems        []*TxListItem
+	alertBox           *AlertBox
+	displayBalance     *DisplayBalance
+	tokenBar           *TokenBar
+	tokenItems         []*TokenListItem
+	buttonSettings     *components.Button
+	buttonRegister     *components.Button
+	buttonCopyAddr     *components.Button
+	tabBars            *components.TabBars
+	txBar              *TxBar
+	txItems            []*TxListItem
+	getTransfersParams wallet_manager.GetTransfersParams
 
 	list *widget.List
 }
@@ -150,6 +151,17 @@ func (p *PageBalanceTokens) Enter() {
 }
 
 func (p *PageBalanceTokens) Load() error {
+	p.LoadTxs()
+
+	err := p.LoadTokens()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *PageBalanceTokens) LoadTokens() error {
 	wallet := wallet_manager.OpenedWallet
 
 	tokens, err := wallet.GetTokens(wallet_manager.GetTokensParams{
@@ -170,9 +182,12 @@ func (p *PageBalanceTokens) Load() error {
 	p.tokenItems = tokenItems
 	p.RefreshTokensBalance()
 
-	entries := wallet.GetTransfers(crypto.ZEROHASH.String(), wallet_manager.GetTransfersParams{
-		//Limit: sql.NullInt64{Int64: 50, Valid: true},
-	})
+	return nil
+}
+
+func (p *PageBalanceTokens) LoadTxs() {
+	wallet := wallet_manager.OpenedWallet
+	entries := wallet.GetTransfers(crypto.ZEROHASH.String(), p.getTransfersParams)
 
 	txItems := []*TxListItem{}
 
@@ -202,8 +217,7 @@ func (p *PageBalanceTokens) Load() error {
 	}
 
 	p.txItems = txItems
-
-	return nil
+	p.txBar.txCount = len(entries)
 }
 
 func (p *PageBalanceTokens) RefreshTokensBalance() {
@@ -383,6 +397,30 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	})
 
 	{
+		changed, tab := p.txBar.Changed()
+		if changed {
+			switch tab {
+			case "all":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{}
+			case "in":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{
+					In: sql.NullBool{Bool: true, Valid: true},
+				}
+			case "out":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{
+					Out: sql.NullBool{Bool: true, Valid: true},
+				}
+			case "coinbase":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{
+					Coinbase: sql.NullBool{Bool: true, Valid: true},
+				}
+			}
+
+			p.LoadTxs()
+		}
+	}
+
+	{
 		changed, key := p.tabBars.Changed()
 		if changed {
 			settings.App.TabBarsKey = key
@@ -441,7 +479,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 					Top: unit.Dp(0), Bottom: unit.Dp(20),
 					Left: unit.Dp(30), Right: unit.Dp(30),
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any txs. Maybe the wallet is not fully sync or you are connected to node with partial data."))
+					lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any txs. Try adjusting filering options."))
 					return lbl.Layout(gtx)
 				})
 			})
@@ -843,19 +881,20 @@ type TxBar struct {
 	buttonOut      *components.Button
 	buttonCoinbase *components.Button
 	buttonFilter   *components.Button
+	txCount        int
+
+	textColorOn  color.NRGBA
+	textColorOff color.NRGBA
+	bgColorOn    color.NRGBA
+	bgColorOff   color.NRGBA
+
+	tab     string
+	changed bool
 }
 
 func NewTxBar() *TxBar {
-	textColorOn := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-	textColorOff := color.NRGBA{A: 255}
-
-	bgColorOn := color.NRGBA{A: 255}
-	bgColorOff := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-
 	buttonAll := components.NewButton(components.ButtonStyle{
-		TextColor:       textColorOn,
-		BackgroundColor: bgColorOn,
-		TextSize:        unit.Sp(16),
+		TextSize: unit.Sp(16),
 		Inset: layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
@@ -865,9 +904,7 @@ func NewTxBar() *TxBar {
 	})
 
 	buttonIn := components.NewButton(components.ButtonStyle{
-		TextColor:       textColorOff,
-		BackgroundColor: bgColorOff,
-		TextSize:        unit.Sp(16),
+		TextSize: unit.Sp(16),
 		Inset: layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
@@ -877,9 +914,7 @@ func NewTxBar() *TxBar {
 	})
 
 	buttonOut := components.NewButton(components.ButtonStyle{
-		TextColor:       textColorOff,
-		BackgroundColor: bgColorOff,
-		TextSize:        unit.Sp(16),
+		TextSize: unit.Sp(16),
 		Inset: layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
@@ -889,9 +924,7 @@ func NewTxBar() *TxBar {
 	})
 
 	buttonCoinbase := components.NewButton(components.ButtonStyle{
-		TextColor:       textColorOff,
-		BackgroundColor: bgColorOff,
-		TextSize:        unit.Sp(16),
+		TextSize: unit.Sp(16),
 		Inset: layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
@@ -912,26 +945,64 @@ func NewTxBar() *TxBar {
 		Animation: components.NewButtonAnimationDefault(),
 	})
 
+	textColorOn := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+	textColorOff := color.NRGBA{A: 255}
+
+	bgColorOn := color.NRGBA{A: 255}
+	bgColorOff := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+
 	return &TxBar{
 		buttonAll:      buttonAll,
 		buttonIn:       buttonIn,
 		buttonOut:      buttonOut,
 		buttonCoinbase: buttonCoinbase,
 		buttonFilter:   buttonFilter,
+		tab:            "all",
+
+		textColorOn:  textColorOn,
+		textColorOff: textColorOff,
+		bgColorOn:    bgColorOn,
+		bgColorOff:   bgColorOff,
+	}
+}
+
+func (t *TxBar) Changed() (bool, string) {
+	return t.changed, t.tab
+}
+
+func (t *TxBar) setActiveButton(button *components.Button, tab string) {
+	if t.tab == tab {
+		button.Style.TextColor = t.textColorOn
+		button.Style.BackgroundColor = t.bgColorOn
+		button.Disabled = true
+	} else {
+		button.Style.TextColor = t.textColorOff
+		button.Style.BackgroundColor = t.bgColorOff
+		button.Disabled = false
 	}
 }
 
 func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if t.buttonAll.Clicked() {
+	t.changed = false
 
+	if t.buttonAll.Clicked() {
+		t.changed = true
+		t.tab = "all"
 	}
 
 	if t.buttonIn.Clicked() {
-
+		t.changed = true
+		t.tab = "in"
 	}
 
 	if t.buttonOut.Clicked() {
+		t.changed = true
+		t.tab = "out"
+	}
 
+	if t.buttonCoinbase.Clicked() {
+		t.changed = true
+		t.tab = "coinbase"
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -941,21 +1012,25 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 					return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							t.buttonAll.Text = lang.Translate("All")
+							t.setActiveButton(t.buttonAll, "all")
 							return t.buttonAll.Layout(gtx, th)
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							t.buttonIn.Text = lang.Translate("In")
+							t.setActiveButton(t.buttonIn, "in")
 							return t.buttonIn.Layout(gtx, th)
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							t.buttonOut.Text = lang.Translate("Out")
+							t.setActiveButton(t.buttonOut, "out")
 							return t.buttonOut.Layout(gtx, th)
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							t.buttonCoinbase.Text = lang.Translate("Coinbase")
+							t.setActiveButton(t.buttonCoinbase, "coinbase")
 							return t.buttonCoinbase.Layout(gtx, th)
 						}),
 					)
@@ -965,6 +1040,13 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 					return t.buttonFilter.Layout(gtx, th)
 				}),
 			)
+		}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			txt := lang.Translate("{} transactions")
+			txt = strings.Replace(txt, "{}", fmt.Sprint(t.txCount), -1)
+			lbl := material.Label(th, unit.Sp(14), txt)
+			return lbl.Layout(gtx)
 		}),
 	)
 }
