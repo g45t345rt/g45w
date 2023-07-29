@@ -28,6 +28,7 @@ func NewAnimation(startImmediately bool, sequence *gween.Sequence) *Animation {
 	return &Animation{
 		Sequence: sequence,
 		stop:     !startImmediately,
+		active:   startImmediately,
 	}
 }
 

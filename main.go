@@ -61,6 +61,68 @@ func runApp(th *material.Theme) error {
 	window := app_instance.Window
 	router := app_instance.Router
 	explorer := app_instance.Explorer
+
+	loadState := NewLoadState(window)
+
+	go func() {
+		loadState.logoSplash.animation.Start()
+		loadState.SetStatus("Initiating", nil) // don't use lang.Translate - lang is not loaded
+
+		err := lang.Load()
+		if err != nil {
+			loadState.SetStatus("", err)
+			return
+		}
+
+		loadState.SetStatus(lang.Translate("Loading settings"), nil)
+		err = settings.Load()
+		if err != nil {
+			loadState.SetStatus("", err)
+			return
+		}
+
+		loadState.SetStatus(lang.Translate("Loading lookup table"), nil)
+		walletapi.Initialize_LookupTable(1, 1<<21)
+
+		loadState.SetStatus(lang.Translate("Loading app data"), nil)
+		err = app_data.Load()
+		if err != nil {
+			loadState.SetStatus("", err)
+			return
+		}
+
+		loadState.SetStatus(lang.Translate("Loading wallets"), nil)
+		err = wallet_manager.Load()
+		if err != nil {
+			loadState.SetStatus("", err)
+			return
+		}
+
+		loadState.SetStatus(lang.Translate("Checking node"), nil)
+		err = node_manager.Load()
+		if err != nil {
+			loadState.SetStatus("", err)
+			return
+		}
+
+		loadState.SetStatus(lang.Translate("Loading pages"), nil)
+		bottom_bar.LoadInstance()
+		node_status_bar.LoadInstance()
+		notification_modals.LoadInstance()
+		recent_txs_modal.LoadInstance()
+		build_tx_modal.LoadInstance()
+
+		router.Add(app_instance.PAGE_NODE, page_node.New())
+		router.Add(app_instance.PAGE_WALLET, page_wallet.New())
+		router.Add(app_instance.PAGE_WALLET_SELECT, page_wallet_select.New())
+		router.Add(app_instance.PAGE_SETTINGS, page_settings.New())
+		router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+
+		loadState.logoSplash.animation.Pause()
+		loadState.SetStatus(lang.Translate("Done"), nil)
+		loadState.Complete()
+	}()
+
 	for {
 		e := <-window.Events()
 		explorer.ListenEvents(e)
@@ -69,7 +131,13 @@ func runApp(th *material.Theme) error {
 			return e.Err
 		case system.FrameEvent:
 			gtx := layout.NewContext(&ops, e)
-			router.Layout(gtx, th)
+
+			if loadState.loaded {
+				router.Layout(gtx, th)
+			} else {
+				loadState.Layout(gtx, th)
+			}
+
 			e.Frame(gtx.Ops)
 		}
 	}
@@ -83,33 +151,6 @@ func main() {
 	globals.Arguments["--help"] = false
 	globals.Arguments["--version"] = false
 
-	walletapi.Initialize_LookupTable(1, 1<<21)
-
-	err := settings.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = lang.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = app_data.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = wallet_manager.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = node_manager.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// window
 	minSizeX := unit.Dp(375)
 	minSizeY := unit.Dp(600)
@@ -117,7 +158,7 @@ func main() {
 	maxSizeY := unit.Dp(1000)
 
 	window := app.NewWindow(
-		app.Title("G45W"),
+		app.Title(settings.Name),
 		app.MinSize(minSizeX, minSizeY),
 		app.Size(minSizeX, minSizeY),
 		app.MaxSize(maxSizeX, maxSizeY),
@@ -150,18 +191,6 @@ func main() {
 	app_instance.Window = window
 	app_instance.Router = appRouter
 	app_instance.Explorer = explorer
-
-	bottom_bar.LoadInstance()
-	node_status_bar.LoadInstance()
-	notification_modals.LoadInstance()
-	recent_txs_modal.LoadInstance()
-	build_tx_modal.LoadInstance()
-
-	appRouter.Add(app_instance.PAGE_NODE, page_node.New())
-	appRouter.Add(app_instance.PAGE_WALLET, page_wallet.New())
-	appRouter.Add(app_instance.PAGE_WALLET_SELECT, page_wallet_select.New())
-	appRouter.Add(app_instance.PAGE_SETTINGS, page_settings.New())
-	appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
 
 	go func() {
 		err := runApp(theme)

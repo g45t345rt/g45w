@@ -23,6 +23,7 @@ var (
 )
 
 var App AppSettings
+var Name = "G45W"
 
 // vars below are replaced by -ldflags during build
 var Version = "development"
@@ -36,6 +37,18 @@ func Load() error {
 	}
 
 	appDir := filepath.Join(dataDir, "g45w")
+	_, err = os.Stat(appDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.Mkdir(appDir, os.ModePerm)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
 	integratedNodeDir := filepath.Join(appDir, "node")
 	walletsDir := filepath.Join(appDir, "wallets")
 
@@ -43,22 +56,22 @@ func Load() error {
 	IntegratedNodeDir = integratedNodeDir
 	WalletsDir = walletsDir
 
-	path := filepath.Join(AppDir, "settings.json")
+	settingsPath := filepath.Join(AppDir, "settings.json")
 
-	_, err = os.Stat(path)
+	// settings with default values
+	appSettings := AppSettings{
+		Language:     "en",
+		HideBalance:  false,
+		SendRingSize: 16,
+		NodeEndpoint: "",
+		TabBarsKey:   "tokens",
+	}
+
+	_, err = os.Stat(settingsPath)
 	if err == nil {
-		data, err := os.ReadFile(path)
+		data, err := os.ReadFile(settingsPath)
 		if err != nil {
 			return err
-		}
-
-		// settings with default values
-		appSettings := AppSettings{
-			Language:     "en",
-			HideBalance:  false,
-			SendRingSize: 16,
-			NodeEndpoint: "",
-			TabBarsKey:   "tokens",
 		}
 
 		err = json.Unmarshal(data, &appSettings)

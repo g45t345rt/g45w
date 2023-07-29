@@ -3,7 +3,6 @@ package prefabs
 import (
 	"fmt"
 	"image/color"
-	"log"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -47,10 +46,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 
 	languages := lang.SupportedLanguages
 	for _, language := range languages {
-		img, err := assets.GetImage(language.ImgPath)
-		if err != nil {
-			log.Fatal(err)
-		}
+		img, _ := assets.GetImage(language.ImgPath)
 
 		langImg := &components.Image{
 			Src:      paint.NewImageOp(img),

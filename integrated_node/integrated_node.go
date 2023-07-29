@@ -183,7 +183,6 @@ func NewNodeSize(d time.Duration) *NodeSize {
 		}
 	}()
 
-	nodedSize.update()
 	return nodedSize
 }
 

@@ -3,7 +3,6 @@ package page_wallet
 import (
 	"bytes"
 	"image"
-	"log"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -16,6 +15,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	qrcode "github.com/skip2/go-qrcode"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -71,18 +71,9 @@ func (p *PageReceiveForm) Enter() {
 		p.animationLeave.Reset()
 	}
 
-	// gio ui does not implement character break yet https://todo.sr.ht/~eliasnaur/gio/467
-	addr := "dero1qyvzwypmgqrqpsr8xlz209mwr6sz8fu9a4fphkpnesg29du40zw22qqpm2nkv"
-
-	imgBytes, err := qrcode.Encode(addr, qrcode.Medium, 256)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	img, _, err := image.Decode(bytes.NewBuffer(imgBytes))
-	if err != nil {
-		log.Fatal(err)
-	}
+	addr := wallet_manager.OpenedWallet.Info.Addr
+	imgBytes, _ := qrcode.Encode(addr, qrcode.Medium, 256)
+	img, _, _ := image.Decode(bytes.NewBuffer(imgBytes))
 
 	p.addrImage = &components.Image{
 		Src: paint.NewImageOp(img),
