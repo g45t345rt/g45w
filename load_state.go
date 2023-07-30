@@ -24,11 +24,11 @@ type LogoSplash struct {
 
 func NewLogoSplash() *LogoSplash {
 	animtation := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, 1, ease.Linear),
+		gween.New(0, 1, 1, ease.InBack),
 	))
 	animtation.Sequence.SetLoop(-1)
 
-	src, _ := assets.GetImage("dero.jpg")
+	src, _ := assets.GetImage("dero_polygon.png")
 
 	image := &components.Image{
 		Src: paint.NewImageOp(src),
@@ -119,7 +119,7 @@ func (l *LoadState) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 							return l.logoSplash.Layout(gtx)
 						})
 					}),
-					layout.Rigid(layout.Spacer{Height: unit.Dp(40)}.Layout),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 							lbl := material.Label(th, unit.Sp(20), l.status)

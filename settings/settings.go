@@ -78,10 +78,9 @@ func Load() error {
 		if err != nil {
 			return err
 		}
-
-		App = appSettings
 	}
 
+	App = appSettings
 	return nil
 }
 
