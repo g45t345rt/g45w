@@ -130,7 +130,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				}
 			}
 
-			defer prefabs.PaintLinearGradient(gtx).Pop()
+			defer prefabs.PaintGrayLinearGradient(gtx).Pop()
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

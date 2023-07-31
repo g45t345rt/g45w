@@ -10,13 +10,20 @@ import (
 	"gioui.org/op/paint"
 )
 
-func PaintLinearGradient(gtx layout.Context) clip.Stack {
+func PaintGrayLinearGradient(gtx layout.Context) clip.Stack {
+	return PaintLinearGradient(gtx,
+		color.NRGBA{A: 5},
+		color.NRGBA{A: 50},
+	)
+}
+
+func PaintLinearGradient(gtx layout.Context, colorStart color.NRGBA, colorEnd color.NRGBA) clip.Stack {
 	dr := image.Rectangle{Max: gtx.Constraints.Min}
 	paint.LinearGradientOp{
 		Stop1:  f32.Pt(0, float32(dr.Min.Y)),
 		Stop2:  f32.Pt(0, float32(dr.Max.Y)),
-		Color1: color.NRGBA{R: 0, G: 0, B: 0, A: 5},
-		Color2: color.NRGBA{R: 0, G: 0, B: 0, A: 50},
+		Color1: colorStart,
+		Color2: colorEnd,
 	}.Add(gtx.Ops)
 	stack := clip.Rect(dr).Push(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)

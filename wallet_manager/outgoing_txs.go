@@ -274,3 +274,10 @@ func (w *Wallet) DelOutgoingTx(txId string) error {
 	`, txId)
 	return err
 }
+
+func (w *Wallet) ClearOutgoingTxs() error {
+	_, err := w.DB.Exec(`
+		DELETE FROM outgoing_txs
+	`)
+	return err
+}

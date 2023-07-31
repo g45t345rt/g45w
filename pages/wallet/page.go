@@ -220,7 +220,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					})
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					defer prefabs.PaintLinearGradient(gtx).Pop()
+					defer prefabs.PaintGrayLinearGradient(gtx).Pop()
 
 					return p.pageRouter.Layout(gtx, th)
 				}),
