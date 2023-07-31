@@ -20,6 +20,13 @@ func NewTextField() *TextField {
 	}
 }
 
+func NewNumberTextField() *TextField {
+	input := NewNumberInput()
+	return &TextField{
+		Input: input,
+	}
+}
+
 func NewPasswordTextField() *TextField {
 	input := NewPasswordInput()
 

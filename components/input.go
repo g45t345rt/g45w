@@ -24,9 +24,10 @@ type Input struct {
 	Inset      layout.Inset
 	Clickable  *widget.Clickable
 
-	submitted    bool
-	submitText   string
-	activeSubmit bool
+	keyboardClick *widget.Clickable
+	submitted     bool
+	submitText    string
+	activeSubmit  bool
 }
 
 func NewInput() *Input {
@@ -41,14 +42,22 @@ func NewInput() *Input {
 	}
 
 	return &Input{
-		Editor:    editor,
-		Border:    border,
-		Clickable: new(widget.Clickable),
+		Editor:        editor,
+		Border:        border,
+		Clickable:     new(widget.Clickable),
+		keyboardClick: new(widget.Clickable),
 		Inset: layout.Inset{
 			Top: unit.Dp(15), Bottom: unit.Dp(15),
 			Left: unit.Dp(12), Right: unit.Dp(12),
 		},
 	}
+}
+
+func NewNumberInput() *Input {
+	input := NewInput()
+	input.Editor.Filter = "0123456789."
+	input.Editor.InputHint = key.HintNumeric
+	return input
 }
 
 func NewPasswordInput() *Input {
@@ -64,9 +73,10 @@ func NewPasswordInput() *Input {
 	}
 
 	return &Input{
-		Editor:    editor,
-		Border:    border,
-		Clickable: new(widget.Clickable),
+		Editor:        editor,
+		Border:        border,
+		Clickable:     new(widget.Clickable),
+		keyboardClick: new(widget.Clickable),
 		Inset: layout.Inset{
 			Top: unit.Dp(15), Bottom: unit.Dp(15),
 			Left: unit.Dp(12), Right: unit.Dp(12),
@@ -106,28 +116,37 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 
 	gtx.Constraints.Min.Y = t.EditorMinY
 
+	if t.keyboardClick.Clicked() {
+		// on mobile if the keyboard popups and the input lose focus it will automatically close the keyboard
+		// so we have to manually force keyboard request to avoid this issue
+		key.SoftKeyboardOp{Show: true}.Add(gtx.Ops)
+	}
+
 	return t.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			macro := op.Record(gtx.Ops)
-			dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				editorStyle := material.Editor(th, t.Editor, hint)
-				if t.TextSize != 0 {
-					editorStyle.TextSize = t.TextSize
-				}
-				if t.FontWeight != font.Normal {
-					editorStyle.Font.Weight = t.FontWeight
-				}
-				return editorStyle.Layout(gtx)
+		return t.keyboardClick.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				macro := op.Record(gtx.Ops)
+				dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					editorStyle := material.Editor(th, t.Editor, hint)
+					if t.TextSize != 0 {
+						editorStyle.TextSize = t.TextSize
+					}
+					if t.FontWeight != font.Normal {
+						editorStyle.Font.Weight = t.FontWeight
+					}
+					return editorStyle.Layout(gtx)
+				})
+				call := macro.Stop()
+
+				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+					image.Rectangle{Max: dims.Size},
+					int(t.Border.CornerRadius),
+				).Op(gtx.Ops))
+
+				call.Add(gtx.Ops)
+				return dims
 			})
-			call := macro.Stop()
 
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
-				image.Rectangle{Max: dims.Size},
-				int(t.Border.CornerRadius),
-			).Op(gtx.Ops))
-
-			call.Add(gtx.Ops)
-			return dims
 		})
 	})
 }

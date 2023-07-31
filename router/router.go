@@ -16,12 +16,6 @@ type KeyLayout struct {
 	Layout    LayoutFunc
 }
 
-type SortKeyLayout []KeyLayout
-
-func (k SortKeyLayout) Len() int           { return len(k) }
-func (k SortKeyLayout) Swap(i, j int)      { k[i], k[j] = k[j], k[i] }
-func (k SortKeyLayout) Less(i, j int) bool { return k[i].DrawIndex < k[j].DrawIndex }
-
 type Router struct {
 	Pages   map[interface{}]Page // does not keep ordering with range (use drawOrder)
 	Current interface{}
@@ -64,12 +58,15 @@ func (router *Router) SetCurrent(tag interface{}) {
 
 func (router *Router) AddLayout(keyLayout KeyLayout) {
 	router.keyLayouts = append(router.keyLayouts, keyLayout)
-	sort.Sort(SortKeyLayout(router.keyLayouts))
+	sort.Slice(router.keyLayouts, func(i, j int) bool {
+		return router.keyLayouts[i].DrawIndex < router.keyLayouts[j].DrawIndex
+	})
 }
 
 func (router *Router) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if router.closeKeyboard {
 		// mobile: force close keyboard on page change
+		// we probably don't need this since the keyboard automatically close when an input lose focus
 		key.SoftKeyboardOp{Show: false}.Add(gtx.Ops)
 		router.closeKeyboard = false
 	}
