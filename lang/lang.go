@@ -2,9 +2,11 @@ package lang
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/xeonx/timeago"
 )
 
 type Lang struct {
@@ -39,6 +41,17 @@ func Load() error {
 		langValues[lang.Key] = values
 	}
 
+	// TODO: add more predefined configuration language
+	max := 100 * 365 * 24 * time.Hour
+	timeago.English.Max = max
+	timeago.Chinese.Max = max
+	timeago.German.Max = max
+	timeago.Korean.Max = max
+	timeago.French.Max = max
+	timeago.Portuguese.Max = max
+	timeago.Spanish.Max = max
+	timeago.Turkish.Max = max
+
 	return nil
 }
 
@@ -55,4 +68,18 @@ func Translate(eng string) string {
 	}
 
 	return value
+}
+
+func TimeAgo(date time.Time) string {
+	lang := settings.App.Language
+	switch lang {
+	case "pt":
+		return timeago.Portuguese.Format(date)
+	case "es":
+		return timeago.Spanish.Format(date)
+	case "fr":
+		return timeago.French.Format(date)
+	}
+
+	return timeago.English.Format(date)
 }

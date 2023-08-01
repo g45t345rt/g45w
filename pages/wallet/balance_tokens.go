@@ -1076,7 +1076,9 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if item.clickable.Clicked() {
-
+		page_instance.pageTransaction.entry = &item.entry
+		page_instance.pageRouter.SetCurrent(PAGE_TRANSACTION)
+		page_instance.header.AddHistory(PAGE_TRANSACTION)
 	}
 
 	m := op.Record(gtx.Ops)

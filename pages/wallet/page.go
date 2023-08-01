@@ -127,6 +127,7 @@ func New() *Page {
 		pageSendOptionsForm: pageSendOptionsForm,
 		pageSCFolders:       pageSCFolders,
 		pageContacts:        pageContacts,
+		pageTransaction:     pageTransaction,
 
 		pageRouter: pageRouter,
 	}
