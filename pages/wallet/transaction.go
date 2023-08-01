@@ -95,7 +95,6 @@ func NewPageTransaction() *PageTransaction {
 		dateEditor:              &widget.Editor{ReadOnly: true},
 		timeAgoEditor:           &widget.Editor{ReadOnly: true},
 		blockHeightEditor:       &widget.Editor{ReadOnly: true},
-		payloadArgInfoList:      make([]PayloadArgInfo, 0),
 
 		srcImgCoinbase: srcImgCoinbase,
 		srcImgDown:     srcImgDown,
@@ -108,7 +107,22 @@ func (p *PageTransaction) IsActive() bool {
 	return p.isActive
 }
 
+func (p *PageTransaction) Clear() {
+	p.payloadArgInfoList = make([]PayloadArgInfo, 0)
+	p.txIdEditor.SetText("")
+	p.senderDestinationEditor.SetText("")
+	p.blockHashEditor.SetText("")
+	p.proofEditor.SetText("")
+	p.amountEditor.SetText("")
+	p.feesEditor.SetText("")
+	p.burnEditor.SetText("")
+	p.dateEditor.SetText("")
+	p.timeAgoEditor.SetText("")
+	p.blockHeightEditor.SetText("")
+}
+
 func (p *PageTransaction) Enter() {
+	p.Clear()
 	p.txIdEditor.SetText(p.entry.TXID)
 
 	for _, arg := range p.entry.Payload_RPC {
