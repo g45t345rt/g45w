@@ -296,7 +296,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), date.Format("2006-01-02"))
+						lbl := material.Label(th, unit.Sp(16), lang.TimeAgo(date))
 						lbl.Alignment = text.End
 						return lbl.Layout(gtx)
 					}),

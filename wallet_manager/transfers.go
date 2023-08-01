@@ -87,7 +87,13 @@ func (w *Wallet) GetTransfers(scId string, params GetTransfersParams) []rpc.Entr
 	workers := runtime.NumCPU()
 	var wg sync.WaitGroup
 	entryChan := make(chan rpc.Entry)
+
 	chunkSize := totalEntries / workers
+	if chunkSize < 50 {
+		chunkSize = totalEntries
+		workers = 1
+	}
+
 	for i := 0; i < workers; i++ {
 		start := i * chunkSize
 		end := (i + 1) * chunkSize

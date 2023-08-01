@@ -92,6 +92,9 @@ func NewPageSCToken() *PageSCToken {
 		components.NewTabBarItem("txs", components.TabBarItemStyle{
 			TextSize: unit.Sp(18),
 		}),
+		components.NewTabBarItem("info", components.TabBarItemStyle{
+			TextSize: unit.Sp(18),
+		}),
 	}
 
 	tabBars := components.NewTabBars("txs", tabBarsItems)
@@ -387,25 +390,32 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		text := make(map[string]string)
 		text["txs"] = lang.Translate("Transactions")
+		text["info"] = lang.Translate("Info")
 		return p.tabBars.Layout(gtx, th, text)
 	})
 
-	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return p.txBar.Layout(gtx, th)
-	})
-
-	if len(p.txItems) == 0 {
+	if p.tabBars.Key == "txs" {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any txs. Try adjusting filering options."))
-			return lbl.Layout(gtx)
+			return p.txBar.Layout(gtx, th)
 		})
+
+		if len(p.txItems) == 0 {
+			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any txs. Try adjusting filering options or wait for wallet to sync."))
+				return lbl.Layout(gtx)
+			})
+		}
+
+		for i := range p.txItems {
+			idx := i
+			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+				return p.txItems[idx].Layout(gtx, th)
+			})
+		}
 	}
 
-	for i := range p.txItems {
-		idx := i
-		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			return p.txItems[idx].Layout(gtx, th)
-		})
+	if p.tabBars.Key == "info" {
+
 	}
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
