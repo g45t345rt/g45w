@@ -48,6 +48,8 @@ type PageTransaction struct {
 	timeAgoEditor           *widget.Editor
 	blockHeightEditor       *widget.Editor
 
+	payloadArgInfoList []PayloadArgInfo
+
 	list *widget.List
 }
 
@@ -93,6 +95,7 @@ func NewPageTransaction() *PageTransaction {
 		dateEditor:              &widget.Editor{ReadOnly: true},
 		timeAgoEditor:           &widget.Editor{ReadOnly: true},
 		blockHeightEditor:       &widget.Editor{ReadOnly: true},
+		payloadArgInfoList:      make([]PayloadArgInfo, 0),
 
 		srcImgCoinbase: srcImgCoinbase,
 		srcImgDown:     srcImgDown,
@@ -108,8 +111,17 @@ func (p *PageTransaction) IsActive() bool {
 func (p *PageTransaction) Enter() {
 	p.txIdEditor.SetText(p.entry.TXID)
 
+	for _, arg := range p.entry.Payload_RPC {
+		p.payloadArgInfoList = append(p.payloadArgInfoList, *NewPayloadArgLayout(arg))
+	}
+
 	if p.entry.Incoming {
-		p.senderDestinationEditor.SetText(p.entry.Sender)
+		sender := p.entry.Sender
+		if sender == "" {
+			sender = "?"
+		}
+
+		p.senderDestinationEditor.SetText(sender)
 		p.txTypeImg.Src = p.srcImgDown
 	} else {
 		p.senderDestinationEditor.SetText(p.entry.Destination)
@@ -136,7 +148,7 @@ func (p *PageTransaction) Enter() {
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		txId := utils.ReduceTxId(p.entry.TXID)
 		if txId == "" {
-			txId = "From Coinbase"
+			txId = lang.Translate("From Coinbase")
 		}
 
 		lbl := material.Label(th, unit.Sp(16), txId)
@@ -291,6 +303,13 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 		})
 	}
 
+	for i := range p.payloadArgInfoList {
+		idx := i
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.payloadArgInfoList[idx].Layout(gtx, th)
+		})
+	}
+
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
 	})
@@ -304,6 +323,55 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+type PayloadArgInfo struct {
+	arg    rpc.Argument
+	editor *widget.Editor
+}
+
+func NewPayloadArgLayout(arg rpc.Argument) *PayloadArgInfo {
+	editor := new(widget.Editor)
+	editor.ReadOnly = true
+	editor.SetText(fmt.Sprint(arg.Value))
+
+	return &PayloadArgInfo{
+		editor: editor,
+		arg:    arg,
+	}
+}
+
+func (p *PayloadArgInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	var name string
+	switch p.arg.Name {
+	case "D":
+		name = lang.Translate("Destination Port")
+	case "S":
+		name = lang.Translate("Source Port")
+	case "V":
+		name = lang.Translate("Value Transfer")
+	case "C":
+		name = lang.Translate("Comment")
+	case "E":
+		name = lang.Translate("Expiry")
+	case "R":
+		name = lang.Translate("Replyback Address")
+	case "N":
+		name = lang.Translate("Needs Replyback Address")
+	}
+
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), name)
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
+		}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			editor := material.Editor(th, p.editor, "")
+			return editor.Layout(gtx)
+		}),
+	)
 }
 
 type InfoRowLayout struct {
