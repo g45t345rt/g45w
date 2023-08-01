@@ -10,7 +10,6 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -32,12 +31,22 @@ type PageTransaction struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 	entry          *rpc.Entry
-	txIdEditor     *widget.Editor
 
 	srcImgCoinbase paint.ImageOp
 	srcImgDown     paint.ImageOp
 	srcImgUp       paint.ImageOp
 	txTypeImg      components.Image
+
+	txIdEditor              *widget.Editor
+	senderDestinationEditor *widget.Editor
+	blockHashEditor         *widget.Editor
+	proofEditor             *widget.Editor
+	amountEditor            *widget.Editor
+	burnEditor              *widget.Editor
+	feesEditor              *widget.Editor
+	dateEditor              *widget.Editor
+	timeAgoEditor           *widget.Editor
+	blockHeightEditor       *widget.Editor
 
 	list *widget.List
 }
@@ -52,10 +61,6 @@ func NewPageTransaction() *PageTransaction {
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(0, 1, .25, ease.Linear),
 	))
-
-	txIdEditor := new(widget.Editor)
-	txIdEditor.WrapPolicy = text.WrapGraphemes
-	txIdEditor.ReadOnly = true
 
 	imgUp, _ := assets.GetImage("arrow_up_arc.png")
 	srcImgUp := paint.NewImageOp(imgUp)
@@ -77,8 +82,17 @@ func NewPageTransaction() *PageTransaction {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		list:       list,
-		txIdEditor: txIdEditor,
+		list:                    list,
+		txIdEditor:              &widget.Editor{ReadOnly: true},
+		senderDestinationEditor: &widget.Editor{ReadOnly: true},
+		blockHashEditor:         &widget.Editor{ReadOnly: true},
+		proofEditor:             &widget.Editor{ReadOnly: true},
+		amountEditor:            &widget.Editor{ReadOnly: true},
+		burnEditor:              &widget.Editor{ReadOnly: true},
+		feesEditor:              &widget.Editor{ReadOnly: true},
+		dateEditor:              &widget.Editor{ReadOnly: true},
+		timeAgoEditor:           &widget.Editor{ReadOnly: true},
+		blockHeightEditor:       &widget.Editor{ReadOnly: true},
 
 		srcImgCoinbase: srcImgCoinbase,
 		srcImgDown:     srcImgDown,
@@ -93,12 +107,30 @@ func (p *PageTransaction) IsActive() bool {
 
 func (p *PageTransaction) Enter() {
 	p.txIdEditor.SetText(p.entry.TXID)
-	fmt.Println(p.entry)
+
 	if p.entry.Incoming {
+		p.senderDestinationEditor.SetText(p.entry.Sender)
 		p.txTypeImg.Src = p.srcImgDown
 	} else {
+		p.senderDestinationEditor.SetText(p.entry.Destination)
 		p.txTypeImg.Src = p.srcImgUp
 	}
+
+	p.blockHashEditor.SetText(p.entry.BlockHash)
+	p.proofEditor.SetText(p.entry.Proof)
+
+	amount := globals.FormatMoney(p.entry.Amount)
+	p.amountEditor.SetText(amount)
+	fees := globals.FormatMoney(p.entry.Fees)
+	p.feesEditor.SetText(fees)
+	burn := globals.FormatMoney(p.entry.Burn)
+	p.burnEditor.SetText(burn)
+	date := p.entry.Time.Format("2006-01-02 15:04")
+	p.dateEditor.SetText(date)
+	timeAgo := lang.TimeAgo(p.entry.Time)
+	p.timeAgoEditor.SetText(timeAgo)
+	blockHeight := fmt.Sprint(p.entry.Height)
+	p.blockHeightEditor.SetText(blockHeight)
 
 	page_instance.header.SetTitle(lang.Translate("Transaction"))
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -193,8 +225,8 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), p.entry.Sender)
-						return lbl.Layout(gtx)
+						editor := material.Editor(th, p.senderDestinationEditor, "")
+						return editor.Layout(gtx)
 					}),
 				)
 			})
@@ -208,8 +240,8 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), p.entry.Destination)
-						return lbl.Layout(gtx)
+						editor := material.Editor(th, p.senderDestinationEditor, "")
+						return editor.Layout(gtx)
 					}),
 				)
 			})
@@ -217,33 +249,27 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		amount := globals.FormatMoney(p.entry.Amount)
-		fees := globals.FormatMoney(p.entry.Fees)
-		burn := globals.FormatMoney(p.entry.Burn)
-		date := p.entry.Time.Format("2006-01-02 15:04")
-		timeAgo := lang.TimeAgo(p.entry.Time)
-
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			InfoRowLayout{}.Layout(gtx, th, lang.Translate("Amount"), amount),
-			InfoRowLayout{}.Layout(gtx, th, lang.Translate("Fees"), fees),
-			InfoRowLayout{}.Layout(gtx, th, lang.Translate("Burn"), burn),
-			InfoRowLayout{}.Layout(gtx, th, lang.Translate("Block Height"), fmt.Sprint(p.entry.Height)),
-			InfoRowLayout{}.Layout(gtx, th, lang.Translate("Date"), date),
-			InfoRowLayout{}.Layout(gtx, th, lang.Translate("Time"), timeAgo),
+			InfoRowLayout{Editor: p.amountEditor}.Layout(gtx, th, lang.Translate("Amount")),
+			InfoRowLayout{Editor: p.feesEditor}.Layout(gtx, th, lang.Translate("Fees")),
+			InfoRowLayout{Editor: p.burnEditor}.Layout(gtx, th, lang.Translate("Burn")),
+			InfoRowLayout{Editor: p.blockHeightEditor}.Layout(gtx, th, lang.Translate("Block Height")),
+			InfoRowLayout{Editor: p.dateEditor}.Layout(gtx, th, lang.Translate("Date")),
+			InfoRowLayout{Editor: p.timeAgoEditor}.Layout(gtx, th, lang.Translate("Time")),
 		)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				lbl := material.Label(th, unit.Sp(16), lang.Translate("Block"))
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("Block Hash"))
 				lbl.Font.Weight = font.Bold
 				return lbl.Layout(gtx)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				lbl := material.Label(th, unit.Sp(16), p.entry.BlockHash)
-				return lbl.Layout(gtx)
+				editor := material.Editor(th, p.blockHashEditor, "")
+				return editor.Layout(gtx)
 			}),
 		)
 	})
@@ -258,8 +284,8 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), p.entry.Proof)
-					return lbl.Layout(gtx)
+					editor := material.Editor(th, p.proofEditor, "")
+					return editor.Layout(gtx)
 				}),
 			)
 		})
@@ -281,15 +307,10 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 }
 
 type InfoRowLayout struct {
-	editor *widget.Editor
+	Editor *widget.Editor
 }
 
-func (i InfoRowLayout) Layout(gtx layout.Context, th *material.Theme, title string, value string) layout.FlexChild {
-	if i.editor == nil {
-		i.editor = new(widget.Editor)
-		i.editor.SetText(value)
-	}
-
+func (i InfoRowLayout) Layout(gtx layout.Context, th *material.Theme, title string) layout.FlexChild {
 	return layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -298,7 +319,7 @@ func (i InfoRowLayout) Layout(gtx layout.Context, th *material.Theme, title stri
 				return lbl.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				editor := material.Editor(th, i.editor, "")
+				editor := material.Editor(th, i.Editor, "")
 				return editor.Layout(gtx)
 			}),
 		)
