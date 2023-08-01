@@ -69,17 +69,3 @@ func Translate(eng string) string {
 
 	return value
 }
-
-func TimeAgo(date time.Time) string {
-	lang := settings.App.Language
-	switch lang {
-	case "pt":
-		return timeago.Portuguese.Format(date)
-	case "es":
-		return timeago.Spanish.Format(date)
-	case "fr":
-		return timeago.French.Format(date)
-	}
-
-	return timeago.English.Format(date)
-}
