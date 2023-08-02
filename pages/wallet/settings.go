@@ -1,6 +1,8 @@
 package page_wallet
 
 import (
+	"encoding/csv"
+	"fmt"
 	"image/color"
 
 	"gioui.org/font"
@@ -36,6 +38,7 @@ type PageSettings struct {
 	buttonSave              *components.Button
 	modalWalletPassword     *prefabs.PasswordModal
 	buttonCleanWallet       *components.Button
+	buttonExportTxs         *components.Button
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -108,6 +111,26 @@ func NewPageSettings() *PageSettings {
 	buttonInfo.Label.Alignment = text.Middle
 	buttonInfo.Style.Font.Weight = font.Bold
 
+	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	exportIcon, _ := widget.NewIcon(icons.EditorPublish)
+	buttonExportTxs := components.NewButton(components.ButtonStyle{
+		Icon:            exportIcon,
+		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		BackgroundColor: color.NRGBA{A: 0},
+		TextSize:        unit.Sp(16),
+		IconGap:         unit.Dp(10),
+		Inset:           layout.UniformInset(unit.Dp(10)),
+		Animation:       components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+		LoadingIcon: loadingIcon,
+	})
+	buttonExportTxs.Label.Alignment = text.Middle
+	buttonExportTxs.Style.Font.Weight = font.Bold
+
 	modalWalletPassword := prefabs.NewPasswordModal()
 
 	app_instance.Router.AddLayout(router.KeyLayout{
@@ -142,6 +165,7 @@ func NewPageSettings() *PageSettings {
 		buttonSave:              buttonSave,
 		buttonInfo:              buttonInfo,
 		buttonCleanWallet:       buttonCleanWallet,
+		buttonExportTxs:         buttonExportTxs,
 	}
 }
 
@@ -190,6 +214,11 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		p.modalWalletPassword.Modal.SetVisible(true)
 	}
 
+	if p.buttonExportTxs.Clicked() {
+		p.action = "export_txs"
+		p.modalWalletPassword.Modal.SetVisible(true)
+	}
+
 	submitted, password := p.modalWalletPassword.Input.Submitted()
 	if submitted {
 		wallet := wallet_manager.OpenedWallet
@@ -198,13 +227,12 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		if !validPassword {
 			p.modalWalletPassword.StartWrongPassAnimation()
 		} else {
+			p.modalWalletPassword.Modal.SetVisible(false)
 			err := p.submitForm(gtx, password)
 
 			if err != nil {
 				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			} else {
-				p.modalWalletPassword.Modal.SetVisible(false)
 			}
 		}
 	}
@@ -260,6 +288,10 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			}.Op())
 
 			return layout.Dimensions{Size: gtx.Constraints.Max}
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonExportTxs.Text = lang.Translate("EXPORT TRANSACTIONS")
+			return p.buttonExportTxs.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonCleanWallet.Text = lang.Translate("CLEAN WALLET")
@@ -319,6 +351,57 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 
 		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Wallet deleted"))
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+	case "export_txs":
+		go func() error {
+			setError := func(err error) error {
+				p.buttonExportTxs.SetLoading(false)
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				return err
+			}
+
+			notification_modals.InfoInstance.SetText(lang.Translate("Info"), lang.Translate("Exporting transactions..."))
+			notification_modals.InfoInstance.SetVisible(true, 0)
+
+			account := wallet.Memory.GetAccount()
+			p.buttonExportTxs.SetLoading(true)
+
+			file, err := app_instance.Explorer.CreateFile("transactions.csv")
+			if err != nil {
+				return setError(err)
+			}
+
+			writer := csv.NewWriter(file)
+			defer writer.Flush()
+
+			header := []string{"SCID", "TXID", "Height", "Blockhash",
+				"Coinbase", "Incoming", "Destination", "Atomic Amount",
+				"Atomic Burn", "Atomic Fees", "Proof", "Time", "EWData",
+				"Sender", "Destination Port", "Source Port"}
+			err = writer.Write(header)
+			if err != nil {
+				return setError(err)
+			}
+
+			for scId, entries := range account.EntriesNative {
+				for _, entry := range entries {
+					row := []string{scId.String(), entry.TXID, fmt.Sprint(entry.Height), entry.BlockHash,
+						fmt.Sprint(entry.Coinbase), fmt.Sprint(entry.Incoming), entry.Destination, fmt.Sprint(entry.Amount),
+						fmt.Sprint(entry.Burn), fmt.Sprint(entry.Fees), entry.Proof, entry.Time.String(), entry.EWData,
+						entry.Sender, fmt.Sprint(entry.DestinationPort), fmt.Sprint(entry.SourcePort)}
+					err = writer.Write(row)
+					if err != nil {
+						return setError(err)
+					}
+				}
+			}
+
+			p.buttonExportTxs.SetLoading(false)
+			notification_modals.InfoInstance.SetVisible(false, 0)
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Transactions exported."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			return nil
+		}()
 	case "save_changes":
 		newWalletName := p.txtWalletName.Value()
 		if wallet.Info.Name != newWalletName {
