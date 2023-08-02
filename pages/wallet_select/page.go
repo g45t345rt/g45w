@@ -9,6 +9,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/tanema/gween"
@@ -113,7 +114,7 @@ func (p *Page) Leave() {
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if bottom_bar.Instance.ButtonWallet.Button.Clicked() {
-		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
+		app_instance.Router.SetCurrent(pages.PAGE_WALLET)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

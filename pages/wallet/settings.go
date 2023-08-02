@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -313,7 +314,7 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 		}
 
 		page_instance.header.GoBack()
-		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+		app_instance.Router.SetCurrent(pages.PAGE_WALLET_SELECT)
 		wallet_manager.CloseOpenedWallet()
 
 		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Wallet deleted"))

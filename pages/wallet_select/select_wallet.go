@@ -21,6 +21,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/utils"
@@ -199,7 +200,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				wallet := wallet_manager.OpenedWallet
 				wallet.Memory.SetOnlineMode()
 				p.modalWalletPassword.Modal.SetVisible(false)
-				app_instance.Router.SetCurrent(app_instance.PAGE_WALLET)
+				app_instance.Router.SetCurrent(pages.PAGE_WALLET)
 			} else {
 				if err.Error() == "Invalid Password" {
 					p.modalWalletPassword.StartWrongPassAnimation()

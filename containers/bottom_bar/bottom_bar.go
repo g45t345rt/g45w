@@ -18,6 +18,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -153,24 +154,24 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}
 
 	if b.confirmClose.ClickedYes() {
-		b.appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+		b.appRouter.SetCurrent(pages.PAGE_WALLET_SELECT)
 		wallet_manager.CloseOpenedWallet()
 	}
 
 	if b.ButtonNode.Button.Clicked() {
-		b.appRouter.SetCurrent(app_instance.PAGE_NODE)
+		b.appRouter.SetCurrent(pages.PAGE_NODE)
 	}
 
 	if b.ButtonWallet.Button.Clicked() {
-		if b.appRouter.Current == app_instance.PAGE_WALLET {
-			b.appRouter.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+		if b.appRouter.Current == pages.PAGE_WALLET {
+			b.appRouter.SetCurrent(pages.PAGE_WALLET_SELECT)
 		} else {
-			b.appRouter.SetCurrent(app_instance.PAGE_WALLET)
+			b.appRouter.SetCurrent(pages.PAGE_WALLET)
 		}
 	}
 
 	if b.ButtonSettings.Button.Clicked() {
-		b.appRouter.SetCurrent(app_instance.PAGE_SETTINGS)
+		b.appRouter.SetCurrent(pages.PAGE_SETTINGS)
 	}
 
 	if b.ButtonTxs.Button.Clicked() {

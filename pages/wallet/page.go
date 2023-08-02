@@ -16,6 +16,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -159,7 +160,7 @@ func (p *Page) Enter() {
 			p.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 		}
 	} else {
-		app_instance.Router.SetCurrent(app_instance.PAGE_WALLET_SELECT)
+		app_instance.Router.SetCurrent(pages.PAGE_WALLET_SELECT)
 	}
 }
 

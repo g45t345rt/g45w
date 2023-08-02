@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/pages"
 	page_node "github.com/g45t345rt/g45w/pages/node"
 	"github.com/g45t345rt/g45w/wallet_manager"
 )
@@ -109,7 +110,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if n.clickable.Clicked() {
-		app_instance.Router.SetCurrent(app_instance.PAGE_NODE)
+		app_instance.Router.SetCurrent(pages.PAGE_NODE)
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 

@@ -268,28 +268,28 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					addr := p.txtWalletAddr.Editor.Text()
 
 					wallet := wallet_manager.OpenedWallet
+					if wallet != nil {
+						contact, _ := wallet.GetContact(addr)
+						if contact != nil {
+							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+								layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+											lbl := material.Label(th, unit.Sp(16), lang.Translate("Matching contact:"))
+											return lbl.Layout(gtx)
+										}),
+										layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
+										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 
-					contact, _ := wallet.GetContact(addr)
-
-					if contact != nil {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										lbl := material.Label(th, unit.Sp(16), lang.Translate("Matching contact:"))
-										return lbl.Layout(gtx)
-									}),
-									layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
-									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-
-										lbl := material.Label(th, unit.Sp(16), contact.Name)
-										lbl.Font.Weight = font.Bold
-										return lbl.Layout(gtx)
-									}),
-								)
-							}),
-						)
+											lbl := material.Label(th, unit.Sp(16), contact.Name)
+											lbl.Font.Weight = font.Bold
+											return lbl.Layout(gtx)
+										}),
+									)
+								}),
+							)
+						}
 					}
 
 					return layout.Dimensions{}
