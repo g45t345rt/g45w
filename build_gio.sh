@@ -10,6 +10,7 @@ mkdir -p "./build"
 
 GOOS=$1
 GOARCH=$2
+MIN_SDK=0
 OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
 
 source ./build_vars.sh
@@ -27,6 +28,7 @@ if [ $GOOS = "macos" ]; then
 fi
 
 if [ $GOOS = "ios" ]; then
+  MIN_SDK=15 # minimum sdk IOS 15.0+
   OUTPUT+=".ipa"
 fi
 
@@ -48,4 +50,4 @@ fi
 #	signKey       = flag.String("signkey", "", "specify the path of the keystore to be used to sign Android apk files.")
 #	signPass      = flag.String("signpass", "", "specify the password to decrypt the signkey.")
 
-gogio -target $GOOS -arch $GOARCH -x -ldflags "$FLAGS" -appid $APPID -version $VERSION_INCREMENT -o "$OUTPUT" .
+gogio -target $GOOS -arch $GOARCH -minsdk $MIN_SDK -x -ldflags "$FLAGS" -appid $APPID -version $VERSION_INCREMENT -o "$OUTPUT" .
