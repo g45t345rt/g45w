@@ -28,5 +28,5 @@ jobs:
     - name: Archive build
       uses: actions/upload-artifact@v3
       with:
-        name: Build MacOS
+        name: Build IOS
         path: build
