@@ -22,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
+	page_wallet "github.com/g45t345rt/g45w/pages/wallet"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/utils"
@@ -200,6 +201,8 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				wallet := wallet_manager.OpenedWallet
 				wallet.Memory.SetOnlineMode()
 				p.modalWalletPassword.Modal.SetVisible(false)
+				// important reset wallet pages to initial state
+				app_instance.Router.Pages[pages.PAGE_WALLET] = page_wallet.New()
 				app_instance.Router.SetCurrent(pages.PAGE_WALLET)
 			} else {
 				if err.Error() == "Invalid Password" {
