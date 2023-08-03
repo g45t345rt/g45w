@@ -47,6 +47,7 @@ type PageSCToken struct {
 	txBar              *TxBar
 	getTransfersParams wallet_manager.GetTransfersParams
 	txItems            []*TxListItem
+	tokenInfo          *TokenInfoList
 
 	token      *wallet_manager.Token
 	tokenImage *prefabs.ImageHoverClick
@@ -140,6 +141,8 @@ func (p *PageSCToken) Enter() {
 	wallet := wallet_manager.OpenedWallet
 	scId := crypto.HashHexToHash(p.token.SCID)
 	wallet.Memory.TokenAdd(scId) // we don't check error because the only possible error is if the token was already added
+
+	p.tokenInfo = NewTokenInfoList(p.token)
 
 	page_instance.header.SetTitle(p.token.Name)
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -415,8 +418,14 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 	}
 
 	if p.tabBars.Key == "info" {
-
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.tokenInfo.Layout(gtx, th)
+		})
 	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+	})
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
@@ -490,4 +499,56 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 	return &TokenMenuSelect{
 		SelectModal: selectModal,
 	}
+}
+
+type TokenInfoList struct {
+	nameEditor         *widget.Editor
+	decimalsEditor     *widget.Editor
+	symbolEditor       *widget.Editor
+	maxSupplyEditor    *widget.Editor
+	standardTypeEditor *widget.Editor
+}
+
+func NewTokenInfoList(token *wallet_manager.Token) *TokenInfoList {
+	nameEditor := &widget.Editor{ReadOnly: true}
+	nameEditor.SetText(token.Name)
+
+	decimalsEditor := &widget.Editor{ReadOnly: true}
+	decimalsEditor.SetText(fmt.Sprint(token.Decimals))
+
+	symbolEditor := &widget.Editor{ReadOnly: true}
+	symbolEditor.SetText(fmt.Sprint(token.Symbol.String))
+
+	maxSupplyEditor := &widget.Editor{ReadOnly: true}
+	if token.MaxSupply.Valid {
+		maxSupply := utils.ShiftNumber{Number: uint64(token.MaxSupply.Int64), Decimals: int(token.Decimals)}
+		maxSupplyEditor.SetText(maxSupply.Format())
+	} else {
+		maxSupplyEditor.SetText("?")
+	}
+
+	standardTypeEditor := &widget.Editor{ReadOnly: true}
+	standardTypeEditor.SetText(fmt.Sprint(token.StandardType))
+
+	return &TokenInfoList{
+		decimalsEditor:     decimalsEditor,
+		nameEditor:         nameEditor,
+		symbolEditor:       symbolEditor,
+		maxSupplyEditor:    maxSupplyEditor,
+		standardTypeEditor: standardTypeEditor,
+	}
+}
+
+func (t *TokenInfoList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	var flexChilds []layout.FlexChild
+
+	flexChilds = append(flexChilds,
+		InfoRowLayout{Editor: t.nameEditor}.Layout(gtx, th, lang.Translate("Name")),
+		InfoRowLayout{Editor: t.decimalsEditor}.Layout(gtx, th, lang.Translate("Decimals")),
+		InfoRowLayout{Editor: t.symbolEditor}.Layout(gtx, th, lang.Translate("Symbol")),
+		InfoRowLayout{Editor: t.maxSupplyEditor}.Layout(gtx, th, lang.Translate("Max Supply")),
+		InfoRowLayout{Editor: t.standardTypeEditor}.Layout(gtx, th, lang.Translate("SC Standard")),
+	)
+
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx, flexChilds...)
 }

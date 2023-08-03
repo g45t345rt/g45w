@@ -499,7 +499,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
 	})
 
 	listStyle := material.List(th, p.list)

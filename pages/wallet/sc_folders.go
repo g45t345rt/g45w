@@ -346,7 +346,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			}
 
 			widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
-				return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
+				return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
 			})
 
 			listStyle := material.List(th, p.list)
