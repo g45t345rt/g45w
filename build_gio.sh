@@ -30,6 +30,7 @@ fi
 if [ $GOOS = "ios" ]; then
   MIN_SDK=15 # minimum sdk IOS 15.0+
   OUTPUT+=".ipa"
+  export CGO_CFLAGS="-DMAC_OS_VERSION_12_0=1" # because of go-m1cpu package https://github.com/shoenig/go-m1cpu/blob/ba9f45e9ebc11f1f8e2d5ff21368179ef1dd07af/cpu.go#L11
 fi
 
 ## gogio commands
