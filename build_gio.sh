@@ -11,6 +11,7 @@ mkdir -p "./build"
 GOOS=$1
 GOARCH=$2
 MIN_SDK=0
+#CGO_CFLAGS=""
 OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
 
 source ./build_vars.sh
@@ -30,7 +31,8 @@ fi
 if [ $GOOS = "ios" ]; then
   MIN_SDK=15 # minimum sdk IOS 15.0+
   OUTPUT+=".ipa"
-  export CGO_CFLAGS="-DMAC_OS_VERSION_12_0=1" # because of go-m1cpu package https://github.com/shoenig/go-m1cpu/blob/ba9f45e9ebc11f1f8e2d5ff21368179ef1dd07af/cpu.go#L11
+  #CGO_CFLAGS="-DMAC_OS_VERSION_12_0=1" # because of go-m1cpu package https://github.com/shoenig/go-m1cpu/blob/ba9f45e9ebc11f1f8e2d5ff21368179ef1dd07af/cpu.go#L11
+  # downgraded to github.com/shoenig/go-m1cpu@v0.1.4 to avoid setting flag
 fi
 
 ## gogio commands
