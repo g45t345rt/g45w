@@ -168,10 +168,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 	normalReg := registration.NewNormalReg()
 	normalReg.OnFound = func(tx *transaction.Transaction) {
 		wallet := wallet_manager.OpenedWallet
-		err := wallet_manager.StoreRegistrationTx(wallet.Info.Addr, tx)
-		if err != nil {
-
-		}
+		wallet_manager.StoreRegistrationTx(wallet.Info.Addr, tx)
 		w.Invalidate()
 	}
 

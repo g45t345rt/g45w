@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"strconv"
+	"time"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -18,6 +19,7 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal.go"
@@ -370,24 +372,65 @@ func (p *PageSendForm) prepareTx() error {
 
 	var arguments rpc.Arguments
 
-	comment := txtComment.Value()
-	if len(comment) > 0 {
-		arguments = append(arguments, rpc.Argument{Name: rpc.RPC_COMMENT, DataType: rpc.DataString, Value: comment})
+	address, err := rpc.NewAddress(txtWalletAddr.Value())
+	if err != nil {
+		return err
 	}
 
-	destPortString := txtDstPort.Value()
-	if len(destPortString) > 0 {
-		destPort, err := strconv.ParseUint(destPortString, 10, 64)
+	if address.IsIntegratedAddress() {
+		err = address.Arguments.Validate_Arguments()
 		if err != nil {
 			return err
 		}
 
-		arguments = append(arguments, rpc.Argument{Name: rpc.RPC_DESTINATION_PORT, DataType: rpc.DataUint64, Value: destPort})
+		if !address.Arguments.Has(rpc.RPC_DESTINATION_PORT, rpc.DataUint64) {
+			return fmt.Errorf(lang.Translate("The integrated address does not contain a destination port."))
+		}
+
+		destinationPort := address.Arguments.Value(rpc.RPC_DESTINATION_PORT, rpc.DataUint64).(uint64)
+		arguments = append(arguments, rpc.Argument{Name: rpc.RPC_DESTINATION_PORT, DataType: rpc.DataUint64, Value: destinationPort})
+
+		if address.Arguments.Has(rpc.RPC_COMMENT, rpc.DataString) {
+			comment := address.Arguments.Value(rpc.RPC_COMMENT, rpc.DataString).(string)
+			arguments = append(arguments, rpc.Argument{Name: rpc.RPC_COMMENT, DataType: rpc.DataString, Value: comment})
+		}
+
+		if address.Arguments.Has(rpc.RPC_EXPIRY, rpc.DataTime) {
+			expireTime := address.Arguments.Value(rpc.RPC_EXPIRY, rpc.DataTime).(time.Time)
+			if expireTime.Before(time.Now().UTC()) {
+				return fmt.Errorf(lang.Translate("The integrated address has expired."))
+			}
+		}
+	} else {
+		comment := txtComment.Value()
+		if len(comment) > 0 {
+			arguments = append(arguments, rpc.Argument{Name: rpc.RPC_COMMENT, DataType: rpc.DataString, Value: comment})
+		}
+
+		destPortString := txtDstPort.Value()
+		if len(destPortString) > 0 {
+			destPort, err := strconv.ParseUint(destPortString, 10, 64)
+			if err != nil {
+				return err
+			}
+
+			arguments = append(arguments, rpc.Argument{Name: rpc.RPC_DESTINATION_PORT, DataType: rpc.DataUint64, Value: destPort})
+		}
+	}
+
+	_, err = arguments.CheckPack(transaction.PAYLOAD0_LIMIT)
+	if err != nil {
+		return err
 	}
 
 	scId := crypto.HashHexToHash(p.token.SCID)
 	transfers := []rpc.Transfer{
-		{SCID: scId, Destination: txtWalletAddr.Value(), Amount: amount, Payload_RPC: arguments},
+		{
+			SCID:        scId,
+			Destination: address.String(),
+			Amount:      amount,
+			Payload_RPC: arguments,
+		},
 	}
 
 	ringsize := uint64(p.ringSizeSelector.Value)

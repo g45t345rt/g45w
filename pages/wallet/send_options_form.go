@@ -100,8 +100,17 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			p.txtComment.Input.EditorMinY = gtx.Dp(75)
-			return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is store on the blockchain and natively encrypted. Only the sender / receiver can decrypt."))
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded."))
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.txtComment.Input.EditorMinY = gtx.Dp(75)
+					return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is store on the blockchain and natively encrypted. Only the sender / receiver can decrypt."))
+				}),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), "Specific service port.")
