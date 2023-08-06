@@ -1,4 +1,4 @@
-VERSION="0.3.0"
+VERSION="0.3.1"
 VERSION_INCREMENT=1
 
 FLAGS="-X github.com/g45t345rt/g45w/settings.Version=v$VERSION"
