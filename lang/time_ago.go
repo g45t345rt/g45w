@@ -258,6 +258,27 @@ var dutch = timeago.Config{
 	DefaultLayout: "02-01-2006",
 }
 
+var japanese = timeago.Config{
+	PastPrefix:   "約",
+	PastSuffix:   "前",
+	FuturePrefix: "約",
+	FutureSuffix: "後",
+
+	Periods: []timeago.FormatPeriod{
+		{D: time.Second, One: "約1秒", Many: "1分未満"},
+		{D: time.Minute, One: "約1分", Many: "%d分"},
+		{D: time.Hour, One: "約1時間", Many: "%d時間"},
+		{D: timeago.Day, One: "1日", Many: "%d日"},
+		{D: timeago.Month, One: "1ヶ月", Many: "%dヶ月"},
+		{D: timeago.Year, One: "1年", Many: "%d年"},
+	},
+
+	Zero: "約1秒",
+
+	Max:           100 * 365 * 24 * time.Hour,
+	DefaultLayout: "2006/01/02",
+}
+
 func TimeAgo(date time.Time) string {
 	lang := settings.App.Language
 	switch lang {
@@ -275,6 +296,12 @@ func TimeAgo(date time.Time) string {
 		return romanian.Format(date)
 	case "nl":
 		return dutch.Format(date)
+	case "jp":
+		return japanese.Format(date)
+	case "ko":
+		return korean.Format(date)
+	case "zh":
+		return chinese.Format(date)
 	}
 
 	return english.Format(date)

@@ -4,8 +4,6 @@ import (
 	"log"
 	"os"
 
-	"eliasnaur.com/font/roboto/robotobold"
-	"eliasnaur.com/font/roboto/robotoregular"
 	"gioui.org/app"
 	"gioui.org/font"
 	"gioui.org/font/opentype"
@@ -17,6 +15,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_data"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/containers"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
@@ -32,19 +31,31 @@ import (
 )
 
 func loadFontCollection() ([]font.FontFace, error) {
-	robotoRegular, err := opentype.Parse(robotoregular.TTF)
+	// universal fonts from https://github.com/satbyy/go-noto-universal
+
+	goNotoKurrentRegularTTF, err := assets.GetFont("GoNotoKurrent-Regular.ttf")
 	if err != nil {
 		return nil, err
 	}
 
-	robotoBold, err := opentype.Parse(robotobold.TTF)
+	goNotoKurrentRegular, err := opentype.Parse(goNotoKurrentRegularTTF)
+	if err != nil {
+		return nil, err
+	}
+
+	goNotoKurrentBoldTTF, err := assets.GetFont("GoNotoKurrent-Bold.ttf")
+	if err != nil {
+		return nil, err
+	}
+
+	goNotoKurrentBold, err := opentype.Parse(goNotoKurrentBoldTTF)
 	if err != nil {
 		return nil, err
 	}
 
 	fontCollection := []font.FontFace{}
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: robotoRegular})
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: robotoBold})
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: goNotoKurrentRegular})
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: goNotoKurrentBold})
 	return fontCollection, nil
 }
 

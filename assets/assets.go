@@ -37,3 +37,15 @@ func GetLang(path string) (map[string]string, error) {
 
 	return values, err
 }
+
+//go:embed fonts/*
+var font embed.FS
+
+func GetFont(path string) ([]byte, error) {
+	data, err := font.ReadFile(fmt.Sprintf("fonts/%s", path))
+	if err != nil {
+		return nil, err
+	}
+
+	return data, err
+}
