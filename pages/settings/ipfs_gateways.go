@@ -197,6 +197,10 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 		return p.gatewayList.Layout(gtx, th, lang.Translate("You don't have any IPFS gateways available."))
 	})
 
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+	})
+
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 

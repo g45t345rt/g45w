@@ -64,6 +64,7 @@ func NewPageInfo() *PageInfo {
 		NewInfoListItem("Version", settings.Version),                             //@lang.Translate("Version")
 		NewInfoListItem("Git Version", settings.GitVersion),                      //@lang.Translate("Git Version")
 		NewInfoListItem("Build Time", buildTime),                                 //@lang.Translate("Build Time")
+		NewInfoListItem("Donation Address", settings.DonationAddress),            //@lang.Translate("Donation")
 	}
 
 	return &PageInfo{
@@ -113,10 +114,23 @@ func (p *PageInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		}
 	}
 
+	var widgets []layout.Widget
+
+	for i := range p.infoItems {
+		idx := i
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.infoItems[idx].Layout(gtx, th)
+		})
+	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+	})
+
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
-	return listStyle.Layout(gtx, len(p.infoItems), func(gtx layout.Context, index int) layout.Dimensions {
-		return p.infoItems[index].Layout(gtx, th)
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+		return widgets[index](gtx)
 	})
 }
 
@@ -170,6 +184,8 @@ func (s InfoListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						gtx.Constraints.Max.X = gtx.Dp(20)
+						gtx.Constraints.Max.Y = gtx.Dp(20)
 						return s.buttonCopy.Layout(gtx, th)
 					}),
 				)

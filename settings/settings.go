@@ -29,6 +29,7 @@ var Name = "G45W"
 var Version = "development"
 var BuildTime = ""
 var GitVersion = "development"
+var DonationAddress = "dero1qyhunyuk24g9qsjtcr4r0c7rgjquuernqcfnx76kq0jvn4ns98tf2qgj5dq70"
 
 func Load() error {
 	dataDir, err := app.DataDir()
