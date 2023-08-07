@@ -13,7 +13,7 @@ var DEX_SC_SHA256 = "51f330aeb991da9c845b77daf45304acf6e07a0e87125b8c0b8884dadbb
 // DWETH: fb855d8edd1d95ea94e9544224019c3fe4e636086f7266808879d6134ee2b8f1
 // DgOHM: 92136ec02ca1e0db8e1767f7d5d221c7951263790fe4ee6616c4dd6c011e65ba
 
-type DEX_SC struct {
+type SC struct {
 	SCID           string
 	Name           string
 	Decimals       uint64
@@ -29,7 +29,7 @@ type DEX_SC struct {
 	BridgeFee      uint64
 }
 
-func (asset *DEX_SC) Parse(scId string, values map[string]interface{}) (err error) {
+func (asset *SC) Parse(scId string, values map[string]interface{}) (err error) {
 	asset.SCID = scId
 
 	asset.Name, err = utils.DecodeString(values["name"].(string))

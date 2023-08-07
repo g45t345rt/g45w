@@ -27,6 +27,7 @@ import (
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/sc/dex_sc"
 	"github.com/g45t345rt/g45w/sc/g45_sc"
+	"github.com/g45t345rt/g45w/sc/unknown_sc"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -279,7 +280,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		token.Image = sql.NullString{String: metadata.Image, Valid: true}
 		token.Metadata = sql.NullString{String: nft.Metadata, Valid: true}
 	case sc.DEX_SC_TYPE:
-		dex := dex_sc.DEX_SC{}
+		dex := dex_sc.SC{}
 		err := dex.Parse(scId, scResult.VariableStringKeys)
 		if err != nil {
 			fmt.Println(err)
@@ -289,6 +290,17 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		token.Decimals = int64(dex.Decimals)
 		token.Image = sql.NullString{String: dex.ImageUrl, Valid: true}
 		token.Symbol = sql.NullString{String: dex.Symbol, Valid: true}
+	case sc.UNKNOWN_TYPE:
+		unknown := unknown_sc.SC{}
+		err := unknown.Parse(scId, scResult.VariableStringKeys)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		token.Name = unknown.Name
+		token.Decimals = int64(unknown.Decimals)
+		token.Image = sql.NullString{String: unknown.ImageUrl, Valid: true}
+		token.Symbol = sql.NullString{String: unknown.Symbol, Valid: true}
 	}
 
 	scIdEditor := new(widget.Editor)
