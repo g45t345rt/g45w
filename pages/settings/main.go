@@ -29,6 +29,7 @@ type PageMain struct {
 	animationLeave *animation.Animation
 
 	langSelector      *prefabs.LangSelector
+	themeSelector     *prefabs.ThemeSelector
 	buttonInfo        *components.Button
 	buttonIpfsGateway *components.Button
 }
@@ -38,6 +39,7 @@ var _ router.Page = &PageMain{}
 func NewPageFront() *PageMain {
 	defaultLangKey := settings.App.Language
 	langSelector := prefabs.NewLangSelector(defaultLangKey)
+	themeSelector := prefabs.NewThemeSelector("light")
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),
@@ -92,6 +94,7 @@ func NewPageFront() *PageMain {
 		animationLeave: animationLeave,
 
 		langSelector:      langSelector,
+		themeSelector:     themeSelector,
 		buttonInfo:        buttonInfo,
 		buttonIpfsGateway: buttonIpfsGateway,
 	}
@@ -148,6 +151,18 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		page_instance.header.AddHistory(PAGE_IPFS_GATEWAYS)
 	}
 
+	if p.langSelector.Changed() {
+		settings.App.Language = p.langSelector.Value
+		err := settings.Save()
+		if err != nil {
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Language applied."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonInfo.Text = lang.Translate("App Information")
@@ -158,19 +173,10 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			return p.buttonIpfsGateway.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			if p.langSelector.Changed() {
-				settings.App.Language = p.langSelector.Value
-				err := settings.Save()
-				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				} else {
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Language applied."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				}
-			}
-
 			return p.langSelector.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return p.themeSelector.Layout(gtx, th)
 		},
 	}
 
