@@ -43,6 +43,7 @@ type PageSendForm struct {
 	buttonBuildTx  *components.Button
 	buttonContacts *components.Button
 	buttonOptions  *components.Button
+	buttonSetMax   *components.Button
 
 	token wallet_manager.Token
 
@@ -123,6 +124,13 @@ func NewPageSendForm() *PageSendForm {
 		Animation: components.NewButtonAnimationDefault(),
 	})
 
+	buttonSetMax := components.NewButton(components.ButtonStyle{
+		TextColor:      color.NRGBA{A: 200},
+		TextSize:       unit.Sp(16),
+		HoverTextColor: &color.NRGBA{A: 255},
+	})
+	buttonSetMax.Style.Font.Weight = font.Bold
+
 	return &PageSendForm{
 		txtAmount:        txtAmount,
 		txtWalletAddr:    txtWalletAddr,
@@ -133,6 +141,7 @@ func NewPageSendForm() *PageSendForm {
 		list:             list,
 		buttonContacts:   buttonContacts,
 		buttonOptions:    buttonOptions,
+		buttonSetMax:     buttonSetMax,
 	}
 }
 
@@ -194,6 +203,14 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		page_instance.header.AddHistory(PAGE_CONTACTS)
 	}
 
+	if p.buttonSetMax.Clicked() {
+		wallet := wallet_manager.OpenedWallet
+		scId := crypto.HashHexToHash(p.token.SCID)
+		balance, _ := wallet.Memory.Get_Balance_scid(scId)
+		amount := utils.ShiftNumber{Number: balance, Decimals: int(p.token.Decimals)}.Format()
+		p.txtAmount.SetValue(amount)
+	}
+
 	if build_tx_modal.Instance.TxSent() {
 		p.clearForm()
 	}
@@ -208,44 +225,54 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					r := op.Record(gtx.Ops)
-					dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(22), p.token.Name)
-								lbl.Font.Weight = font.Bold
-								return lbl.Layout(gtx)
-							}),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								scId := utils.ReduceTxId(p.token.SCID)
+			r := op.Record(gtx.Ops)
+			dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(22), p.token.Name)
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						scId := utils.ReduceTxId(p.token.SCID)
 
-								if p.token.Symbol.Valid {
-									scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
-								}
+						if p.token.Symbol.Valid {
+							scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
+						}
 
-								lbl := material.Label(th, unit.Sp(16), scId)
-								lbl.Color = color.NRGBA{A: 150}
-								return lbl.Layout(gtx)
-							}),
-						)
-					})
-					c := r.Stop()
+						lbl := material.Label(th, unit.Sp(16), scId)
+						lbl.Color = color.NRGBA{A: 150}
+						return lbl.Layout(gtx)
+					}),
+				)
+			})
+			c := r.Stop()
 
-					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
-						image.Rectangle{Max: dims.Size},
-						gtx.Dp(10),
-					).Op(gtx.Ops))
+			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+				image.Rectangle{Max: dims.Size},
+				gtx.Dp(10),
+			).Op(gtx.Ops))
 
-					c.Add(gtx.Ops)
-					return dims
-				}),
-			)
+			c.Add(gtx.Ops)
+			return dims
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			v := utils.ShiftNumber{Number: 0, Decimals: int(p.token.Decimals)}
-			return p.txtAmount.Layout(gtx, th, lang.Translate("Amount"), v.Format())
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					v := utils.ShiftNumber{Number: 0, Decimals: int(p.token.Decimals)}
+					return p.txtAmount.Layout(gtx, th, lang.Translate("Amount"), v.Format())
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Flexed(1, layout.Spacer{}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							p.buttonSetMax.Text = lang.Translate("SET MAX")
+							return p.buttonSetMax.Layout(gtx, th)
+						}),
+					)
+				}),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -424,6 +451,12 @@ func (p *PageSendForm) prepareTx() error {
 	}
 
 	scId := crypto.HashHexToHash(p.token.SCID)
+
+	ringsize := uint64(p.ringSizeSelector.Value)
+
+	wallet := wallet_manager.OpenedWallet
+	balance, _ := wallet.Memory.Get_Balance_scid(scId)
+
 	transfers := []rpc.Transfer{
 		{
 			SCID:        scId,
@@ -433,7 +466,16 @@ func (p *PageSendForm) prepareTx() error {
 		},
 	}
 
-	ringsize := uint64(p.ringSizeSelector.Value)
+	if scId.IsZero() && balance == amount {
+		// sender is trying to send all Dero to another wallet
+		// let's calculate fees before and deduct
+		fees, err := wallet.CalculateFees(ringsize, transfers, arguments)
+		if err != nil {
+			return err
+		}
+
+		transfers[0].Amount = amount - fees
+	}
 
 	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
 		Transfers: transfers,

@@ -111,7 +111,6 @@ func runApp() error {
 			return
 		}
 
-		loadState.SetStatus(lang.Translate("Loading nodes"), nil)
 		node_manager.Load() // don't check for error (e.g if current node connected successfully) and continue loading the app
 
 		loadState.SetStatus(lang.Translate("Loading pages"), nil)

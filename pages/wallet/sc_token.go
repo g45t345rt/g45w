@@ -48,6 +48,7 @@ type PageSCToken struct {
 	getTransfersParams wallet_manager.GetTransfersParams
 	txItems            []*TxListItem
 	tokenInfo          *TokenInfoList
+	balanceEditor      *widget.Editor
 
 	token      *wallet_manager.Token
 	tokenImage *prefabs.ImageHoverClick
@@ -88,6 +89,9 @@ func NewPageSCToken() *PageSCToken {
 
 	sendReceiveButtons := NewSendReceiveButtons()
 	buttonHideBalance := NewButtonHideBalance()
+	balanceEditor := new(widget.Editor)
+	balanceEditor.ReadOnly = true
+	balanceEditor.SingleLine = true
 
 	tabBarsItems := []*components.TabBarsItem{
 		components.NewTabBarItem("txs", components.TabBarItemStyle{
@@ -99,7 +103,6 @@ func NewPageSCToken() *PageSCToken {
 	}
 
 	tabBars := components.NewTabBars("txs", tabBarsItems)
-
 	txBar := NewTxBar()
 
 	confirmRemoveToken := components.NewConfirm(layout.Center)
@@ -126,6 +129,7 @@ func NewPageSCToken() *PageSCToken {
 		buttonHideBalance:  buttonHideBalance,
 		tabBars:            tabBars,
 		txBar:              txBar,
+		balanceEditor:      balanceEditor,
 
 		list: list,
 	}
@@ -279,6 +283,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 	if p.sendReceiveButtons.ButtonSend.Clicked() {
 		page_instance.pageSendForm.token = *p.token
+		page_instance.pageSendForm.clearForm()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
@@ -348,11 +353,17 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 								}),
 								layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									balance := utils.ShiftNumber{Number: p.balance, Decimals: int(p.token.Decimals)}
-									lbl := material.Label(th, unit.Sp(34), balance.Format())
-									lbl.Font.Weight = font.Bold
+									balance := utils.ShiftNumber{Number: p.balance, Decimals: int(p.token.Decimals)}.Format()
 
-									dims := lbl.Layout(gtx)
+									balanceEditor := material.Editor(th, p.balanceEditor, "")
+									balanceEditor.TextSize = unit.Sp(34)
+									balanceEditor.Font.Weight = font.Bold
+
+									if balanceEditor.Editor.Text() != balance {
+										balanceEditor.Editor.SetText(balance)
+									}
+
+									dims := balanceEditor.Layout(gtx)
 
 									if settings.App.HideBalance {
 										paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{

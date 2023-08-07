@@ -647,15 +647,21 @@ func (b *ButtonHideBalance) Layout(gtx layout.Context, th *material.Theme) layou
 type DisplayBalance struct {
 	sendReceiveButtons *SendReceiveButtons
 	buttonHideBalance  *ButtonHideBalance
+	balanceEditor      *widget.Editor
 }
 
 func NewDisplayBalance() *DisplayBalance {
 	sendReceiveButtons := NewSendReceiveButtons()
 	buttonHideBalance := NewButtonHideBalance()
 
+	balanceEditor := new(widget.Editor)
+	balanceEditor.ReadOnly = true
+	balanceEditor.SingleLine = true
+
 	return &DisplayBalance{
 		buttonHideBalance:  buttonHideBalance,
 		sendReceiveButtons: sendReceiveButtons,
+		balanceEditor:      balanceEditor,
 	}
 }
 
@@ -664,6 +670,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	if d.sendReceiveButtons.ButtonSend.Clicked() {
 		page_instance.pageSendForm.token = wallet_manager.DeroToken()
+		page_instance.pageSendForm.clearForm()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
@@ -690,9 +697,16 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 					}
 
 					amount := utils.ShiftNumber{Number: balance, Decimals: 5}.Format()
-					lblAmount := material.Label(th, unit.Sp(34), amount)
-					lblAmount.Font.Weight = font.Bold
-					dims := lblAmount.Layout(gtx)
+
+					amountEditor := material.Editor(th, d.balanceEditor, "")
+					amountEditor.TextSize = unit.Sp(34)
+					amountEditor.Font.Weight = font.Bold
+
+					if amountEditor.Editor.Text() != amount {
+						amountEditor.Editor.SetText(amount)
+					}
+
+					dims := amountEditor.Layout(gtx)
 
 					if settings.App.HideBalance {
 						paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{

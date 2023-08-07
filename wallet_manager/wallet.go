@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/deroproject/derohe/config"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
@@ -221,6 +222,19 @@ func (w *Wallet) ChangePassword(password string, newPassword string) error {
 	}
 
 	return saveWalletData(newMemory)
+}
+
+func (w *Wallet) CalculateFees(ringsize uint64, transfers []rpc.Transfer, args rpc.Arguments) (uint64, error) {
+	feeMul := w.Memory.GetFeeMultiplier()
+	fees := uint64(len(transfers)+2) * uint64((float64(config.FEE_PER_KB) * float64(float32(ringsize/16)+feeMul)))
+	data, err := args.MarshalBinary()
+	if err != nil {
+		return 0, err
+	} else {
+		fees = fees + (uint64(len(data))*15)/10
+	}
+
+	return fees, nil
 }
 
 func StoreRegistrationTx(addr string, tx *transaction.Transaction) error {
