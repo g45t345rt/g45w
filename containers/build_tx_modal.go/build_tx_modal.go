@@ -260,6 +260,20 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), lang.Translate("Ring size"))
+									lbl.Color = color.NRGBA{A: 200}
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), fmt.Sprint(b.txPayload.Ringsize))
+									return lbl.Layout(gtx)
+								}),
+							)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(16), lang.Translate("Transfer"))
 									lbl.Color = color.NRGBA{A: 200}
 									return lbl.Layout(gtx)
