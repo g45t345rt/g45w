@@ -73,7 +73,7 @@ func (p *PageContacts) IsActive() bool {
 
 func (p *PageContacts) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Contacts"))
+	page_instance.header.Title = func() string { return lang.Translate("Contacts") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = p.buttonAddContact
 

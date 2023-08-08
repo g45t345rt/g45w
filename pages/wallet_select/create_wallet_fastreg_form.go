@@ -181,7 +181,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 
 func (p *PageCreateWalletFastRegForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Fast Registration"))
+	page_instance.header.Title = func() string { return lang.Translate("Fast Registration") }
 
 	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_FASTREG_FORM) {
 		p.animationEnter.Start()

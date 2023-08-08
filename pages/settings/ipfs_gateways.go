@@ -121,7 +121,7 @@ func (p *PageIPFSGateways) IsActive() bool {
 
 func (p *PageIPFSGateways) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("IPFS Gateways"))
+	page_instance.header.Title = func() string { return lang.Translate("IPFS Gateways") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		lbl := material.Label(th, unit.Sp(16), lang.Translate("Interplanetary File System"))
 		return lbl.Layout(gtx)

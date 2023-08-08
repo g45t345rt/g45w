@@ -97,7 +97,7 @@ func (p *PageAddSCForm) IsActive() bool {
 
 func (p *PageAddSCForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Add Token"))
+	page_instance.header.Title = func() string { return lang.Translate("Add Token") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = nil
 	if !page_instance.header.IsHistory(PAGE_ADD_SC_FORM) {

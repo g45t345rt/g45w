@@ -128,7 +128,7 @@ func (p *PageEditIPFSGateway) IsActive() bool {
 
 func (p *PageEditIPFSGateway) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Edit IPFS Gateway"))
+	page_instance.header.Title = func() string { return lang.Translate("Edit IPFS Gateway") }
 	page_instance.header.ButtonRight = nil
 	p.animationEnter.Start()
 	p.animationLeave.Reset()

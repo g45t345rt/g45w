@@ -81,7 +81,7 @@ func (p *PageInfo) IsActive() bool {
 
 func (p *PageInfo) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("App Information"))
+	page_instance.header.Title = func() string { return lang.Translate("App Information") }
 
 	if !page_instance.header.IsHistory(PAGE_INFO) {
 		p.animationEnter.Start()

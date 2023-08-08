@@ -86,7 +86,7 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 
 func (p *PageCreateWalletForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Create New Wallet"))
+	page_instance.header.Title = func() string { return lang.Translate("Create New Wallet") }
 
 	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_FORM) {
 		p.animationEnter.Start()

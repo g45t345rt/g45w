@@ -14,7 +14,7 @@ import (
 )
 
 type Header struct {
-	title       string
+	Title       func() string
 	Subtitle    func(gtx layout.Context, th *material.Theme) layout.Dimensions
 	ButtonRight *components.Button
 
@@ -43,10 +43,6 @@ func NewHeader(r *router.Router) *Header {
 	}
 
 	return header
-}
-
-func (h *Header) SetTitle(title string) {
-	h.title = title
 }
 
 func (h *Header) History() []interface{} {
@@ -134,7 +130,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 			var childs []layout.FlexChild
 
 			childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return titleLayout(gtx, th, h.title)
+				return titleLayout(gtx, th, h.Title())
 			}))
 
 			if h.Subtitle != nil {

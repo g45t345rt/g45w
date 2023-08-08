@@ -154,7 +154,7 @@ func (p *PageSCToken) Enter() {
 		p.tokenImage.Image.Src = paint.NewImageOp(img)
 	}
 
-	page_instance.header.SetTitle(p.token.Name)
+	page_instance.header.Title = func() string { return p.token.Name }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		scId := utils.ReduceTxId(p.token.SCID)
 		if p.token.Symbol.Valid {

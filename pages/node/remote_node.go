@@ -83,7 +83,7 @@ func (p *PageRemoteNode) IsActive() bool {
 
 func (p *PageRemoteNode) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Remote Node"))
+	page_instance.header.Title = func() string { return lang.Translate("Remote Node") }
 
 	if !page_instance.header.IsHistory(PAGE_REMOTE_NODE) {
 		p.animationLeave.Reset()

@@ -231,8 +231,9 @@ func (p *PageBalanceTokens) RefreshTokensBalance() {
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
 	openedWallet := wallet_manager.OpenedWallet
-	title := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name)
-	page_instance.header.SetTitle(title)
+	page_instance.header.Title = func() string {
+		return fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name)
+	}
 
 	page_instance.header.ButtonRight = nil
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {

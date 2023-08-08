@@ -45,7 +45,7 @@ func NewPageWalletInfo() *PageWalletInfo {
 
 func (p *PageWalletInfo) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Wallet Information"))
+	page_instance.header.Title = func() string { return lang.Translate("Wallet Information") }
 
 	if !page_instance.header.IsHistory(PAGE_WALLET_INFO) {
 		p.animationEnter.Start()

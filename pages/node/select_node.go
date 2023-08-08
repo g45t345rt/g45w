@@ -111,7 +111,7 @@ func (p *PageSelectNode) IsActive() bool {
 
 func (p *PageSelectNode) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Select Node"))
+	page_instance.header.Title = func() string { return lang.Translate("Select Node") }
 
 	if !page_instance.header.IsHistory(PAGE_SELECT_NODE) {
 		p.animationLeave.Reset()

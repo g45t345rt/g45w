@@ -158,7 +158,7 @@ func (p *PageTransaction) Enter() {
 	blockHeight := fmt.Sprint(p.entry.Height)
 	p.blockHeightEditor.SetText(blockHeight)
 
-	page_instance.header.SetTitle(lang.Translate("Transaction"))
+	page_instance.header.Title = func() string { return lang.Translate("Transaction") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		txId := utils.ReduceTxId(p.entry.TXID)
 		if txId == "" {

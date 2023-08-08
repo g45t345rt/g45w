@@ -125,7 +125,7 @@ func (p *PageEditNodeForm) IsActive() bool {
 
 func (p *PageEditNodeForm) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Edit Node"))
+	page_instance.header.Title = func() string { return lang.Translate("Edit Node") }
 	p.animationEnter.Start()
 	p.animationLeave.Reset()
 

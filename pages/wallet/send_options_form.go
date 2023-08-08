@@ -69,7 +69,7 @@ func (p *PageSendOptionsForm) Enter() {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
-	page_instance.header.SetTitle("Send Options")
+	page_instance.header.Title = func() string { return lang.Translate("Send Options") }
 	page_instance.header.Subtitle = nil
 }
 

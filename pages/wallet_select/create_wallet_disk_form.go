@@ -103,7 +103,7 @@ func (p *PageCreateWalletDiskForm) Enter() {
 		p.animationLeave.Reset()
 	}
 
-	page_instance.header.SetTitle(lang.Translate("Load from Disk"))
+	page_instance.header.Title = func() string { return lang.Translate("Load from Disk") }
 }
 
 func (p *PageCreateWalletDiskForm) Leave() {

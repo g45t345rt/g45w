@@ -128,12 +128,12 @@ func (p *PageContactForm) Enter() {
 	p.isActive = true
 
 	if p.contact != nil {
-		page_instance.header.SetTitle(lang.Translate("Edit Contact"))
+		page_instance.header.Title = func() string { return lang.Translate("Edit Contact") }
 		p.txtName.SetValue(p.contact.Name)
 		p.txtAddr.SetValue(p.contact.Addr)
 		p.txtNote.SetValue(p.contact.Note)
 	} else {
-		page_instance.header.SetTitle(lang.Translate("New Contact"))
+		page_instance.header.Title = func() string { return lang.Translate("New Contact") }
 	}
 
 	page_instance.header.Subtitle = nil

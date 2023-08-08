@@ -106,7 +106,7 @@ func (p *PageMain) IsActive() bool {
 
 func (p *PageMain) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Settings"))
+	page_instance.header.Title = func() string { return lang.Translate("Settings") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = nil
 

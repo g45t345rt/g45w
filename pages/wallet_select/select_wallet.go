@@ -106,7 +106,7 @@ func (p *PageSelectWallet) IsActive() bool {
 
 func (p *PageSelectWallet) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Select wallet"))
+	page_instance.header.Title = func() string { return lang.Translate("Select wallet") }
 
 	if !page_instance.header.IsHistory(PAGE_SELECT_WALLET) {
 		p.animationLeave.Reset()

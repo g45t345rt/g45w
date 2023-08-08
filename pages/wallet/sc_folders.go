@@ -113,7 +113,7 @@ func (p *PageSCFolders) IsActive() bool {
 
 func (p *PageSCFolders) Enter() {
 	p.isActive = true
-	page_instance.header.SetTitle(lang.Translate("Tokens"))
+	page_instance.header.Title = func() string { return lang.Translate("Tokens") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		folderName := "root"
 		if p.currentFolder != nil {
