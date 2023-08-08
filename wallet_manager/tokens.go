@@ -1,12 +1,19 @@
 package wallet_manager
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
+	"image"
+	"io"
+	"os"
+	"path/filepath"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/g45t345rt/g45w/multi_fetch"
 	"github.com/g45t345rt/g45w/sc"
+	"github.com/g45t345rt/g45w/settings"
 )
 
 type TokenFolder struct {
@@ -26,9 +33,75 @@ type Token struct {
 	Metadata          sql.NullString
 	IsFavorite        sql.NullBool
 	ListOrderFavorite sql.NullInt64
-	Image             sql.NullString
+	ImageUrl          sql.NullString
 	Symbol            sql.NullString
 	FolderId          sql.NullInt64
+}
+
+func (t *Token) DataDirPath() (string, error) {
+	appDir := settings.AppDir
+	tokenDataDirPath := filepath.Join(appDir, "tokens", t.SCID)
+	err := os.MkdirAll(tokenDataDirPath, os.ModePerm)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenDataDirPath, nil
+}
+
+func (t *Token) LoadImage() (image.Image, error) {
+	var img image.Image
+	if t.ImageUrl.Valid {
+		dataDirPath, err := t.DataDirPath()
+		if err != nil {
+			return nil, err
+		}
+
+		cacheExists := true
+		imagePath := filepath.Join(dataDirPath, "image.cache")
+		_, err = os.Stat(imagePath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				cacheExists = false
+			} else {
+				return nil, err
+			}
+		}
+
+		var data []byte
+		if cacheExists {
+			data, err = os.ReadFile(imagePath)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// download from ipfs/http
+			res, err := multi_fetch.Fetch(t.ImageUrl.String)
+			if err != nil {
+				return nil, err
+			}
+			defer res.Body.Close()
+
+			data, err = io.ReadAll(res.Body)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		img, _, err = image.Decode(bytes.NewBuffer(data))
+		if err != nil {
+			return nil, err
+		}
+
+		if !cacheExists {
+			err = os.WriteFile(imagePath, data, os.ModePerm)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return img, nil
 }
 
 func DeroToken() Token {
@@ -237,7 +310,7 @@ func (w *Wallet) GetToken(id int64) (*Token, error) {
 		&token.Metadata,
 		&token.IsFavorite,
 		&token.ListOrderFavorite,
-		&token.Image,
+		&token.ImageUrl,
 		&token.Symbol,
 		&token.FolderId,
 	)
@@ -327,7 +400,7 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 			&token.Metadata,
 			&token.IsFavorite,
 			&token.ListOrderFavorite,
-			&token.Image,
+			&token.ImageUrl,
 			&token.Symbol,
 			&token.FolderId,
 		)
@@ -347,7 +420,7 @@ func (w *Wallet) InsertToken(token Token) error {
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?);
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite,
-		token.ListOrderFavorite, token.Image, token.Symbol, token.FolderId)
+		token.ListOrderFavorite, token.ImageUrl, token.Symbol, token.FolderId)
 	return err
 }
 
@@ -369,7 +442,7 @@ func (w *Wallet) UpdateToken(token Token) error {
 		WHERE id = ?;
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite, token.ListOrderFavorite,
-		token.Image, token.Symbol, token.FolderId, token.ID)
+		token.ImageUrl, token.Symbol, token.FolderId, token.ID)
 	return err
 }
 

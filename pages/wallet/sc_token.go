@@ -20,6 +20,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -148,6 +149,11 @@ func (p *PageSCToken) Enter() {
 
 	p.tokenInfo = NewTokenInfoList(p.token)
 
+	img, err := p.token.LoadImage()
+	if err == nil {
+		p.tokenImage.Image.Src = paint.NewImageOp(img)
+	}
+
 	page_instance.header.SetTitle(p.token.Name)
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		scId := utils.ReduceTxId(p.token.SCID)
@@ -235,6 +241,10 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 	if p.buttonOpenMenu.Clickable.Clicked() {
 		p.tokenMenuSelect.SelectModal.Modal.SetVisible(true)
+	}
+
+	if p.tokenImage.Clickable.Clicked() {
+		image_modal.Instance.Open(p.token.Name, p.tokenImage.Image.Src)
 	}
 
 	if p.confirmRemoveToken.ClickedYes() {

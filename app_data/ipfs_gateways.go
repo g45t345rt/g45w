@@ -151,31 +151,7 @@ func DelIPFSGateway(id int64) error {
 	return err
 }
 
-func IPFSFetch(cId string) (*http.Response, error) {
-	gateways, err := GetIPFSGateways(GetIPFSGatewaysParams{
-		Active: sql.NullBool{Bool: true, Valid: true},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, gateway := range gateways {
-		res, err := gateway.Fetch(cId)
-		if err != nil {
-			continue
-		}
-
-		if res.StatusCode != 200 {
-			continue
-		}
-
-		return res, nil
-	}
-
-	return nil, fmt.Errorf("unavailable")
-}
-
-func (i IPFSGateway) Fetch(cId string) (*http.Response, error) {
+func (i IPFSGateway) Fetch(cId string, timeout time.Duration) (*http.Response, error) {
 	endpoint := strings.Replace(i.Endpoint, "{cid}", cId, -1)
 
 	client := new(http.Client)
@@ -185,9 +161,7 @@ func (i IPFSGateway) Fetch(cId string) (*http.Response, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
 	res, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
@@ -198,7 +172,7 @@ func (i IPFSGateway) Fetch(cId string) (*http.Response, error) {
 
 func (i IPFSGateway) TestFetch() error {
 	cId := "bafybeibozpulxtpv5nhfa2ue3dcjx23ndh3gwr5vwllk7ptoyfwnfjjr4q"
-	res, err := i.Fetch(cId)
+	res, err := i.Fetch(cId, 5*time.Second)
 	if err != nil {
 		return err
 	}

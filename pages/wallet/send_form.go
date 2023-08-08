@@ -22,7 +22,7 @@ import (
 	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/build_tx_modal.go"
+	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"

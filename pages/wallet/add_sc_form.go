@@ -239,7 +239,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		token.Name = metadata.Name
 		token.Decimals = int64(fat.Decimals)
 		token.MaxSupply = sql.NullInt64{Int64: int64(fat.MaxSupply), Valid: true}
-		token.Image = sql.NullString{String: metadata.Image, Valid: true}
+		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
 		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
 		token.Metadata = sql.NullString{String: fat.Metadata, Valid: true}
 	case sc.G45_AT_TYPE:
@@ -258,7 +258,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		token.Name = metadata.Name
 		token.Decimals = int64(at.Decimals)
 		token.MaxSupply = sql.NullInt64{Int64: int64(at.MaxSupply), Valid: true}
-		token.Image = sql.NullString{String: metadata.Image, Valid: true}
+		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
 		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
 		token.Metadata = sql.NullString{String: at.Metadata, Valid: true}
 	case sc.G45_NFT_TYPE:
@@ -277,7 +277,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 		token.Name = metadata.Name
 		token.Decimals = 0
 		token.MaxSupply = sql.NullInt64{Int64: 1, Valid: true}
-		token.Image = sql.NullString{String: metadata.Image, Valid: true}
+		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
 		token.Metadata = sql.NullString{String: nft.Metadata, Valid: true}
 	case sc.DEX_SC_TYPE:
 		dex := dex_sc.SC{}
@@ -288,7 +288,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 
 		token.Name = dex.Name
 		token.Decimals = int64(dex.Decimals)
-		token.Image = sql.NullString{String: dex.ImageUrl, Valid: true}
+		token.ImageUrl = sql.NullString{String: dex.ImageUrl, Valid: true}
 		token.Symbol = sql.NullString{String: dex.Symbol, Valid: true}
 	case sc.UNKNOWN_TYPE:
 		unknown := unknown_sc.SC{}
@@ -299,7 +299,7 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 
 		token.Name = unknown.Name
 		token.Decimals = int64(unknown.Decimals)
-		token.Image = sql.NullString{String: unknown.ImageUrl, Valid: true}
+		token.ImageUrl = sql.NullString{String: unknown.ImageUrl, Valid: true}
 		token.Symbol = sql.NullString{String: unknown.Symbol, Valid: true}
 	}
 
