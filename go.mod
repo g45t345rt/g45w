@@ -1,14 +1,13 @@
 replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f
 
-replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230717204944-74a87b109208
+replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230803195734-05f0dc251385
 
 module github.com/g45t345rt/g45w
 
 go 1.19
 
 require (
-	eliasnaur.com/font v0.0.0-20230308162249-dd43949cb42d
-	gioui.org v0.1.0
+	gioui.org v0.2.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
 	github.com/shirou/gopsutil/v3 v3.23.3
@@ -67,7 +66,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
-	github.com/go-text/typesetting v0.0.0-20230602202114-9797aefac433 // indirect
+	github.com/go-text/typesetting v0.0.0-20230803102845-24e03d8b5372 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.6.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect

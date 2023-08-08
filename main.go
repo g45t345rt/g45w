@@ -10,6 +10,7 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/text"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/walletapi"
@@ -138,7 +139,8 @@ func runApp() error {
 		log.Fatal(err)
 	}
 
-	th := material.NewTheme(fontCollection)
+	th := material.NewTheme()
+	th.Shaper = text.NewShaper(text.NoSystemFonts(), text.WithCollection(fontCollection))
 	th.WithPalette(material.Palette{
 		Fg:         utils.HexColor(0x000000),
 		Bg:         utils.HexColor(0xffffff),

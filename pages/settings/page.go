@@ -24,13 +24,13 @@ type Page struct {
 
 	pageEditIPFSGateway *PageEditIPFSGateway
 
-	pageMain *PageMain
-	pageInfo *PageInfo
+	pageMain    *PageMain
+	pageAppInfo *PageAppInfo
 }
 
 var (
 	PAGE_MAIN              = "page_main"
-	PAGE_INFO              = "page_info"
+	PAGE_APP_INFO          = "page_app_info"
 	PAGE_IPFS_GATEWAYS     = "page_ipfs_gateways"
 	PAGE_ADD_IPFS_GATEWAY  = "page_add_ipfs_gateway"
 	PAGE_EDIT_IPFS_GATEWAY = "page_edit_ipfs_gateway"
@@ -54,8 +54,8 @@ func New() *Page {
 	pageMain := NewPageFront()
 	pageRouter.Add(PAGE_MAIN, pageMain)
 
-	pageInfo := NewPageInfo()
-	pageRouter.Add(PAGE_INFO, pageInfo)
+	pageAppInfo := NewPageAppInfo()
+	pageRouter.Add(PAGE_APP_INFO, pageAppInfo)
 
 	pageIPFSGateways := NewPageIPFSGateways()
 	pageRouter.Add(PAGE_IPFS_GATEWAYS, pageIPFSGateways)
@@ -74,7 +74,7 @@ func New() *Page {
 		header:              header,
 		pageRouter:          pageRouter,
 		pageMain:            pageMain,
-		pageInfo:            pageInfo,
+		pageAppInfo:         pageAppInfo,
 		pageEditIPFSGateway: pageEditIPFSGateway,
 	}
 

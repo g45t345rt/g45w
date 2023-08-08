@@ -39,8 +39,8 @@ type Token struct {
 }
 
 func (t *Token) DataDirPath() (string, error) {
-	appDir := settings.AppDir
-	tokenDataDirPath := filepath.Join(appDir, "tokens", t.SCID)
+	cacheDir := settings.CacheDir
+	tokenDataDirPath := filepath.Join(cacheDir, "tokens", t.SCID)
 	err := os.MkdirAll(tokenDataDirPath, os.ModePerm)
 	if err != nil {
 		return "", err

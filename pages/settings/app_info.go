@@ -28,7 +28,7 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type PageInfo struct {
+type PageAppInfo struct {
 	isActive       bool
 	list           *widget.List
 	animationEnter *animation.Animation
@@ -36,9 +36,9 @@ type PageInfo struct {
 	infoItems      []*InfoListItem
 }
 
-var _ router.Page = &PageInfo{}
+var _ router.Page = &PageAppInfo{}
 
-func NewPageInfo() *PageInfo {
+func NewPageAppInfo() *PageAppInfo {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -61,13 +61,14 @@ func NewPageInfo() *PageInfo {
 		NewInfoListItem("App Directory", settings.AppDir),                        //@lang.Translate("App Directory")
 		NewInfoListItem("Integrated Node Directory", settings.IntegratedNodeDir), //@lang.Translate("Node Directory")
 		NewInfoListItem("Wallets Directory", settings.WalletsDir),                //@lang.Translate("Wallets Directory")
+		NewInfoListItem("Cache Directory", settings.CacheDir),                    //@lang.Translate("Cache Directory")
 		NewInfoListItem("Version", settings.Version),                             //@lang.Translate("Version")
 		NewInfoListItem("Git Version", settings.GitVersion),                      //@lang.Translate("Git Version")
 		NewInfoListItem("Build Time", buildTime),                                 //@lang.Translate("Build Time")
 		NewInfoListItem("Donation Address", settings.DonationAddress),            //@lang.Translate("Donation")
 	}
 
-	return &PageInfo{
+	return &PageAppInfo{
 		infoItems:      infoItems,
 		list:           list,
 		animationEnter: animationEnter,
@@ -75,26 +76,26 @@ func NewPageInfo() *PageInfo {
 	}
 }
 
-func (p *PageInfo) IsActive() bool {
+func (p *PageAppInfo) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageInfo) Enter() {
+func (p *PageAppInfo) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("App Information") }
 
-	if !page_instance.header.IsHistory(PAGE_INFO) {
+	if !page_instance.header.IsHistory(PAGE_APP_INFO) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
 }
 
-func (p *PageInfo) Leave() {
+func (p *PageAppInfo) Leave() {
 	p.animationEnter.Reset()
 	p.animationLeave.Start()
 }
 
-func (p *PageInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *PageAppInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
 		if state.Active {
