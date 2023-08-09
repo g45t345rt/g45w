@@ -22,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -59,25 +60,21 @@ func LoadInstance() {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.N,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Inset:               layout.UniformInset(unit.Dp(10)),
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Animation:           components.NewModalAnimationDown(),
-		Backdrop:            components.NewModalBackground(),
 	})
 
 	sendIcon, _ := widget.NewIcon(icons.ContentSend)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonSend := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            sendIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-		LoadingIcon:     loadingIcon,
+		Rounded:     components.UniformRounded(unit.Dp(5)),
+		Icon:        sendIcon,
+		TextSize:    unit.Sp(14),
+		IconGap:     unit.Dp(10),
+		Inset:       layout.UniformInset(unit.Dp(10)),
+		Animation:   components.NewButtonAnimationDefault(),
+		LoadingIcon: loadingIcon,
 	})
 	buttonSend.Label.Alignment = text.Middle
 	buttonSend.Style.Font.Weight = font.Bold
@@ -193,6 +190,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 		}
 	}
 
+	b.modal.Style.Colors = theme.Current.ModalColors
 	b.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(15), Bottom: unit.Dp(15),
@@ -261,7 +259,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(16), lang.Translate("Ring size"))
-									lbl.Color = color.NRGBA{A: 200}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -275,7 +273,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(16), lang.Translate("Transfer"))
-									lbl.Color = color.NRGBA{A: 200}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -289,7 +287,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(16), lang.Translate("TX fees"))
-									lbl.Color = color.NRGBA{A: 200}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -304,13 +302,13 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(16), lang.Translate("Receiver"))
-									lbl.Color = color.NRGBA{A: 200}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									txt := ""
 									if len(b.txPayload.Transfers) > 1 {
-										txt = "Multiple receivers"
+										txt = lang.Translate("Multiple receivers")
 									} else {
 										addr := b.txPayload.Transfers[0].Destination
 										txt = utils.ReduceAddr(addr)
@@ -326,7 +324,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(16), lang.Translate("Total"))
-									lbl.Color = color.NRGBA{A: 200}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -338,6 +336,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 						}),
 						layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							b.buttonSend.Style.Colors = theme.Current.ButtonPrimaryColors
 							return b.buttonSend.Layout(gtx, th)
 						}))
 				}

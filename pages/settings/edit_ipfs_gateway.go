@@ -2,7 +2,6 @@ package page_settings
 
 import (
 	"fmt"
-	"image"
 	"image/color"
 
 	"gioui.org/font"
@@ -22,8 +21,10 @@ import (
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -37,13 +38,13 @@ type PageEditIPFSGateway struct {
 
 	buttonEdit   *components.Button
 	buttonDelete *components.Button
-	txtEndpoint  *components.TextField
-	txtName      *components.TextField
+	txtEndpoint  *prefabs.TextField
+	txtName      *prefabs.TextField
 	switchActive *widget.Bool
 
 	gateway app_data.IPFSGateway
 
-	confirmDelete *components.Confirm
+	confirmDelete *prefabs.Confirm
 
 	list *widget.List
 }
@@ -65,44 +66,41 @@ func NewPageEditIPFSGateway() *PageEditIPFSGateway {
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonEdit := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            saveIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-		LoadingIcon:     loadingIcon,
+		Rounded:     components.UniformRounded(unit.Dp(5)),
+		Icon:        saveIcon,
+		TextSize:    unit.Sp(14),
+		IconGap:     unit.Dp(10),
+		Inset:       layout.UniformInset(unit.Dp(10)),
+		Animation:   components.NewButtonAnimationDefault(),
+		LoadingIcon: loadingIcon,
 	})
 	buttonEdit.Label.Alignment = text.Middle
 	buttonEdit.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField()
-	txtEndpoint := components.NewTextField()
+	txtName := prefabs.NewTextField()
+	txtEndpoint := prefabs.NewTextField()
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDelete := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            deleteIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 255, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      deleteIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
 
-	confirmDelete := components.NewConfirm(layout.Center)
+	confirmDelete := prefabs.NewConfirm(layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmDelete.Prompt = lang.Translate("Are you sure?")
-			confirmDelete.NoText = lang.Translate("NO")
-			confirmDelete.YesText = lang.Translate("YES")
-			confirmDelete.Layout(gtx, th)
+			confirmDelete.Layout(gtx, th, prefabs.ConfirmText{
+				Prompt: lang.Translate("Are you sure?"),
+				No:     lang.Translate("NO"),
+				Yes:    lang.Translate("YES"),
+			})
 		},
 	})
 
@@ -217,18 +215,20 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonEdit.Text = lang.Translate("SAVE")
+			p.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonEdit.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			max := image.Pt(gtx.Dp(unit.Dp(gtx.Constraints.Max.X)), 5)
-			paint.FillShape(gtx.Ops, color.NRGBA{A: 150}, clip.Rect{
-				Min: image.Pt(0, 0),
-				Max: max,
+			// Divider
+			gtx.Constraints.Max.Y = gtx.Dp(5)
+			paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
+				Max: gtx.Constraints.Max,
 			}.Op())
-			return layout.Dimensions{Size: max}
+			return layout.Dimensions{Size: gtx.Constraints.Max}
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonDelete.Text = lang.Translate("DELETE GATEWAY")
+			p.buttonDelete.Style.Colors = theme.Current.ButtonDangerColors
 			return p.buttonDelete.Layout(gtx, th)
 		},
 	}

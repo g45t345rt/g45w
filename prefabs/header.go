@@ -1,8 +1,6 @@
 package prefabs
 
 import (
-	"image/color"
-
 	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/unit"
@@ -10,6 +8,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -26,14 +25,9 @@ type Header struct {
 type HeaderTitleLayoutFunc func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions
 
 func NewHeader(r *router.Router) *Header {
-	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
-	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-
 	walletIcon, _ := widget.NewIcon(icons.NavigationArrowBack)
 	buttonGoBack := components.NewButton(components.ButtonStyle{
-		Icon:           walletIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
+		Icon: walletIcon,
 	})
 
 	header := &Header{
@@ -117,6 +111,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 				gtx.Constraints.Max.X = 0
 				gtx.Constraints.Max.Y = 0
 			}
+			h.buttonGoBack.Style.Colors = theme.Current.HeaderBackButtonColors
 			return h.buttonGoBack.Layout(gtx, th)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -145,6 +140,7 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 			if h.ButtonRight != nil {
 				gtx.Constraints.Min.X = gtx.Dp(30)
 				gtx.Constraints.Min.Y = gtx.Dp(30)
+				h.ButtonRight.Style.Colors = theme.Current.ButtonIconPrimaryColors
 				return h.ButtonRight.Layout(gtx, th)
 			}
 

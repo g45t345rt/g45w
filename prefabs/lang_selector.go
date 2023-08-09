@@ -2,7 +2,6 @@ package prefabs
 
 import (
 	"fmt"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -16,6 +15,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -30,22 +30,19 @@ type LangSelector struct {
 func NewLangSelector(defaultLangKey string) *LangSelector {
 	langIcon, _ := widget.NewIcon(icons.ActionLanguage)
 	buttonSelect := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(16),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Icon:            langIcon,
-		IconGap:         unit.Dp(10),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(16),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Icon:      langIcon,
+		IconGap:   unit.Dp(10),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
 
 	items := []*SelectListItem{}
 
-	languages := lang.SupportedLanguages
-	for _, language := range languages {
+	for _, language := range lang.Languages {
 		img, _ := assets.GetImage(language.ImgPath)
 
 		langImg := &components.Image{
@@ -55,6 +52,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 			Rounded:  components.UniformRounded(unit.Dp(5)),
 		}
 
+		name := language.Name
 		items = append(items, NewSelectListItem(language.Key, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -64,7 +62,6 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					name := languages[index].Name
 					lbl := material.Label(th, unit.Sp(20), lang.Translate(name))
 					return lbl.Layout(gtx)
 				}),
@@ -109,12 +106,13 @@ func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	value := r.Value
-	for _, language := range lang.SupportedLanguages {
+	for _, language := range lang.Languages {
 		if language.Key == r.Value {
 			value = lang.Translate(language.Name)
 		}
 	}
 
 	r.ButtonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), value)
+	r.ButtonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 	return r.ButtonSelect.Layout(gtx, th)
 }

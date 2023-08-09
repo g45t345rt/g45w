@@ -22,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -33,8 +34,8 @@ type PageSettings struct {
 
 	buttonDeleteWallet      *components.Button
 	buttonInfo              *components.Button
-	txtWalletName           *components.TextField
-	txtWalletChangePassword *components.TextField
+	txtWalletName           *prefabs.TextField
+	txtWalletChangePassword *prefabs.TextField
 	buttonSave              *components.Button
 	modalWalletPassword     *prefabs.PasswordModal
 	buttonCleanWallet       *components.Button
@@ -53,55 +54,47 @@ var _ router.Page = &PageSettings{}
 func NewPageSettings() *PageSettings {
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDeleteWallet := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            deleteIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 255, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      deleteIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonDeleteWallet.Label.Alignment = text.Middle
 	buttonDeleteWallet.Style.Font.Weight = font.Bold
 
 	cleanIcon, _ := widget.NewIcon(icons.ContentDeleteSweep)
 	buttonCleanWallet := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            cleanIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      cleanIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonCleanWallet.Label.Alignment = text.Middle
 	buttonCleanWallet.Style.Font.Weight = font.Bold
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonSave := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            saveIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      saveIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSave.Label.Alignment = text.Middle
 	buttonSave.Style.Font.Weight = font.Bold
 
 	infoIcon, _ := widget.NewIcon(icons.ActionInfo)
 	buttonInfo := components.NewButton(components.ButtonStyle{
-		Icon:            infoIcon,
-		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		BackgroundColor: color.NRGBA{A: 0},
-		TextSize:        unit.Sp(16),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Icon:      infoIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 		Border: widget.Border{
 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 			Width:        unit.Dp(2),
@@ -114,13 +107,11 @@ func NewPageSettings() *PageSettings {
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	exportIcon, _ := widget.NewIcon(icons.EditorPublish)
 	buttonExportTxs := components.NewButton(components.ButtonStyle{
-		Icon:            exportIcon,
-		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		BackgroundColor: color.NRGBA{A: 0},
-		TextSize:        unit.Sp(16),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Icon:      exportIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 		Border: widget.Border{
 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 			Width:        unit.Dp(2),
@@ -151,8 +142,8 @@ func NewPageSettings() *PageSettings {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	txtWalletName := components.NewTextField()
-	txtWalletChangePassword := components.NewPasswordTextField()
+	txtWalletName := prefabs.NewTextField()
+	txtWalletChangePassword := prefabs.NewPasswordTextField()
 
 	return &PageSettings{
 		buttonDeleteWallet:      buttonDeleteWallet,
@@ -262,6 +253,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonInfo.Style.Colors = theme.Current.ButtonSecondaryColors
 					return p.buttonInfo.Layout(gtx, th)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
@@ -279,11 +271,13 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonSave.Text = lang.Translate("SAVE CHANGES")
+			p.buttonSave.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonSave.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			// Divider
 			gtx.Constraints.Max.Y = gtx.Dp(5)
-			paint.FillShape(gtx.Ops, color.NRGBA{A: 150}, clip.Rect{
+			paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
 				Max: gtx.Constraints.Max,
 			}.Op())
 
@@ -291,13 +285,14 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonExportTxs.Text = lang.Translate("EXPORT TRANSACTIONS")
+			p.buttonExportTxs.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonExportTxs.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonCleanWallet.Text = lang.Translate("CLEAN WALLET")
-
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonCleanWallet.Text = lang.Translate("CLEAN WALLET")
+					p.buttonCleanWallet.Style.Colors = theme.Current.ButtonPrimaryColors
 					return p.buttonCleanWallet.Layout(gtx, th)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
@@ -309,6 +304,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonDeleteWallet.Text = lang.Translate("DELETE WALLET")
+			p.buttonDeleteWallet.Style.Colors = theme.Current.ButtonDangerColors
 			return p.buttonDeleteWallet.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {

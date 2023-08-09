@@ -21,7 +21,9 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -36,10 +38,10 @@ type PageContactForm struct {
 
 	buttonSave    *components.Button
 	buttonDelete  *components.Button
-	txtName       *components.TextField
-	txtAddr       *components.TextField
-	txtNote       *components.TextField
-	confirmDelete *components.Confirm
+	txtName       *prefabs.TextField
+	txtAddr       *prefabs.TextField
+	txtNote       *prefabs.TextField
+	confirmDelete *prefabs.Confirm
 
 	contact *wallet_manager.Contact
 
@@ -62,46 +64,43 @@ func NewPageContactForm() *PageContactForm {
 
 	saveIcon, _ := widget.NewIcon(icons.ContentSave)
 	buttonSave := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            saveIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      saveIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSave.Label.Alignment = text.Middle
 	buttonSave.Style.Font.Weight = font.Bold
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonDelete := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            deleteIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 255, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      deleteIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField()
-	txtAddr := components.NewTextField()
-	txtNote := components.NewTextField()
+	txtName := prefabs.NewTextField()
+	txtAddr := prefabs.NewTextField()
+	txtNote := prefabs.NewTextField()
 	txtNote.Editor().SingleLine = false
 	txtNote.Editor().Submit = false
 
-	confirmDelete := components.NewConfirm(layout.Center)
+	confirmDelete := prefabs.NewConfirm(layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmDelete.Prompt = lang.Translate("Are you sure?")
-			confirmDelete.NoText = lang.Translate("NO")
-			confirmDelete.YesText = lang.Translate("YES")
-			confirmDelete.Layout(gtx, th)
+			confirmDelete.Layout(gtx, th, prefabs.ConfirmText{
+				Prompt: lang.Translate("Are you sure?"),
+				No:     lang.Translate("NO"),
+				Yes:    lang.Translate("YES"),
+			})
 		},
 	})
 
@@ -222,6 +221,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 				p.buttonSave.Text = lang.Translate("ADD CONTACT")
 			}
 
+			p.buttonSave.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonSave.Layout(gtx, th)
 		},
 	}
@@ -238,6 +238,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			p.buttonDelete.Text = lang.Translate("DELETE CONTACT")
+			p.buttonDelete.Style.Colors = theme.Current.ButtonDangerColors
 			return p.buttonDelete.Layout(gtx, th)
 		})
 	}

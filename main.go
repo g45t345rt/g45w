@@ -10,6 +10,7 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/globals"
@@ -27,7 +28,7 @@ import (
 	page_wallet_select "github.com/g45t345rt/g45w/pages/wallet_select"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
-	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 )
 
@@ -141,12 +142,6 @@ func runApp() error {
 
 	th := material.NewTheme()
 	th.Shaper = text.NewShaper(text.NoSystemFonts(), text.WithCollection(fontCollection))
-	th.WithPalette(material.Palette{
-		Fg:         utils.HexColor(0x000000),
-		Bg:         utils.HexColor(0xffffff),
-		ContrastBg: utils.HexColor(0x3f51b5),
-		ContrastFg: utils.HexColor(0xffffff),
-	})
 	th.FingerSize = 48
 
 	for {
@@ -157,6 +152,10 @@ func runApp() error {
 			return e.Err
 		case system.FrameEvent:
 			gtx := layout.NewContext(&ops, e)
+
+			paint.Fill(gtx.Ops, theme.Current.BgColor)
+			th.Bg = theme.Current.BgColor
+			th.Fg = theme.Current.TextColor
 
 			if loadState.loaded {
 				router.Layout(gtx, th)

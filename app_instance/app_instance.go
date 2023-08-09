@@ -6,7 +6,6 @@ import (
 	"gioui.org/app"
 	"gioui.org/unit"
 	"gioui.org/x/explorer"
-	expl "gioui.org/x/explorer"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 )
@@ -30,6 +29,6 @@ func Load() {
 		app.NavigationColor(color.NRGBA{A: 0}),
 	)
 
-	Explorer = expl.NewExplorer(Window)
+	Explorer = explorer.NewExplorer(Window)
 	Router = router.NewRouter()
 }

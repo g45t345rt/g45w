@@ -1,8 +1,6 @@
 package prefabs
 
 import (
-	"image/color"
-
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -12,6 +10,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -42,11 +41,9 @@ func NewPasswordModal() *PasswordModal {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.Center,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationScaleBounce(),
-		Backdrop:            components.NewModalBackground(),
 	})
 
 	return &PasswordModal{
@@ -71,6 +68,7 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		w.Input.SetValue("")
 	}
 
+	w.Modal.Style.Colors = theme.Current.ModalColors
 	return w.Modal.Layout(gtx,
 		func(gtx layout.Context) {
 			{
@@ -98,11 +96,12 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Max.X = gtx.Dp(25)
 						gtx.Constraints.Max.Y = gtx.Dp(25)
-						return w.iconLock.Layout(gtx, color.NRGBA{R: 0, G: 0, B: 0, A: 255})
+						return w.iconLock.Layout(gtx, th.Fg)
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(3, func(gtx layout.Context) layout.Dimensions {
 						w.Input.TextSize = unit.Sp(20)
+						w.Input.Colors = theme.Current.InputColors
 						return w.Input.Layout(gtx, th, lang.Translate("Enter password"))
 					}),
 				)

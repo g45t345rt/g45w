@@ -88,12 +88,9 @@ func NewModalAnimationDown() ModalAnimation {
 	}
 }
 
-func NewModalBackground() layout.Widget {
-	return func(gtx layout.Context) layout.Dimensions {
-		paint.ColorOp{Color: color.NRGBA{A: 100}}.Add(gtx.Ops)
-		paint.PaintOp{}.Add(gtx.Ops)
-		return layout.Dimensions{Size: gtx.Constraints.Max}
-	}
+type ModalColors struct {
+	BackgroundColor color.NRGBA
+	BackdropColor   *color.NRGBA
 }
 
 type ModalStyle struct {
@@ -102,15 +99,14 @@ type ModalStyle struct {
 	Direction           layout.Direction
 	Inset               layout.Inset
 	Rounded             Rounded
-	BgColor             color.NRGBA
-	Backdrop            layout.Widget
 	Animation           ModalAnimation
-	CloseKeySet         key.Set
+	Colors              ModalColors
 }
 
 type Modal struct {
-	Style   ModalStyle
-	Visible bool
+	Style       ModalStyle
+	Visible     bool
+	CloseKeySet key.Set
 
 	clickableOut *widget.Clickable
 	clickableIn  *widget.Clickable
@@ -118,11 +114,8 @@ type Modal struct {
 }
 
 func NewModal(style ModalStyle) *Modal {
-	if style.CloseKeySet == "" {
-		style.CloseKeySet = key.NameEscape + "|" + key.NameBack
-	}
-
 	return &Modal{
+		CloseKeySet:  key.NameEscape + "|" + key.NameBack,
 		Style:        style,
 		Visible:      false,
 		clickableOut: new(widget.Clickable),
@@ -147,16 +140,18 @@ func (modal *Modal) Closed() bool {
 }
 
 func (modal *Modal) handleKeyClose(gtx layout.Context) {
-	key.InputOp{
-		Tag:  modal,
-		Keys: modal.Style.CloseKeySet,
-	}.Add(gtx.Ops)
+	if modal.CloseKeySet != "" {
+		key.InputOp{
+			Tag:  modal,
+			Keys: modal.CloseKeySet,
+		}.Add(gtx.Ops)
 
-	for _, e := range gtx.Events(modal) {
-		switch e := e.(type) {
-		case key.Event:
-			if e.State == key.Press {
-				modal.SetVisible(false)
+		for _, e := range gtx.Events(modal) {
+			switch e := e.(type) {
+			case key.Event:
+				if e.State == key.Press {
+					modal.SetVisible(false)
+				}
 			}
 		}
 	}
@@ -199,8 +194,10 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 		}
 	}
 
-	if modal.Style.Backdrop != nil {
-		modal.Style.Backdrop(gtx)
+	if modal.Style.Colors.BackdropColor != nil {
+		bgColor := *modal.Style.Colors.BackdropColor
+		paint.ColorOp{Color: bgColor}.Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
 	}
 
 	{
@@ -239,7 +236,8 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 				beforeLayout(gtx)
 			}
 
-			paint.FillShape(gtx.Ops, modal.Style.BgColor,
+			bgColor := modal.Style.Colors.BackgroundColor
+			paint.FillShape(gtx.Ops, bgColor,
 				clip.RRect{
 					Rect: image.Rectangle{Max: dims.Size},
 					SE:   gtx.Dp(modal.Style.Rounded.SE),

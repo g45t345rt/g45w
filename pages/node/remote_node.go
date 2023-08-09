@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"image"
-	"image/color"
 	"time"
 
 	"gioui.org/font"
@@ -25,6 +24,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -55,14 +55,12 @@ func NewPageRemoteNode() *PageRemoteNode {
 
 	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonReconnect := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            refreshIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      refreshIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonReconnect.Label.Alignment = text.Middle
 	buttonReconnect.Style.Font.Weight = font.Bold
@@ -138,19 +136,18 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							label := material.Label(th, unit.Sp(22), currentNode.Name)
-							label.Color = color.NRGBA{A: 255}
 							return label.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							label := material.Label(th, unit.Sp(16), currentNode.Endpoint)
-							label.Color = color.NRGBA{A: 150}
+							label.Color = theme.Current.TextMuteColor
 							return label.Layout(gtx)
 						}),
 					)
 				})
 				c := r.Stop()
 
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+				paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 					clip.UniformRRect(
 						image.Rectangle{Max: dims.Size},
 						gtx.Dp(15),
@@ -176,6 +173,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 						layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							p.buttonReconnect.Text = lang.Translate("Reconnect")
+							p.buttonReconnect.Style.Colors = theme.Current.ButtonPrimaryColors
 							return p.buttonReconnect.Layout(gtx, th)
 						}),
 					)
@@ -184,20 +182,19 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						label := material.Label(th, unit.Sp(18), lang.Translate("Node Height"))
-						label.Color = color.NRGBA{A: 150}
+						label.Color = theme.Current.TextMuteColor
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						status := fmt.Sprintf("%d", p.nodeInfo.Result.Height)
 						label := material.Label(th, unit.Sp(22), status)
-						label.Color = color.NRGBA{A: 255}
 						return label.Layout(gtx)
 					}),
 
 					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
-						label.Color = color.NRGBA{A: 150}
+						label.Color = theme.Current.TextMuteColor
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -205,34 +202,31 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 						out := p.nodeInfo.Result.Outgoing_connections_count
 						status := fmt.Sprintf("%d / %d", inc, out)
 						label := material.Label(th, unit.Sp(22), status)
-						label.Color = color.NRGBA{A: 255}
 						return label.Layout(gtx)
 					}),
 
 					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
-						label.Color = color.NRGBA{A: 150}
+						label.Color = theme.Current.TextMuteColor
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						diff := p.nodeInfo.Result.Difficulty
 						status := utils.FormatHashRate(diff)
 						label := material.Label(th, unit.Sp(22), status)
-						label.Color = color.NRGBA{A: 255}
 						return label.Layout(gtx)
 					}),
 
 					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						label := material.Label(th, unit.Sp(18), lang.Translate("Version"))
-						label.Color = color.NRGBA{A: 150}
+						label.Color = theme.Current.TextMuteColor
 						return label.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						version := p.nodeInfo.Result.Version
 						label := material.Label(th, unit.Sp(16), version)
-						label.Color = color.NRGBA{A: 255}
 						return label.Layout(gtx)
 					}),
 				)

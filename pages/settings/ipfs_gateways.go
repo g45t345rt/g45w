@@ -2,7 +2,6 @@ package page_settings
 
 import (
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -19,6 +18,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -53,22 +53,19 @@ func NewPageIPFSGateways() *PageIPFSGateways {
 
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	buttonAdd := components.NewButton(components.ButtonStyle{
-		Icon:      addIcon,
-		TextColor: color.NRGBA{A: 255},
+		Icon: addIcon,
 	})
 
 	gatewayList := NewGatewayList()
 
 	infoIcon, _ := widget.NewIcon(icons.ActionInfo)
 	buttonInfo := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            infoIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      infoIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	modalInfo := components.NewModal(components.ModalStyle{
@@ -77,14 +74,13 @@ func NewPageIPFSGateways() *PageIPFSGateways {
 		Direction:           layout.Center,
 		Inset:               layout.UniformInset(unit.Dp(30)),
 		Rounded:             components.UniformRounded(unit.Dp(10)),
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Animation:           components.NewModalAnimationScaleBounce(),
-		Backdrop:            components.NewModalBackground(),
 	})
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
+			modalInfo.Style.Colors = theme.Current.ModalColors
 			modalInfo.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 				return layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -124,6 +120,7 @@ func (p *PageIPFSGateways) Enter() {
 	page_instance.header.Title = func() string { return lang.Translate("IPFS Gateways") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		lbl := material.Label(th, unit.Sp(16), lang.Translate("Interplanetary File System"))
+		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
 	page_instance.header.ButtonRight = p.buttonAdd
@@ -182,7 +179,6 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 		page_instance.header.AddHistory(PAGE_ADD_IPFS_GATEWAY)
 	}
 
-	p.buttonInfo.Text = lang.Translate("Why use IPFS?")
 	if p.buttonInfo.Clicked() {
 		p.modalInfo.SetVisible(true)
 	}
@@ -190,6 +186,8 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		p.buttonInfo.Text = lang.Translate("Why use IPFS?")
+		p.buttonInfo.Style.Colors = theme.Current.ButtonPrimaryColors
 		return p.buttonInfo.Layout(gtx, th)
 	})
 
@@ -238,8 +236,7 @@ func (l *GatewayList) Layout(gtx layout.Context, th *material.Theme, emptyText s
 			listStyle.AnchorStrategy = material.Overlay
 			listStyle.Indicator.MinorWidth = unit.Dp(10)
 			listStyle.Indicator.CornerRadius = unit.Dp(5)
-			black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-			listStyle.Indicator.Color = black
+			listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
 
 			return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
 				return l.items[i].Layout(gtx, th)
@@ -248,7 +245,7 @@ func (l *GatewayList) Layout(gtx layout.Context, th *material.Theme, emptyText s
 	})
 	c := r.Stop()
 
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 		clip.UniformRRect(
 			image.Rectangle{Max: dims.Size},
 			gtx.Dp(unit.Dp(10)),
@@ -282,7 +279,7 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			if item.gateway.Active {
 				layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return item.checkIcon.Layout(gtx, color.NRGBA{A: 255})
+					return item.checkIcon.Layout(gtx, theme.Current.ListTextColor)
 				})
 			}
 
@@ -310,7 +307,7 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layo
 
 		if item.clickable.Hovered() {
 			pointer.CursorPointer.Add(gtx.Ops)
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 				clip.UniformRRect(
 					image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
 					gtx.Dp(item.rounded),

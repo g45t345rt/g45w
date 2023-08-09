@@ -1,59 +1,55 @@
-package components
+package prefabs
 
 import (
-	"image/color"
-
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/theme"
 )
 
+type ConfirmText struct {
+	Prompt string
+	Yes    string
+	No     string
+}
+
 type Confirm struct {
-	Prompt  string
-	YesText string
-	NoText  string
+	Modal *components.Modal
 
-	Modal *Modal
-
-	buttonYes *Button
-	buttonNo  *Button
+	buttonYes *components.Button
+	buttonNo  *components.Button
 
 	clickedYes bool
 	clickedNo  bool
 }
 
 func NewConfirm(direction layout.Direction) *Confirm {
-	modal := NewModal(ModalStyle{
+	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           direction,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		Rounded:             UniformRounded(unit.Dp(10)),
+		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(unit.Dp(10)),
-		Animation:           NewModalAnimationScaleBounce(),
-		Backdrop:            NewModalBackground(),
+		Animation:           components.NewModalAnimationScaleBounce(),
 	})
 
-	buttonYes := NewButton(ButtonStyle{
-		Rounded:         UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       NewButtonAnimationDefault(),
+	buttonYes := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonYes.Label.Alignment = text.Middle
 	buttonYes.Style.Font.Weight = font.Bold
 
-	buttonNo := NewButton(ButtonStyle{
-		Rounded:         UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       NewButtonAnimationDefault(),
+	buttonNo := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonNo.Label.Alignment = text.Middle
 	buttonNo.Style.Font.Weight = font.Bold
@@ -79,7 +75,7 @@ func (c *Confirm) SetVisible(visible bool) {
 	c.Modal.SetVisible(visible)
 }
 
-func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (c *Confirm) Layout(gtx layout.Context, th *material.Theme, text ConfirmText) layout.Dimensions {
 	c.clickedYes = c.buttonYes.Clicked()
 	c.clickedNo = c.buttonNo.Clicked()
 
@@ -88,11 +84,12 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 	}
 
 	var lblSize layout.Dimensions
+	c.Modal.Style.Colors = theme.Current.ModalColors
 	return c.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(18), c.Prompt)
+					label := material.Label(th, unit.Sp(18), text.Prompt)
 					lblSize = label.Layout(gtx)
 					return lblSize
 				}),
@@ -101,11 +98,13 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 					gtx.Constraints.Min.X = lblSize.Size.X
 					return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							c.buttonNo.Text = c.NoText
+							c.buttonNo.Text = text.No
+							c.buttonNo.Style.Colors = theme.Current.ButtonPrimaryColors
 							return c.buttonNo.Layout(gtx, th)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							c.buttonYes.Text = c.YesText
+							c.buttonYes.Text = text.Yes
+							c.buttonYes.Style.Colors = theme.Current.ButtonPrimaryColors
 							return c.buttonYes.Layout(gtx, th)
 						}),
 					)

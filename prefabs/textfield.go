@@ -1,4 +1,4 @@
-package components
+package prefabs
 
 import (
 	"gioui.org/font"
@@ -6,14 +6,16 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/theme"
 )
 
 type TextField struct {
-	Input *Input
+	Input *components.Input
 }
 
 func NewTextField() *TextField {
-	input := NewInput()
+	input := components.NewInput()
 
 	return &TextField{
 		Input: input,
@@ -21,14 +23,14 @@ func NewTextField() *TextField {
 }
 
 func NewNumberTextField() *TextField {
-	input := NewNumberInput()
+	input := components.NewNumberInput()
 	return &TextField{
 		Input: input,
 	}
 }
 
 func NewPasswordTextField() *TextField {
-	input := NewPasswordInput()
+	input := components.NewPasswordInput()
 
 	return &TextField{
 		Input: input,
@@ -48,9 +50,12 @@ func (t *TextField) Editor() *widget.Editor {
 }
 
 func (t *TextField) Layout(gtx layout.Context, th *material.Theme, title string, hint string) layout.Dimensions {
+	t.Input.Colors = theme.Current.InputColors
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(20), title)
+			textSize := th.TextSize + unit.Sp(2)
+			lbl := material.Label(th, textSize, title)
+			lbl.Color = t.Input.Colors.TextColor
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)
 		}),

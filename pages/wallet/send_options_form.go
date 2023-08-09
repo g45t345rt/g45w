@@ -7,8 +7,8 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -17,9 +17,9 @@ import (
 type PageSendOptionsForm struct {
 	isActive bool
 
-	txtComment     *components.TextField
-	txtDescription *components.TextField
-	txtDstPort     *components.TextField
+	txtComment     *prefabs.TextField
+	txtDescription *prefabs.TextField
+	txtDstPort     *prefabs.TextField
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -30,13 +30,13 @@ type PageSendOptionsForm struct {
 var _ router.Page = &PageSendOptionsForm{}
 
 func NewPageSendOptionsForm() *PageSendOptionsForm {
-	txtComment := components.NewTextField()
+	txtComment := prefabs.NewTextField()
 	txtComment.Editor().SingleLine = false
 	txtComment.Editor().Submit = false
-	txtDescription := components.NewTextField()
+	txtDescription := prefabs.NewTextField()
 	txtDescription.Editor().SingleLine = false
 	txtDescription.Editor().Submit = false
-	txtDstPort := components.NewNumberTextField()
+	txtDstPort := prefabs.NewNumberTextField()
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),

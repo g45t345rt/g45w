@@ -15,6 +15,12 @@ import (
 	"gioui.org/widget/material"
 )
 
+type InputColors struct {
+	BorderColor     color.NRGBA
+	BackgroundColor color.NRGBA
+	TextColor       color.NRGBA
+}
+
 type Input struct {
 	FontWeight font.Weight
 	TextSize   unit.Sp
@@ -23,6 +29,7 @@ type Input struct {
 	Border     widget.Border
 	Inset      layout.Inset
 	Clickable  *widget.Clickable
+	Colors     InputColors
 
 	keyboardClick *widget.Clickable
 	submitted     bool
@@ -36,7 +43,6 @@ func NewInput() *Input {
 	editor.Submit = true
 	editor.InputHint = key.HintText // Cap sentence flag
 	border := widget.Border{
-		Color:        color.NRGBA{A: 240},
 		CornerRadius: unit.Dp(5),
 		Width:        unit.Dp(1),
 	}
@@ -124,21 +130,22 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 
 	return t.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return t.keyboardClick.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			t.Border.Color = t.Colors.BorderColor
 			return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				macro := op.Record(gtx.Ops)
 				dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					editorStyle := material.Editor(th, t.Editor, hint)
+					editorStyle.Color = t.Colors.TextColor
+					editorStyle.TextSize = th.TextSize
 					if t.TextSize != 0 {
 						editorStyle.TextSize = t.TextSize
 					}
-					if t.FontWeight != font.Normal {
-						editorStyle.Font.Weight = t.FontWeight
-					}
+					editorStyle.Font.Weight = t.FontWeight
 					return editorStyle.Layout(gtx)
 				})
 				call := macro.Stop()
 
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+				paint.FillShape(gtx.Ops, t.Colors.BackgroundColor, clip.UniformRRect(
 					image.Rectangle{Max: dims.Size},
 					int(t.Border.CornerRadius),
 				).Op(gtx.Ops))

@@ -32,6 +32,7 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -77,41 +78,29 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
 	buttonSettings := components.NewButton(components.ButtonStyle{
 		Icon:      settingsIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 
 	registerIcon, _ := widget.NewIcon(icons.ActionAssignmentTurnedIn)
 	buttonRegister := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-		Icon:            registerIcon,
-		IconGap:         unit.Dp(10),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Icon:      registerIcon,
+		IconGap:   unit.Dp(10),
 	})
 	buttonRegister.Label.Alignment = text.Middle
 	buttonRegister.Style.Font.Weight = font.Bold
 
-	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
-	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-
 	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
 	buttonCopyAddr := components.NewButton(components.ButtonStyle{
-		Icon:           copyIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
+		Icon: copyIcon,
 	})
 
 	tabBarsItems := []*components.TabBarsItem{
-		components.NewTabBarItem("tokens", components.TabBarItemStyle{
-			TextSize: unit.Sp(18),
-		}),
-		components.NewTabBarItem("txs", components.TabBarItemStyle{
-			TextSize: unit.Sp(18),
-		}),
+		components.NewTabBarItem("tokens"),
+		components.NewTabBarItem("txs"),
 	}
 	defaultTabKey := settings.App.TabBarsKey
 	tabBars := components.NewTabBars(defaultTabKey, tabBarsItems)
@@ -250,13 +239,14 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				walletAddr := utils.ReduceAddr(walletAddr)
 				label := material.Label(th, unit.Sp(16), walletAddr)
-				label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 200}
+				label.Color = theme.Current.TextMuteColor
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				gtx.Constraints.Max.X = gtx.Dp(18)
 				gtx.Constraints.Max.Y = gtx.Dp(18)
+				p.buttonCopyAddr.Style.Colors = theme.Current.ModalButtonColors
 				return p.buttonCopyAddr.Layout(gtx, th)
 			}),
 		)
@@ -343,6 +333,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 							Left: unit.Dp(30), Right: unit.Dp(30),
 						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 							p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
+							p.buttonRegister.Style.Colors = theme.Current.ButtonPrimaryColors
 							return p.buttonRegister.Layout(gtx, th)
 						})
 					})
@@ -375,14 +366,12 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		rect := image.Rectangle{Max: image.Pt(gtx.Constraints.Max.X, 2)}
-		paint.FillShape(gtx.Ops, color.NRGBA{A: 50}, clip.UniformRRect(rect, 0).Op(gtx.Ops))
-
-		cl := clip.Rect{Max: image.Pt(gtx.Constraints.Max.X, gtx.Dp(1))}.Push(gtx.Ops)
-		paint.ColorOp{Color: color.NRGBA{R: 0, G: 0, B: 0, A: 50}}.Add(gtx.Ops)
-		paint.PaintOp{}.Add(gtx.Ops)
-		cl.Pop()
-		return layout.Dimensions{Size: rect.Max}
+		// Divider
+		gtx.Constraints.Max.Y = gtx.Dp(2)
+		paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
+			Max: gtx.Constraints.Max,
+		}.Op())
+		return layout.Dimensions{Size: gtx.Constraints.Max}
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -393,7 +382,8 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			text := make(map[string]string)
 			text["tokens"] = lang.Translate("Tokens")
 			text["txs"] = lang.Translate("Transactions")
-			return p.tabBars.Layout(gtx, th, text)
+			p.tabBars.Colors = theme.Current.TabBarsColors
+			return p.tabBars.Layout(gtx, th, unit.Sp(18), text)
 		})
 	})
 
@@ -559,28 +549,24 @@ type SendReceiveButtons struct {
 func NewSendReceiveButtons() *SendReceiveButtons {
 	sendIcon, _ := widget.NewIcon(icons.NavigationArrowUpward)
 	buttonSend := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            sendIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      sendIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSend.Label.Alignment = text.Middle
 	buttonSend.Style.Font.Weight = font.Bold
 
 	receiveIcon, _ := widget.NewIcon(icons.NavigationArrowDownward)
 	buttonReceive := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            receiveIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      receiveIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonReceive.Label.Alignment = text.Middle
 	buttonReceive.Style.Font.Weight = font.Bold
@@ -596,12 +582,14 @@ func (s *SendReceiveButtons) Layout(gtx layout.Context, th *material.Theme) layo
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.Y = gtx.Dp(40)
 			s.ButtonSend.Text = lang.Translate("SEND")
+			s.ButtonSend.Style.Colors = theme.Current.ButtonPrimaryColors
 			return s.ButtonSend.Layout(gtx, th)
 		}),
 		layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.Y = gtx.Dp(40)
 			s.ButtonReceive.Text = lang.Translate("RECEIVE")
+			s.ButtonReceive.Style.Colors = theme.Current.ButtonPrimaryColors
 			return s.ButtonReceive.Layout(gtx, th)
 		}),
 	)
@@ -618,8 +606,7 @@ func NewButtonHideBalance() *ButtonHideBalance {
 	hideBalanceIcon, _ := widget.NewIcon(icons.ActionVisibility)
 	showBalanceIcon, _ := widget.NewIcon(icons.ActionVisibilityOff)
 	buttonHideBalance := components.NewButton(components.ButtonStyle{
-		Icon:      hideBalanceIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		Icon: hideBalanceIcon,
 	})
 
 	return &ButtonHideBalance{
@@ -684,7 +671,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
-			lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+			lbl.Color = theme.Current.TextMuteColor
 
 			return lbl.Layout(gtx)
 		}),
@@ -710,7 +697,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 					dims := amountEditor.Layout(gtx)
 
 					if settings.App.HideBalance {
-						paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{
+						paint.FillShape(gtx.Ops, theme.Current.HideBalanceBgColor, clip.Rect{
 							Max: dims.Size,
 						}.Op())
 					}
@@ -721,6 +708,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Min.Y = gtx.Dp(30)
 					gtx.Constraints.Min.X = gtx.Dp(30)
+					d.buttonHideBalance.Button.Style.Colors = theme.Current.ButtonIconPrimaryColors
 					return d.buttonHideBalance.Layout(gtx, th)
 				}),
 			)
@@ -739,9 +727,7 @@ type TokenBar struct {
 func NewTokenBar() *TokenBar {
 	listIcon, _ := widget.NewIcon(icons.ActionViewList)
 	buttonListToken := components.NewButton(components.ButtonStyle{
-		Icon:            listIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{A: 255},
+		Icon: listIcon,
 		Inset: layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
@@ -769,6 +755,7 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					t.buttonListToken.Style.Colors = theme.Current.ButtonPrimaryColors
 					return t.buttonListToken.Layout(gtx, th)
 				}),
 			)
@@ -835,7 +822,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 									}
 
 									lbl := material.Label(th, unit.Sp(14), scId)
-									lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 							)
@@ -847,7 +834,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 	})
 	c := m.Stop()
 
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 		clip.RRect{
 			Rect: image.Rectangle{Max: dims.Size},
 			NW:   gtx.Dp(10), NE: gtx.Dp(10),
@@ -864,9 +851,9 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 				Bottom: unit.Dp(5), Top: unit.Dp(5),
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				balance := utils.ShiftNumber{Number: uint64(item.balance), Decimals: int(item.token.Decimals)}
-				label := material.Label(th, unit.Sp(18), balance.Format())
-				label.Font.Weight = font.Bold
-				return label.Layout(gtx)
+				lbl := material.Label(th, unit.Sp(18), balance.Format())
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
 			})
 			c := r.Stop()
 
@@ -875,7 +862,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 			offset := f32.Affine2D{}.Offset(f32.Pt(x, y))
 			defer op.Affine(offset).Push(gtx.Ops).Pop()
 
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 225, G: 225, B: 225, A: 255},
+			paint.FillShape(gtx.Ops, theme.Current.ListItemTagBgColor,
 				clip.RRect{
 					Rect: image.Rectangle{Max: labelDims.Size},
 					NW:   gtx.Dp(5), NE: gtx.Dp(5),
@@ -949,9 +936,7 @@ func NewTxBar() *TxBar {
 	})
 
 	buttonFilter := components.NewButton(components.ButtonStyle{
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{A: 255},
-		TextSize:        unit.Sp(16),
+		TextSize: unit.Sp(16),
 		Inset: layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
@@ -987,12 +972,10 @@ func (t *TxBar) Changed() (bool, string) {
 
 func (t *TxBar) setActiveButton(button *components.Button, tab string) {
 	if t.tab == tab {
-		button.Style.TextColor = t.textColorOn
-		button.Style.BackgroundColor = t.bgColorOn
+		button.Style.Colors = theme.Current.ButtonPrimaryColors
 		button.Disabled = true
 	} else {
-		button.Style.TextColor = t.textColorOff
-		button.Style.BackgroundColor = t.bgColorOff
+		button.Style.Colors = theme.Current.ButtonInvertColors
 		button.Disabled = false
 	}
 }
@@ -1052,6 +1035,7 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					t.buttonFilter.Text = lang.Translate("Filter")
+					t.buttonFilter.Style.Colors = theme.Current.ButtonPrimaryColors
 					return t.buttonFilter.Layout(gtx, th)
 				}),
 			)
@@ -1131,7 +1115,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									txt := item.entry.Time.Format("2006-01-02 15:04")
 									lbl := material.Label(th, unit.Sp(14), txt)
-									lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 							)
@@ -1143,7 +1127,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	})
 	c := m.Stop()
 
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 		clip.RRect{
 			Rect: image.Rectangle{Max: dims.Size},
 			NW:   gtx.Dp(10), NE: gtx.Dp(10),
@@ -1172,7 +1156,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			offset := f32.Affine2D{}.Offset(f32.Pt(x, y))
 			defer op.Affine(offset).Push(gtx.Ops).Pop()
 
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 225, G: 225, B: 225, A: 255},
+			paint.FillShape(gtx.Ops, theme.Current.ListItemTagBgColor,
 				clip.RRect{
 					Rect: image.Rectangle{Max: labelDims.Size},
 					NW:   gtx.Dp(5), NE: gtx.Dp(5),

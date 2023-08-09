@@ -2,7 +2,6 @@ package page_wallet_select
 
 import (
 	"fmt"
-	"image/color"
 	"os"
 
 	"gioui.org/font"
@@ -17,7 +16,9 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -33,8 +34,8 @@ type PageCreateWalletDiskForm struct {
 	list *widget.List
 
 	buttonCreate  *components.Button
-	txtWalletName *components.TextField
-	txtPassword   *components.TextField
+	txtWalletName *prefabs.TextField
+	txtPassword   *prefabs.TextField
 	buttonLoad    *components.Button
 
 	walletPath string
@@ -54,32 +55,28 @@ func NewPageCreateWalletDiskForm() *PageCreateWalletDiskForm {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtWalletName := components.NewTextField()
-	txtPassword := components.NewPasswordTextField()
+	txtWalletName := prefabs.NewTextField()
+	txtPassword := prefabs.NewPasswordTextField()
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            iconCreate,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      iconCreate,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonCreate.Style.Font.Weight = font.Bold
 
 	iconOpen, _ := widget.NewIcon(icons.FileFolderOpen)
 	buttonLoad := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            iconOpen,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      iconOpen,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonLoad.Style.Font.Weight = font.Bold
 
@@ -166,6 +163,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonLoad.Text = lang.Translate("LOAD FILE")
+			p.buttonLoad.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonLoad.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -186,6 +184,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonCreate.Text = lang.Translate("CREATE WALLET")
+			p.buttonCreate.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonCreate.Layout(gtx, th)
 		},
 	}

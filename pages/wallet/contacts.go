@@ -54,7 +54,6 @@ func NewPageContacts() *PageContacts {
 	addIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
 	buttonAddContact := components.NewButton(components.ButtonStyle{
 		Icon:      addIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 

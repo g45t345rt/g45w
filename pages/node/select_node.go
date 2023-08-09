@@ -2,7 +2,6 @@ package page_node
 
 import (
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -23,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -59,36 +59,30 @@ func NewPageSelectNode() *PageSelectNode {
 
 	nodeIcon, _ := widget.NewIcon(icons.ActionDNS)
 	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(16),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-		Icon:            nodeIcon,
-		IconGap:         unit.Dp(10),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(16),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Icon:      nodeIcon,
+		IconGap:   unit.Dp(10),
 	})
 	buttonSetIntegratedNode.Label.Alignment = text.Middle
 	buttonSetIntegratedNode.Style.Font.Weight = font.Bold
 
 	addIcon, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
-		Icon:           addIcon,
-		TextColor:      color.NRGBA{A: 100},
-		HoverTextColor: &color.NRGBA{A: 255},
-		Animation:      components.NewButtonAnimationScale(.92),
+		Icon:      addIcon,
+		Animation: components.NewButtonAnimationScale(.92),
 	})
 
 	resetIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonResetNodeList := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(16),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-		Icon:            resetIcon,
-		IconGap:         unit.Dp(10),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(16),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Icon:      resetIcon,
+		IconGap:   unit.Dp(10),
 	})
 	buttonResetNodeList.Label.Alignment = text.Middle
 	buttonResetNodeList.Style.Font.Weight = font.Bold
@@ -176,6 +170,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonSetIntegratedNode.Text = lang.Translate("Use Integrated Node")
+			p.buttonSetIntegratedNode.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonSetIntegratedNode.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -200,12 +195,14 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							gtx.Constraints.Min.X = gtx.Dp(35)
 							gtx.Constraints.Min.Y = gtx.Dp(35)
+							p.buttonAddNode.Style.Colors = theme.Current.ButtonIconPrimaryColors
 							return p.buttonAddNode.Layout(gtx, th)
 						}),
 					)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Max.Y = gtx.Dp(300)
 					return p.nodeList.Layout(gtx, th, lang.Translate("You don't have any remote nodes available."))
 				}),
 			)
@@ -215,6 +212,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonResetNodeList.Text = lang.Translate("Reset node list")
+			p.buttonResetNodeList.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonResetNodeList.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -324,8 +322,7 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText stri
 			listStyle.AnchorStrategy = material.Overlay
 			listStyle.Indicator.MinorWidth = unit.Dp(10)
 			listStyle.Indicator.CornerRadius = unit.Dp(5)
-			black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-			listStyle.Indicator.Color = black
+			listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
 
 			return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
 				return l.items[i].Layout(gtx, th)
@@ -334,7 +331,7 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText stri
 	})
 	c := r.Stop()
 
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 		clip.UniformRRect(
 			image.Rectangle{Max: dims.Size},
 			gtx.Dp(unit.Dp(10)),
@@ -391,7 +388,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 		buttonSelectHovered := item.listItemSelect.ButtonSelect.Clickable.Hovered()
 		if item.clickable.Hovered() && !buttonEditHovered && !buttonSelectHovered {
 			pointer.CursorPointer.Add(gtx.Ops)
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 				clip.UniformRRect(
 					image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
 					gtx.Dp(item.rounded),

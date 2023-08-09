@@ -1,8 +1,6 @@
 package image_modal
 
 import (
-	"image/color"
-
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op/paint"
@@ -12,6 +10,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -29,22 +28,18 @@ func LoadInstance() {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.N,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Rounded: components.Rounded{
 			SW: unit.Dp(10), SE: unit.Dp(10),
 			NW: unit.Dp(10), NE: unit.Dp(10),
 		},
 		Inset:     layout.UniformInset(unit.Dp(20)),
 		Animation: components.NewModalAnimationDown(),
-		Backdrop:  components.NewModalBackground(),
 	})
 
 	closeIcon, _ := widget.NewIcon(icons.NavigationCancel)
 	buttonClose := components.NewButton(components.ButtonStyle{
-		Icon:           closeIcon,
-		TextColor:      color.NRGBA{R: 0, G: 0, B: 0, A: 100},
-		HoverTextColor: &color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		Animation:      components.NewButtonAnimationScale(.95),
+		Icon:      closeIcon,
+		Animation: components.NewButtonAnimationScale(.95),
 	})
 
 	Instance = &ImageModal{
@@ -74,6 +69,7 @@ func (r *ImageModal) layout(gtx layout.Context, th *material.Theme) {
 		r.modal.SetVisible(false)
 	}
 
+	r.modal.Style.Colors = theme.Current.ModalColors
 	r.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -85,6 +81,7 @@ func (r *ImageModal) layout(gtx layout.Context, th *material.Theme) {
 							return lbl.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							r.buttonClose.Style.Colors = theme.Current.ModalButtonColors
 							return r.buttonClose.Layout(gtx, th)
 						}),
 					)

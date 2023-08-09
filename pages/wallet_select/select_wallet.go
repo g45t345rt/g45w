@@ -25,6 +25,7 @@ import (
 	page_wallet "github.com/g45t345rt/g45w/pages/wallet"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -74,14 +75,12 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
 	buttonWalletCreate := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            addIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      addIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonWalletCreate.Label.Alignment = text.Middle
 	buttonWalletCreate.Style.Font.Weight = font.Bold
@@ -186,6 +185,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 						}
 
 						p.buttonWalletCreate.Text = lang.Translate("NEW WALLET")
+						p.buttonWalletCreate.Style.Colors = theme.Current.ButtonPrimaryColors
 						return p.buttonWalletCreate.Layout(gtx, th)
 					}),
 				)
@@ -230,11 +230,9 @@ func NewCreateWalletSelectionModal() *CreateWalletSelectionModal {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.S,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationUp(),
-		Backdrop:            components.NewModalBackground(),
 	})
 
 	list := new(widget.List)
@@ -261,6 +259,7 @@ func NewCreateWalletSelectionModal() *CreateWalletSelectionModal {
 }
 
 func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	c.modal.Style.Colors = theme.Current.ModalColors
 	return c.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
@@ -306,7 +305,7 @@ func (c *CreateWalletListItem) Layout(gtx layout.Context, th *material.Theme) la
 		return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return c.icon.Layout(gtx, color.NRGBA{A: 255})
+					return c.icon.Layout(gtx, th.Fg)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -347,7 +346,7 @@ func NewWalletList() *WalletList {
 }
 
 func (w *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 		clip.UniformRRect(
 			image.Rectangle{Max: gtx.Constraints.Max},
 			gtx.Dp(unit.Dp(10)),
@@ -359,8 +358,7 @@ func (w *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 		listStyle.AnchorStrategy = material.Overlay
 		listStyle.Indicator.MinorWidth = unit.Dp(10)
 		listStyle.Indicator.CornerRadius = unit.Dp(5)
-		black := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-		listStyle.Indicator.Color = black
+		listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
 
 		return listStyle.Layout(gtx, len(w.items), func(gtx layout.Context, i int) layout.Dimensions {
 			return w.items[i].Layout(gtx, th)
@@ -407,7 +405,7 @@ func (item *WalletListItem) Layout(gtx layout.Context, th *material.Theme) layou
 
 		if item.Clickable.Hovered() {
 			pointer.CursorPointer.Add(gtx.Ops)
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 				clip.UniformRRect(
 					image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
 					gtx.Dp(item.rounded),

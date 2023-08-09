@@ -3,7 +3,6 @@ package prefabs
 import (
 	"fmt"
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -17,14 +16,9 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
-
-var themes = map[string]string{
-	"light": "Light", //@lang.Translate("Light")
-	"dark":  "Dark",  //@lang.Translate("Dark")
-	"blue":  "Blue",  //@lang.Translate("Blue")
-}
 
 type ThemeSelector struct {
 	ButtonSelect *components.Button
@@ -37,33 +31,32 @@ type ThemeSelector struct {
 func NewThemeSelector(defaultThemeKey string) *ThemeSelector {
 	colorIcon, _ := widget.NewIcon(icons.EditorFormatColorFill)
 	buttonSelect := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(16),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Icon:            colorIcon,
-		IconGap:         unit.Dp(10),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(16),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Icon:      colorIcon,
+		IconGap:   unit.Dp(10),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
 
 	items := []*SelectListItem{}
 
-	for key := range themes {
-		themeKey := key
-		items = append(items, NewSelectListItem(key, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
+	for _, theme := range theme.Themes {
+		indicatorColor := theme.ThemeIndicatorColor
+		name := theme.Name
+		items = append(items, NewSelectListItem(theme.Key, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					rect := image.Rectangle{Max: image.Pt(gtx.Dp(25), gtx.Dp(25))}
-					paint.FillShape(gtx.Ops, color.NRGBA{A: 255}, clip.UniformRRect(rect, gtx.Dp(5)).Op(gtx.Ops))
+					paint.FillShape(gtx.Ops, indicatorColor, clip.UniformRRect(rect, gtx.Dp(5)).Op(gtx.Ops))
 
 					return layout.Dimensions{Size: rect.Max}
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(20), lang.Translate(themes[themeKey]))
+					lbl := material.Label(th, unit.Sp(20), lang.Translate(name))
 					return lbl.Layout(gtx)
 				}),
 			)
@@ -107,12 +100,13 @@ func (r *ThemeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	value := r.Value
-	for key, name := range themes {
-		if key == r.Value {
-			value = lang.Translate(name)
+	for _, theme := range theme.Themes {
+		if theme.Key == r.Value {
+			value = lang.Translate(theme.Name)
 		}
 	}
 
 	r.ButtonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Theme"), value)
+	r.ButtonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 	return r.ButtonSelect.Layout(gtx, th)
 }

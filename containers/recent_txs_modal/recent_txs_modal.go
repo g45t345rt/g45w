@@ -21,7 +21,9 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/skratchdot/open-golang/open"
@@ -32,7 +34,7 @@ type RecentTxsModal struct {
 	modal        *components.Modal
 	list         *widget.List
 	buttonClear  *components.Button
-	confirmClear *components.Confirm
+	confirmClear *prefabs.Confirm
 
 	txItems []TxItem
 }
@@ -44,25 +46,21 @@ func LoadInstance() {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.N,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Rounded: components.Rounded{
 			SW: unit.Dp(10), SE: unit.Dp(10),
 		},
 		Animation: components.NewModalAnimationDown(),
-		Backdrop:  components.NewModalBackground(),
 	})
 
-	confirmClear := components.NewConfirm(layout.Center)
+	confirmClear := prefabs.NewConfirm(layout.Center)
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
 	deleteIcon, _ := widget.NewIcon(icons.ContentDeleteSweep)
 	buttonClear := components.NewButton(components.ButtonStyle{
-		Icon:           deleteIcon,
-		TextColor:      color.NRGBA{R: 0, G: 0, B: 0, A: 100},
-		HoverTextColor: &color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		Animation:      components.NewButtonAnimationScale(.95),
+		Icon:      deleteIcon,
+		Animation: components.NewButtonAnimationScale(.95),
 	})
 
 	Instance = &RecentTxsModal{
@@ -79,10 +77,11 @@ func LoadInstance() {
 		Layout: func(gtx layout.Context, th *material.Theme) {
 			Instance.layout(gtx, th)
 
-			confirmClear.Prompt = lang.Translate("Are you sure you want to clear outgoing txs?")
-			confirmClear.NoText = lang.Translate("NO")
-			confirmClear.YesText = lang.Translate("YES")
-			confirmClear.Layout(gtx, th)
+			confirmClear.Layout(gtx, th, prefabs.ConfirmText{
+				Prompt: lang.Translate("Are you sure you want to clear outgoing txs?"),
+				No:     lang.Translate("NO"),
+				Yes:    lang.Translate("YES"),
+			})
 		},
 	})
 }
@@ -160,6 +159,7 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 
 	r.buttonClear.Disabled = wallet == nil
 
+	r.modal.Style.Colors = theme.Current.ModalColors
 	r.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(15), Bottom: unit.Dp(15),
@@ -175,6 +175,7 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							r.buttonClear.Style.Colors = theme.Current.ModalButtonColors
 							return r.buttonClear.Layout(gtx, th)
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
@@ -223,20 +224,14 @@ type TxItem struct {
 func NewTxItem(tx wallet_manager.OutgoingTx) *TxItem {
 	openIcon, _ := widget.NewIcon(icons.ActionOpenInBrowser)
 
-	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
-	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 	buttonOpen := components.NewButton(components.ButtonStyle{
-		Icon:           openIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
+		Icon: openIcon,
 	})
 
 	remoteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonRemove := components.NewButton(components.ButtonStyle{
-		Icon:           remoteIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
-		Animation:      components.NewButtonAnimationScale(.95),
+		Icon:      remoteIcon,
+		Animation: components.NewButtonAnimationScale(.95),
 	})
 
 	return &TxItem{
@@ -329,6 +324,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		flexChilds = append(flexChilds,
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				item.buttonOpen.Style.Colors = theme.Current.ModalButtonColors
 				return item.buttonOpen.Layout(gtx, th)
 			}),
 		)
@@ -337,6 +333,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			flexChilds = append(flexChilds,
 				layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					item.buttonRemove.Style.Colors = theme.Current.ModalButtonColors
 					return item.buttonRemove.Layout(gtx, th)
 				}),
 			)

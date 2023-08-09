@@ -2,7 +2,6 @@ package page_node
 
 import (
 	"fmt"
-	"image/color"
 	"time"
 
 	"gioui.org/layout"
@@ -13,6 +12,7 @@ import (
 	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -96,46 +96,43 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				label := material.Label(th, unit.Sp(18), lang.Translate("Node Height / Network Height"))
-				label.Color = color.NRGBA{A: 150}
+				label.Color = theme.Current.TextMuteColor
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				status := fmt.Sprintf("%d / %d", p.nodeStatus.Height, p.nodeStatus.BestHeight)
 				label := material.Label(th, unit.Sp(22), status)
-				label.Color = color.NRGBA{A: 255}
 				return label.Layout(gtx)
 			}),
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
-				label.Color = color.NRGBA{A: 150}
+				label.Color = theme.Current.TextMuteColor
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				status := fmt.Sprintf("%d / %d", p.nodeStatus.PeerInCount, p.nodeStatus.PeerOutCount)
 				label := material.Label(th, unit.Sp(22), status)
-				label.Color = color.NRGBA{A: 255}
 				return label.Layout(gtx)
 			}),
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
-				label.Color = color.NRGBA{A: 150}
+				label.Color = theme.Current.TextMuteColor
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				status := utils.FormatHashRate(p.nodeStatus.NetworkHashRate)
 				label := material.Label(th, unit.Sp(22), status)
-				label.Color = color.NRGBA{A: 255}
 				return label.Layout(gtx)
 			}),
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				label := material.Label(th, unit.Sp(18), lang.Translate("TXp / Time Offset"))
-				label.Color = color.NRGBA{A: 150}
+				label.Color = theme.Current.TextMuteColor
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -148,20 +145,18 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 				)
 
 				label := material.Label(th, unit.Sp(22), status)
-				label.Color = color.NRGBA{A: 255}
 				return label.Layout(gtx)
 			}),
 
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				label := material.Label(th, unit.Sp(18), lang.Translate("Space Used"))
-				label.Color = color.NRGBA{A: 150}
+				label.Color = theme.Current.TextMuteColor
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				value := utils.FormatBytes(p.nodeSize.Size)
 				label := material.Label(th, unit.Sp(22), value)
-				label.Color = color.NRGBA{A: 255}
 				return label.Layout(gtx)
 			}),
 		)

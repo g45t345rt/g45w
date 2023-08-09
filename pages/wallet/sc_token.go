@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -26,6 +25,7 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -42,7 +42,7 @@ type PageSCToken struct {
 	buttonOpenMenu     *components.Button
 	tokenMenuSelect    *TokenMenuSelect
 	sendReceiveButtons *SendReceiveButtons
-	confirmRemoveToken *components.Confirm
+	confirmRemoveToken *prefabs.Confirm
 	buttonHideBalance  *ButtonHideBalance
 	tabBars            *components.TabBars
 	txBar              *TxBar
@@ -74,7 +74,6 @@ func NewPageSCToken() *PageSCToken {
 	addIcon, _ := widget.NewIcon(icons.NavigationMenu)
 	buttonOpenMenu := components.NewButton(components.ButtonStyle{
 		Icon:      addIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 
@@ -95,25 +94,22 @@ func NewPageSCToken() *PageSCToken {
 	balanceEditor.SingleLine = true
 
 	tabBarsItems := []*components.TabBarsItem{
-		components.NewTabBarItem("txs", components.TabBarItemStyle{
-			TextSize: unit.Sp(18),
-		}),
-		components.NewTabBarItem("info", components.TabBarItemStyle{
-			TextSize: unit.Sp(18),
-		}),
+		components.NewTabBarItem("txs"),
+		components.NewTabBarItem("info"),
 	}
 
 	tabBars := components.NewTabBars("txs", tabBarsItems)
 	txBar := NewTxBar()
 
-	confirmRemoveToken := components.NewConfirm(layout.Center)
+	confirmRemoveToken := prefabs.NewConfirm(layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 2,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmRemoveToken.Prompt = lang.Translate("Are you sure?")
-			confirmRemoveToken.NoText = lang.Translate("NO")
-			confirmRemoveToken.YesText = lang.Translate("YES")
-			confirmRemoveToken.Layout(gtx, th)
+			confirmRemoveToken.Layout(gtx, th, prefabs.ConfirmText{
+				Prompt: lang.Translate("Are you sure?"),
+				No:     lang.Translate("NO"),
+				Yes:    lang.Translate("YES"),
+			})
 		},
 	})
 
@@ -331,7 +327,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 				})
 				c := r.Stop()
 
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+				paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 					clip.UniformRRect(
 						image.Rectangle{Max: dims.Size},
 						gtx.Dp(15),
@@ -358,7 +354,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 							}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
-									lbl.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
@@ -376,7 +372,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 									dims := balanceEditor.Layout(gtx)
 
 									if settings.App.HideBalance {
-										paint.FillShape(gtx.Ops, color.NRGBA{R: 200, G: 200, B: 200, A: 255}, clip.Rect{
+										paint.FillShape(gtx.Ops, theme.Current.HideBalanceBgColor, clip.Rect{
 											Max: dims.Size,
 										}.Op())
 									}
@@ -389,13 +385,14 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							gtx.Constraints.Min.Y = gtx.Dp(30)
 							gtx.Constraints.Min.X = gtx.Dp(30)
+							p.buttonHideBalance.Button.Style.Colors = theme.Current.ButtonIconPrimaryColors
 							return p.buttonHideBalance.Layout(gtx, th)
 						}),
 					)
 				})
 				c := r.Stop()
 
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+				paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 					clip.UniformRRect(
 						image.Rectangle{Max: dims.Size},
 						gtx.Dp(15),
@@ -415,7 +412,8 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		text := make(map[string]string)
 		text["txs"] = lang.Translate("Transactions")
 		text["info"] = lang.Translate("Info")
-		return p.tabBars.Layout(gtx, th, text)
+		p.tabBars.Colors = theme.Current.TabBarsColors
+		return p.tabBars.Layout(gtx, th, unit.Sp(18), text)
 	})
 
 	if p.tabBars.Key == "txs" {

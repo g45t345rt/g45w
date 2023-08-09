@@ -3,7 +3,6 @@ package bottom_bar
 import (
 	"fmt"
 	"image"
-	"image/color"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -19,7 +18,9 @@ import (
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
@@ -32,7 +33,7 @@ type BottomBar struct {
 	ButtonNode     *BottomBarButton
 
 	appRouter    *router.Router
-	confirmClose *components.Confirm
+	confirmClose *prefabs.Confirm
 }
 
 var Instance *BottomBar
@@ -48,58 +49,46 @@ const (
 func LoadInstance() *BottomBar {
 	appRouter := app_instance.Router
 
-	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
-	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255} //f32color.Hovered(textColor)
-
 	animScale := float32(.95)
 	walletIcon, _ := widget.NewIcon(icons.ActionAccountBalanceWallet)
 	buttonWallet := components.NewButton(components.ButtonStyle{
-		Icon:           walletIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
-		Animation:      components.NewButtonAnimationScale(animScale),
+		Icon:      walletIcon,
+		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
 	txsIcon, _ := widget.NewIcon(icons.ActionHistory)
 	buttonTxs := components.NewButton(components.ButtonStyle{
-		Icon:           txsIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
-		Animation:      components.NewButtonAnimationScale(animScale),
+		Icon:      txsIcon,
+		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
 	settingsIcon, _ := widget.NewIcon(icons.ActionSettingsApplications)
 	buttonSettings := components.NewButton(components.ButtonStyle{
-		Icon:           settingsIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
-		Animation:      components.NewButtonAnimationScale(animScale),
+		Icon:      settingsIcon,
+		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
 	closeIcon, _ := widget.NewIcon(icons.ActionExitToApp)
 	buttonClose := components.NewButton(components.ButtonStyle{
-		Icon:           closeIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
-		Animation:      components.NewButtonAnimationScale(animScale),
+		Icon:      closeIcon,
+		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
 	nodeIcon, _ := widget.NewIcon(icons.ActionDNS)
 	buttonNode := components.NewButton(components.ButtonStyle{
-		Icon:           nodeIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
-		Animation:      components.NewButtonAnimationScale(animScale),
+		Icon:      nodeIcon,
+		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
-	confirmClose := components.NewConfirm(layout.Center)
+	confirmClose := prefabs.NewConfirm(layout.Center)
 	appRouter.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmClose.Prompt = lang.Translate("Closing current wallet?")
-			confirmClose.NoText = lang.Translate("NO")
-			confirmClose.YesText = lang.Translate("YES")
-			confirmClose.Layout(gtx, th)
+			confirmClose.Layout(gtx, th, prefabs.ConfirmText{
+				Prompt: lang.Translate("Closing current wallet?"),
+				No:     lang.Translate("NO"),
+				Yes:    lang.Translate("YES"),
+			})
 		},
 	})
 
@@ -138,7 +127,8 @@ func (b *BottomBar) SetButtonActive(tag interface{}) {
 }
 
 func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.Rect{
+	bgColor := theme.Current.BottomBarBgColor
+	paint.FillShape(gtx.Ops, bgColor, clip.Rect{
 		Max: gtx.Constraints.Max,
 	}.Op())
 
@@ -225,14 +215,13 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 	gtx.Constraints.Min.X = gtx.Dp(iconSize)
 	gtx.Constraints.Min.Y = gtx.Dp(iconSize)
 
+	b.Button.Style.Colors = theme.Current.BottomButtonColors
 	if b.Button.Focused {
-		b.Button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+		b.Button.Style.Colors.TextColor = theme.Current.BottomButtonSelectedColor
 	} else {
 		// important scale down instead of up to avoid blurry icon
 		scale := f32.Affine2D{}.Scale(f32.Pt(float32(iconSize)/2, float32(iconSize)/2), f32.Pt(.7, .7))
 		defer op.Affine(scale).Push(gtx.Ops).Pop()
-
-		b.Button.Style.TextColor = color.NRGBA{R: 0, G: 0, B: 0, A: 100}
 	}
 
 	return b.Button.Layout(gtx, th)
@@ -254,7 +243,7 @@ func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			walletName := openedWallet.Info.Name
 			lbl := material.Label(th, unit.Sp(14), fmt.Sprintf("Wallet [%s]", walletName))
-			lbl.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+			lbl.Color = theme.Current.BottomBarWalletTextColor
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)
 		})
@@ -265,7 +254,8 @@ func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
 		offset := f32.Pt(-x, -y)
 		defer op.Affine(f32.Affine2D{}.Offset(offset)).Push(gtx.Ops).Pop()
 
-		paint.FillShape(gtx.Ops, color.NRGBA{A: 255}, clip.UniformRRect(
+		bgColor := theme.Current.BottomBarWalletBgColor
+		paint.FillShape(gtx.Ops, bgColor, clip.UniformRRect(
 			image.Rect(0, 0, dims.Size.X, dims.Size.Y),
 			gtx.Dp(5),
 		).Op(gtx.Ops))

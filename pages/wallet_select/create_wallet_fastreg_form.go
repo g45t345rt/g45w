@@ -2,7 +2,6 @@ package page_wallet_select
 
 import (
 	"fmt"
-	"image/color"
 	"math"
 	"math/big"
 	"strconv"
@@ -23,8 +22,10 @@ import (
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/cpu"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/registration"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -60,7 +61,7 @@ type PageCreateWalletFastRegForm struct {
 
 	list *widget.List
 
-	txtThreadCount *components.TextField
+	txtThreadCount *prefabs.TextField
 	buttonStart    *components.Button
 	buttonStop     *components.Button
 
@@ -87,7 +88,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtThreadCount := components.NewTextField()
+	txtThreadCount := prefabs.NewTextField()
 
 	logicalCores, err := cpu.Counts(true)
 	if err != nil {
@@ -100,27 +101,23 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonStart := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            buildIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      buildIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonStart.Style.Font.Weight = font.Bold
 
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            stopIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 255, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      stopIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonStart.Style.Font.Weight = font.Bold
 
@@ -278,8 +275,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return components.ProgressBar{
 					Value:   float32(p.progressBarValue),
-					Color:   color.NRGBA{A: 255},
-					BgColor: color.NRGBA{R: 255, G: 255, B: 255, A: 200},
+					Colors:  theme.Current.ProgressBarColors,
 					Rounded: unit.Dp(5),
 					Height:  unit.Dp(20),
 				}.Layout(gtx)
@@ -297,10 +293,12 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		if p.fastReg.Running {
 			p.buttonStop.Text = lang.Translate("STOP")
+			p.buttonStop.Style.Colors = theme.Current.ButtonDangerColors
 			return p.buttonStop.Layout(gtx, th)
 		}
 
 		p.buttonStart.Text = lang.Translate("START")
+		p.buttonStart.Style.Colors = theme.Current.ButtonPrimaryColors
 		return p.buttonStart.Layout(gtx, th)
 	})
 

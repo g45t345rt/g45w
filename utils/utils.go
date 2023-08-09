@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"image"
@@ -9,25 +8,31 @@ import (
 	"io"
 	"io/fs"
 	"math"
-	"net/http"
 	"os"
 	"path/filepath"
 
+	"gioui.org/f32"
 	"gioui.org/gpu/headless"
 	"gioui.org/layout"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
 
-// From gio material theme
-func HexColor(c uint32) color.NRGBA {
-	return RGBA(0xff000000 | c)
-}
-
-func RGBA(c uint32) color.NRGBA {
-	return color.NRGBA{A: uint8(c >> 24), R: uint8(c >> 16), G: uint8(c >> 8), B: uint8(c)}
+func PaintLinearGradient(gtx layout.Context, colorStart color.NRGBA, colorEnd color.NRGBA) clip.Stack {
+	dr := image.Rectangle{Max: gtx.Constraints.Min}
+	paint.LinearGradientOp{
+		Stop1:  f32.Pt(0, float32(dr.Min.Y)),
+		Stop2:  f32.Pt(0, float32(dr.Max.Y)),
+		Color1: colorStart,
+		Color2: colorEnd,
+	}.Add(gtx.Ops)
+	stack := clip.Rect(dr).Push(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
+	return stack
 }
 
 func CaptureFrame(gtx layout.Context, img *image.RGBA) error {
@@ -225,21 +230,4 @@ func DecodeAddress(value string) (string, error) {
 	}
 
 	return rpc.NewAddressFromKeys(p).String(), nil
-}
-
-func HashSHA256(value string) string {
-	hash := sha256.New()
-	hash.Write([]byte(value))
-	hashSum := hash.Sum(nil)
-	return hex.EncodeToString(hashSum)
-}
-
-func FetchImage(url string) (image.Image, error) {
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	img, _, err := image.Decode(res.Body)
-	return img, err
 }

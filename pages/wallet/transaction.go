@@ -3,7 +3,6 @@ package page_wallet
 import (
 	"fmt"
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -20,6 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -227,7 +227,7 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 					})
 					c := r.Stop()
 
-					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+					paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 						clip.UniformRRect(
 							image.Rectangle{Max: dims.Size},
 							gtx.Dp(15),

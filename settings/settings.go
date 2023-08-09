@@ -6,14 +6,17 @@ import (
 	"path/filepath"
 
 	"gioui.org/app"
+	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/theme"
 )
 
 type AppSettings struct {
-	Language     string `json:"language"`
+	LanguageKey  string `json:"language"`
 	HideBalance  bool   `json:"hide_balance"`
 	SendRingSize int    `json:"send_ring_size"`
 	NodeEndpoint string `json:"node_endpoint"`
 	TabBarsKey   string `json:"tab_bars_key"`
+	ThemeKey     string `json:"theme"`
 }
 
 var (
@@ -64,11 +67,12 @@ func Load() error {
 
 	// settings with default values
 	appSettings := AppSettings{
-		Language:     "en",
+		LanguageKey:  "en",
 		HideBalance:  false,
 		SendRingSize: 16,
 		NodeEndpoint: "",
 		TabBarsKey:   "tokens",
+		ThemeKey:     "light",
 	}
 
 	_, err = os.Stat(settingsPath)
@@ -82,6 +86,22 @@ func Load() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	language := lang.Get(appSettings.LanguageKey)
+	if language != nil {
+		lang.Current = language.Key
+	} else {
+		lang.Current = "en"
+		appSettings.LanguageKey = "en"
+	}
+
+	currentTheme := theme.Get(appSettings.ThemeKey)
+	if currentTheme != nil {
+		theme.Current = *currentTheme
+	} else {
+		theme.Current = theme.Light
+		appSettings.ThemeKey = "light"
 	}
 
 	App = appSettings

@@ -19,6 +19,8 @@ import (
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -202,15 +204,8 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					return node_status_bar.Instance.Layout(gtx, th)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.RRect{
-						Rect: image.Rectangle{Max: gtx.Constraints.Max},
-						NW:   gtx.Dp(15),
-						NE:   gtx.Dp(15),
-						SE:   gtx.Dp(0),
-						SW:   gtx.Dp(0),
-					}.Op(gtx.Ops))
-
-					return layout.Inset{
+					r := op.Record(gtx.Ops)
+					dims := layout.Inset{
 						Left: unit.Dp(30), Right: unit.Dp(30),
 						Top: unit.Dp(30), Bottom: unit.Dp(20),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -220,9 +215,23 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 							return lbl.Layout(gtx)
 						})
 					})
+					c := r.Stop()
+
+					paint.FillShape(gtx.Ops, theme.Current.HeaderTopBgColor, clip.RRect{
+						Rect: image.Rectangle{Max: dims.Size},
+						NW:   gtx.Dp(15),
+						NE:   gtx.Dp(15),
+						SE:   gtx.Dp(0),
+						SW:   gtx.Dp(0),
+					}.Op(gtx.Ops))
+
+					c.Add(gtx.Ops)
+					return dims
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					defer prefabs.PaintGrayLinearGradient(gtx).Pop()
+					startColor := theme.Current.BgGradientStartColor
+					endColor := theme.Current.BgGradientEndColor
+					defer utils.PaintLinearGradient(gtx, startColor, endColor).Pop()
 
 					return p.pageRouter.Layout(gtx, th)
 				}),

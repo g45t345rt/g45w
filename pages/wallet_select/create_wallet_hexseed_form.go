@@ -2,7 +2,6 @@ package page_wallet_select
 
 import (
 	"fmt"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -14,7 +13,9 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -29,10 +30,10 @@ type PageCreateWalletHexSeedForm struct {
 
 	list *widget.List
 
-	txtHexSeed         *components.TextField
-	txtWalletName      *components.TextField
-	txtPassword        *components.TextField
-	txtConfirmPassword *components.TextField
+	txtHexSeed         *prefabs.TextField
+	txtWalletName      *prefabs.TextField
+	txtPassword        *prefabs.TextField
+	txtConfirmPassword *prefabs.TextField
 	buttonCreate       *components.Button
 }
 
@@ -50,22 +51,20 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	txtWalletName := components.NewTextField()
-	txtPassword := components.NewPasswordTextField()
-	txtConfirmPassword := components.NewPasswordTextField()
+	txtWalletName := prefabs.NewTextField()
+	txtPassword := prefabs.NewPasswordTextField()
+	txtConfirmPassword := prefabs.NewPasswordTextField()
 
-	txtHexSeed := components.NewTextField()
+	txtHexSeed := prefabs.NewTextField()
 
 	iconCreate, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonCreate := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            iconCreate,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      iconCreate,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonCreate.Style.Font.Weight = font.Bold
 
@@ -147,6 +146,7 @@ func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Th
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonCreate.Text = lang.Translate("RECOVER WALLET")
+			p.buttonCreate.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonCreate.Layout(gtx, th)
 		},
 	}

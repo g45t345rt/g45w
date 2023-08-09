@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -37,9 +38,10 @@ type PageMain struct {
 var _ router.Page = &PageMain{}
 
 func NewPageFront() *PageMain {
-	defaultLangKey := settings.App.Language
+	defaultLangKey := settings.App.LanguageKey
+	defaultThemeKey := settings.App.ThemeKey
 	langSelector := prefabs.NewLangSelector(defaultLangKey)
-	themeSelector := prefabs.NewThemeSelector("light")
+	themeSelector := prefabs.NewThemeSelector(defaultThemeKey)
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(-1, 0, .25, ease.Linear),
@@ -51,13 +53,11 @@ func NewPageFront() *PageMain {
 
 	infoIcon, _ := widget.NewIcon(icons.ActionInfo)
 	buttonInfo := components.NewButton(components.ButtonStyle{
-		Icon:            infoIcon,
-		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		BackgroundColor: color.NRGBA{A: 0},
-		TextSize:        unit.Sp(16),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Icon:      infoIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 		Border: widget.Border{
 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 			Width:        unit.Dp(2),
@@ -69,13 +69,11 @@ func NewPageFront() *PageMain {
 
 	gatewayIcon, _ := widget.NewIcon(icons.HardwareDeviceHub)
 	buttonIpfsGateway := components.NewButton(components.ButtonStyle{
-		Icon:            gatewayIcon,
-		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		BackgroundColor: color.NRGBA{A: 0},
-		TextSize:        unit.Sp(16),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Icon:      gatewayIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 		Border: widget.Border{
 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 			Width:        unit.Dp(2),
@@ -152,13 +150,27 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	}
 
 	if p.langSelector.Changed() {
-		settings.App.Language = p.langSelector.Value
+		settings.App.LanguageKey = p.langSelector.Value
 		err := settings.Save()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
+			lang.Current = settings.App.LanguageKey
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Language applied."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
+	}
+
+	if p.themeSelector.Changed() {
+		settings.App.ThemeKey = p.themeSelector.Value
+		err := settings.Save()
+		if err != nil {
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			theme.Current = *theme.Get(settings.App.ThemeKey)
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Theme applied."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
@@ -166,10 +178,12 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonInfo.Text = lang.Translate("App Information")
+			p.buttonInfo.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonInfo.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonIpfsGateway.Text = lang.Translate("IPFS Gateways")
+			p.buttonIpfsGateway.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonIpfsGateway.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {

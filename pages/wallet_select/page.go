@@ -12,6 +12,8 @@ import (
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )
@@ -138,7 +140,9 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				}
 			}
 
-			defer prefabs.PaintGrayLinearGradient(gtx).Pop()
+			startColor := theme.Current.BgGradientStartColor
+			endColor := theme.Current.BgGradientEndColor
+			defer utils.PaintLinearGradient(gtx, startColor, endColor).Pop()
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

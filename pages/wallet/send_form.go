@@ -28,6 +28,7 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -38,7 +39,7 @@ import (
 type PageSendForm struct {
 	isActive bool
 
-	txtAmount      *components.TextField
+	txtAmount      *prefabs.TextField
 	txtWalletAddr  *components.Input
 	buttonBuildTx  *components.Button
 	buttonContacts *components.Button
@@ -60,19 +61,17 @@ var _ router.Page = &PageSendForm{}
 func NewPageSendForm() *PageSendForm {
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            buildIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      buildIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonBuildTx.Label.Alignment = text.Middle
 	buttonBuildTx.Style.Font.Weight = font.Bold
 
-	txtAmount := components.NewNumberTextField()
+	txtAmount := prefabs.NewNumberTextField()
 	txtAmount.Input.TextSize = unit.Sp(26)
 	txtAmount.Input.FontWeight = font.Bold
 
@@ -94,14 +93,12 @@ func NewPageSendForm() *PageSendForm {
 
 	optionIcon, _ := widget.NewIcon(icons.ActionSettingsEthernet)
 	buttonOptions := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextSize:        unit.Sp(14),
-		Icon:            optionIcon,
-		IconGap:         unit.Dp(10),
-		TextColor:       color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		BackgroundColor: color.NRGBA{A: 0},
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Icon:      optionIcon,
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 		Border: widget.Border{
 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 			Width:        unit.Dp(2),
@@ -113,10 +110,8 @@ func NewPageSendForm() *PageSendForm {
 
 	contactIcon, _ := widget.NewIcon(icons.SocialPerson)
 	buttonContacts := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            contactIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		Rounded: components.UniformRounded(unit.Dp(5)),
+		Icon:    contactIcon,
 		Inset: layout.Inset{
 			Top: unit.Dp(13), Bottom: unit.Dp(12),
 			Left: unit.Dp(12), Right: unit.Dp(12),
@@ -125,9 +120,7 @@ func NewPageSendForm() *PageSendForm {
 	})
 
 	buttonSetMax := components.NewButton(components.ButtonStyle{
-		TextColor:      color.NRGBA{A: 200},
-		TextSize:       unit.Sp(16),
-		HoverTextColor: &color.NRGBA{A: 255},
+		TextSize: unit.Sp(16),
 	})
 	buttonSetMax.Style.Font.Weight = font.Bold
 
@@ -241,14 +234,14 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 						}
 
 						lbl := material.Label(th, unit.Sp(16), scId)
-						lbl.Color = color.NRGBA{A: 150}
+						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
 					}),
 				)
 			})
 			c := r.Stop()
 
-			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(
+			paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(
 				image.Rectangle{Max: dims.Size},
 				gtx.Dp(10),
 			).Op(gtx.Ops))
@@ -285,10 +278,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							p.txtWalletAddr.Colors = theme.Current.InputColors
 							return p.txtWalletAddr.Layout(gtx, th, "")
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							p.buttonContacts.Style.Colors = theme.Current.ButtonPrimaryColors
 							return p.buttonContacts.Layout(gtx, th)
 						}),
 					)
@@ -330,10 +325,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonOptions.Text = lang.Translate("OPTIONS")
+			p.buttonOptions.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonOptions.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonBuildTx.Text = lang.Translate("BUILD TRANSACTION")
+			p.buttonBuildTx.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonBuildTx.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {

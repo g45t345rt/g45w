@@ -10,16 +10,16 @@ import (
 	"gioui.org/unit"
 )
 
-type ProgressBarStyle struct {
+type ProgressBarColors struct {
+	IndicatorColor  color.NRGBA
+	BackgroundColor color.NRGBA
 }
 
 type ProgressBar struct {
-	Value float32
-
-	Color   color.NRGBA
-	BgColor color.NRGBA
+	Value   float32
 	Rounded unit.Dp
 	Height  unit.Dp
+	Colors  ProgressBarColors
 }
 
 func (p ProgressBar) Layout(gtx layout.Context) layout.Dimensions {
@@ -35,7 +35,8 @@ func (p ProgressBar) Layout(gtx layout.Context) layout.Dimensions {
 		NW: rounded, NE: rounded,
 	}.Push(gtx.Ops).Pop()
 
-	paint.ColorOp{Color: p.BgColor}.Add(gtx.Ops)
+	backgroundColor := p.Colors.BackgroundColor
+	paint.ColorOp{Color: backgroundColor}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 
 	//paint.FillShape(gtx.Ops, p.BgColor, .Op(gtx.Ops))
@@ -43,7 +44,8 @@ func (p ProgressBar) Layout(gtx layout.Context) layout.Dimensions {
 	valueWidth := unit.Dp(p.Value * float32(gtx.Constraints.Min.X))
 	defer clip.Rect{Max: image.Pt(gtx.Dp(valueWidth), gtx.Dp(p.Height))}.Push(gtx.Ops).Pop()
 
-	paint.ColorOp{Color: p.Color}.Add(gtx.Ops)
+	indicatorColor := p.Colors.IndicatorColor
+	paint.ColorOp{Color: indicatorColor}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 
 	return layout.Dimensions{Size: size}

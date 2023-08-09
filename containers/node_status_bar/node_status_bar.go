@@ -19,6 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/pages"
 	page_node "github.com/g45t345rt/g45w/pages/node"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 )
 
@@ -52,12 +53,10 @@ func (n *NodeStatusBar) Update() {
 }
 
 func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	paint.FillShape(gtx.Ops, color.NRGBA{A: 255}, clip.Rect{
+	bgColor := theme.Current.NodeStatusBgColor
+	paint.FillShape(gtx.Ops, bgColor, clip.Rect{
 		Max: gtx.Constraints.Max,
 	}.Op())
-
-	//paint.ColorOp{Color: color.NRGBA{A: 255}}.Add(gtx.Ops)
-	//paint.PaintOp{}.Add(gtx.Ops)
 
 	if wallet_manager.OpenedWallet == nil {
 		return layout.Dimensions{}
@@ -66,7 +65,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	wallet := wallet_manager.OpenedWallet
 	currentNode := node_manager.CurrentNode
 	status := "unassigned node"
-	statusDotColor := color.NRGBA{R: 255, G: 0, B: 0, A: 255}
+	statusDotColor := theme.Current.NodeStatusDotRedColor // color.NRGBA{R: 255, G: 0, B: 0, A: 255}
 
 	if currentNode != nil {
 		if currentNode.Integrated {
@@ -93,9 +92,9 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 			if n.RemoteNodeInfo.Err == nil {
 				if walletHeight < daemonHeight {
-					statusDotColor = color.NRGBA{R: 255, G: 255, B: 0, A: 255}
+					statusDotColor = theme.Current.NodeStatusDotYellowColor //color.NRGBA{R: 255, G: 255, B: 0, A: 255}
 				} else {
-					statusDotColor = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
+					statusDotColor = theme.Current.NodeStatusDotGreenColor // color.NRGBA{R: 0, G: 255, B: 0, A: 255}
 				}
 
 				status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, currentNode.Name)
@@ -130,7 +129,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), status)
-					lbl.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+					lbl.Color = theme.Current.NodeStatusTextColor
 					return lbl.Layout(gtx)
 				}),
 			)

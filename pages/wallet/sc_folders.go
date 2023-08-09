@@ -25,6 +25,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -44,7 +45,7 @@ type PageSCFolders struct {
 	buttonOpenMenu      *components.Button
 	folderMenuSelect    *FolderMenuSelect
 	createFolderModal   *CreateFolderModal
-	deleteFolderConfirm *components.Confirm
+	confirmDeleteFolder *prefabs.Confirm
 	buttonFolderGoBack  *components.Button
 
 	currentFolder *wallet_manager.TokenFolder // nil is root
@@ -70,28 +71,27 @@ func NewPageSCFolders() *PageSCFolders {
 	addIcon, _ := widget.NewIcon(icons.NavigationMenu)
 	buttonOpenMenu := components.NewButton(components.ButtonStyle{
 		Icon:      addIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 
 	backIcon, _ := widget.NewIcon(icons.ContentBackspace)
 	buttonFolderGoBack := components.NewButton(components.ButtonStyle{
-		Icon:      backIcon,
-		TextColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		Icon: backIcon,
 	})
 
 	createFolderModal := NewCreateFolderModal()
-	deleteFolderConfirm := components.NewConfirm(layout.Center)
+	confirmDeleteFolder := prefabs.NewConfirm(layout.Center)
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
 			createFolderModal.Layout(gtx, th)
 
-			deleteFolderConfirm.Prompt = lang.Translate("Are you sure?")
-			deleteFolderConfirm.NoText = lang.Translate("NO")
-			deleteFolderConfirm.YesText = lang.Translate("YES")
-			deleteFolderConfirm.Layout(gtx, th)
+			confirmDeleteFolder.Layout(gtx, th, prefabs.ConfirmText{
+				Prompt: lang.Translate("Are you sure?"),
+				No:     lang.Translate("NO"),
+				Yes:    lang.Translate("YES"),
+			})
 		},
 	})
 
@@ -102,7 +102,7 @@ func NewPageSCFolders() *PageSCFolders {
 		buttonOpenMenu:      buttonOpenMenu,
 		folderMenuSelect:    NewFolderMenuSelect(),
 		createFolderModal:   createFolderModal,
-		deleteFolderConfirm: deleteFolderConfirm,
+		confirmDeleteFolder: confirmDeleteFolder,
 		buttonFolderGoBack:  buttonFolderGoBack,
 	}
 }
@@ -225,12 +225,12 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			p.createFolderModal.setFolder(p.currentFolder)
 			p.createFolderModal.modal.SetVisible(true)
 		case "delete_folder":
-			p.deleteFolderConfirm.SetVisible(true)
+			p.confirmDeleteFolder.SetVisible(true)
 		}
 		p.folderMenuSelect.SelectModal.Modal.SetVisible(false)
 	}
 
-	if p.deleteFolderConfirm.ClickedYes() {
+	if p.confirmDeleteFolder.ClickedYes() {
 		err := p.deleteCurrentFolder()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -262,6 +262,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 							return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									if p.currentFolder != nil {
+										p.buttonFolderGoBack.Style.Colors = theme.Current.ButtonIconPrimaryColors
 										return p.buttonFolderGoBack.Layout(gtx, th)
 									}
 									return layout.Dimensions{}
@@ -392,13 +393,11 @@ func NewCreateFolderModal() *CreateFolderModal {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.Center,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Rounded: components.Rounded{
 			SW: unit.Dp(10), SE: unit.Dp(10),
 			NW: unit.Dp(10), NE: unit.Dp(10),
 		},
 		Animation: components.NewModalAnimationScaleBounce(),
-		Backdrop:  components.NewModalBackground(),
 	})
 
 	txtFolderName := components.NewInput()
@@ -492,6 +491,7 @@ func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layou
 		}
 	}
 
+	c.modal.Style.Colors = theme.Current.ModalColors
 	return c.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(20), Bottom: unit.Dp(20),
@@ -621,7 +621,7 @@ func (t FolderMenuItem) Layout(gtx layout.Context, index int, th *material.Theme
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.X = gtx.Dp(45)
 			gtx.Constraints.Max.Y = gtx.Dp(30)
-			return t.Icon.Layout(gtx, color.NRGBA{A: 255})
+			return t.Icon.Layout(gtx, th.Fg)
 		}),
 		layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

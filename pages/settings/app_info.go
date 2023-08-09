@@ -3,7 +3,6 @@ package page_settings
 import (
 	"fmt"
 	"image"
-	"image/color"
 	"strconv"
 	"time"
 
@@ -23,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -55,7 +55,7 @@ func NewPageAppInfo() *PageAppInfo {
 	buildTime := fmt.Sprintf("%s (%d)", buildTimeUnix.Local().String(), unix)
 
 	// do not remove @lang.Translate comment
-	// it's used by the python to generate language json dictionary
+	// it's used by the python script to generate language json dictionary
 	// we don't use lang.Translate directly here because it needs to be inside the Layout func or the value won't be updated after language change
 	infoItems := []*InfoListItem{
 		NewInfoListItem("App Directory", settings.AppDir),                        //@lang.Translate("App Directory")
@@ -147,13 +147,9 @@ func NewInfoListItem(title string, value string) *InfoListItem {
 	editor.ReadOnly = true
 	editor.SetText(value)
 
-	textColor := color.NRGBA{R: 0, G: 0, B: 0, A: 100}
-	textHoverColor := color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
 	buttonCopy := components.NewButton(components.ButtonStyle{
-		Icon:           copyIcon,
-		TextColor:      textColor,
-		HoverTextColor: &textHoverColor,
+		Icon: copyIcon,
 	})
 
 	return &InfoListItem{
@@ -187,6 +183,7 @@ func (s InfoListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Max.X = gtx.Dp(20)
 						gtx.Constraints.Max.Y = gtx.Dp(20)
+						s.buttonCopy.Style.Colors = theme.Current.ModalButtonColors
 						return s.buttonCopy.Layout(gtx, th)
 					}),
 				)
@@ -199,8 +196,9 @@ func (s InfoListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		)
 	})
 
+	// Divider
 	cl := clip.Rect{Max: image.Pt(dims.Size.X, gtx.Dp(1))}.Push(gtx.Ops)
-	paint.ColorOp{Color: color.NRGBA{A: 50}}.Add(gtx.Ops)
+	paint.ColorOp{Color: theme.Current.DividerColor}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 	cl.Pop()
 

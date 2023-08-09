@@ -15,9 +15,16 @@ import (
 	"gioui.org/widget/material"
 )
 
+type TabBarsColors struct {
+	ActiveColor   color.NRGBA
+	InactiveColor color.NRGBA
+}
+
 type TabBars struct {
-	Key     string
-	Items   []*TabBarsItem
+	Key    string
+	Items  []*TabBarsItem
+	Colors TabBarsColors
+
 	changed bool
 }
 
@@ -36,7 +43,7 @@ func (t *TabBars) Changed() (bool, string) {
 	return false, t.Key
 }
 
-func (t *TabBars) Layout(gtx layout.Context, th *material.Theme, text map[string]string) layout.Dimensions {
+func (t *TabBars) Layout(gtx layout.Context, th *material.Theme, textSize unit.Sp, text map[string]string) layout.Dimensions {
 	var childrens []layout.FlexChild
 
 	for i, item := range t.Items {
@@ -50,34 +57,29 @@ func (t *TabBars) Layout(gtx layout.Context, th *material.Theme, text map[string
 		idx := i
 		childrens = append(childrens, layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			item := t.Items[idx]
-			return item.Layout(gtx, th, text[item.Key])
+			value := text[item.Key]
+			return item.Layout(gtx, th, t, textSize, value)
 		}))
 	}
 
 	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, childrens...)
 }
 
-type TabBarItemStyle struct {
-	TextSize unit.Sp
-}
-
 type TabBarsItem struct {
 	Key       string
 	clickable *widget.Clickable
 	selected  bool
-	Style     TabBarItemStyle
 }
 
-func NewTabBarItem(key string, style TabBarItemStyle) *TabBarsItem {
+func NewTabBarItem(key string) *TabBarsItem {
 	return &TabBarsItem{
 		Key:       key,
 		selected:  false,
 		clickable: new(widget.Clickable),
-		Style:     style,
 	}
 }
 
-func (t *TabBarsItem) Layout(gtx layout.Context, th *material.Theme, text string) layout.Dimensions {
+func (t *TabBarsItem) Layout(gtx layout.Context, th *material.Theme, tabBars *TabBars, textSize unit.Sp, text string) layout.Dimensions {
 	if t.clickable.Hovered() && !t.selected {
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
@@ -89,12 +91,11 @@ func (t *TabBarsItem) Layout(gtx layout.Context, th *material.Theme, text string
 					Top: unit.Dp(10), Bottom: unit.Dp(10),
 					Left: unit.Dp(0), Right: unit.Dp(0),
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(18), text)
-					lbl.Color = color.NRGBA{A: 150}
-					lbl.TextSize = t.Style.TextSize
+					lbl := material.Label(th, textSize, text)
+					lbl.Color = tabBars.Colors.InactiveColor
 
 					if t.selected {
-						lbl.Color = color.NRGBA{A: 255}
+						lbl.Color = tabBars.Colors.ActiveColor
 						lbl.Font.Weight = font.Bold
 					}
 
@@ -105,14 +106,14 @@ func (t *TabBarsItem) Layout(gtx layout.Context, th *material.Theme, text string
 				if t.selected {
 					rect := image.Rectangle{Max: image.Pt(gtx.Constraints.Max.X, gtx.Dp(5))}
 					paint.FillShape(gtx.Ops,
-						color.NRGBA{A: 255},
+						tabBars.Colors.ActiveColor,
 						clip.UniformRRect(rect, 0).Op(gtx.Ops),
 					)
 					return layout.Dimensions{Size: rect.Max}
 				} else {
 					rect := image.Rectangle{Max: image.Pt(gtx.Constraints.Max.X, gtx.Dp(2))}
 					paint.FillShape(gtx.Ops,
-						color.NRGBA{A: 150},
+						tabBars.Colors.InactiveColor,
 						clip.UniformRRect(rect, 0).Op(gtx.Ops),
 					)
 					return layout.Dimensions{Size: rect.Max}

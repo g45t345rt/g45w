@@ -3,7 +3,6 @@ package lang
 import (
 	"time"
 
-	"github.com/g45t345rt/g45w/settings"
 	"github.com/xeonx/timeago"
 )
 
@@ -280,8 +279,7 @@ var japanese = timeago.Config{
 }
 
 func TimeAgo(date time.Time) string {
-	lang := settings.App.Language
-	switch lang {
+	switch Current {
 	case "pt":
 		return portuguese.Format(date)
 	case "es":

@@ -13,6 +13,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/theme"
 )
 
 type SelectModal struct {
@@ -31,11 +32,9 @@ func NewSelectModal() *SelectModal {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.S,
-		BgColor:             color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(25),
 		Animation:           components.NewModalAnimationUp(),
-		Backdrop:            components.NewModalBackground(),
 	})
 
 	return &SelectModal{
@@ -50,6 +49,7 @@ func (l *SelectModal) Selected() (bool, string) {
 
 func (l *SelectModal) Layout(gtx layout.Context, th *material.Theme, items []*SelectListItem) layout.Dimensions {
 	l.selected = false
+	l.Modal.Style.Colors = theme.Current.ModalColors
 	return l.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(10), Bottom: unit.Dp(10),

@@ -2,7 +2,6 @@ package prefabs
 
 import (
 	"fmt"
-	"image/color"
 	"strconv"
 
 	"gioui.org/font"
@@ -14,6 +13,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -28,14 +28,12 @@ type RingSizeSelector struct {
 func NewRingSizeSelector(defaultSize int) *RingSizeSelector {
 	tuneIcon, _ := widget.NewIcon(icons.ActionTrackChanges)
 	buttonSelect := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(16),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Icon:            tuneIcon,
-		IconGap:         unit.Dp(10),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(16),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Icon:      tuneIcon,
+		IconGap:   unit.Dp(10),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
@@ -87,5 +85,6 @@ func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	r.buttonSelect.Text = fmt.Sprintf("Ring size: %s", fmt.Sprint(r.Value))
+	r.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 	return r.buttonSelect.Layout(gtx, th)
 }

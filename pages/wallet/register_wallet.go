@@ -3,7 +3,6 @@ package page_wallet
 import (
 	"encoding/hex"
 	"fmt"
-	"image/color"
 	"math"
 	"strconv"
 	"time"
@@ -22,8 +21,10 @@ import (
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/cpu"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/registration"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -112,7 +113,7 @@ func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layo
 type RegisterWalletForm struct {
 	list *widget.List
 
-	txtThreadCount *components.TextField
+	txtThreadCount *prefabs.TextField
 	buttonStart    *components.Button
 	buttonStop     *components.Button
 
@@ -129,7 +130,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	txtThreadCount := components.NewTextField()
+	txtThreadCount := prefabs.NewTextField()
 
 	logicalCores, err := cpu.Counts(true)
 	if err != nil {
@@ -142,26 +143,22 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	buttonStart := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            buildIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      buildIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            stopIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 255, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      stopIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	w := app_instance.Window
@@ -273,8 +270,7 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return components.ProgressBar{
 					Value:   float32(p.progressBarValue),
-					Color:   color.NRGBA{A: 255},
-					BgColor: color.NRGBA{R: 255, G: 255, B: 255, A: 200},
+					Colors:  theme.Current.ProgressBarColors,
 					Rounded: unit.Dp(5),
 					Height:  unit.Dp(20),
 				}.Layout(gtx)
@@ -292,10 +288,12 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		if p.normalReg.Running {
 			p.buttonStop.Text = lang.Translate("STOP")
+			p.buttonStop.Style.Colors = theme.Current.ButtonDangerColors
 			return p.buttonStop.Layout(gtx, th)
 		}
 
 		p.buttonStart.Text = lang.Translate("START")
+		p.buttonStart.Style.Colors = theme.Current.ButtonPrimaryColors
 		return p.buttonStart.Layout(gtx, th)
 	})
 
@@ -332,14 +330,12 @@ func NewSendRegistrationForm() *SendRegistrationForm {
 
 	sendIcon, _ := widget.NewIcon(icons.ContentSend)
 	buttonSend := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            sendIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      sendIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSend.Style.Font.Weight = font.Bold
 
@@ -368,6 +364,7 @@ func (p *SendRegistrationForm) Layout(gtx layout.Context, th *material.Theme) la
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonSend.Text = lang.Translate("SEND TRANSACTION")
+			p.buttonSend.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonSend.Layout(gtx, th)
 		},
 	}

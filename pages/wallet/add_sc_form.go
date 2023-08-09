@@ -23,11 +23,13 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/sc/dex_sc"
 	"github.com/g45t345rt/g45w/sc/g45_sc"
 	"github.com/g45t345rt/g45w/sc/unknown_sc"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -45,7 +47,7 @@ type PageAddSCForm struct {
 	scDetailsContainer *SCDetailsContainer
 
 	buttonFetchData *components.Button
-	txtSCID         *components.TextField
+	txtSCID         *prefabs.TextField
 
 	list *widget.List
 }
@@ -67,20 +69,18 @@ func NewPageAddSCForm() *PageAddSCForm {
 	checkIcon, _ := widget.NewIcon(icons.ActionSearch)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonFetchData := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            checkIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-		LoadingIcon:     loadingIcon,
+		Rounded:     components.UniformRounded(unit.Dp(5)),
+		Icon:        checkIcon,
+		TextSize:    unit.Sp(14),
+		IconGap:     unit.Dp(10),
+		Inset:       layout.UniformInset(unit.Dp(10)),
+		Animation:   components.NewButtonAnimationDefault(),
+		LoadingIcon: loadingIcon,
 	})
 	buttonFetchData.Label.Alignment = text.Middle
 	buttonFetchData.Style.Font.Weight = font.Bold
 
-	txtSCID := components.NewTextField()
+	txtSCID := prefabs.NewTextField()
 
 	return &PageAddSCForm{
 		animationEnter:  animationEnter,
@@ -156,6 +156,7 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				p.buttonFetchData.Text = lang.Translate("FETCH DATA")
 			}
 
+			p.buttonFetchData.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonFetchData.Layout(gtx, th)
 		},
 	}
@@ -344,14 +345,12 @@ func NewSCDetailsContainer(scId string, scType sc.SCType, scResult *rpc.GetSC_Re
 
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	buttonAddToken := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            addIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      addIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonAddToken.Label.Alignment = text.Middle
 	buttonAddToken.Style.Font.Weight = font.Bold
@@ -493,6 +492,7 @@ func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) lay
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		sc.buttonAddToken.Text = lang.Translate("ADD TOKEN")
+		sc.buttonAddToken.Style.Colors = theme.Current.ButtonPrimaryColors
 		return sc.buttonAddToken.Layout(gtx, th)
 	})
 

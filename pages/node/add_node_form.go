@@ -2,7 +2,6 @@ package page_node
 
 import (
 	"fmt"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -17,7 +16,9 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -30,8 +31,8 @@ type PageAddNodeForm struct {
 	animationLeave *animation.Animation
 
 	buttonAdd   *components.Button
-	txtEndpoint *components.TextField
-	txtName     *components.TextField
+	txtEndpoint *prefabs.TextField
+	txtName     *prefabs.TextField
 
 	list *widget.List
 }
@@ -53,21 +54,19 @@ func NewPageAddNodeForm() *PageAddNodeForm {
 	addIcon, _ := widget.NewIcon(icons.ContentAdd)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonAdd := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		Icon:            addIcon,
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		IconGap:         unit.Dp(10),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
-		LoadingIcon:     loadingIcon,
+		Rounded:     components.UniformRounded(unit.Dp(5)),
+		Icon:        addIcon,
+		TextSize:    unit.Sp(14),
+		IconGap:     unit.Dp(10),
+		Inset:       layout.UniformInset(unit.Dp(10)),
+		Animation:   components.NewButtonAnimationDefault(),
+		LoadingIcon: loadingIcon,
 	})
 	buttonAdd.Label.Alignment = text.Middle
 	buttonAdd.Style.Font.Weight = font.Bold
 
-	txtName := components.NewTextField()
-	txtEndpoint := components.NewTextField()
+	txtName := prefabs.NewTextField()
+	txtEndpoint := prefabs.NewTextField()
 
 	return &PageAddNodeForm{
 		animationEnter: animationEnter,
@@ -138,6 +137,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonAdd.Text = lang.Translate("ADD NODE")
+			p.buttonAdd.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonAdd.Layout(gtx, th)
 		},
 	}

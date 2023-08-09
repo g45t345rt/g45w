@@ -1,8 +1,6 @@
 package prefabs
 
 import (
-	"image/color"
-
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -12,6 +10,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )
@@ -27,23 +26,19 @@ type ListItemSelectEdit struct {
 
 func NewListItemSelectEdit() *ListItemSelectEdit {
 	buttonSelect := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
 
 	buttonEdit := components.NewButton(components.ButtonStyle{
-		Rounded:         components.UniformRounded(unit.Dp(5)),
-		TextColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-		BackgroundColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		TextSize:        unit.Sp(14),
-		Inset:           layout.UniformInset(unit.Dp(10)),
-		Animation:       components.NewButtonAnimationDefault(),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonEdit.Label.Alignment = text.Middle
 	buttonEdit.Style.Font.Weight = font.Bold
@@ -116,11 +111,13 @@ func (n *ListItemSelectEdit) Layout(gtx layout.Context, th *material.Theme) layo
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				n.ButtonSelect.Text = lang.Translate("SELECT")
+				n.ButtonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 				return n.ButtonSelect.Layout(gtx, th)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				n.ButtonEdit.Text = lang.Translate("EDIT")
+				n.ButtonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
 				return n.ButtonEdit.Layout(gtx, th)
 			}),
 		)

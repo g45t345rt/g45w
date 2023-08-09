@@ -30,20 +30,25 @@ type ButtonAnimation struct {
 	transformLoading animation.TransformFunc
 }
 
-type ButtonStyle struct {
+type ButtonColors struct {
 	TextColor            color.NRGBA
 	BackgroundColor      color.NRGBA
-	Rounded              Rounded
-	TextSize             unit.Sp
-	Inset                layout.Inset
-	Font                 font.Font
-	Icon                 *widget.Icon
-	IconGap              unit.Dp
 	HoverBackgroundColor *color.NRGBA
 	HoverTextColor       *color.NRGBA
-	Animation            ButtonAnimation
-	Border               widget.Border
-	LoadingIcon          *widget.Icon
+	BorderColor          color.NRGBA
+}
+
+type ButtonStyle struct {
+	Rounded     Rounded
+	TextSize    unit.Sp
+	Inset       layout.Inset
+	Font        font.Font
+	Icon        *widget.Icon
+	IconGap     unit.Dp
+	Animation   ButtonAnimation
+	Border      widget.Border
+	LoadingIcon *widget.Icon
+	Colors      ButtonColors
 }
 
 type Button struct {
@@ -147,6 +152,7 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	clickable := btn.Clickable
 	animClickable := btn.animClickable
 	style := btn.Style
+	colors := btn.Style.Colors
 
 	return clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return animClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -179,18 +185,18 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 				}
 			}
 
-			backgroundColor := style.BackgroundColor
-			textColor := style.TextColor
+			backgroundColor := colors.BackgroundColor
+			textColor := colors.TextColor
 
 			if !btn.Disabled {
 				if animClickable.Hovered() {
 					pointer.CursorPointer.Add(gtx.Ops)
-					if style.HoverBackgroundColor != nil {
-						backgroundColor = *style.HoverBackgroundColor // f32color.Hovered(backgroundColor)
+					if colors.HoverBackgroundColor != nil {
+						backgroundColor = *colors.HoverBackgroundColor
 					}
 
-					if style.HoverTextColor != nil {
-						textColor = *style.HoverTextColor
+					if colors.HoverTextColor != nil {
+						textColor = *colors.HoverTextColor
 					}
 				}
 
@@ -230,6 +236,7 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			}
 
 			c := op.Record(gtx.Ops)
+			style.Border.Color = colors.BorderColor
 			dims := style.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					if style.Icon != nil && btn.Text == "" {
