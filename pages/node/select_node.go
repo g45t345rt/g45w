@@ -247,13 +247,13 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	for _, item := range p.nodeList.items {
-		if item.listItemSelect.EditClicked() {
+		if item.buttonEdit.Clicked() {
 			page_instance.pageEditNodeForm.nodeConn = item.conn
 			page_instance.pageRouter.SetCurrent(PAGE_EDIT_NODE_FORM)
 			page_instance.header.AddHistory(PAGE_EDIT_NODE_FORM)
 		}
 
-		if item.listItemSelect.SelectClicked() {
+		if item.buttonSelect.Clicked() {
 			p.connect(item.conn)
 		}
 	}
@@ -345,17 +345,45 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText stri
 type NodeListItem struct {
 	conn           app_data.NodeConnection
 	clickable      *widget.Clickable
-	listItemSelect *prefabs.ListItemSelectEdit
+	buttonSelect   *components.Button
+	buttonEdit     *components.Button
+	listItemSelect *prefabs.ListItemSelect
 
 	rounded unit.Dp
 }
 
 func NewNodeListItem(conn app_data.NodeConnection) NodeListItem {
+	buttonSelect := components.NewButton(components.ButtonStyle{
+		Rounded:  components.UniformRounded(unit.Dp(5)),
+		TextSize: unit.Sp(14),
+		Inset: layout.Inset{
+			Top: unit.Dp(6), Bottom: unit.Dp(6),
+			Left: unit.Dp(7), Right: unit.Dp(7),
+		},
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonSelect.Label.Alignment = text.Middle
+	buttonSelect.Style.Font.Weight = font.Bold
+
+	buttonEdit := components.NewButton(components.ButtonStyle{
+		Rounded:  components.UniformRounded(unit.Dp(5)),
+		TextSize: unit.Sp(14),
+		Inset: layout.Inset{
+			Top: unit.Dp(6), Bottom: unit.Dp(6),
+			Left: unit.Dp(7), Right: unit.Dp(7),
+		},
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonEdit.Label.Alignment = text.Middle
+	buttonEdit.Style.Font.Weight = font.Bold
+
 	return NodeListItem{
 		conn:           conn,
 		clickable:      &widget.Clickable{},
-		listItemSelect: prefabs.NewListItemSelectEdit(),
+		listItemSelect: prefabs.NewListItemSelect(),
 		rounded:        unit.Dp(12),
+		buttonSelect:   buttonSelect,
+		buttonEdit:     buttonEdit,
 	}
 }
 
@@ -384,8 +412,8 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 			)
 		})
 
-		buttonEditHovered := item.listItemSelect.ButtonEdit.Clickable.Hovered()
-		buttonSelectHovered := item.listItemSelect.ButtonSelect.Clickable.Hovered()
+		buttonEditHovered := item.buttonEdit.Clickable.Hovered()
+		buttonSelectHovered := item.buttonSelect.Clickable.Hovered()
 		if item.clickable.Hovered() && !buttonEditHovered && !buttonSelectHovered {
 			pointer.CursorPointer.Add(gtx.Ops)
 			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
@@ -396,7 +424,11 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 			)
 		}
 
-		item.listItemSelect.Layout(gtx, th)
+		item.buttonSelect.Text = lang.Translate("Select")
+		item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
+		item.buttonEdit.Text = lang.Translate("Edit")
+		item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
+		item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
 
 		if item.clickable.Clicked() && !buttonEditHovered && !buttonSelectHovered {
 			item.listItemSelect.Toggle()

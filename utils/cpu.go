@@ -1,7 +1,7 @@
 //go:build !ios
 // +build !ios
 
-package cpu
+package utils
 
 import (
 	"time"
@@ -9,10 +9,10 @@ import (
 	cpu_utils "github.com/shirou/gopsutil/v3/cpu"
 )
 
-func Counts(logical bool) (int, error) {
+func CPU_Counts(logical bool) (int, error) {
 	return cpu_utils.Counts(logical)
 }
 
-func Percent(interval time.Duration, percpu bool) ([]float64, error) {
+func CPU_Percent(interval time.Duration, percpu bool) ([]float64, error) {
 	return cpu_utils.Percent(interval, percpu)
 }

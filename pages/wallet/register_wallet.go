@@ -19,7 +19,6 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
-	"github.com/g45t345rt/g45w/cpu"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/registration"
@@ -132,7 +131,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 
 	txtThreadCount := prefabs.NewTextField()
 
-	logicalCores, err := cpu.Counts(true)
+	logicalCores, err := utils.CPU_Counts(true)
 	if err != nil {
 		txtThreadCount.SetValue("1")
 	} else {
@@ -182,7 +181,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 	go func() {
 		for range ticker.C {
 			if normalReg.Running {
-				percent, err := cpu.Percent(0, false)
+				percent, err := utils.CPU_Percent(0, false)
 				if len(percent) == 1 && err == nil {
 					page.cpuUsageText = fmt.Sprintf("CPU Usage: %.2f%%", percent[0])
 				}

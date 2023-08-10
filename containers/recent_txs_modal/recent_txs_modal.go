@@ -2,16 +2,13 @@ package recent_txs_modal
 
 import (
 	"fmt"
-	"image"
-	"image/color"
 	"strings"
 	"time"
 
 	"gioui.org/font"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -216,28 +213,39 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 }
 
 type TxItem struct {
-	tx           wallet_manager.OutgoingTx
-	buttonOpen   *components.Button
-	buttonRemove *components.Button
+	tx             wallet_manager.OutgoingTx
+	buttonOpen     *components.Button
+	buttonRemove   *components.Button
+	listItemSelect *prefabs.ListItemSelect
+	clickable      *widget.Clickable
 }
 
 func NewTxItem(tx wallet_manager.OutgoingTx) *TxItem {
 	openIcon, _ := widget.NewIcon(icons.ActionOpenInBrowser)
 
 	buttonOpen := components.NewButton(components.ButtonStyle{
-		Icon: openIcon,
+		Icon:      openIcon,
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Inset:     layout.UniformInset(unit.Dp(5)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	remoteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	buttonRemove := components.NewButton(components.ButtonStyle{
 		Icon:      remoteIcon,
-		Animation: components.NewButtonAnimationScale(.95),
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(14),
+		Inset:     layout.UniformInset(unit.Dp(5)),
+		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	return &TxItem{
-		tx:           tx,
-		buttonOpen:   buttonOpen,
-		buttonRemove: buttonRemove,
+		tx:             tx,
+		buttonOpen:     buttonOpen,
+		buttonRemove:   buttonRemove,
+		listItemSelect: prefabs.NewListItemSelect(),
+		clickable:      &widget.Clickable{},
 	}
 }
 
@@ -268,7 +276,14 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	date := time.Unix(item.tx.Timestamp.Int64, 0)
 
 	if item.buttonOpen.Clicked() {
-		go open.Run(fmt.Sprintf("https://explorer.dero.io/tx/%s", txId))
+		go func() {
+			url := fmt.Sprintf("https://explorer.dero.io/tx/%s", txId)
+			err := open.Run(url)
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			}
+		}()
 	}
 
 	if item.buttonRemove.Clicked() {
@@ -285,79 +300,67 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		}
 	}
 
-	r := op.Record(gtx.Ops)
-	dims := layout.Inset{
-		Top: unit.Dp(5), Bottom: unit.Dp(5),
-		Left: unit.Dp(5), Right: unit.Dp(5),
-	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		var flexChilds []layout.FlexChild
+	if item.clickable.Hovered() {
+		pointer.CursorPointer.Add(gtx.Ops)
+	}
 
-		flexChilds = append(flexChilds, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), utils.ReduceTxId(txId))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), status)
-					return lbl.Layout(gtx)
-				}),
+	if item.clickable.Clicked() {
+		item.listItemSelect.Toggle()
+	}
+
+	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Inset{
+			Top: unit.Dp(5), Bottom: unit.Dp(5),
+			Left: unit.Dp(5), Right: unit.Dp(5),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			var flexChilds []layout.FlexChild
+
+			flexChilds = append(flexChilds, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), utils.ReduceTxId(txId))
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), status)
+						return lbl.Layout(gtx)
+					}),
+				)
+			}))
+
+			flexChilds = append(flexChilds, layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), fmt.Sprint(item.tx.BlockHeight.Int64))
+						lbl.Alignment = text.End
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(16), lang.TimeAgo(date))
+						lbl.Alignment = text.End
+						return lbl.Layout(gtx)
+					}),
+				)
+			}))
+
+			r := op.Record(gtx.Ops)
+			dims := layout.Flex{
+				Axis:      layout.Horizontal,
+				Spacing:   layout.SpaceBetween,
+				Alignment: layout.Middle,
+			}.Layout(gtx,
+				flexChilds...,
 			)
-		}))
+			c := r.Stop()
 
-		flexChilds = append(flexChilds, layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), fmt.Sprint(item.tx.BlockHeight.Int64))
-					lbl.Alignment = text.End
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.TimeAgo(date))
-					lbl.Alignment = text.End
-					return lbl.Layout(gtx)
-				}),
-			)
-		}))
+			c.Add(gtx.Ops)
 
-		flexChilds = append(flexChilds,
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				item.buttonOpen.Style.Colors = theme.Current.ModalButtonColors
-				return item.buttonOpen.Layout(gtx, th)
-			}),
-		)
+			item.buttonOpen.Style.Colors = theme.Current.ButtonPrimaryColors
+			item.buttonRemove.Style.Colors = theme.Current.ButtonPrimaryColors
+			item.listItemSelect.Layout(gtx, th, item.buttonOpen, item.buttonRemove)
 
-		if confirmations > 1 {
-			flexChilds = append(flexChilds,
-				layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					item.buttonRemove.Style.Colors = theme.Current.ModalButtonColors
-					return item.buttonRemove.Layout(gtx, th)
-				}),
-			)
-		}
-
-		return layout.Flex{
-			Axis:      layout.Horizontal,
-			Spacing:   layout.SpaceBetween,
-			Alignment: layout.Middle,
-		}.Layout(gtx,
-			flexChilds...,
-		)
+			return dims
+		})
 	})
-	c := r.Stop()
-
-	paint.FillShape(gtx.Ops,
-		color.NRGBA{A: 10},
-		clip.RRect{
-			Rect: image.Rectangle{Max: dims.Size},
-			SE:   gtx.Dp(5), SW: gtx.Dp(5),
-			NW: gtx.Dp(5), NE: gtx.Dp(5),
-		}.Op(gtx.Ops),
-	)
-
-	c.Add(gtx.Ops)
-	return dims
 }

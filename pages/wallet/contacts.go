@@ -9,6 +9,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -163,15 +164,43 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 type ContactListItem struct {
 	contact        wallet_manager.Contact
-	listItemSelect *prefabs.ListItemSelectEdit
+	buttonSelect   *components.Button
+	buttonEdit     *components.Button
+	listItemSelect *prefabs.ListItemSelect
 	clickable      *widget.Clickable
 }
 
 func NewContactListItem(contact wallet_manager.Contact) *ContactListItem {
+	buttonSelect := components.NewButton(components.ButtonStyle{
+		Rounded:  components.UniformRounded(unit.Dp(5)),
+		TextSize: unit.Sp(14),
+		Inset: layout.Inset{
+			Top: unit.Dp(6), Bottom: unit.Dp(6),
+			Left: unit.Dp(7), Right: unit.Dp(7),
+		},
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonSelect.Label.Alignment = text.Middle
+	buttonSelect.Style.Font.Weight = font.Bold
+
+	buttonEdit := components.NewButton(components.ButtonStyle{
+		Rounded:  components.UniformRounded(unit.Dp(5)),
+		TextSize: unit.Sp(14),
+		Inset: layout.Inset{
+			Top: unit.Dp(6), Bottom: unit.Dp(6),
+			Left: unit.Dp(7), Right: unit.Dp(7),
+		},
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonEdit.Label.Alignment = text.Middle
+	buttonEdit.Style.Font.Weight = font.Bold
+
 	return &ContactListItem{
 		contact:        contact,
-		listItemSelect: prefabs.NewListItemSelectEdit(),
+		listItemSelect: prefabs.NewListItemSelect(),
 		clickable:      new(widget.Clickable),
+		buttonSelect:   buttonSelect,
+		buttonEdit:     buttonEdit,
 	}
 }
 
@@ -180,13 +209,13 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
 
-	if item.listItemSelect.EditClicked() {
+	if item.buttonEdit.Clicked() {
 		page_instance.pageContactForm.contact = &item.contact
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
 		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
 	}
 
-	if item.listItemSelect.SelectClicked() {
+	if item.buttonSelect.Clicked() {
 		page_instance.pageSendForm.txtWalletAddr.SetValue(item.contact.Addr)
 		page_instance.header.GoBack()
 	}
@@ -222,12 +251,16 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 					}),
 				)
 
-				item.listItemSelect.Layout(gtx, th)
+				item.buttonSelect.Text = lang.Translate("Select")
+				item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
+				item.buttonEdit.Text = lang.Translate("Edit")
+				item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
+				item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
 				return dims
 			})
 
-			buttonEditHovered := item.listItemSelect.ButtonEdit.Clickable.Hovered()
-			buttonSelectHovered := item.listItemSelect.ButtonSelect.Clickable.Hovered()
+			buttonEditHovered := item.buttonEdit.Clickable.Hovered()
+			buttonSelectHovered := item.buttonSelect.Clickable.Hovered()
 			if item.clickable.Hovered() && !buttonEditHovered && !buttonSelectHovered {
 				pointer.CursorPointer.Add(gtx.Ops)
 				paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
@@ -249,10 +282,8 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 			clip.RRect{
 				Rect: image.Rectangle{Max: dims.Size},
-				SE:   gtx.Dp(10),
-				NW:   gtx.Dp(10),
-				NE:   gtx.Dp(10),
-				SW:   gtx.Dp(10),
+				SE:   gtx.Dp(10), SW: gtx.Dp(10),
+				NW: gtx.Dp(10), NE: gtx.Dp(10),
 			}.Op(gtx.Ops))
 
 		c.Add(gtx.Ops)
