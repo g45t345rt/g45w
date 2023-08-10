@@ -9,6 +9,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -16,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/app_data"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
@@ -25,12 +27,13 @@ import (
 )
 
 type PageIPFSGateways struct {
-	isActive       bool
-	list           *widget.List
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	buttonInfo     *components.Button
-	modalInfo      *components.Modal
+	isActive               bool
+	list                   *widget.List
+	animationEnter         *animation.Animation
+	animationLeave         *animation.Animation
+	buttonInfo             *components.Button
+	modalInfo              *components.Modal
+	buttonResetGatewayList *components.Button
 
 	gatewayList *GatewayList
 
@@ -77,6 +80,18 @@ func NewPageIPFSGateways() *PageIPFSGateways {
 		Animation:           components.NewModalAnimationScaleBounce(),
 	})
 
+	resetIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	buttonResetGatewayList := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(16),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Icon:      resetIcon,
+		IconGap:   unit.Dp(10),
+	})
+	buttonResetGatewayList.Label.Alignment = text.Middle
+	buttonResetGatewayList.Style.Font.Weight = font.Bold
+
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
@@ -101,13 +116,14 @@ func NewPageIPFSGateways() *PageIPFSGateways {
 	})
 
 	return &PageIPFSGateways{
-		list:           list,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		gatewayList:    gatewayList,
-		buttonAdd:      buttonAdd,
-		buttonInfo:     buttonInfo,
-		modalInfo:      modalInfo,
+		list:                   list,
+		animationEnter:         animationEnter,
+		animationLeave:         animationLeave,
+		gatewayList:            gatewayList,
+		buttonAdd:              buttonAdd,
+		buttonInfo:             buttonInfo,
+		modalInfo:              modalInfo,
+		buttonResetGatewayList: buttonResetGatewayList,
 	}
 }
 
@@ -183,6 +199,18 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 		p.modalInfo.SetVisible(true)
 	}
 
+	if p.buttonResetGatewayList.Clicked() {
+		err := app_data.ResetIPFSGateways()
+		if err != nil {
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			p.LoadGateways()
+			notification_modals.SuccessInstance.SetText("Success", lang.Translate("List reset to default."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
+	}
+
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -193,6 +221,12 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return p.gatewayList.Layout(gtx, th, lang.Translate("You don't have any IPFS gateways available."))
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		p.buttonResetGatewayList.Text = lang.Translate("Reset gateway list")
+		p.buttonResetGatewayList.Style.Colors = theme.Current.ButtonPrimaryColors
+		return p.buttonResetGatewayList.Layout(gtx, th)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {

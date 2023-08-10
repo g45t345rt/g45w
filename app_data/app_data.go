@@ -33,12 +33,12 @@ func Load() error {
 	initDatabaseIPFSGateways()
 
 	if firstLoad {
-		err = StoreTrustedNodeConnections()
+		err = ResetNodeConnections()
 		if err != nil {
 			return err
 		}
 
-		err = StoreTrustedIPFSGateways()
+		err = ResetIPFSGateways()
 		if err != nil {
 			return err
 		}

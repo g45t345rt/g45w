@@ -41,9 +41,15 @@ func initDatabaseIPFSGateways() error {
 	return err
 }
 
-func StoreTrustedIPFSGateways() error {
+func ResetIPFSGateways() error {
 	tx, err := DB.Begin()
 	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`DELETE FROM ipfs_gateways`)
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 

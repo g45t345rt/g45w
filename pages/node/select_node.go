@@ -221,7 +221,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonResetNodeList.Clicked() {
-		err := app_data.StoreTrustedNodeConnections()
+		err := app_data.ResetNodeConnections()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)

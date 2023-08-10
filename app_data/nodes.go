@@ -39,9 +39,15 @@ func initDatabaseNodes() error {
 	return err
 }
 
-func StoreTrustedNodeConnections() error {
+func ResetNodeConnections() error {
 	tx, err := DB.Begin()
 	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`DELETE FROM nodes`)
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
