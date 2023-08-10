@@ -2,8 +2,6 @@ package page_wallet
 
 import (
 	"errors"
-	"image"
-	"image/color"
 	"time"
 
 	"gioui.org/font"
@@ -228,12 +226,12 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	if p.contact != nil {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			max := image.Pt(gtx.Dp(unit.Dp(gtx.Constraints.Max.X)), 5)
-			paint.FillShape(gtx.Ops, color.NRGBA{A: 150}, clip.Rect{
-				Min: image.Pt(0, 0),
-				Max: max,
+			// Divider
+			gtx.Constraints.Max.Y = gtx.Dp(5)
+			paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
+				Max: gtx.Constraints.Max,
 			}.Op())
-			return layout.Dimensions{Size: max}
+			return layout.Dimensions{Size: gtx.Constraints.Max}
 		})
 
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -242,6 +240,10 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return p.buttonDelete.Layout(gtx, th)
 		})
 	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+	})
 
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay

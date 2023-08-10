@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"image"
-	"image/color"
 	"strings"
 
 	"gioui.org/font"
@@ -396,8 +395,9 @@ func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) lay
 	var widgets []layout.Widget
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		// Divider
 		gtx.Constraints.Max.Y = gtx.Dp(5)
-		paint.FillShape(gtx.Ops, color.NRGBA{A: 150}, clip.Rect{
+		paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
 			Max: gtx.Constraints.Max,
 		}.Op())
 
@@ -479,7 +479,7 @@ func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) lay
 
 		paint.FillShape(
 			gtx.Ops,
-			color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+			theme.Current.ListBgColor,
 			clip.UniformRRect(
 				image.Rectangle{Max: dims.Size},
 				gtx.Dp(10),

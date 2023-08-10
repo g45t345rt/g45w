@@ -3,7 +3,6 @@ package page_wallet_select
 import (
 	"fmt"
 	"image"
-	"image/color"
 	"sort"
 
 	"gioui.org/font"
@@ -319,7 +318,7 @@ func (c *CreateWalletListItem) Layout(gtx layout.Context, th *material.Theme) la
 	if c.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
 
-		paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+		paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 			clip.UniformRRect(
 				image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
 				gtx.Dp(15),

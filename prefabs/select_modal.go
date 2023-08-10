@@ -2,7 +2,6 @@ package prefabs
 
 import (
 	"image"
-	"image/color"
 
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -98,7 +97,7 @@ func (c *SelectListItem) Layout(gtx layout.Context, th *material.Theme, index in
 	if c.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
 
-		paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+		paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 			clip.UniformRRect(
 				image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
 				gtx.Dp(15),

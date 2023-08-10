@@ -3,7 +3,6 @@ package page_wallet_select
 import (
 	"fmt"
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -134,14 +133,15 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 		}
 	}
 
-	widgets := []layout.Widget{
-		func(gtx layout.Context) layout.Dimensions {
-			if p.regResultContainer != nil {
-				return p.regResultContainer.Layout(gtx, th)
-			}
+	var widgets []layout.Widget
 
-			return layout.Dimensions{}
-		},
+	if p.regResultContainer != nil {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.regResultContainer.Layout(gtx, th)
+		})
+	}
+
+	widgets = append(widgets,
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtWalletName.Layout(gtx, th, lang.Translate("Wallet Name"), "")
 		},
@@ -156,7 +156,7 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 			p.buttonCreate.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonCreate.Layout(gtx, th)
 		},
-	}
+	)
 
 	list := material.List(th, p.list)
 	list.AnchorStrategy = material.Overlay
@@ -309,7 +309,7 @@ func (item *RegResultContainer) Layout(gtx layout.Context, th *material.Theme) l
 
 			paint.FillShape(
 				gtx.Ops,
-				color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+				theme.Current.ListBgColor,
 				clip.UniformRRect(
 					image.Rectangle{Max: dims.Size},
 					gtx.Dp(10),

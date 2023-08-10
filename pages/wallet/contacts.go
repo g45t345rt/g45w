@@ -2,7 +2,6 @@ package page_wallet
 
 import (
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -18,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
@@ -215,7 +215,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								addr := utils.ReduceAddr(item.contact.Addr)
 								label := material.Label(th, unit.Sp(16), addr)
-								label.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 150}
+								label.Color = theme.Current.TextMuteColor
 								return label.Layout(gtx)
 							}),
 						)
@@ -230,7 +230,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 			buttonSelectHovered := item.listItemSelect.ButtonSelect.Clickable.Hovered()
 			if item.clickable.Hovered() && !buttonEditHovered && !buttonSelectHovered {
 				pointer.CursorPointer.Add(gtx.Ops)
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+				paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 					clip.UniformRRect(
 						image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
 						gtx.Dp(10),
@@ -246,7 +246,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		})
 		c := m.Stop()
 
-		paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 			clip.RRect{
 				Rect: image.Rectangle{Max: dims.Size},
 				SE:   gtx.Dp(10),

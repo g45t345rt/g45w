@@ -498,6 +498,7 @@ func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layou
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Min.X = gtx.Dp(200)
 			gtx.Constraints.Max.X = gtx.Dp(200)
+			c.txtFolderName.Colors = theme.Current.InputColors
 			return c.txtFolderName.Layout(gtx, th, lang.Translate("Enter folder name"))
 		})
 	})
