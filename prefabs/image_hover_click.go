@@ -4,7 +4,6 @@ import (
 	"gioui.org/f32"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
-	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"github.com/g45t345rt/g45w/animation"
@@ -22,9 +21,8 @@ type ImageHoverClick struct {
 	hoverSwitchState bool
 }
 
-func NewImageHoverClick(src paint.ImageOp) *ImageHoverClick {
+func NewImageHoverClick() *ImageHoverClick {
 	image := &components.Image{
-		Src:     src,
 		Fit:     components.Cover,
 		Rounded: components.UniformRounded(unit.Dp(10)),
 	}

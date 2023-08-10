@@ -17,7 +17,6 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -80,8 +79,7 @@ func NewPageSCToken() *PageSCToken {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	src, _ := assets.GetImage("token.png")
-	image := prefabs.NewImageHoverClick(paint.NewImageOp(src))
+	image := prefabs.NewImageHoverClick()
 
 	scIdEditor := new(widget.Editor)
 	scIdEditor.WrapPolicy = text.WrapGraphemes
@@ -148,6 +146,8 @@ func (p *PageSCToken) Enter() {
 	img, err := p.token.LoadImage()
 	if err == nil {
 		p.tokenImage.Image.Src = paint.NewImageOp(img)
+	} else {
+		p.tokenImage.Image.Src = theme.Current.TokenImage
 	}
 
 	page_instance.header.Title = func() string { return p.token.Name }
@@ -186,29 +186,8 @@ func (p *PageSCToken) LoadTxs() {
 
 	txItems := []*TxListItem{}
 
-	imgUp, _ := assets.GetImage("arrow_up_arc.png")
-	srcImgUp := paint.NewImageOp(imgUp)
-
-	imgDown, _ := assets.GetImage("arrow_down_arc.png")
-	srcImgDown := paint.NewImageOp(imgDown)
-
-	imgCoinbase, _ := assets.GetImage("coinbase.png")
-	srcImgCoinbase := paint.NewImageOp(imgCoinbase)
-
 	for _, entry := range entries {
-		var img paint.ImageOp
-
-		if entry.Incoming {
-			img = srcImgDown
-		} else {
-			img = srcImgUp
-		}
-
-		if entry.Coinbase {
-			img = srcImgCoinbase
-		}
-
-		txItems = append(txItems, NewTxListItem(entry, img))
+		txItems = append(txItems, NewTxListItem(entry))
 	}
 
 	p.txItems = txItems

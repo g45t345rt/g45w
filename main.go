@@ -88,6 +88,7 @@ func runApp() error {
 	explorer := app_instance.Explorer
 	router := app_instance.Router
 
+	theme.LoadImages()
 	loadState := NewLoadState(window)
 
 	go func() {

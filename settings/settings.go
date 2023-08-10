@@ -98,7 +98,7 @@ func Load() error {
 
 	currentTheme := theme.Get(appSettings.ThemeKey)
 	if currentTheme != nil {
-		theme.Current = *currentTheme
+		theme.Current = currentTheme
 	} else {
 		theme.Current = theme.Light
 		appSettings.ThemeKey = "light"

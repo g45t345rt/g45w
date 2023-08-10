@@ -19,7 +19,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
-	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -518,11 +517,9 @@ type TokenFolderItem struct {
 }
 
 func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
-	img, _ := assets.GetImage("token.png")
 	status := utils.ReduceTxId(token.SCID)
 
 	tokenImage := &components.Image{
-		Src:     paint.NewImageOp(img),
 		Fit:     components.Cover,
 		Rounded: components.UniformRounded(unit.Dp(10)),
 	}
@@ -574,17 +571,18 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				gtx.Constraints.Max.Y = gtx.Constraints.Max.X
-				paint.FillShape(gtx.Ops, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, clip.UniformRRect(image.Rectangle{
+				paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(image.Rectangle{
 					Max: gtx.Constraints.Max,
 				}, gtx.Dp(10)).Op(gtx.Ops))
 
 				if item.folderIcon != nil {
 					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return item.folderIcon.Layout(gtx, color.NRGBA{A: 255})
+						return item.folderIcon.Layout(gtx, th.Fg)
 					})
 				}
 
 				if item.tokenImage != nil {
+					item.tokenImage.Src = theme.Current.TokenImage
 					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return item.tokenImage.Layout(gtx)
 					})

@@ -261,6 +261,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 						layout.Flexed(1, layout.Spacer{}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							p.buttonSetMax.Text = lang.Translate("SET MAX")
+							p.buttonSetMax.Style.Colors = theme.Current.ModalButtonColors
 							return p.buttonSetMax.Layout(gtx, th)
 						}),
 					)

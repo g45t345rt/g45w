@@ -169,7 +169,7 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			theme.Current = *theme.Get(settings.App.ThemeKey)
+			theme.Current = theme.Get(settings.App.ThemeKey)
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Theme applied."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}

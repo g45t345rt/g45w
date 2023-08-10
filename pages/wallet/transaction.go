@@ -15,7 +15,6 @@ import (
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
@@ -32,10 +31,7 @@ type PageTransaction struct {
 	animationLeave *animation.Animation
 	entry          *rpc.Entry
 
-	srcImgCoinbase paint.ImageOp
-	srcImgDown     paint.ImageOp
-	srcImgUp       paint.ImageOp
-	txTypeImg      components.Image
+	txTypeImg components.Image
 
 	txIdEditor              *widget.Editor
 	senderDestinationEditor *widget.Editor
@@ -64,15 +60,6 @@ func NewPageTransaction() *PageTransaction {
 		gween.New(0, 1, .25, ease.Linear),
 	))
 
-	imgUp, _ := assets.GetImage("arrow_up_arc.png")
-	srcImgUp := paint.NewImageOp(imgUp)
-
-	imgDown, _ := assets.GetImage("arrow_down_arc.png")
-	srcImgDown := paint.NewImageOp(imgDown)
-
-	imgCoinbase, _ := assets.GetImage("coinbase.png")
-	srcImgCoinbase := paint.NewImageOp(imgCoinbase)
-
 	txTypeImg := components.Image{
 		Fit: components.Cover,
 	}
@@ -96,10 +83,7 @@ func NewPageTransaction() *PageTransaction {
 		timeAgoEditor:           &widget.Editor{ReadOnly: true},
 		blockHeightEditor:       &widget.Editor{ReadOnly: true},
 
-		srcImgCoinbase: srcImgCoinbase,
-		srcImgDown:     srcImgDown,
-		srcImgUp:       srcImgUp,
-		txTypeImg:      txTypeImg,
+		txTypeImg: txTypeImg,
 	}
 }
 
@@ -136,10 +120,10 @@ func (p *PageTransaction) Enter() {
 		}
 
 		p.senderDestinationEditor.SetText(sender)
-		p.txTypeImg.Src = p.srcImgDown
+		p.txTypeImg.Src = theme.Current.ArrowDownArcImage
 	} else {
 		p.senderDestinationEditor.SetText(p.entry.Destination)
-		p.txTypeImg.Src = p.srcImgUp
+		p.txTypeImg.Src = theme.Current.ArrowUpArcImage
 	}
 
 	p.blockHashEditor.SetText(p.entry.BlockHash)

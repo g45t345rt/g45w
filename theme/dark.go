@@ -6,7 +6,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 )
 
-var Dark = Theme{
+var Dark = &Theme{
 	Key:                 "dark",
 	Name:                "Dark", //@lang.Translate("Dark")
 	ThemeIndicatorColor: color.NRGBA{A: 255},

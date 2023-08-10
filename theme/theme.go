@@ -3,6 +3,7 @@ package theme
 import (
 	"image/color"
 
+	"gioui.org/op/paint"
 	"github.com/g45t345rt/g45w/components"
 )
 
@@ -69,22 +70,25 @@ type Theme struct {
 	ListScrollBarBgColor color.NRGBA
 	ListItemTagBgColor   color.NRGBA
 	ListItemTagTextColor color.NRGBA
+
+	// Images
+	ArrowDownArcImage paint.ImageOp
+	ArrowUpArcImage   paint.ImageOp
+	CoinbaseImage     paint.ImageOp
+	TokenImage        paint.ImageOp
 }
 
-var Current Theme
+var Current *Theme
 
 // don't use map[string] the ordering is not guaranteed
-var Themes = []Theme{Light, Dark, Blue}
+var Themes = []*Theme{Light, Dark, Blue}
 
 func Get(key string) *Theme {
 	for _, theme := range Themes {
 		if theme.Key == key {
-			return &theme
+			return theme
 		}
 	}
 
 	return nil
 }
-
-var whiteColor = color.NRGBA{R: 250, G: 250, B: 250, A: 255}
-var blackColor = color.NRGBA{R: 10, G: 10, B: 10, A: 255}

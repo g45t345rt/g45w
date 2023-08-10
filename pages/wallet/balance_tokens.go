@@ -23,7 +23,6 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -161,11 +160,8 @@ func (p *PageBalanceTokens) LoadTokens() error {
 	}
 
 	tokenItems := []*TokenListItem{}
-	imgToken, _ := assets.GetImage("token.png")
-	srcImgToken := paint.NewImageOp(imgToken)
-
 	for _, token := range tokens {
-		tokenItems = append(tokenItems, NewTokenListItem(token, srcImgToken))
+		tokenItems = append(tokenItems, NewTokenListItem(token))
 	}
 
 	p.tokenItems = tokenItems
@@ -180,29 +176,8 @@ func (p *PageBalanceTokens) LoadTxs() {
 
 	txItems := []*TxListItem{}
 
-	imgUp, _ := assets.GetImage("arrow_up_arc.png")
-	srcImgUp := paint.NewImageOp(imgUp)
-
-	imgDown, _ := assets.GetImage("arrow_down_arc.png")
-	srcImgDown := paint.NewImageOp(imgDown)
-
-	imgCoinbase, _ := assets.GetImage("coinbase.png")
-	srcImgCoinbase := paint.NewImageOp(imgCoinbase)
-
 	for _, entry := range entries {
-		var img paint.ImageOp
-
-		if entry.Incoming {
-			img = srcImgDown
-		} else {
-			img = srcImgUp
-		}
-
-		if entry.Coinbase {
-			img = srcImgCoinbase
-		}
-
-		txItems = append(txItems, NewTxListItem(entry, img))
+		txItems = append(txItems, NewTxListItem(entry))
 	}
 
 	p.txItems = txItems
@@ -764,18 +739,18 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 }
 
 type TokenListItem struct {
-	token     *wallet_manager.Token
-	clickable *widget.Clickable
-	image     *prefabs.ImageHoverClick
+	token      *wallet_manager.Token
+	clickable  *widget.Clickable
+	tokenImage *prefabs.ImageHoverClick
 
 	balance uint64
 }
 
-func NewTokenListItem(token wallet_manager.Token, img paint.ImageOp) *TokenListItem {
+func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
 	return &TokenListItem{
-		token:     &token,
-		image:     prefabs.NewImageHoverClick(img),
-		clickable: new(widget.Clickable),
+		token:      &token,
+		tokenImage: prefabs.NewImageHoverClick(),
+		clickable:  new(widget.Clickable),
 	}
 }
 
@@ -790,6 +765,8 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 		page_instance.header.AddHistory(PAGE_SC_TOKEN)
 	}
 
+	item.tokenImage.Image.Src = theme.Current.TokenImage
+
 	m := op.Record(gtx.Ops)
 	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
@@ -800,7 +777,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.X = gtx.Dp(50)
 					gtx.Constraints.Max.Y = gtx.Dp(50)
-					return item.image.Layout(gtx)
+					return item.tokenImage.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -1057,11 +1034,10 @@ type TxListItem struct {
 	decimals  int
 }
 
-func NewTxListItem(entry rpc.Entry, img paint.ImageOp) *TxListItem {
+func NewTxListItem(entry rpc.Entry) *TxListItem {
 	return &TxListItem{
 		entry: entry,
 		image: &components.Image{
-			Src: img,
 			Fit: components.Cover,
 		},
 		clickable: new(widget.Clickable),
@@ -1078,6 +1054,16 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		page_instance.pageTransaction.entry = &item.entry
 		page_instance.pageRouter.SetCurrent(PAGE_TRANSACTION)
 		page_instance.header.AddHistory(PAGE_TRANSACTION)
+	}
+
+	if item.entry.Incoming {
+		item.image.Src = theme.Current.ArrowDownArcImage
+	} else {
+		item.image.Src = theme.Current.ArrowUpArcImage
+	}
+
+	if item.entry.Coinbase {
+		item.image.Src = theme.Current.CoinbaseImage
 	}
 
 	m := op.Record(gtx.Ops)
