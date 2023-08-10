@@ -450,7 +450,9 @@ func (c *CreateFolderModal) setFolder(folder *wallet_manager.TokenFolder) {
 	c.folder = folder
 
 	if c.folder != nil {
-		c.txtFolderName.SetValue(c.folder.Name)
+		name := c.folder.Name
+		c.txtFolderName.SetValue(name)
+		c.txtFolderName.Editor.SetCaret(len(name), len(name)) // move caret at the end
 	} else {
 		c.txtFolderName.SetValue("")
 	}

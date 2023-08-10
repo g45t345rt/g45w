@@ -34,8 +34,8 @@ var Blue = &Theme{
 	},
 	BottomButtonSelectedColor: whiteColor,
 
-	NodeStatusBgColor:        color.NRGBA{R: 41, G: 124, B: 232, A: 255},
-	NodeStatusTextColor:      whiteColor,
+	NodeStatusBgColor:        color.NRGBA{A: 255},
+	NodeStatusTextColor:      color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 	NodeStatusDotGreenColor:  color.NRGBA{R: 0, G: 200, B: 0, A: 255},
 	NodeStatusDotYellowColor: color.NRGBA{R: 255, G: 255, B: 0, A: 255},
 	NodeStatusDotRedColor:    color.NRGBA{R: 200, G: 0, B: 0, A: 255},
