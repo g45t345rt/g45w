@@ -8,8 +8,6 @@ import (
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -275,13 +273,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.buttonSave.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			// Divider
-			gtx.Constraints.Max.Y = gtx.Dp(5)
-			paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
-				Max: gtx.Constraints.Max,
-			}.Op())
-
-			return layout.Dimensions{Size: gtx.Constraints.Max}
+			return prefabs.Divider(gtx, 5)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonExportTxs.Text = lang.Translate("EXPORT TRANSACTIONS")

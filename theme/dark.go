@@ -34,7 +34,7 @@ var Dark = &Theme{
 	},
 	BottomButtonSelectedColor: whiteColor,
 
-	NodeStatusBgColor:        color.NRGBA{R: 50, G: 50, B: 50, A: 255},
+	NodeStatusBgColor:        blackColor,
 	NodeStatusTextColor:      whiteColor,
 	NodeStatusDotGreenColor:  color.NRGBA{R: 0, G: 200, B: 0, A: 255},
 	NodeStatusDotYellowColor: color.NRGBA{R: 255, G: 255, B: 0, A: 255},

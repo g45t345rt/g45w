@@ -395,13 +395,7 @@ func (sc *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) lay
 	var widgets []layout.Widget
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		// Divider
-		gtx.Constraints.Max.Y = gtx.Dp(5)
-		paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
-			Max: gtx.Constraints.Max,
-		}.Op())
-
-		return layout.Dimensions{Size: gtx.Constraints.Max}
+		return prefabs.Divider(gtx, 5)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {

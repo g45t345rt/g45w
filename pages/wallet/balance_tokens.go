@@ -341,12 +341,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		// Divider
-		gtx.Constraints.Max.Y = gtx.Dp(2)
-		paint.FillShape(gtx.Ops, theme.Current.DividerColor, clip.Rect{
-			Max: gtx.Constraints.Max,
-		}.Op())
-		return layout.Dimensions{Size: gtx.Constraints.Max}
+		return prefabs.Divider(gtx, 3)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
