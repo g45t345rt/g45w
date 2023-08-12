@@ -20,7 +20,7 @@ var Blue = &Theme{
 	HideBalanceBgColor:   color.NRGBA{A: 255},
 
 	HeaderBackButtonColors: components.ButtonColors{
-		TextColor:      color.NRGBA{R: 255, G: 255, B: 255, A: 100},
+		TextColor:      color.NRGBA{R: 255, G: 255, B: 255, A: 200},
 		HoverTextColor: &whiteColor,
 	},
 	HeaderTopBgColor: color.NRGBA{R: 27, G: 107, B: 211, A: 255},

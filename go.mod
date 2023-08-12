@@ -1,6 +1,6 @@
 replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f
 
-replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230803195734-05f0dc251385
+replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230812135712-9a6f11b3b796
 
 module github.com/g45t345rt/g45w
 
@@ -12,7 +12,6 @@ require (
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
 	github.com/shirou/gopsutil/v3 v3.23.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1
 	github.com/xeonx/timeago v1.0.0-rc5
 	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1

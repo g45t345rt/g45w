@@ -412,9 +412,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 			)
 		})
 
-		buttonEditHovered := item.buttonEdit.Clickable.Hovered()
-		buttonSelectHovered := item.buttonSelect.Clickable.Hovered()
-		if item.clickable.Hovered() && !buttonEditHovered && !buttonSelectHovered {
+		if item.clickable.Hovered() {
 			pointer.CursorPointer.Add(gtx.Ops)
 			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 				clip.UniformRRect(
@@ -430,7 +428,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 		item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
 		item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
 
-		if item.clickable.Clicked() && !buttonEditHovered && !buttonSelectHovered {
+		if item.clickable.Clicked() {
 			item.listItemSelect.Toggle()
 		}
 

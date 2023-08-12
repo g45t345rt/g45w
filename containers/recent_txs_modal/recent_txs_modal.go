@@ -2,6 +2,7 @@ package recent_txs_modal
 
 import (
 	"fmt"
+	"image"
 	"strings"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -23,7 +26,6 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/skratchdot/open-golang/open"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -278,11 +280,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	if item.buttonOpen.Clicked() {
 		go func() {
 			url := fmt.Sprintf("https://explorer.dero.io/tx/%s", txId)
-			err := open.Run(url)
-			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			}
+			app_instance.Window.OpenUrl(url)
 		}()
 	}
 
@@ -300,15 +298,12 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		}
 	}
 
-	if item.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
 	if item.clickable.Clicked() {
 		item.listItemSelect.Toggle()
 	}
 
-	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+	r := op.Record(gtx.Ops)
+	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(5), Right: unit.Dp(5),
@@ -363,4 +358,17 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			return dims
 		})
 	})
+	c := r.Stop()
+
+	if item.clickable.Hovered() {
+		pointer.CursorPointer.Add(gtx.Ops)
+		paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
+			clip.UniformRRect(
+				image.Rectangle{Max: dims.Size},
+				gtx.Dp(5)).Op(gtx.Ops),
+		)
+	}
+
+	c.Add(gtx.Ops)
+	return dims
 }
