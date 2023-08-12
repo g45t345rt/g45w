@@ -68,7 +68,7 @@ Build the app.
 ./build_gio.sh android arm64
 ```
 
-If your phone is connected and developer monde is on, install the APK directly with this command.
+If your phone is connected and developer mode is on, install the APK directly with this command.
 
 ```bash
 ./adb_install.sh
@@ -131,6 +131,21 @@ Build the app.
 `/build/g45w_ios_arm64.app`  
 `/build/g45w_android_arm64.apk`  
 `/build/g45w_android_arm.apk`  
+
+## Contributors
+
+List of contributors. Thank you all!  
+If your alias is not here pls let me know.  
+
+### Translation
+
+Most translations were done with ChatGPT and are far from being accurate. If you notice any errors, pls update the values in `/assets/lang` folder and create a pull request.  
+
+`jvx`
+
+### Testing
+
+`jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`, `Lutamm`, `VastoLorde`, `rexBGcoxx`, `Kray0005`, `Apollo`, `Coose`
 
 ## License
 

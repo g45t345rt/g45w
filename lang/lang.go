@@ -68,5 +68,9 @@ func Translate(eng string) string {
 		return eng
 	}
 
+	if value == "" {
+		return eng
+	}
+
 	return value
 }
