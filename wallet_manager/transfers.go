@@ -24,7 +24,7 @@ type GetTransfersParams struct {
 	Limit                    sql.NullInt64
 }
 
-func filterEntries(allEntries []rpc.Entry, params GetTransfersParams, start, end int, entryChan chan<- rpc.Entry, wg *sync.WaitGroup) {
+func filterEntries(allEntries []rpc.Entry, start, end int, params GetTransfersParams, entryChan chan<- rpc.Entry, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := start; i < end; i++ {
@@ -36,11 +36,11 @@ func filterEntries(allEntries []rpc.Entry, params GetTransfersParams, start, end
 		}
 
 		if params.In.Valid {
-			add = (e.Incoming && !e.Coinbase) == params.In.Bool
+			add = e.Incoming == params.In.Bool
 		}
 
 		if params.Out.Valid {
-			add = !(e.Incoming || e.Coinbase) == params.Out.Bool
+			add = (!e.Incoming && !e.Coinbase) == params.Out.Bool
 		}
 
 		if params.Sender.Valid {
@@ -94,6 +94,16 @@ func (w *Wallet) GetTransfers(scId string, params GetTransfersParams) []rpc.Entr
 		workers = 1
 	}
 
+	var entries []rpc.Entry
+	done := make(chan bool)
+	go func() {
+		for e := range entryChan {
+			entries = append(entries, e)
+		}
+
+		done <- true
+	}()
+
 	for i := 0; i < workers; i++ {
 		start := i * chunkSize
 		end := (i + 1) * chunkSize
@@ -102,18 +112,12 @@ func (w *Wallet) GetTransfers(scId string, params GetTransfersParams) []rpc.Entr
 		}
 
 		wg.Add(1)
-		go filterEntries(allEntries, params, start, end, entryChan, &wg)
+		go filterEntries(allEntries, start, end, params, entryChan, &wg)
 	}
-
-	var entries []rpc.Entry
-	go func() {
-		for e := range entryChan {
-			entries = append(entries, e)
-		}
-	}()
 
 	wg.Wait()
 	close(entryChan)
+	<-done
 
 	sort.Slice(entries, func(a, b int) bool {
 		return entries[a].Time.Unix() > entries[b].Time.Unix()
