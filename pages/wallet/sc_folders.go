@@ -120,6 +120,7 @@ func (p *PageSCFolders) Enter() {
 		}
 
 		lbl := material.Label(th, unit.Sp(16), folderName)
+		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
 	page_instance.header.ButtonRight = p.buttonOpenMenu

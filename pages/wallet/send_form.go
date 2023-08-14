@@ -115,7 +115,7 @@ func NewPageSendForm() *PageSendForm {
 		Rounded: components.UniformRounded(unit.Dp(5)),
 		Icon:    contactIcon,
 		Inset: layout.Inset{
-			Top: unit.Dp(13), Bottom: unit.Dp(12),
+			Top: unit.Dp(14), Bottom: unit.Dp(14),
 			Left: unit.Dp(12), Right: unit.Dp(12),
 		},
 		Animation: components.NewButtonAnimationDefault(),

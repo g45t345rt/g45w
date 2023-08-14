@@ -150,6 +150,7 @@ func (p *PageTransaction) Enter() {
 		}
 
 		lbl := material.Label(th, unit.Sp(16), txId)
+		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
 

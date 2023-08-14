@@ -259,9 +259,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				return dims
 			})
 
-			buttonEditHovered := item.buttonEdit.Clickable.Hovered()
-			buttonSelectHovered := item.buttonSelect.Clickable.Hovered()
-			if item.clickable.Hovered() && !buttonEditHovered && !buttonSelectHovered {
+			if item.clickable.Hovered() {
 				pointer.CursorPointer.Add(gtx.Ops)
 				paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 					clip.UniformRRect(
@@ -271,7 +269,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				)
 			}
 
-			if item.clickable.Clicked() && !buttonEditHovered && !buttonSelectHovered {
+			if item.clickable.Clicked() {
 				item.listItemSelect.Toggle()
 			}
 

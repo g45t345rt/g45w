@@ -405,7 +405,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 					Top: unit.Dp(0), Bottom: unit.Dp(20),
 					Left: unit.Dp(30), Right: unit.Dp(30),
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any favorite tokens. Click the menu icon to manage tokens."))
+					lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any favorite tokens. Click the folder icon to manage tokens."))
 					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				})

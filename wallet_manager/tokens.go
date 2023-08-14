@@ -12,6 +12,7 @@ import (
 	"gioui.org/op/paint"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/multi_fetch"
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/settings"
@@ -55,6 +56,10 @@ var imageCache map[string]paint.ImageOp
 func (t *Token) GetImageOp() (paint.ImageOp, error) {
 	if imageCache == nil {
 		imageCache = make(map[string]paint.ImageOp)
+
+		// load default native token image
+		img, _ := assets.GetImage("dero.jpg")
+		imageCache[crypto.ZEROHASH.String()] = paint.NewImageOp(img)
 	}
 
 	imgOp, ok := imageCache[t.SCID]
@@ -121,6 +126,7 @@ func (t *Token) GetImageOp() (paint.ImageOp, error) {
 
 func DeroToken() *Token {
 	scId := crypto.ZEROHASH.String()
+
 	return &Token{
 		ID:        -1,
 		SCID:      scId,

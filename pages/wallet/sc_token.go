@@ -152,6 +152,7 @@ func (p *PageSCToken) Enter() {
 		}
 
 		lbl := material.Label(th, unit.Sp(16), scId)
+		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
 	page_instance.header.ButtonRight = p.buttonOpenMenu
