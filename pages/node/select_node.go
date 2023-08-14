@@ -178,6 +178,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(14), lang.Translate("Always use Integrated Node or your own remote node for full privacy and trust."))
+			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -402,7 +403,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(15), item.conn.Endpoint)
-									lbl.Color.A = 200
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 							)

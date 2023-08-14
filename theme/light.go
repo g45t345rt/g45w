@@ -12,7 +12,7 @@ var Light = &Theme{
 	ThemeIndicatorColor: color.NRGBA{R: 255, G: 255, B: 255, A: 50},
 
 	TextColor:            blackColor,
-	TextMuteColor:        color.NRGBA{A: 150},
+	TextMuteColor:        color.NRGBA{A: 200},
 	DividerColor:         color.NRGBA{A: 50},
 	BgColor:              whiteColor,
 	BgGradientStartColor: color.NRGBA{R: 250, G: 250, B: 250, A: 255},

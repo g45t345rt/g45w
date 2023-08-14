@@ -191,6 +191,7 @@ func (s InfoListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				editor := material.Editor(th, s.editor, "")
+				editor.Color = theme.Current.TextMuteColor
 				return editor.Layout(gtx)
 			}),
 		)

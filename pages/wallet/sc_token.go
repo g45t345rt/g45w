@@ -533,6 +533,7 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								balance := utils.ShiftNumber{Number: b.balance, Decimals: int(b.token.Decimals)}.Format()
 
+								r := op.Record(gtx.Ops)
 								balanceEditor := material.Editor(th, b.balanceEditor, "")
 								balanceEditor.TextSize = unit.Sp(34)
 								balanceEditor.Font.Weight = font.Bold
@@ -542,11 +543,14 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 								}
 
 								dims := balanceEditor.Layout(gtx)
+								c := r.Stop()
 
 								if settings.App.HideBalance {
 									paint.FillShape(gtx.Ops, theme.Current.HideBalanceBgColor, clip.Rect{
 										Max: dims.Size,
 									}.Op())
+								} else {
+									c.Add(gtx.Ops)
 								}
 
 								return dims

@@ -394,7 +394,7 @@ func (item *WalletListItem) Layout(gtx layout.Context, th *material.Theme) layou
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							addr := utils.ReduceAddr(item.wallet.Addr)
 							lbl := material.Label(th, unit.Sp(15), addr)
-							lbl.Color.A = 200
+							lbl.Color = theme.Current.TextMuteColor
 							return lbl.Layout(gtx)
 						}),
 					)

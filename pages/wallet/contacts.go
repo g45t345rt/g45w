@@ -230,7 +230,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				dims := layout.Flex{
+				return layout.Flex{
 					Axis:      layout.Horizontal,
 					Alignment: layout.Middle,
 				}.Layout(gtx,
@@ -250,13 +250,6 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 						)
 					}),
 				)
-
-				item.buttonSelect.Text = lang.Translate("Select")
-				item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
-				item.buttonEdit.Text = lang.Translate("Edit")
-				item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
-				item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
-				return dims
 			})
 
 			if item.clickable.Hovered() {
@@ -272,6 +265,14 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 			if item.clickable.Clicked() {
 				item.listItemSelect.Toggle()
 			}
+
+			layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				item.buttonSelect.Text = lang.Translate("Select")
+				item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
+				item.buttonEdit.Text = lang.Translate("Edit")
+				item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
+				return item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
+			})
 
 			return dims
 		})

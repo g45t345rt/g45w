@@ -206,6 +206,7 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(14), lang.Translate("Inactive gateway will not be used when fetching IPFS content."))
+					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				}),
 			)

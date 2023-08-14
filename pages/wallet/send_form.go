@@ -118,7 +118,6 @@ func NewPageSendForm() *PageSendForm {
 			Top: unit.Dp(14), Bottom: unit.Dp(14),
 			Left: unit.Dp(12), Right: unit.Dp(12),
 		},
-		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	buttonSetMax := components.NewButton(components.ButtonStyle{

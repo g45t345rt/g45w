@@ -329,7 +329,7 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layo
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(15), item.gateway.Endpoint)
-									lbl.Color.A = 200
+									lbl.Color = theme.Current.TextMuteColor
 									return lbl.Layout(gtx)
 								}),
 							)
