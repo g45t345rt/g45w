@@ -17,7 +17,7 @@ var Blue = &Theme{
 	BgColor:              blueColor,
 	BgGradientStartColor: color.NRGBA{R: 27, G: 107, B: 211, A: 255},
 	BgGradientEndColor:   color.NRGBA{R: 16, G: 87, B: 181, A: 255},
-	HideBalanceBgColor:   color.NRGBA{A: 255},
+	HideBalanceBgColor:   blueColor,
 
 	HeaderBackButtonColors: components.ButtonColors{
 		TextColor:      color.NRGBA{R: 255, G: 255, B: 255, A: 200},

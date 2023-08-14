@@ -46,6 +46,7 @@ type PageSendForm struct {
 	buttonOptions    *components.Button
 	buttonSetMax     *components.Button
 	balanceContainer *BalanceContainer
+	tokenContainer   *TokenContainer
 
 	token *wallet_manager.Token
 
@@ -126,6 +127,7 @@ func NewPageSendForm() *PageSendForm {
 	buttonSetMax.Style.Font.Weight = font.Bold
 
 	balanceContainer := NewBalanceContainer()
+	tokenContainer := NewTokenContainer()
 
 	return &PageSendForm{
 		txtAmount:        txtAmount,
@@ -139,6 +141,7 @@ func NewPageSendForm() *PageSendForm {
 		buttonOptions:    buttonOptions,
 		buttonSetMax:     buttonSetMax,
 		balanceContainer: balanceContainer,
+		tokenContainer:   tokenContainer,
 	}
 }
 
@@ -163,6 +166,7 @@ func (p *PageSendForm) Leave() {
 func (p *PageSendForm) SetToken(token *wallet_manager.Token) {
 	p.token = token
 	p.balanceContainer.SetTokenAndRefreshBalance(p.token)
+	p.tokenContainer.SetToken(p.token)
 }
 
 func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -227,36 +231,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			r := op.Record(gtx.Ops)
-			dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(22), p.token.Name)
-						lbl.Font.Weight = font.Bold
-						return lbl.Layout(gtx)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						scId := utils.ReduceTxId(p.token.SCID)
-
-						if p.token.Symbol.Valid {
-							scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
-						}
-
-						lbl := material.Label(th, unit.Sp(16), scId)
-						lbl.Color = theme.Current.TextMuteColor
-						return lbl.Layout(gtx)
-					}),
-				)
-			})
-			c := r.Stop()
-
-			paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(
-				image.Rectangle{Max: dims.Size},
-				gtx.Dp(10),
-			).Op(gtx.Ops))
-
-			c.Add(gtx.Ops)
-			return dims
+			return p.tokenContainer.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.balanceContainer.Layout(gtx, th)
@@ -495,4 +470,90 @@ func (p *PageSendForm) prepareTx() error {
 	})
 
 	return nil
+}
+
+type TokenContainer struct {
+	nameEditor *widget.Editor
+	scIdEditor *widget.Editor
+	tokenImage *components.Image
+}
+
+func NewTokenContainer() *TokenContainer {
+	nameEditor := new(widget.Editor)
+	nameEditor.ReadOnly = true
+	nameEditor.SingleLine = true
+
+	scIdEditor := new(widget.Editor)
+	scIdEditor.ReadOnly = true
+	scIdEditor.SingleLine = true
+
+	tokenImage := &components.Image{
+		Fit:     components.Cover,
+		Rounded: components.UniformRounded(unit.Dp(10)),
+	}
+
+	return &TokenContainer{
+		scIdEditor: scIdEditor,
+		nameEditor: nameEditor,
+		tokenImage: tokenImage,
+	}
+}
+
+func (t *TokenContainer) SetToken(token *wallet_manager.Token) {
+	t.nameEditor.SetText(token.Name)
+	scId := utils.ReduceTxId(token.SCID)
+
+	if token.Symbol.Valid {
+		scId = fmt.Sprintf("%s (%s)", scId, token.Symbol.String)
+	}
+
+	t.scIdEditor.SetText(scId)
+	img, err := token.GetImageOp()
+	if err == nil {
+		t.tokenImage.Src = img
+	} else {
+		t.tokenImage.Src = theme.Current.TokenImage
+	}
+}
+
+func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	r := op.Record(gtx.Ops)
+	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{
+			Axis:      layout.Horizontal,
+			Alignment: layout.Middle,
+		}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Max.X = gtx.Dp(50)
+				gtx.Constraints.Max.Y = gtx.Dp(50)
+				return t.tokenImage.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						editor := material.Editor(th, t.nameEditor, "")
+						editor.Font.Weight = font.Bold
+						editor.TextSize = unit.Sp(22)
+						return editor.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						editor := material.Editor(th, t.scIdEditor, "")
+						editor.Color = theme.Current.TextMuteColor
+						return editor.Layout(gtx)
+					}),
+				)
+			}),
+		)
+	})
+
+	c := r.Stop()
+
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(
+		image.Rectangle{Max: dims.Size},
+		gtx.Dp(10),
+	).Op(gtx.Ops))
+
+	c.Add(gtx.Ops)
+	return dims
 }
