@@ -39,14 +39,15 @@ import (
 type PageSendForm struct {
 	isActive bool
 
-	txtAmount      *prefabs.TextField
-	txtWalletAddr  *components.Input
-	buttonBuildTx  *components.Button
-	buttonContacts *components.Button
-	buttonOptions  *components.Button
-	buttonSetMax   *components.Button
+	txtAmount        *prefabs.TextField
+	txtWalletAddr    *components.Input
+	buttonBuildTx    *components.Button
+	buttonContacts   *components.Button
+	buttonOptions    *components.Button
+	buttonSetMax     *components.Button
+	balanceContainer *BalanceContainer
 
-	token wallet_manager.Token
+	token *wallet_manager.Token
 
 	ringSizeSelector *prefabs.RingSizeSelector
 
@@ -124,6 +125,8 @@ func NewPageSendForm() *PageSendForm {
 	})
 	buttonSetMax.Style.Font.Weight = font.Bold
 
+	balanceContainer := NewBalanceContainer()
+
 	return &PageSendForm{
 		txtAmount:        txtAmount,
 		txtWalletAddr:    txtWalletAddr,
@@ -135,6 +138,7 @@ func NewPageSendForm() *PageSendForm {
 		buttonContacts:   buttonContacts,
 		buttonOptions:    buttonOptions,
 		buttonSetMax:     buttonSetMax,
+		balanceContainer: balanceContainer,
 	}
 }
 
@@ -154,6 +158,11 @@ func (p *PageSendForm) Enter() {
 func (p *PageSendForm) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
+}
+
+func (p *PageSendForm) SetToken(token *wallet_manager.Token) {
+	p.token = token
+	p.balanceContainer.SetTokenAndRefreshBalance(p.token)
 }
 
 func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -205,7 +214,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	if build_tx_modal.Instance.TxSent() {
-		p.clearForm()
+		p.ClearForm()
 	}
 
 	{
@@ -248,6 +257,9 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 			c.Add(gtx.Ops)
 			return dims
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return p.balanceContainer.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -358,7 +370,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	})
 }
 
-func (p *PageSendForm) clearForm() {
+func (p *PageSendForm) ClearForm() {
 	txtAmount := p.txtAmount
 	txtWalletAddr := p.txtWalletAddr
 	txtComment := page_instance.pageSendOptionsForm.txtComment
@@ -370,6 +382,7 @@ func (p *PageSendForm) clearForm() {
 	txtDescription.SetValue("")
 	txtComment.SetValue("")
 	txtDstPort.SetValue("")
+	p.list.ScrollTo(0)
 }
 
 func (p *PageSendForm) prepareTx() error {

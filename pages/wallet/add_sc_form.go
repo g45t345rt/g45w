@@ -132,9 +132,8 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	if p.buttonFetchData.Clicked() {
 		p.scDetailsContainer = nil
-		scId := p.txtSCID.Value()
 		p.buttonFetchData.SetLoading(true)
-		scType, scResult, err := p.submitForm()
+		scId, scType, scResult, err := p.submitForm()
 		p.buttonFetchData.SetLoading(false)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -177,10 +176,10 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	})
 }
 
-func (p *PageAddSCForm) submitForm() (scType sc.SCType, result *rpc.GetSC_Result, err error) {
-	scId := strings.TrimSpace(p.txtSCID.Value())
+func (p *PageAddSCForm) submitForm() (scId string, scType sc.SCType, result *rpc.GetSC_Result, err error) {
+	scId = strings.TrimSpace(p.txtSCID.Value())
 	if scId == "" {
-		return sc.UNKNOWN_TYPE, nil, fmt.Errorf("scid is empty")
+		return scId, sc.UNKNOWN_TYPE, nil, fmt.Errorf("scid is empty")
 	}
 
 	err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
@@ -189,15 +188,15 @@ func (p *PageAddSCForm) submitForm() (scType sc.SCType, result *rpc.GetSC_Result
 		Code:      true,
 	}, &result)
 	if err != nil {
-		return sc.UNKNOWN_TYPE, nil, err
+		return scId, sc.UNKNOWN_TYPE, nil, err
 	}
 
 	if result.Code == "" {
-		return sc.UNKNOWN_TYPE, nil, fmt.Errorf("token does not exists")
+		return scId, sc.UNKNOWN_TYPE, nil, fmt.Errorf("token does not exists")
 	}
 
 	scType = sc.CheckType(result.Code)
-	return scType, result, nil
+	return scId, scType, result, nil
 }
 
 type SCDetailsContainer struct {

@@ -76,6 +76,7 @@ type Theme struct {
 	ArrowUpArcImage   paint.ImageOp
 	CoinbaseImage     paint.ImageOp
 	TokenImage        paint.ImageOp
+	ManageFilesImage  paint.ImageOp
 }
 
 var Current *Theme

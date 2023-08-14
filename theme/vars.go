@@ -44,6 +44,15 @@ func LoadImages() {
 	imgTokenWhite, _ := assets.GetImage("token_white.png")
 	opImgTokenWhite := paint.NewImageOp(imgTokenWhite)
 
+	imgManageFilesBlack, _ := assets.GetImage("manage_files.png")
+	opImgManageFilesBlack := paint.NewImageOp(imgManageFilesBlack)
+	imgManageFilesWhite, _ := assets.GetImage("manage_files_white.png")
+	opImgManageFilesWhite := paint.NewImageOp(imgManageFilesWhite)
+
+	Light.ManageFilesImage = opImgManageFilesBlack
+	Dark.ManageFilesImage = opImgManageFilesWhite
+	Blue.ManageFilesImage = opImgManageFilesWhite
+
 	Light.TokenImage = opImgTokenBlack
 	Dark.TokenImage = opImgTokenWhite
 	Blue.TokenImage = opImgTokenWhite

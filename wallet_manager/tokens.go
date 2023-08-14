@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"gioui.org/op/paint"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/g45t345rt/g45w/multi_fetch"
@@ -49,12 +50,22 @@ func (t *Token) DataDirPath() (string, error) {
 	return tokenDataDirPath, nil
 }
 
-func (t *Token) LoadImage() (image.Image, error) {
-	var img image.Image
+var imageCache map[string]paint.ImageOp
+
+func (t *Token) GetImageOp() (paint.ImageOp, error) {
+	if imageCache == nil {
+		imageCache = make(map[string]paint.ImageOp)
+	}
+
+	imgOp, ok := imageCache[t.SCID]
+	if ok {
+		return imgOp, nil
+	}
+
 	if t.ImageUrl.Valid {
 		dataDirPath, err := t.DataDirPath()
 		if err != nil {
-			return nil, err
+			return paint.ImageOp{}, err
 		}
 
 		cacheExists := true
@@ -64,7 +75,7 @@ func (t *Token) LoadImage() (image.Image, error) {
 			if os.IsNotExist(err) {
 				cacheExists = false
 			} else {
-				return nil, err
+				return paint.ImageOp{}, err
 			}
 		}
 
@@ -72,41 +83,45 @@ func (t *Token) LoadImage() (image.Image, error) {
 		if cacheExists {
 			data, err = os.ReadFile(imagePath)
 			if err != nil {
-				return nil, err
+				return paint.ImageOp{}, err
 			}
 		} else {
 			// download from ipfs/http
 			res, err := multi_fetch.Fetch(t.ImageUrl.String)
 			if err != nil {
-				return nil, err
+				return paint.ImageOp{}, err
 			}
 			defer res.Body.Close()
 
 			data, err = io.ReadAll(res.Body)
 			if err != nil {
-				return nil, err
+				return paint.ImageOp{}, err
 			}
 		}
 
-		img, _, err = image.Decode(bytes.NewBuffer(data))
+		img, _, err := image.Decode(bytes.NewBuffer(data))
 		if err != nil {
-			return nil, err
+			return paint.ImageOp{}, err
 		}
 
 		if !cacheExists {
 			err = os.WriteFile(imagePath, data, os.ModePerm)
 			if err != nil {
-				return nil, err
+				return paint.ImageOp{}, err
 			}
 		}
+
+		newImgOp := paint.NewImageOp(img)
+		imageCache[t.SCID] = newImgOp
+		return newImgOp, nil
 	}
 
-	return img, nil
+	return paint.ImageOp{}, fmt.Errorf("no image")
 }
 
-func DeroToken() Token {
+func DeroToken() *Token {
 	scId := crypto.ZEROHASH.String()
-	return Token{
+	return &Token{
 		ID:        -1,
 		SCID:      scId,
 		Decimals:  5,

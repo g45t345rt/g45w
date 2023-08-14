@@ -511,6 +511,7 @@ type TokenFolderItem struct {
 
 	token      *wallet_manager.Token
 	tokenImage *components.Image
+	hasImage   bool
 
 	folder     *wallet_manager.TokenFolder
 	folderIcon *widget.Icon
@@ -527,12 +528,20 @@ func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
 		Rounded: components.UniformRounded(unit.Dp(10)),
 	}
 
+	hasImage := false
+	imgOp, err := token.GetImageOp()
+	if err == nil {
+		tokenImage.Src = imgOp
+		hasImage = true
+	}
+
 	return &TokenFolderItem{
 		token:      &token,
 		clickable:  new(widget.Clickable),
 		tokenImage: tokenImage,
 		name:       token.Name,
 		status:     status,
+		hasImage:   hasImage,
 	}
 }
 
@@ -563,7 +572,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 
 		if item.token != nil {
-			page_instance.pageSCToken.token = item.token
+			page_instance.pageSCToken.SetToken(item.token)
 			page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
 			page_instance.header.AddHistory(PAGE_SC_TOKEN)
 			app_instance.Window.Invalidate()
@@ -585,8 +594,11 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 				}
 
 				if item.tokenImage != nil {
-					item.tokenImage.Src = theme.Current.TokenImage
-					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					if !item.hasImage {
+						item.tokenImage.Src = theme.Current.TokenImage
+					}
+
+					return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return item.tokenImage.Layout(gtx)
 					})
 				}

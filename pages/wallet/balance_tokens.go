@@ -628,8 +628,8 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 	wallet := wallet_manager.OpenedWallet
 
 	if d.sendReceiveButtons.ButtonSend.Clicked() {
-		page_instance.pageSendForm.token = wallet_manager.DeroToken()
-		page_instance.pageSendForm.clearForm()
+		page_instance.pageSendForm.SetToken(wallet_manager.DeroToken())
+		page_instance.pageSendForm.ClearForm()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
@@ -692,13 +692,14 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 }
 
 type TokenBar struct {
-	buttonListToken *components.Button
+	buttonManageTokens *components.Button
 }
 
 func NewTokenBar() *TokenBar {
-	listIcon, _ := widget.NewIcon(icons.ActionViewList)
-	buttonListToken := components.NewButton(components.ButtonStyle{
-		Icon: listIcon,
+	folderIcon, _ := widget.NewIcon(icons.FileFolder)
+
+	buttonManageTokens := components.NewButton(components.ButtonStyle{
+		Icon: folderIcon,
 		Inset: layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
@@ -708,12 +709,12 @@ func NewTokenBar() *TokenBar {
 	})
 
 	return &TokenBar{
-		buttonListToken: buttonListToken,
+		buttonManageTokens: buttonManageTokens,
 	}
 }
 
 func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if t.buttonListToken.Clicked() {
+	if t.buttonManageTokens.Clicked() {
 		page_instance.pageRouter.SetCurrent(PAGE_SC_FOLDERS)
 		page_instance.header.AddHistory(PAGE_SC_FOLDERS)
 	}
@@ -726,8 +727,8 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					t.buttonListToken.Style.Colors = theme.Current.ButtonPrimaryColors
-					return t.buttonListToken.Layout(gtx, th)
+					t.buttonManageTokens.Style.Colors = theme.Current.ButtonPrimaryColors
+					return t.buttonManageTokens.Layout(gtx, th)
 				}),
 			)
 		}),
@@ -737,16 +738,28 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 type TokenListItem struct {
 	token      *wallet_manager.Token
 	clickable  *widget.Clickable
-	tokenImage *prefabs.ImageHoverClick
+	imageHover *prefabs.ImageHoverClick
+	tokenImage paint.ImageOp
+	hasImage   bool
 
 	balance uint64
 }
 
 func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
+	var tokenImage paint.ImageOp
+	hasImage := false
+	imgOp, err := token.GetImageOp()
+	if err == nil {
+		tokenImage = imgOp
+		hasImage = true
+	}
+
 	return &TokenListItem{
 		token:      &token,
-		tokenImage: prefabs.NewImageHoverClick(),
+		imageHover: prefabs.NewImageHoverClick(),
 		clickable:  new(widget.Clickable),
+		tokenImage: tokenImage,
+		hasImage:   hasImage,
 	}
 }
 
@@ -756,12 +769,16 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if item.clickable.Clicked() {
-		page_instance.pageSCToken.token = item.token
+		page_instance.pageSCToken.SetToken(item.token)
 		page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
 		page_instance.header.AddHistory(PAGE_SC_TOKEN)
 	}
 
-	item.tokenImage.Image.Src = theme.Current.TokenImage
+	if item.hasImage {
+		item.imageHover.Image.Src = item.tokenImage
+	} else {
+		item.imageHover.Image.Src = theme.Current.TokenImage
+	}
 
 	m := op.Record(gtx.Ops)
 	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -773,7 +790,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.X = gtx.Dp(50)
 					gtx.Constraints.Max.Y = gtx.Dp(50)
-					return item.tokenImage.Layout(gtx)
+					return item.imageHover.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

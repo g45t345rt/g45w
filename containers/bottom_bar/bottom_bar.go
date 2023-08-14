@@ -1,8 +1,8 @@
 package bottom_bar
 
 import (
-	"fmt"
 	"image"
+	"strings"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -242,7 +242,9 @@ func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
 			Left: unit.Dp(10), Right: unit.Dp(10),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			walletName := openedWallet.Info.Name
-			lbl := material.Label(th, unit.Sp(14), fmt.Sprintf("Wallet [%s]", walletName))
+			text := lang.Translate("Wallet [{}]")
+			text = strings.Replace(text, "{}", walletName, -1)
+			lbl := material.Label(th, unit.Sp(14), text)
 			lbl.Color = theme.Current.BottomBarWalletTextColor
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)

@@ -88,17 +88,16 @@ func (p *PageAddIPFSGateway) Enter() {
 	page_instance.header.Title = func() string { return lang.Translate("Add IPFS Gateway") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = nil
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_ADD_IPFS_GATEWAY) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 }
 
 func (p *PageAddIPFSGateway) Leave() {
-	if page_instance.header.IsHistory(PAGE_ADD_IPFS_GATEWAY) {
-		p.animationEnter.Reset()
-		p.animationLeave.Start()
-	} else {
-		p.isActive = false
-	}
+	p.animationEnter.Reset()
+	p.animationLeave.Start()
 }
 
 func (p *PageAddIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

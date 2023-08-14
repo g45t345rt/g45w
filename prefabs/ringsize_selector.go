@@ -3,6 +3,7 @@ package prefabs
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -12,6 +13,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -84,7 +86,9 @@ func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout
 		r.selectModal.Modal.SetVisible(false)
 	}
 
-	r.buttonSelect.Text = fmt.Sprintf("Ring size: %s", fmt.Sprint(r.Value))
+	text := lang.Translate("Ring size: {}")
+	text = strings.Replace(text, "{}", fmt.Sprint(r.Value), -1)
+	r.buttonSelect.Text = text
 	r.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 	return r.buttonSelect.Layout(gtx, th)
 }

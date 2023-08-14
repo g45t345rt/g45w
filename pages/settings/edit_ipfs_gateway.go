@@ -126,8 +126,11 @@ func (p *PageEditIPFSGateway) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Edit IPFS Gateway") }
 	page_instance.header.ButtonRight = nil
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+
+	if !page_instance.header.IsHistory(PAGE_EDIT_IPFS_GATEWAY) {
+		p.animationEnter.Start()
+		p.animationLeave.Reset()
+	}
 
 	p.txtEndpoint.SetValue(p.gateway.Endpoint)
 	p.txtName.SetValue(p.gateway.Name)
@@ -135,12 +138,8 @@ func (p *PageEditIPFSGateway) Enter() {
 }
 
 func (p *PageEditIPFSGateway) Leave() {
-	if page_instance.header.IsHistory(PAGE_EDIT_IPFS_GATEWAY) {
-		p.animationEnter.Reset()
-		p.animationLeave.Start()
-	} else {
-		p.isActive = false
-	}
+	p.animationEnter.Reset()
+	p.animationLeave.Start()
 }
 
 func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

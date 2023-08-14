@@ -113,7 +113,7 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), "Specific service port.")
+			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), lang.Translate("Specific service port."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtDescription.Input.EditorMinY = gtx.Dp(75)
