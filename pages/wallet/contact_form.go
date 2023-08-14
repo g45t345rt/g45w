@@ -204,7 +204,23 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtAddr.Layout(gtx, th, lang.Translate("Address"), "")
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return p.txtAddr.Layout(gtx, th, lang.Translate("Address"), "")
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					addr, err := globals.ParseValidateAddress(p.txtAddr.Value())
+					if err == nil && addr.IsIntegratedAddress() {
+						return layout.Inset{Top: unit.Dp(3)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(14), lang.Translate("This is an integrated address."))
+							lbl.Color = theme.Current.TextMuteColor
+							return lbl.Layout(gtx)
+						})
+					}
+
+					return layout.Dimensions{}
+				}),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtNote.Input.EditorMinY = gtx.Dp(75)

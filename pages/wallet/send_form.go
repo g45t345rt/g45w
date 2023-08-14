@@ -288,11 +288,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 									return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 											lbl := material.Label(th, unit.Sp(16), lang.Translate("Matching contact:"))
+											lbl.Color = theme.Current.TextMuteColor
 											return lbl.Layout(gtx)
 										}),
 										layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
 										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-
 											lbl := material.Label(th, unit.Sp(16), contact.Name)
 											lbl.Font.Weight = font.Bold
 											return lbl.Layout(gtx)

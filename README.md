@@ -7,28 +7,28 @@ Cross-platform: Linux, Windows, MacOS, Android, IOS...
 
 ## Why
 
-Utimately, my goal is to bring more users into the Dero Ecosystem with a wallet that is intuitive, easy to use
-and don't compromise privacy.
+The goal is to bring more users into the Dero Ecosystem with a wallet that is intuitive, easy to use and don't compromise privacy.
 
 Although there is already a fantastic wallet created by the DERO Foundation members <https://github.com/DEROFDN/Engram>,
 I want to provide an alternative with a different user interface and additional features, such as smart contract interaction.
 One notable technological difference is that this wallet uses Gio UI instead of Fyne for rendering components.
 
-Additionally, I intend to discontinue the `Dero RPC Bridge` browser extension in favor of this wallet.
-This change should remove a painful/unsafe step of connecting your wallet directly to
-the platform. In the future, platforms should provide QR code for smart contract calls, allowing users to send
-transactions directly from this wallet.
+Additionally, I intend to discontinue the `Dero RPC Bridge` browser extension in favor of this wallet using the DApps XSWD protocol.
+This change should remove a painful/unsafe step of connecting your wallet directly to a DApp platform.
 
 ## Features
 
 - Integrated fast-sync Dero Node for full privacy.
 - Connect to a remote node for quick utilization.
 - Multiple wallet management.
-- Manage Dero tokens and NFTs.
+- Manage Dero tokens and NFTs (folder-like structure).
 - Easily send payments and receive with QR code.
-- Fast registration implemented (by pieswap).
+- Fast registration implemented by pieswap.
 - Address book to manage contacts.
-- Support as much language as possible.
+- Support as much language as possible (11 and counting...).
+- App color schemes (dark, light, blue).
+- DApps interaction with XSWD protocol by Slixe (TODO).
+- Expose daemon/wallet API (disabled by default/TODO).
 
 ## Demo
 
@@ -39,6 +39,8 @@ transactions directly from this wallet.
 You can build your own version by following build steps bellow or use available prebuilds here <https://github.com/g45t345rt/g45w/releases>.
 
 ## How to build
+
+### Setup
 
 If you have Git installed, clone the repository.
 

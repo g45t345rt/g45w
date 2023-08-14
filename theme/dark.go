@@ -44,6 +44,7 @@ var Dark = &Theme{
 		BackgroundColor: blackColor,
 		TextColor:       whiteColor,
 		BorderColor:     whiteColor,
+		HintColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 50},
 	},
 
 	ButtonIconPrimaryColors: components.ButtonColors{

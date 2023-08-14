@@ -44,6 +44,7 @@ var Light = &Theme{
 		BackgroundColor: whiteColor,
 		TextColor:       blackColor,
 		BorderColor:     blackColor,
+		HintColor:       color.NRGBA{A: 200},
 	},
 
 	ButtonIconPrimaryColors: components.ButtonColors{

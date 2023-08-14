@@ -127,6 +127,7 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(16), lang.Translate("Here, you can add your own remote node. The endpoint connection must be a WebSocket connection, starting with ws:// or wss:// for TLS connection."))
+			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {

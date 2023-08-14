@@ -44,6 +44,7 @@ var Blue = &Theme{
 		BackgroundColor: blueColor,
 		TextColor:       whiteColor,
 		BorderColor:     whiteColor,
+		HintColor:       color.NRGBA{R: 255, G: 255, B: 255, A: 150},
 	},
 
 	ButtonIconPrimaryColors: components.ButtonColors{

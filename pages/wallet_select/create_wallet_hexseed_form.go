@@ -133,7 +133,7 @@ func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Th
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtHexSeed.Layout(gtx, th, lang.Translate("Hex Seed"), lang.Translate("Enter hex seed of 64 chars"))
+			return p.txtHexSeed.Layout(gtx, th, lang.Translate("Hex Seed"), lang.Translate("Enter hex seed of 64 chars."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtWalletName.Layout(gtx, th, lang.Translate("Wallet Name"), "")

@@ -10,6 +10,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )
@@ -103,6 +104,7 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(14), lang.Translate("When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded."))
+					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),

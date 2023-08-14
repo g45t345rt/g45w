@@ -173,6 +173,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 			}
 
 			lbl := material.Label(th, unit.Sp(16), path)
+			lbl.Color = theme.Current.TextMuteColor
 			lbl.WrapPolicy = text.WrapGraphemes
 			return lbl.Layout(gtx)
 		},

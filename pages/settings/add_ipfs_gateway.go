@@ -127,6 +127,7 @@ func (p *PageAddIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layo
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(16), lang.Translate("Here, you can add your own IPFS Gateway. The endpoint connection must be a HTTP connection, starting with http:// or https:// for TLS connection. Use {cid} to set where the content identifier must be pasted."))
+			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
