@@ -88,7 +88,6 @@
   "Word Seed": "Graine de mots",
   "Worker Count": "Nombre de travailleurs",
   "YES": "OUI",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "Vous n'avez pas encore ajouté de portefeuille.\\nCliquez sur le bouton 'Nouveau portefeuille' pour continuer.",
   "You didn't add any contacts yet.": "Vous n'avez pas encore ajouté de contacts.",
   "ADD GATEWAY": "AJOUTER UNE PASSERELLE",
   "ADD TOKEN": "AJOUTER UN JETON",
@@ -126,7 +125,6 @@
   "Delete this folder": "Supprimer ce dossier",
   "Destination": "Destination",
   "Destination address is empty.": "L'adresse de destination est vide.",
-  "Donation": "Don",
   "Done": "Terminé",
   "Dutch": "Néerlandais",
   "EDIT CONTACT": "MODIFIER LE CONTACT",
@@ -257,5 +255,7 @@
   "This is an integrated address.": "Il s'agit d'une adresse intégrée.",
   "Wallet [{}]": "Portefeuille [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "Vous n'avez aucun jeton favori. Cliquez sur l'icône de dossier pour gérer les jetons.",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "Lors de l'utilisation d'une adresse intégrée, les options pour \"Commentaire\" et \"Port de destination\" sont abandonnées."
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "Lors de l'utilisation d'une adresse intégrée, les options pour \"Commentaire\" et \"Port de destination\" sont abandonnées.",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "Vous n'avez pas encore ajouté de portefeuille.\nCliquez sur le bouton 'Nouveau portefeuille' pour continuer.",
+  "Donation Address": "Adresse de Don"
 }

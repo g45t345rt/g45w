@@ -65,7 +65,7 @@ func NewPageAppInfo() *PageAppInfo {
 		NewInfoListItem("Version", settings.Version),                  //@lang.Translate("Version")
 		NewInfoListItem("Git Version", settings.GitVersion),           //@lang.Translate("Git Version")
 		NewInfoListItem("Build Time", buildTime),                      //@lang.Translate("Build Time")
-		NewInfoListItem("Donation Address", settings.DonationAddress), //@lang.Translate("Donation")
+		NewInfoListItem("Donation Address", settings.DonationAddress), //@lang.Translate("Donation Address")
 	}
 
 	return &PageAppInfo{

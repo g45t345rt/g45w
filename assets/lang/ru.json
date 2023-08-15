@@ -88,7 +88,6 @@
   "Word Seed": "Сид-фраза из слов",
   "Worker Count": "Количество работников",
   "YES": "ДА",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "Вы еще не добавили кошелек.\nНажмите кнопку 'Новый кошелек', чтобы продолжить.",
   "You didn't add any contacts yet.": "Вы еще не добавили ни одного контакта.",
   "ADD GATEWAY": "ДОБАВИТЬ ШЛЮЗ",
   "ADD TOKEN": "ДОБАВИТЬ ТОКЕН",
@@ -126,7 +125,6 @@
   "Delete this folder": "Удалить эту папку",
   "Destination": "Пункт назначения",
   "Destination address is empty.": "Адрес назначения пуст.",
-  "Donation": "Пожертвование",
   "Done": "Готово",
   "Dutch": "Голландский",
   "EDIT CONTACT": "РЕДАКТИРОВАТЬ КОНТАКТ",
@@ -257,5 +255,7 @@
   "This is an integrated address.": "Это интегрированный адрес.",
   "Wallet [{}]": "Кошелек [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "У вас нет избранных токенов. Щелкните значок папки, чтобы управлять токенами.",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "При использовании интегрированного адреса опции \"Комментарий\" и \"Порт назначения\" отбрасываются."
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "При использовании интегрированного адреса опции \"Комментарий\" и \"Порт назначения\" отбрасываются.",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "Вы еще не добавили кошелек.\nНажмите кнопку 'Новый кошелек', чтобы продолжить.",
+  "Donation Address": "Адрес для пожертвований"
 }

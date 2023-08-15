@@ -88,7 +88,6 @@
   "Word Seed": "Woordseed",
   "Worker Count": "Aantal workers",
   "YES": "JA",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "Je hebt nog geen portefeuille toegevoegd.\nKlik op de knop 'Nieuwe Portefeuille' om door te gaan.",
   "You didn't add any contacts yet.": "Je hebt nog geen contacten toegevoegd.",
   "ADD GATEWAY": "GATEWAY TOEVOEGEN",
   "ADD TOKEN": "TOKEN TOEVOEGEN",
@@ -126,7 +125,6 @@
   "Delete this folder": "Deze map verwijderen",
   "Destination": "Bestemming",
   "Destination address is empty.": "Bestemmingsadres is leeg.",
-  "Donation": "Donatie",
   "Done": "Klaar",
   "Dutch": "Nederlands",
   "EDIT CONTACT": "CONTACT BEWERKEN",
@@ -257,5 +255,7 @@
   "Wallet [{}]": "Portemonnee [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "U heeft geen favoriete tokens. Klik op het mapicoon om tokens te beheren.",
   "The registration POW has been completed succesfully. You can now send the solution to the network to finalize the registration process.": "De registratie POW is succesvol voltooid. U kunt nu de oplossing naar het netwerk sturen om het registratieproces af te ronden.",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "Bij gebruik van een geïntegreerd adres worden de opties voor \"Opmerking\" en \"Bestemmingspoort\" verworpen."
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "Bij gebruik van een geïntegreerd adres worden de opties voor \"Opmerking\" en \"Bestemmingspoort\" verworpen.",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "Je hebt nog geen portefeuille toegevoegd.\nKlik op de knop 'Nieuwe Portefeuille' om door te gaan.",
+  "Donation Address": "Donatieadres"
 }

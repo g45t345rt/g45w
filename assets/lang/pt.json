@@ -88,7 +88,6 @@
   "Word Seed": "Seed de Palavras",
   "Worker Count": "Contagem de Workers",
   "YES": "SIM",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "Você ainda não adicionou uma carteira.\nClique no botão 'Nova Carteira' para continuar.",
   "You didn't add any contacts yet.": "Você ainda não adicionou nenhum contato.",
   "ADD GATEWAY": "ADICIONAR GATEWAY",
   "ADD TOKEN": "ADICIONAR TOKEN",
@@ -126,7 +125,6 @@
   "Delete this folder": "Excluir esta pasta",
   "Destination": "Destino",
   "Destination address is empty.": "O endereço de destino está vazio.",
-  "Donation": "Doação",
   "Done": "Concluído",
   "Dutch": "Holandês",
   "EDIT CONTACT": "EDITAR CONTATO",
@@ -257,5 +255,7 @@
   "Wallet [{}]": "Carteira [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "Você não possui nenhum token favorito. Clique no ícone de pasta para gerenciar tokens.",
   "The registration POW has been completed succesfully. You can now send the solution to the network to finalize the registration process.": "A POW de registro foi concluída com sucesso. Agora você pode enviar a solução para a rede para finalizar o processo de registro.",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "Ao usar um endereço integrado, as opções para \"Comentário\" e \"Porta de Destino\" são descartadas."
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "Ao usar um endereço integrado, as opções para \"Comentário\" e \"Porta de Destino\" são descartadas.",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "Você ainda não adicionou uma carteira.\nClique no botão 'Nova Carteira' para continuar.",
+  "Donation Address": "Endereço de Doação"
 }

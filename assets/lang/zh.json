@@ -88,7 +88,6 @@
   "Word Seed": "单词种子",
   "Worker Count": "工作者数量",
   "YES": "是",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "您还没有添加钱包。\\n点击 '新建钱包' 按钮继续。",
   "You didn't add any contacts yet.": "您还没有添加任何联系人。",
   "ADD GATEWAY": "添加网关",
   "ADD TOKEN": "添加代币",
@@ -126,7 +125,6 @@
   "Delete this folder": "删除此文件夹",
   "Destination": "目标",
   "Destination address is empty.": "目标地址为空。",
-  "Donation": "捐赠",
   "Done": "完成",
   "Dutch": "荷兰语",
   "EDIT CONTACT": "编辑联系人",
@@ -257,5 +255,7 @@
   "This is an integrated address.": "这是一个集成地址。",
   "Wallet [{}]": "钱包 [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "您没有任何收藏的代币。单击文件夹图标管理代币。",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "使用集成地址时，“注释”和“目标端口”的选项会被丢弃。"
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "使用集成地址时，“注释”和“目标端口”的选项会被丢弃。",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "您还没有添加钱包。\n点击 '新建钱包' 按钮继续。",
+  "Donation Address": "捐赠地址"
 }

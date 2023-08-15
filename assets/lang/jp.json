@@ -88,7 +88,6 @@
   "Word Seed": "ワードシード",
   "Worker Count": "ワーカーカウント",
   "YES": "はい",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "まだウォレットが追加されていません。\\n続行するには「新しいウォレット」ボタンをクリックしてください。",
   "You didn't add any contacts yet.": "まだ連絡先が追加されていません。",
   "ADD GATEWAY": "ゲートウェイを追加",
   "ADD TOKEN": "トークンを追加",
@@ -126,7 +125,6 @@
   "Delete this folder": "このフォルダを削除",
   "Destination": "送信先",
   "Destination address is empty.": "送信先アドレスは空です。",
-  "Donation": "寄付",
   "Done": "完了",
   "Dutch": "オランダ語",
   "EDIT CONTACT": "連絡先を編集",
@@ -257,5 +255,7 @@
   "This is an integrated address.": "これは統合アドレスです。",
   "Wallet [{}]": "ウォレット [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "お気に入りのトークンはありません。トークンを管理するにはフォルダアイコンをクリックしてください。",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "統合アドレスを使用する場合、「コメント」と「宛先ポート」のオプションは破棄されます。"
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "統合アドレスを使用する場合、「コメント」と「宛先ポート」のオプションは破棄されます。",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "まだウォレットが追加されていません。\n続行するには「新しいウォレット」ボタンをクリックしてください。",
+  "Donation Address": "寄付アドレス"
 }

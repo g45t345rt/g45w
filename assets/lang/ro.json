@@ -88,7 +88,6 @@
   "Word Seed": "Semință cu Cuvinte",
   "Worker Count": "Număr de Muncitori",
   "YES": "DA",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "Nu ați adăugat încă un portofel.\nApăsați butonul „Portofel Nou” pentru a continua.",
   "You didn't add any contacts yet.": "Nu ai adăugat încă niciun contact.",
   "ADD GATEWAY": "ADAUGĂ GATEWAY",
   "ADD TOKEN": "ADAUGĂ TOKEN",
@@ -126,7 +125,6 @@
   "Delete this folder": "Șterge această dosar",
   "Destination": "Destinație",
   "Destination address is empty.": "Adresa de destinație este goală.",
-  "Donation": "Donare",
   "Done": "Gata",
   "Dutch": "Olandeză",
   "EDIT CONTACT": "MODIFICARE CONTACT",
@@ -257,5 +255,7 @@
   "This is an integrated address.": "Aceasta este o adresă integrată.",
   "Wallet [{}]": "Portofel [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "Nu aveți niciun token favorit. Faceți clic pe pictograma de dosar pentru a gestiona token-urile.",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "Când utilizați o adresă integrată, opțiunile pentru \"Comentariu\" și \"Port de Destinație\" sunt abandonate."
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "Când utilizați o adresă integrată, opțiunile pentru \"Comentariu\" și \"Port de Destinație\" sunt abandonate.",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "Nu ați adăugat încă un portofel.\nApăsați butonul „Portofel Nou” pentru a continua.",
+  "Donation Address": "Adresă de Donație"
 }

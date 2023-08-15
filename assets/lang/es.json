@@ -88,7 +88,6 @@
   "Word Seed": "Semilla de palabras",
   "Worker Count": "Cantidad de trabajadores",
   "YES": "SÍ",
-  "You didn't add a wallet yet.\\nClick 'New Wallet' button to continue.": "Aún no has agregado una billetera.\\nHaz clic en el botón 'Crear nueva billetera' para continuar.",
   "You didn't add any contacts yet.": "Aún no has agregado ningún contacto.",
   "ADD GATEWAY": "AGREGAR PASARELA",
   "ADD TOKEN": "AGREGAR TOKEN",
@@ -126,7 +125,6 @@
   "Delete this folder": "Eliminar esta carpeta",
   "Destination": "Destino",
   "Destination address is empty.": "La dirección de destino está vacía.",
-  "Donation": "Donación",
   "Done": "Hecho",
   "Dutch": "Holandés",
   "EDIT CONTACT": "EDITAR CONTACTO",
@@ -257,5 +255,7 @@
   "This is an integrated address.": "Esta es una dirección integrada.",
   "Wallet [{}]": "Monedero [{}]",
   "You don't have any favorite tokens. Click the folder icon to manage tokens.": "No tienes ningún token favorito. Haz clic en el ícono de la carpeta para gestionar los tokens.",
-  "When using an integrated address, the options for \\\"Comment\\\" and \\\"Destination Port\\\" are discarded.": "Cuando se utiliza una dirección integrada, las opciones para \"Comentario\" y \"Puerto de destino\" se descartan."
+  "When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded.": "Cuando se utiliza una dirección integrada, las opciones para \"Comentario\" y \"Puerto de destino\" se descartan.",
+  "You didn't add a wallet yet.\nClick 'New Wallet' button to continue.": "Aún no has agregado una billetera.\nHaz clic en el botón 'Crear nueva billetera' para continuar.",
+  "Donation Address": "Dirección de Donación"
 }
