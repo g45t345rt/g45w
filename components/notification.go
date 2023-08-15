@@ -31,10 +31,10 @@ type NotificationModal struct {
 	Style NotificationStyle
 	Modal *Modal
 
-	window   *app.Window
-	title    string
-	subtitle string
-	timer    *time.Timer
+	window     *app.Window
+	title      string
+	textEditor *widget.Editor
+	timer      *time.Timer
 }
 
 func NewNotificationModal(window *app.Window, style NotificationStyle) *NotificationModal {
@@ -47,18 +47,22 @@ func NewNotificationModal(window *app.Window, style NotificationStyle) *Notifica
 		Animation:           style.Animation,
 	}
 
+	textEditor := new(widget.Editor)
+	textEditor.ReadOnly = true
+
 	modal := NewModal(modalStyle)
 	notification := &NotificationModal{
-		window: window,
-		Style:  style,
-		Modal:  modal,
+		window:     window,
+		Style:      style,
+		Modal:      modal,
+		textEditor: textEditor,
 	}
 	return notification
 }
 
-func (n *NotificationModal) SetText(title string, subtitle string) {
+func (n *NotificationModal) SetText(title string, text string) {
 	n.title = title
-	n.subtitle = subtitle
+	n.textEditor.SetText(text)
 }
 
 func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
@@ -83,7 +87,7 @@ func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layou
 	n.Modal.Style.Colors.BackgroundColor = n.Style.Colors.BackgroundColor
 	return n.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return n.Style.InnerInset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Start}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					if n.Style.Icon != nil {
 						return n.Style.Icon.Layout(gtx, textColor)
@@ -101,9 +105,9 @@ func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layou
 							return label.Layout(gtx)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(16), n.subtitle)
-							label.Color = textColor
-							return label.Layout(gtx)
+							editor := material.Editor(th, n.textEditor, "")
+							editor.Color = textColor
+							return editor.Layout(gtx)
 						}),
 					)
 				}),

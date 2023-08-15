@@ -39,14 +39,12 @@ type TxPayload struct {
 type BuildTxModal struct {
 	modal               *components.Modal
 	buttonSend          *components.Button
-	editorError         *widget.Editor
 	modalWalletPassword *prefabs.PasswordModal
 	loadingIcon         *widget.Icon
 	animationLoading    *animation.Animation
 
 	building bool
 	buildTx  *transaction.Transaction
-	buildErr error
 	txSent   bool
 
 	txPayload TxPayload
@@ -101,7 +99,6 @@ func LoadInstance() {
 	Instance = &BuildTxModal{
 		modal:               modal,
 		buttonSend:          buttonSend,
-		editorError:         editorError,
 		modalWalletPassword: modalWalletPassword,
 		loadingIcon:         loadingIcon,
 		animationLoading:    animationLoading,
@@ -116,20 +113,23 @@ func LoadInstance() {
 func (b *BuildTxModal) Open(txPayload TxPayload) {
 	b.txSent = false
 	b.txPayload = txPayload
+	b.buildTx = nil
 
 	b.modal.SetVisible(true)
 	b.animationLoading.Reset().Start()
 	b.building = true
 	wallet := wallet_manager.OpenedWallet
 	tx, err := wallet.Memory.TransferPayload0(b.txPayload.Transfers, b.txPayload.Ringsize, false, b.txPayload.SCData, 0, false)
-	b.buildErr = err
-	if err != nil {
-		b.editorError.SetText(err.Error())
-	}
-
 	b.building = false
 	b.animationLoading.Pause()
-	b.buildTx = tx
+
+	if err != nil {
+		b.modal.SetVisible(false)
+		notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+		notification_modals.ErrorInstance.SetVisible(true, 0)
+	} else {
+		b.buildTx = tx
+	}
 }
 
 func (b *BuildTxModal) TxSent() bool {
@@ -226,119 +226,105 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							}),
 						)
 					}))
-			} else {
-				if b.buildErr != nil {
-					childrens = append(childrens,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(16), lang.Translate("Error"))
-							lbl.Font.Weight = font.Bold
-							return lbl.Layout(gtx)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							editor := material.Editor(th, b.editorError, "")
-							return editor.Layout(gtx)
-						}))
-				} else {
-					totalTransfer := uint64(0)
-					for _, transfer := range b.txPayload.Transfers {
-						if transfer.SCID.IsZero() {
-							totalTransfer += transfer.Amount
-						}
+			} else if b.buildTx != nil {
+				totalTransfer := uint64(0)
+				for _, transfer := range b.txPayload.Transfers {
+					if transfer.SCID.IsZero() {
+						totalTransfer += transfer.Amount
 					}
-
-					childrens = append(childrens,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(22), lang.Translate("Confirm"))
-							lbl.Font.Weight = font.Bold
-							return lbl.Layout(gtx)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), lang.Translate("Ring size"))
-									lbl.Color = theme.Current.TextMuteColor
-									return lbl.Layout(gtx)
-								}),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), fmt.Sprint(b.txPayload.Ringsize))
-									return lbl.Layout(gtx)
-								}),
-							)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), lang.Translate("Transfer"))
-									lbl.Color = theme.Current.TextMuteColor
-									return lbl.Layout(gtx)
-								}),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(totalTransfer)))
-									return lbl.Layout(gtx)
-								}),
-							)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), lang.Translate("TX fees"))
-									lbl.Color = theme.Current.TextMuteColor
-									return lbl.Layout(gtx)
-								}),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									fees := globals.FormatMoney(b.buildTx.Fees())
-									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", fees))
-									return lbl.Layout(gtx)
-								}),
-							)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), lang.Translate("Receiver"))
-									lbl.Color = theme.Current.TextMuteColor
-									return lbl.Layout(gtx)
-								}),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									txt := ""
-									if len(b.txPayload.Transfers) > 1 {
-										txt = lang.Translate("Multiple receivers")
-									} else {
-										addr := b.txPayload.Transfers[0].Destination
-										txt = utils.ReduceAddr(addr)
-									}
-
-									lbl := material.Label(th, unit.Sp(16), txt)
-									return lbl.Layout(gtx)
-								}),
-							)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-									lbl := material.Label(th, unit.Sp(16), lang.Translate("Total"))
-									lbl.Color = theme.Current.TextMuteColor
-									return lbl.Layout(gtx)
-								}),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									total := globals.FormatMoney(totalTransfer + b.buildTx.Fees())
-									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", total))
-									return lbl.Layout(gtx)
-								}),
-							)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							b.buttonSend.Style.Colors = theme.Current.ButtonPrimaryColors
-							return b.buttonSend.Layout(gtx, th)
-						}))
 				}
+
+				childrens = append(childrens,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(22), lang.Translate("Confirm"))
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(16), lang.Translate("Ring size"))
+								lbl.Color = theme.Current.TextMuteColor
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(16), fmt.Sprint(b.txPayload.Ringsize))
+								return lbl.Layout(gtx)
+							}),
+						)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(16), lang.Translate("Transfer"))
+								lbl.Color = theme.Current.TextMuteColor
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(totalTransfer)))
+								return lbl.Layout(gtx)
+							}),
+						)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(16), lang.Translate("TX fees"))
+								lbl.Color = theme.Current.TextMuteColor
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								fees := globals.FormatMoney(b.buildTx.Fees())
+								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", fees))
+								return lbl.Layout(gtx)
+							}),
+						)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(16), lang.Translate("Receiver"))
+								lbl.Color = theme.Current.TextMuteColor
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								txt := ""
+								if len(b.txPayload.Transfers) > 1 {
+									txt = lang.Translate("Multiple receivers")
+								} else {
+									addr := b.txPayload.Transfers[0].Destination
+									txt = utils.ReduceAddr(addr)
+								}
+
+								lbl := material.Label(th, unit.Sp(16), txt)
+								return lbl.Layout(gtx)
+							}),
+						)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(16), lang.Translate("Total"))
+								lbl.Color = theme.Current.TextMuteColor
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								total := globals.FormatMoney(totalTransfer + b.buildTx.Fees())
+								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", total))
+								return lbl.Layout(gtx)
+							}),
+						)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						b.buttonSend.Style.Colors = theme.Current.ButtonPrimaryColors
+						return b.buttonSend.Layout(gtx, th)
+					}))
 			}
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childrens...)
