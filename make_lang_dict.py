@@ -9,7 +9,11 @@ folder_path = "./assets/lang"
 
 def find_lang_translate():
     lang_dict = {}
-    lang_pattern = re.compile('lang\.Translate\("([^"]*)"\)')
+
+    # Initial regex was simple -> lang\.Translate\("([^"]*)"\)
+    # I used chatgpt to create another regex handling escaped double quotes ex: lang.Translate("hello \"world\"")
+    lang_pattern = r'lang\.Translate\("((?:[^"\\]|\\.)*)"\)'
+
     go_files = 0
     for root, dirs, files in os.walk("."):
         for file_name in files:
