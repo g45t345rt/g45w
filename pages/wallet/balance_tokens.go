@@ -485,8 +485,9 @@ func NewAlertBox() *AlertBox {
 }
 
 func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme, text string) layout.Dimensions {
+	color := theme.Current.TextMuteColor
 	border := widget.Border{
-		Color:        th.Fg,
+		Color:        color,
 		CornerRadius: unit.Dp(5),
 		Width:        unit.Dp(1),
 	}
@@ -499,12 +500,13 @@ func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme, text string) l
 			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return n.iconWarning.Layout(gtx, th.Fg)
+						return n.iconWarning.Layout(gtx, color)
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(14), text)
-						return label.Layout(gtx)
+						lbl := material.Label(th, unit.Sp(14), text)
+						lbl.Color = color
+						return lbl.Layout(gtx)
 					}),
 				)
 			})

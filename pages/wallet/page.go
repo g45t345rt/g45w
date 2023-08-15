@@ -153,7 +153,7 @@ func (p *Page) Enter() {
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
 
-		node_status_bar.Instance.Update()
+		//node_status_bar.Instance.Update()
 		lastHistory := p.header.GetLastHistory()
 		if lastHistory != nil {
 			p.pageRouter.SetCurrent(lastHistory)

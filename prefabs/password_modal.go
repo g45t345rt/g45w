@@ -20,6 +20,9 @@ type PasswordModal struct {
 	Input              *components.Input
 	animationWrongPass *animation.Animation
 	iconLock           *widget.Icon
+	iconLoading        *widget.Icon
+	loading            bool
+	animationLoading   *animation.Animation
 
 	Modal *components.Modal
 }
@@ -36,6 +39,7 @@ func NewPasswordModal() *PasswordModal {
 	))
 
 	iconLock, _ := widget.NewIcon(icons.ActionLock)
+	iconLoading, _ := widget.NewIcon(icons.NavigationRefresh)
 
 	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
@@ -46,11 +50,31 @@ func NewPasswordModal() *PasswordModal {
 		Animation:           components.NewModalAnimationScaleBounce(),
 	})
 
+	animationLoading := animation.NewAnimation(false,
+		gween.NewSequence(
+			gween.New(0, 1, 1, ease.Linear),
+		),
+	)
+	animationLoading.Sequence.SetLoop(-1)
+
 	return &PasswordModal{
 		Input:              input,
 		Modal:              modal,
 		animationWrongPass: animationWrongPass,
 		iconLock:           iconLock,
+		iconLoading:        iconLoading,
+		animationLoading:   animationLoading,
+	}
+}
+
+func (w *PasswordModal) SetLoading(loading bool) {
+	w.loading = loading
+	w.Input.Editor.ReadOnly = loading
+
+	if loading {
+		w.animationLoading.Reset().Start()
+	} else {
+		w.animationLoading.Pause()
 	}
 }
 
@@ -96,7 +120,26 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Max.X = gtx.Dp(25)
 						gtx.Constraints.Max.Y = gtx.Dp(25)
-						return w.iconLock.Layout(gtx, th.Fg)
+
+						if w.loading {
+							r := op.Record(gtx.Ops)
+							dims := w.iconLoading.Layout(gtx, th.Fg)
+							c := r.Stop()
+
+							{
+								gtx.Constraints.Min = dims.Size
+
+								state := w.animationLoading.Update(gtx)
+								if state.Active {
+									defer animation.TransformRotate(gtx, state.Value).Push(gtx.Ops).Pop()
+								}
+							}
+
+							c.Add(gtx.Ops)
+							return dims
+						} else {
+							return w.iconLock.Layout(gtx, th.Fg)
+						}
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(3, func(gtx layout.Context) layout.Dimensions {

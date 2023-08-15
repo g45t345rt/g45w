@@ -195,23 +195,27 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	{
 		submitted, text := p.modalWalletPassword.Input.Submitted()
 		if submitted {
-			err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
-			if err == nil {
-				wallet := wallet_manager.OpenedWallet
-				wallet.Memory.SetOnlineMode()
-				p.modalWalletPassword.Modal.SetVisible(false)
-				// important reset wallet pages to initial state
-				app_instance.Router.Pages[pages.PAGE_WALLET] = page_wallet.New()
-				app_instance.Router.SetCurrent(pages.PAGE_WALLET)
-			} else {
-				if err.Error() == "Invalid Password" {
-					p.modalWalletPassword.StartWrongPassAnimation()
+			go func() {
+				p.modalWalletPassword.SetLoading(true)
+				err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
+				p.modalWalletPassword.SetLoading(false)
+				if err == nil {
+					wallet := wallet_manager.OpenedWallet
+					wallet.Memory.SetOnlineMode()
+					p.modalWalletPassword.Modal.SetVisible(false)
+					// important reset wallet pages to initial state
+					app_instance.Router.Pages[pages.PAGE_WALLET] = page_wallet.New()
+					app_instance.Router.SetCurrent(pages.PAGE_WALLET)
 				} else {
-					//p.modalWalletPassword.Modal.SetVisible(false)
-					notification_modals.ErrorInstance.SetText("Error", err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					if err.Error() == "Invalid Password" {
+						p.modalWalletPassword.StartWrongPassAnimation()
+					} else {
+						//p.modalWalletPassword.Modal.SetVisible(false)
+						notification_modals.ErrorInstance.SetText("Error", err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					}
 				}
-			}
+			}()
 		}
 	}
 
