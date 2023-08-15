@@ -2,7 +2,6 @@ package build_tx_modal
 
 import (
 	"fmt"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -210,7 +209,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								r := op.Record(gtx.Ops)
-								dims := b.loadingIcon.Layout(gtx, color.NRGBA{A: 255})
+								dims := b.loadingIcon.Layout(gtx, th.Fg)
 								c := r.Stop()
 
 								{

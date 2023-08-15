@@ -167,6 +167,15 @@ func CreateWalletFromPath(name string, password string, path string) error {
 	return saveWallet(wallet.Wallet_Memory, name)
 }
 
+func CreateWalletFromData(name string, password string, data []byte) error {
+	walletMemory, err := walletapi.Open_Encrypted_Wallet_Memory(password, data)
+	if err != nil {
+		return err
+	}
+
+	return saveWallet(walletMemory, name)
+}
+
 func CreateWalletFromSeed(name string, password string, seed string) error {
 	wallet, err := walletapi.Create_Encrypted_Wallet_From_Recovery_Words_Memory(password, seed)
 	if err != nil {

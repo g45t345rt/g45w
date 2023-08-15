@@ -203,7 +203,6 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					gtx.Constraints.Max.Y = gtx.Dp(300)
 					return p.nodeList.Layout(gtx, th, lang.Translate("You don't have any remote nodes available."))
 				}),
 			)

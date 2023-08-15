@@ -2,6 +2,7 @@ package page_wallet_select
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"gioui.org/font"
@@ -39,6 +40,7 @@ type PageCreateWalletDiskForm struct {
 	buttonLoad    *components.Button
 
 	walletPath string
+	walletData []byte
 }
 
 var _ router.Page = &PageCreateWalletDiskForm{}
@@ -134,17 +136,46 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 
 	if p.buttonLoad.Clicked() {
 		go func() {
-			read, err := app_instance.Explorer.ChooseFile()
-			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			loadFile := func() (filePath string, data []byte, err error) {
+				reader, err := app_instance.Explorer.ChooseFile()
+				if err != nil {
+					return
+				}
+
+				switch f := reader.(type) {
+				case *os.File:
+					filePath = f.Name()
+				default:
+				}
+
+				for {
+					buffer := make([]byte, 1024)
+					count, readErr := reader.Read(buffer)
+					if readErr != nil {
+						if readErr != io.EOF {
+							err = readErr
+							return
+						}
+						break
+					}
+
+					data = append(data, buffer[:count]...)
+				}
+
 				return
 			}
 
-			switch f := read.(type) {
-			case *os.File:
-				p.walletPath = f.Name()
-			default:
+			filePath, data, err := loadFile()
+			if err != nil {
+				p.walletPath = ""
+				p.walletData = []byte{}
+
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				return
+			} else {
+				p.walletPath = filePath
+				p.walletData = data
 			}
 		}()
 	}
@@ -168,6 +199,10 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			path := lang.Translate("No file selected.")
+			if len(p.walletData) > 0 {
+				path = lang.Translate("Data was loaded.")
+			}
+
 			if p.walletPath != "" {
 				path = p.walletPath
 			}
@@ -217,7 +252,7 @@ func (p *PageCreateWalletDiskForm) submitForm() error {
 		return fmt.Errorf("enter wallet name")
 	}
 
-	err := wallet_manager.CreateWalletFromPath(txtName.Text(), txtPassword.Text(), p.walletPath)
+	err := wallet_manager.CreateWalletFromData(txtName.Text(), txtPassword.Text(), p.walletData)
 	if err != nil {
 		return err
 	}

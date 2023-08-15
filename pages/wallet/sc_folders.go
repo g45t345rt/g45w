@@ -218,6 +218,9 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		case "add_token":
 			page_instance.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
 			page_instance.header.AddHistory(PAGE_ADD_SC_FORM)
+		case "scan_collection":
+			page_instance.pageRouter.SetCurrent(PAGE_SCAN_COLLECTION)
+			page_instance.header.AddHistory(PAGE_SCAN_COLLECTION)
 		case "new_folder":
 			p.createFolderModal.setFolder(nil)
 			p.createFolderModal.modal.SetVisible(true)
@@ -655,6 +658,12 @@ func NewFolderMenuSelect() *FolderMenuSelect {
 	items = append(items, prefabs.NewSelectListItem("add_token", FolderMenuItem{
 		Icon:  addIcon,
 		Title: "Add token", //@lang.Translate("Add token")
+	}.Layout))
+
+	scanIcon, _ := widget.NewIcon(icons.ActionSearch)
+	items = append(items, prefabs.NewSelectListItem("scan_collection", FolderMenuItem{
+		Icon:  scanIcon,
+		Title: "Scan collection", //@lang.Translate("Scan collection")
 	}.Layout))
 
 	folderIcon, _ := widget.NewIcon(icons.FileCreateNewFolder)

@@ -8,7 +8,7 @@ import (
 	"github.com/g45t345rt/g45w/utils"
 )
 
-var G45_C_SHA256 = ""
+var G45_C_SHA256 = "8729f4b6fe18509ddea9c54addf8513a729d6b382ed9eb50df27ea9548ef680c"
 
 type G45_C struct {
 	SCID           string

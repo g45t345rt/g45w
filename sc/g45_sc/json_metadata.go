@@ -12,6 +12,17 @@ func (m *TokenMetadata) Parse(metadata string) (err error) {
 	return json.Unmarshal([]byte(metadata), &m)
 }
 
+type CollectionMetadata struct {
+	Name          string            `json:"name"`
+	Description   string            `json:"description"`
+	BackdropImage string            `json:"backdropImage"`
+	Links         map[string]string `json:"links"`
+}
+
+func (m *CollectionMetadata) Parse(metadata string) (err error) {
+	return json.Unmarshal([]byte(metadata), &m)
+}
+
 type NFTMetadata struct {
 	ID          uint64                 `json:"id"`
 	Name        string                 `json:"name"`

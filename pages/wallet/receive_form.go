@@ -70,6 +70,7 @@ func (p *PageReceiveForm) Enter() {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
+	page_instance.pageBalanceTokens.ResetWalletHeader()
 
 	addr := wallet_manager.OpenedWallet.Info.Addr
 	imgBytes, _ := qrcode.Encode(addr, qrcode.Medium, 256)

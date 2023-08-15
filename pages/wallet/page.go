@@ -64,6 +64,7 @@ var (
 	PAGE_SC_FOLDERS        = "page_sc_folders"
 	PAGE_WALLET_INFO       = "page_wallet_info"
 	PAGE_TRANSACTION       = "page_transaction"
+	PAGE_SCAN_COLLECTION   = "page_scan_collection"
 )
 
 func New() *Page {
@@ -114,6 +115,9 @@ func New() *Page {
 
 	pageTransaction := NewPageTransaction()
 	pageRouter.Add(PAGE_TRANSACTION, pageTransaction)
+
+	pageScanCollection := NewPageScanCollection()
+	pageRouter.Add(PAGE_SCAN_COLLECTION, pageScanCollection)
 
 	header := prefabs.NewHeader(pageRouter)
 
