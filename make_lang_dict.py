@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import string
 
 
 lang_files = ["fr", "es", "it", "jp", "ko", "nl", "pt", "ro", "ru", "zh"]
@@ -24,7 +25,8 @@ def find_lang_translate():
                     file_content = file.read()
                     matches = re.findall(lang_pattern, file_content)
                     for match in matches:
-                        lang_dict[match] = ""
+                        key = bytes(match, "utf-8").decode("unicode_escape")
+                        lang_dict[key] = ""
 
     print("total .go files checked {}".format(go_files))
     sorted_keys = sorted(lang_dict.keys())
