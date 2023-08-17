@@ -532,21 +532,23 @@ func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
 		Rounded: components.UniformRounded(unit.Dp(10)),
 	}
 
-	hasImage := false
-	imgOp, err := token.GetImageOp()
-	if err == nil {
-		tokenImage.Src = imgOp
-		hasImage = true
-	}
-
-	return &TokenFolderItem{
+	tokenFolderItem := &TokenFolderItem{
 		token:      &token,
 		clickable:  new(widget.Clickable),
 		tokenImage: tokenImage,
 		name:       token.Name,
 		status:     status,
-		hasImage:   hasImage,
 	}
+
+	go func() {
+		imgOp, err := tokenFolderItem.token.GetImageOp()
+		if err == nil {
+			tokenFolderItem.tokenImage.Src = imgOp
+			tokenFolderItem.hasImage = true
+		}
+	}()
+
+	return tokenFolderItem
 }
 
 func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int) *TokenFolderItem {

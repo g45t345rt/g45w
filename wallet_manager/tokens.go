@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"gioui.org/op/paint"
@@ -60,14 +61,17 @@ func (token *Token) DataDirPath() (string, error) {
 }
 
 var imageCache map[string]paint.ImageOp
+var cacheMutex sync.Mutex
 
 func (token *Token) GetImageOp() (paint.ImageOp, error) {
 	if imageCache == nil {
+		cacheMutex.Lock()
 		imageCache = make(map[string]paint.ImageOp)
 
 		// load default native token image
 		img, _ := assets.GetImage("dero.jpg")
 		imageCache[crypto.ZEROHASH.String()] = paint.NewImageOp(img)
+		cacheMutex.Unlock()
 	}
 
 	imgOp, ok := imageCache[token.SCID]
@@ -125,7 +129,10 @@ func (token *Token) GetImageOp() (paint.ImageOp, error) {
 		}
 
 		newImgOp := paint.NewImageOp(img)
+		cacheMutex.Lock()
 		imageCache[token.SCID] = newImgOp
+		cacheMutex.Unlock()
+
 		return newImgOp, nil
 	}
 
