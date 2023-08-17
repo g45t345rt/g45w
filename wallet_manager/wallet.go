@@ -15,6 +15,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
+	"github.com/g45t345rt/g45w/app_data/schema_version"
 	"github.com/g45t345rt/g45w/settings"
 
 	"database/sql"
@@ -111,6 +112,11 @@ func OpenWallet(addr string, password string) error {
 	CloseOpenedWallet()
 	dbPath := filepath.Join(walletsDir, addr, "data.db")
 	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return err
+	}
+
+	err = schema_version.Init(db)
 	if err != nil {
 		return err
 	}

@@ -619,7 +619,8 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(12), item.status)
+			lbl := material.Label(th, unit.Sp(14), item.status)
+			lbl.Color = theme.Current.TextMuteColor
 			lbl.Alignment = text.Middle
 			return lbl.Layout(gtx)
 		}),

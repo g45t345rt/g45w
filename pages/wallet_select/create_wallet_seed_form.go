@@ -136,7 +136,7 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtSeed.Input.EditorMinY = gtx.Dp(125)
-			return p.txtSeed.Layout(gtx, th, lang.Translate("Seed"), lang.Translate("Enter 25 word seed phrase sepated by spaces."))
+			return p.txtSeed.Layout(gtx, th, lang.Translate("Seed"), lang.Translate("Enter 25 word seed phrase seperated by spaces."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtWalletName.Layout(gtx, th, lang.Translate("Wallet Name"), "")

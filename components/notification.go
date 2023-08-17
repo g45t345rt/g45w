@@ -33,6 +33,7 @@ type NotificationModal struct {
 
 	window     *app.Window
 	title      string
+	text       string
 	textEditor *widget.Editor
 	timer      *time.Timer
 }
@@ -62,7 +63,7 @@ func NewNotificationModal(window *app.Window, style NotificationStyle) *Notifica
 
 func (n *NotificationModal) SetText(title string, text string) {
 	n.title = title
-	n.textEditor.SetText(text)
+	n.text = text
 }
 
 func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
@@ -107,6 +108,11 @@ func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layou
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							editor := material.Editor(th, n.textEditor, "")
 							editor.Color = textColor
+							if n.textEditor.Text() != n.text {
+								// using SetText here to avoid nil pointer while using SetText in the other func ???
+								n.textEditor.SetText(n.text)
+							}
+
 							return editor.Layout(gtx)
 						}),
 					)

@@ -2,8 +2,10 @@ package page_wallet
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"image"
+	"sort"
 	"strings"
 	"time"
 
@@ -16,9 +18,11 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -27,6 +31,8 @@ import (
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/sc/g45_sc"
 	"github.com/g45t345rt/g45w/theme"
+	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -56,11 +62,11 @@ func NewPageScanCollection() *PageScanCollection {
 		gween.New(0, -1, .25, ease.Linear),
 	))
 
-	checkIcon, _ := widget.NewIcon(icons.ActionSearch)
+	searchIcon, _ := widget.NewIcon(icons.ActionSearch)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonFetchData := components.NewButton(components.ButtonStyle{
 		Rounded:     components.UniformRounded(unit.Dp(5)),
-		Icon:        checkIcon,
+		Icon:        searchIcon,
 		TextSize:    unit.Sp(14),
 		IconGap:     unit.Dp(10),
 		Inset:       layout.UniformInset(unit.Dp(10)),
@@ -198,12 +204,27 @@ func (p *PageScanCollection) submitForm() (scId string, scType sc.SCType, result
 	return scId, scType, result, nil
 }
 
+type ScanTokenBalanceResult struct {
+	SCID    string
+	Balance uint64
+	Token   *wallet_manager.Token
+	err     error
+}
+
 type SCCollectionDetailsContainer struct {
 	scIdEditor        *widget.Editor
 	nameEditor        *widget.Editor
 	totalAssetsEditor *widget.Editor
 	dateEditor        *widget.Editor
 	collection        *g45_sc.G45_C
+	buttonScan        *components.Button
+	buttonStop        *components.Button
+	buttonStoreTokens *components.Button
+
+	scanIdx       int
+	scanning      bool
+	tokenBalances []ScanTokenBalanceResult
+	scanDone      bool
 
 	list *widget.List
 }
@@ -228,8 +249,32 @@ func NewSCCollectionDetailsContainer() *SCCollectionDetailsContainer {
 	dateEditor.WrapPolicy = text.WrapGraphemes
 	dateEditor.ReadOnly = true
 
-	addIcon, _ := widget.NewIcon(icons.ContentAdd)
-	buttonAddToken := components.NewButton(components.ButtonStyle{
+	searchIcon, _ := widget.NewIcon(icons.ActionSearch)
+	buttonScan := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      searchIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonScan.Label.Alignment = text.Middle
+	buttonScan.Style.Font.Weight = font.Bold
+
+	stopIcon, _ := widget.NewIcon(icons.AVPause)
+	buttonStop := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      stopIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonStop.Label.Alignment = text.Middle
+	buttonStop.Style.Font.Weight = font.Bold
+
+	addIcon, _ := widget.NewIcon(icons.AVLibraryAdd)
+	buttonStoreTokens := components.NewButton(components.ButtonStyle{
 		Rounded:   components.UniformRounded(unit.Dp(5)),
 		Icon:      addIcon,
 		TextSize:  unit.Sp(14),
@@ -237,20 +282,28 @@ func NewSCCollectionDetailsContainer() *SCCollectionDetailsContainer {
 		Inset:     layout.UniformInset(unit.Dp(10)),
 		Animation: components.NewButtonAnimationDefault(),
 	})
-	buttonAddToken.Label.Alignment = text.Middle
-	buttonAddToken.Style.Font.Weight = font.Bold
+	buttonStoreTokens.Label.Alignment = text.Middle
+	buttonStoreTokens.Style.Font.Weight = font.Bold
 
 	return &SCCollectionDetailsContainer{
 		scIdEditor:        scIdEditor,
 		nameEditor:        nameEditor,
 		totalAssetsEditor: totalAssetsEditor,
 		dateEditor:        dateEditor,
+		buttonScan:        buttonScan,
+		buttonStop:        buttonStop,
+		buttonStoreTokens: buttonStoreTokens,
+		tokenBalances:     make([]ScanTokenBalanceResult, 0),
 
 		list: list,
 	}
 }
 
 func (c *SCCollectionDetailsContainer) Set(scId string, scType sc.SCType, scResult *rpc.GetSC_Result) error {
+	c.tokenBalances = make([]ScanTokenBalanceResult, 0)
+	c.scanIdx = 0
+	c.scanDone = false
+
 	if scType != sc.G45_C_TYPE {
 		return fmt.Errorf("not a valid G45_C smart contract")
 	}
@@ -279,8 +332,87 @@ func (c *SCCollectionDetailsContainer) Set(scId string, scType sc.SCType, scResu
 	return nil
 }
 
+func (c *SCCollectionDetailsContainer) scan() {
+	c.scanning = true
+	wallet := wallet_manager.OpenedWallet
+	addr := wallet.Memory.GetAddress().String()
+
+	var assets []string
+	for scId := range c.collection.Assets {
+		assets = append(assets, scId)
+	}
+	sort.Strings(assets) // make sure its sorted once again ordering is not guaranteed in map
+
+	for i := c.scanIdx; i < int(c.collection.AssetCount); i++ {
+		if !c.scanning {
+			break
+		}
+
+		scId := assets[i]
+		hash := crypto.HashHexToHash(scId)
+		balance, _, _ := wallet.Memory.GetDecryptedBalanceAtTopoHeight(hash, -1, addr)
+		tokenBalance := ScanTokenBalanceResult{SCID: scId, Balance: balance}
+		var err error
+
+		//if balance > 0 {
+		var result rpc.GetSC_Result
+		tokenBalance.err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+			SCID:      scId,
+			Variables: true,
+			Code:      true,
+		}, &result)
+		if err == nil {
+			token := &wallet_manager.Token{}
+			tokenBalance.err = token.Parse(scId, result)
+			if err == nil {
+				tokenBalance.Token = token
+			}
+		}
+		//}
+
+		c.tokenBalances = append(c.tokenBalances, tokenBalance)
+
+		time.Sleep(time.Millisecond * 100)
+		app_instance.Window.Invalidate()
+	}
+
+	c.scanning = false
+	c.scanDone = true
+}
+
+func (c *SCCollectionDetailsContainer) storeTokens() error {
+	c.buttonStoreTokens.SetLoading(true)
+	wallet := wallet_manager.OpenedWallet
+	for _, tokenBalance := range c.tokenBalances {
+		token := tokenBalance.Token
+		if token != nil {
+			folderId := page_instance.pageSCFolders.currentFolder.ID
+			token.FolderId = sql.NullInt64{Int64: folderId, Valid: true}
+			err := wallet.InsertToken(*token)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	c.buttonStoreTokens.SetLoading(false)
+	page_instance.header.GoBack()
+	return nil
+}
+
 func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	var widgets []layout.Widget
+
+	if c.buttonScan.Clicked() {
+		go c.scan()
+	}
+
+	if c.buttonStop.Clicked() {
+		c.scanning = false
+	}
+
+	if c.buttonStoreTokens.Clicked() {
+		go c.storeTokens()
+	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return prefabs.Divider(gtx, 5)
@@ -350,11 +482,66 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 		return dims
 	})
 
-	/*widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		c.buttonAddToken.Text = lang.Translate("ADD TOKEN")
-		c.buttonAddToken.Style.Colors = theme.Current.ButtonPrimaryColors
-		return c.buttonAddToken.Layout(gtx, th)
-	})*/
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		if c.scanDone {
+			c.buttonStoreTokens.Text = lang.Translate("ADD TOKENS")
+			c.buttonStoreTokens.Style.Colors = theme.Current.ButtonPrimaryColors
+			return c.buttonStoreTokens.Layout(gtx, th)
+		}
+
+		if c.scanning {
+			c.buttonStop.Text = lang.Translate("STOP SCAN")
+			c.buttonStop.Style.Colors = theme.Current.ButtonDangerColors
+			return c.buttonStop.Layout(gtx, th)
+		}
+
+		c.buttonScan.Text = lang.Translate("SCAN TOKENS")
+		c.buttonScan.Style.Colors = theme.Current.ButtonPrimaryColors
+		return c.buttonScan.Layout(gtx, th)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		status := fmt.Sprintf("%d / %d", len(c.tokenBalances), c.collection.AssetCount)
+		lbl := material.Label(th, unit.Sp(16), status)
+		lbl.Font.Weight = font.Bold
+		return lbl.Layout(gtx)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		var childs []layout.FlexChild
+		for i := range c.tokenBalances {
+			idx := len(c.tokenBalances) - 1 - i
+			childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{Top: unit.Dp(2)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					hashBalance := c.tokenBalances[idx]
+					scId := utils.ReduceTxId(hashBalance.SCID)
+					status := ""
+					if hashBalance.err != nil {
+						status = lang.Translate("error")
+					} else {
+						status = fmt.Sprint(hashBalance.Balance)
+					}
+
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(14), fmt.Sprintf("%d. ", idx+1))
+							return lbl.Layout(gtx)
+						}),
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(14), scId)
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(14), status)
+							return lbl.Layout(gtx)
+						}),
+					)
+				})
+			}))
+		}
+
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
+	})
 
 	listStyle := material.List(th, c.list)
 	listStyle.AnchorStrategy = material.Overlay
@@ -364,5 +551,32 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(0), Right: unit.Dp(0),
 		}.Layout(gtx, widgets[index])
+	})
+}
+
+type CollectionScanList struct {
+	list *widget.List
+}
+
+func NewCollectionScanList() *CollectionScanList {
+	list := new(widget.List)
+	list.Axis = layout.Vertical
+	return &CollectionScanList{}
+}
+
+func (l *CollectionScanList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	listStyle := material.List(th, l.list)
+
+	return listStyle.Layout(gtx, 0, func(gtx layout.Context, index int) layout.Dimensions {
+		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(14), "")
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(14), "")
+				return lbl.Layout(gtx)
+			}),
+		)
 	})
 }

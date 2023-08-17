@@ -8,13 +8,19 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gioui.org/op/paint"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/deroproject/derohe/rpc"
+	"github.com/g45t345rt/g45w/app_data/schema_version"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/multi_fetch"
 	"github.com/g45t345rt/g45w/sc"
+	"github.com/g45t345rt/g45w/sc/dex_sc"
+	"github.com/g45t345rt/g45w/sc/g45_sc"
+	"github.com/g45t345rt/g45w/sc/unknown_sc"
 	"github.com/g45t345rt/g45w/settings"
 )
 
@@ -38,11 +44,13 @@ type Token struct {
 	ImageUrl          sql.NullString
 	Symbol            sql.NullString
 	FolderId          sql.NullInt64
+	CreatedTimestamp  sql.NullInt64 // date created on the blockchain
+	AddedTimestamp    sql.NullInt64 // date added to the sql table
 }
 
-func (t *Token) DataDirPath() (string, error) {
+func (token *Token) DataDirPath() (string, error) {
 	cacheDir := settings.CacheDir
-	tokenDataDirPath := filepath.Join(cacheDir, "tokens", t.SCID)
+	tokenDataDirPath := filepath.Join(cacheDir, "tokens", token.SCID)
 	err := os.MkdirAll(tokenDataDirPath, os.ModePerm)
 	if err != nil {
 		return "", err
@@ -53,7 +61,7 @@ func (t *Token) DataDirPath() (string, error) {
 
 var imageCache map[string]paint.ImageOp
 
-func (t *Token) GetImageOp() (paint.ImageOp, error) {
+func (token *Token) GetImageOp() (paint.ImageOp, error) {
 	if imageCache == nil {
 		imageCache = make(map[string]paint.ImageOp)
 
@@ -62,13 +70,13 @@ func (t *Token) GetImageOp() (paint.ImageOp, error) {
 		imageCache[crypto.ZEROHASH.String()] = paint.NewImageOp(img)
 	}
 
-	imgOp, ok := imageCache[t.SCID]
+	imgOp, ok := imageCache[token.SCID]
 	if ok {
 		return imgOp, nil
 	}
 
-	if t.ImageUrl.Valid {
-		dataDirPath, err := t.DataDirPath()
+	if token.ImageUrl.Valid {
+		dataDirPath, err := token.DataDirPath()
 		if err != nil {
 			return paint.ImageOp{}, err
 		}
@@ -92,7 +100,7 @@ func (t *Token) GetImageOp() (paint.ImageOp, error) {
 			}
 		} else {
 			// download from ipfs/http
-			res, err := multi_fetch.Fetch(t.ImageUrl.String)
+			res, err := multi_fetch.Fetch(token.ImageUrl.String)
 			if err != nil {
 				return paint.ImageOp{}, err
 			}
@@ -117,11 +125,104 @@ func (t *Token) GetImageOp() (paint.ImageOp, error) {
 		}
 
 		newImgOp := paint.NewImageOp(img)
-		imageCache[t.SCID] = newImgOp
+		imageCache[token.SCID] = newImgOp
 		return newImgOp, nil
 	}
 
 	return paint.ImageOp{}, fmt.Errorf("no image")
+}
+
+func (token *Token) Parse(scId string, scResult rpc.GetSC_Result) error {
+	scType := sc.CheckType(scResult.Code)
+	token.SCID = scId
+	token.StandardType = scType
+	token.AddedTimestamp = sql.NullInt64{Int64: time.Now().Unix(), Valid: true}
+
+	switch scType {
+	case sc.G45_FAT_TYPE:
+		fat := g45_sc.G45_FAT{}
+		err := fat.Parse(scId, scResult.VariableStringKeys)
+		if err != nil {
+			return err
+		}
+
+		metadata := g45_sc.TokenMetadata{}
+		err = metadata.Parse(fat.Metadata)
+		if err != nil {
+			return err
+		}
+
+		token.Name = metadata.Name
+		token.Decimals = int64(fat.Decimals)
+		token.MaxSupply = sql.NullInt64{Int64: int64(fat.MaxSupply), Valid: true}
+		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
+		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
+		token.Metadata = sql.NullString{String: fat.Metadata, Valid: true}
+		token.CreatedTimestamp = sql.NullInt64{Int64: int64(fat.Timestamp), Valid: true}
+	case sc.G45_AT_TYPE:
+		at := g45_sc.G45_AT{}
+		err := at.Parse(scId, scResult.VariableStringKeys)
+		if err != nil {
+			return err
+		}
+
+		metadata := g45_sc.TokenMetadata{}
+		err = metadata.Parse(at.Metadata)
+		if err != nil {
+			return err
+		}
+
+		token.Name = metadata.Name
+		token.Decimals = int64(at.Decimals)
+		token.MaxSupply = sql.NullInt64{Int64: int64(at.MaxSupply), Valid: true}
+		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
+		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
+		token.Metadata = sql.NullString{String: at.Metadata, Valid: true}
+		token.CreatedTimestamp = sql.NullInt64{Int64: int64(at.Timestamp), Valid: true}
+	case sc.G45_NFT_TYPE:
+		nft := g45_sc.G45_NFT{}
+		err := nft.Parse(scId, scResult.VariableStringKeys)
+		if err != nil {
+			return err
+		}
+
+		metadata := g45_sc.NFTMetadata{}
+		err = metadata.Parse(nft.Metadata)
+		if err != nil {
+			return err
+		}
+
+		token.Name = metadata.Name
+		token.Decimals = 0
+		token.MaxSupply = sql.NullInt64{Int64: 1, Valid: true}
+		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
+		token.Metadata = sql.NullString{String: nft.Metadata, Valid: true}
+		token.CreatedTimestamp = sql.NullInt64{Int64: int64(nft.Timestamp), Valid: true}
+	case sc.DEX_SC_TYPE:
+		dex := dex_sc.SC{}
+		err := dex.Parse(scId, scResult.VariableStringKeys)
+		if err != nil {
+			return err
+		}
+
+		token.Name = dex.Name
+		token.Decimals = int64(dex.Decimals)
+		token.ImageUrl = sql.NullString{String: dex.ImageUrl, Valid: true}
+		token.Symbol = sql.NullString{String: dex.Symbol, Valid: true}
+	case sc.UNKNOWN_TYPE:
+		unknown := unknown_sc.SC{}
+		err := unknown.Parse(scId, scResult.VariableStringKeys)
+		if err != nil {
+			return err
+		}
+
+		token.Name = unknown.Name
+		token.Decimals = int64(unknown.Decimals)
+		token.ImageUrl = sql.NullString{String: unknown.ImageUrl, Valid: true}
+		token.Symbol = sql.NullString{String: unknown.Symbol, Valid: true}
+	}
+
+	return nil
 }
 
 func DeroToken() *Token {
@@ -138,37 +239,70 @@ func DeroToken() *Token {
 }
 
 func initDatabaseTokens(db *sql.DB) error {
-	_, err := db.Exec(`
-			CREATE TABLE IF NOT EXISTS token_folders (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				name VARCHAR NOT NULL,
-				parent_id INTEGER
-			);
+	version, err := schema_version.GetVersion(db, "tokens")
+	if err != nil {
+		return err
+	}
 
-			CREATE TRIGGER IF NOT EXISTS delete_token_folders
-			AFTER DELETE ON token_folders
-			BEGIN
-				DELETE FROM token_folders WHERE parent_id = OLD.id;
-				DELETE FROM tokens WHERE folder_id = OLD.id;
-			END;
+	if version == 0 {
+		_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS token_folders (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name VARCHAR NOT NULL,
+			parent_id INTEGER
+		);
 
-			CREATE TABLE IF NOT EXISTS tokens (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				sc_id VARCHAR NOT NULL,
-				name VARCHAR NOT NULL,
-				max_supply BIGINT,
-				total_supply BIGINT,
-				decimals INTEGER NOT NULL,
-				standard_type VARCHAR NOT NULL,
-				metadata VARCHAR,
-				is_favorite BOOL,
-				list_order_favorite INTEGER,
-				image VARCHAR,
-				symbol VARCHAR,
-				folder_id INTEGER
-			);
+		CREATE TRIGGER IF NOT EXISTS delete_token_folders
+		AFTER DELETE ON token_folders
+		BEGIN
+			DELETE FROM token_folders WHERE parent_id = OLD.id;
+			DELETE FROM tokens WHERE folder_id = OLD.id;
+		END;
+
+		CREATE TABLE IF NOT EXISTS tokens (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			sc_id VARCHAR NOT NULL,
+			name VARCHAR NOT NULL,
+			max_supply BIGINT,
+			total_supply BIGINT,
+			decimals INTEGER NOT NULL,
+			standard_type VARCHAR NOT NULL,
+			metadata VARCHAR,
+			is_favorite BOOL,
+			list_order_favorite INTEGER,
+			image VARCHAR,
+			symbol VARCHAR,
+			folder_id INTEGER
+		);
+	`)
+		if err != nil {
+			return err
+		}
+
+		version = 1
+		err = schema_version.StoreVersion(db, "tokens", version)
+		if err != nil {
+			return err
+		}
+	}
+
+	if version == 1 {
+		_, err = db.Exec(`
+			ALTER TABLE tokens ADD COLUMN created_timestamp BIGTINT;
+			ALTER TABLE tokens ADD COLUMN added_timestamp BIGINT;
 		`)
-	return err
+		if err != nil {
+			return err
+		}
+
+		version = 2
+		err = schema_version.StoreVersion(db, "tokens", version)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (w *Wallet) GetTokenFolder(id int64) (*TokenFolder, error) {
@@ -334,6 +468,8 @@ func (w *Wallet) GetToken(id int64) (*Token, error) {
 		&token.ImageUrl,
 		&token.Symbol,
 		&token.FolderId,
+		&token.CreatedTimestamp,
+		&token.AddedTimestamp,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -424,6 +560,8 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 			&token.ImageUrl,
 			&token.Symbol,
 			&token.FolderId,
+			&token.CreatedTimestamp,
+			&token.AddedTimestamp,
 		)
 		if err != nil {
 			return tokens, err
@@ -437,11 +575,11 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 
 func (w *Wallet) InsertToken(token Token) error {
 	_, err := w.DB.Exec(`
-		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?);
+		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id,created_timestamp,added_timestamp)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite,
-		token.ListOrderFavorite, token.ImageUrl, token.Symbol, token.FolderId)
+		token.ListOrderFavorite, token.ImageUrl, token.Symbol, token.FolderId, token.CreatedTimestamp, token.AddedTimestamp)
 	return err
 }
 
@@ -459,11 +597,13 @@ func (w *Wallet) UpdateToken(token Token) error {
 				list_order_favorite = ?,
 				image = ?,
 				symbol = ?,
-				folder_id = ?
+				folder_id = ?,
+				created_timestamp = ?,
+				added_timestamp = ?
 		WHERE id = ?;
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite, token.ListOrderFavorite,
-		token.ImageUrl, token.Symbol, token.FolderId, token.ID)
+		token.ImageUrl, token.Symbol, token.FolderId, token.CreatedTimestamp, token.AddedTimestamp, token.ID)
 	return err
 }
 

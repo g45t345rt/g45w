@@ -25,10 +25,6 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
-	"github.com/g45t345rt/g45w/sc"
-	"github.com/g45t345rt/g45w/sc/dex_sc"
-	"github.com/g45t345rt/g45w/sc/g45_sc"
-	"github.com/g45t345rt/g45w/sc/unknown_sc"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -66,11 +62,11 @@ func NewPageAddSCForm() *PageAddSCForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	checkIcon, _ := widget.NewIcon(icons.ActionSearch)
+	searchIcon, _ := widget.NewIcon(icons.ActionSearch)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonFetchData := components.NewButton(components.ButtonStyle{
 		Rounded:     components.UniformRounded(unit.Dp(5)),
-		Icon:        checkIcon,
+		Icon:        searchIcon,
 		TextSize:    unit.Sp(14),
 		IconGap:     unit.Dp(10),
 		Inset:       layout.UniformInset(unit.Dp(10)),
@@ -136,17 +132,15 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	if p.buttonFetchData.Clicked() {
 		p.scDetailsContainer.token = nil
 		p.buttonFetchData.SetLoading(true)
-		scId, scType, scResult, err := p.submitForm()
-		if err == nil {
-			err = p.scDetailsContainer.Set(scId, scType, scResult)
-		}
-
-		p.buttonFetchData.SetLoading(false)
-
+		token, err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+
 		}
+
+		p.buttonFetchData.SetLoading(false)
+		p.scDetailsContainer.Set(token)
 	}
 
 	widgets := []layout.Widget{
@@ -182,27 +176,33 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	})
 }
 
-func (p *PageAddSCForm) submitForm() (scId string, scType sc.SCType, result *rpc.GetSC_Result, err error) {
-	scId = strings.TrimSpace(p.txtSCID.Value())
+func (p *PageAddSCForm) submitForm() (*wallet_manager.Token, error) {
+	scId := strings.TrimSpace(p.txtSCID.Value())
 	if scId == "" {
-		return scId, sc.UNKNOWN_TYPE, nil, fmt.Errorf("scid is empty")
+		return nil, fmt.Errorf("scid is empty")
 	}
 
-	err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+	var result rpc.GetSC_Result
+	err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
 		SCID:      scId,
 		Variables: true,
 		Code:      true,
 	}, &result)
 	if err != nil {
-		return scId, sc.UNKNOWN_TYPE, nil, err
+		return nil, err
 	}
 
 	if result.Code == "" {
-		return scId, sc.UNKNOWN_TYPE, nil, fmt.Errorf("token does not exists")
+		return nil, fmt.Errorf("token does not exists")
 	}
 
-	scType = sc.CheckType(result.Code)
-	return scId, scType, result, nil
+	token := &wallet_manager.Token{}
+	err = token.Parse(scId, result)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 type SCDetailsContainer struct {
@@ -277,103 +277,13 @@ func NewSCDetailsContainer() *SCDetailsContainer {
 	}
 }
 
-func (c *SCDetailsContainer) Set(scId string, scType sc.SCType, scResult *rpc.GetSC_Result) error {
-	token := &wallet_manager.Token{
-		SCID:         scId,
-		StandardType: scType,
-	}
-
-	var timestamp uint64
-	switch scType {
-	case sc.G45_FAT_TYPE:
-		fat := g45_sc.G45_FAT{}
-		err := fat.Parse(scId, scResult.VariableStringKeys)
-		if err != nil {
-			return err
-		}
-
-		metadata := g45_sc.TokenMetadata{}
-		err = metadata.Parse(fat.Metadata)
-		if err != nil {
-			return err
-		}
-
-		token.Name = metadata.Name
-		token.Decimals = int64(fat.Decimals)
-		token.MaxSupply = sql.NullInt64{Int64: int64(fat.MaxSupply), Valid: true}
-		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
-		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
-		token.Metadata = sql.NullString{String: fat.Metadata, Valid: true}
-		timestamp = fat.Timestamp
-	case sc.G45_AT_TYPE:
-		at := g45_sc.G45_AT{}
-		err := at.Parse(scId, scResult.VariableStringKeys)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		metadata := g45_sc.TokenMetadata{}
-		err = metadata.Parse(at.Metadata)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		token.Name = metadata.Name
-		token.Decimals = int64(at.Decimals)
-		token.MaxSupply = sql.NullInt64{Int64: int64(at.MaxSupply), Valid: true}
-		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
-		token.Symbol = sql.NullString{String: metadata.Symbol, Valid: true}
-		token.Metadata = sql.NullString{String: at.Metadata, Valid: true}
-		timestamp = at.Timestamp
-	case sc.G45_NFT_TYPE:
-		nft := g45_sc.G45_NFT{}
-		err := nft.Parse(scId, scResult.VariableStringKeys)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		metadata := g45_sc.NFTMetadata{}
-		err = metadata.Parse(nft.Metadata)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		token.Name = metadata.Name
-		token.Decimals = 0
-		token.MaxSupply = sql.NullInt64{Int64: 1, Valid: true}
-		token.ImageUrl = sql.NullString{String: metadata.Image, Valid: true}
-		token.Metadata = sql.NullString{String: nft.Metadata, Valid: true}
-		timestamp = nft.Timestamp
-	case sc.DEX_SC_TYPE:
-		dex := dex_sc.SC{}
-		err := dex.Parse(scId, scResult.VariableStringKeys)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		token.Name = dex.Name
-		token.Decimals = int64(dex.Decimals)
-		token.ImageUrl = sql.NullString{String: dex.ImageUrl, Valid: true}
-		token.Symbol = sql.NullString{String: dex.Symbol, Valid: true}
-	case sc.UNKNOWN_TYPE:
-		unknown := unknown_sc.SC{}
-		err := unknown.Parse(scId, scResult.VariableStringKeys)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		token.Name = unknown.Name
-		token.Decimals = int64(unknown.Decimals)
-		token.ImageUrl = sql.NullString{String: unknown.ImageUrl, Valid: true}
-		token.Symbol = sql.NullString{String: unknown.Symbol, Valid: true}
-	}
-
+func (c *SCDetailsContainer) Set(token *wallet_manager.Token) {
 	c.scIdEditor.SetText(token.SCID)
-	c.standardTypeEditor.SetText(string(scType))
+	c.standardTypeEditor.SetText(string(token.StandardType))
 	c.nameEditor.SetText(token.Name)
 
-	if timestamp != 0 {
-		date := time.Unix(int64(timestamp), 0)
+	if token.CreatedTimestamp.Valid && token.CreatedTimestamp.Int64 > 0 {
+		date := time.Unix(token.CreatedTimestamp.Int64, 0)
 		c.dateEditor.SetText(date.Format("2006-01-02 15:04:05"))
 	}
 
@@ -392,8 +302,6 @@ func (c *SCDetailsContainer) Set(scId string, scType sc.SCType, scResult *rpc.Ge
 	}
 	c.symbolEditor.SetText(symbol)
 	c.token = token
-
-	return nil
 }
 
 func (c *SCDetailsContainer) addToken() error {
