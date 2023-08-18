@@ -752,21 +752,21 @@ type TokenListItem struct {
 }
 
 func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
-	var tokenImage paint.ImageOp
-	hasImage := false
-	imgOp, err := token.GetImageOp()
-	if err == nil {
-		tokenImage = imgOp
-		hasImage = true
-	}
-
-	return &TokenListItem{
+	tokenImageItem := &TokenListItem{
 		token:      &token,
 		imageHover: prefabs.NewImageHoverClick(),
 		clickable:  new(widget.Clickable),
-		tokenImage: tokenImage,
-		hasImage:   hasImage,
 	}
+
+	go func() {
+		imgOp, err := tokenImageItem.token.GetImageOp()
+		if err == nil {
+			tokenImageItem.tokenImage = imgOp
+			tokenImageItem.hasImage = true
+		}
+	}()
+
+	return tokenImageItem
 }
 
 func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

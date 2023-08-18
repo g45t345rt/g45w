@@ -74,7 +74,10 @@ func (token *Token) GetImageOp() (paint.ImageOp, error) {
 		cacheMutex.Unlock()
 	}
 
+	cacheMutex.Lock()
 	imgOp, ok := imageCache[token.SCID]
+	cacheMutex.Unlock()
+
 	if ok {
 		return imgOp, nil
 	}

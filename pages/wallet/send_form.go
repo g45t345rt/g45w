@@ -507,9 +507,9 @@ func (t *TokenContainer) SetToken(token *wallet_manager.Token) {
 	}
 
 	t.scIdEditor.SetText(scId)
-	img, err := token.GetImageOp()
+	imgOp, err := token.GetImageOp()
 	if err == nil {
-		t.tokenImage.Src = img
+		t.tokenImage.Src = imgOp
 	} else {
 		t.tokenImage.Src = theme.Current.TokenImage
 	}
