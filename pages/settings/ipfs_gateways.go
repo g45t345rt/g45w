@@ -14,7 +14,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -157,7 +157,7 @@ func (p *PageIPFSGateways) Leave() {
 func (p *PageIPFSGateways) LoadGateways() error {
 	items := make([]GatewayListItem, 0)
 
-	gateways, err := app_data.GetIPFSGateways(app_data.GetIPFSGatewaysParams{})
+	gateways, err := app_db.GetIPFSGateways(app_db.GetIPFSGatewaysParams{})
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	if p.buttonResetGatewayList.Clicked() {
-		err := app_data.ResetIPFSGateways()
+		err := app_db.ResetIPFSGateways()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -291,13 +291,13 @@ func (l *GatewayList) Layout(gtx layout.Context, th *material.Theme, emptyText s
 }
 
 type GatewayListItem struct {
-	gateway   app_data.IPFSGateway
+	gateway   app_db.IPFSGateway
 	clickable *widget.Clickable
 	rounded   unit.Dp
 	checkIcon *widget.Icon
 }
 
-func NewGatewayListItem(gateway app_data.IPFSGateway) GatewayListItem {
+func NewGatewayListItem(gateway app_db.IPFSGateway) GatewayListItem {
 	checkIcon, _ := widget.NewIcon(icons.NavigationCheck)
 
 	return GatewayListItem{

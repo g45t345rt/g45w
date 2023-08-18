@@ -12,7 +12,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -37,7 +37,7 @@ type PageEditNodeForm struct {
 	buttonDelete *components.Button
 	txtEndpoint  *prefabs.TextField
 	txtName      *prefabs.TextField
-	nodeConn     app_data.NodeConnection
+	nodeConn     app_db.NodeConnection
 
 	confirmDelete *prefabs.Confirm
 
@@ -220,7 +220,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 }
 
 func (p *PageEditNodeForm) removeNode() error {
-	err := app_data.DelNodeConnection(p.nodeConn.ID)
+	err := app_db.DelNodeConnection(p.nodeConn.ID)
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = app_data.UpdateNodeConnection(app_data.NodeConnection{
+		err = app_db.UpdateNodeConnection(app_db.NodeConnection{
 			Name:     txtName.Text(),
 			Endpoint: txtEndpoint.Text(),
 		})

@@ -12,7 +12,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -190,7 +190,7 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = app_data.InsertNodeConnection(app_data.NodeConnection{
+		err = app_db.InsertNodeConnection(app_db.NodeConnection{
 			Name:     txtName.Text(),
 			Endpoint: txtEndpoint.Text(),
 		})

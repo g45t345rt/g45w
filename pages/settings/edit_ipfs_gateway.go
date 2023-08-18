@@ -13,7 +13,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -40,7 +40,7 @@ type PageEditIPFSGateway struct {
 	txtName      *prefabs.TextField
 	switchActive *widget.Bool
 
-	gateway app_data.IPFSGateway
+	gateway app_db.IPFSGateway
 
 	confirmDelete *prefabs.Confirm
 
@@ -247,7 +247,7 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 
 func (p *PageEditIPFSGateway) removeGateway() error {
 	endpoint := p.gateway.Endpoint
-	err := app_data.DelIPFSGateway(0)
+	err := app_db.DelIPFSGateway(0)
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func (p *PageEditIPFSGateway) submitForm(gtx layout.Context) {
 		}
 
 		endpoint := txtEndpoint.Text()
-		gateway := app_data.IPFSGateway{
+		gateway := app_db.IPFSGateway{
 			ID:       p.gateway.ID,
 			Name:     txtName.Text(),
 			Endpoint: endpoint,
@@ -304,7 +304,7 @@ func (p *PageEditIPFSGateway) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = app_data.UpdateIPFSGateway(gateway)
+		err = app_db.UpdateIPFSGateway(gateway)
 		if err != nil {
 			setError(err)
 			return

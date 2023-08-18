@@ -15,7 +15,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
-	"github.com/g45t345rt/g45w/app_data/schema_version"
+	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/settings"
 
 	"database/sql"

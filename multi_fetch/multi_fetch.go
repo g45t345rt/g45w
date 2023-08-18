@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 )
 
 func Fetch(url string) (*http.Response, error) {
@@ -40,7 +40,7 @@ func HttpFetch(url string, timeout time.Duration) (*http.Response, error) {
 }
 
 func IPFSFetch(cId string) (*http.Response, error) {
-	gateways, err := app_data.GetIPFSGateways(app_data.GetIPFSGatewaysParams{
+	gateways, err := app_db.GetIPFSGateways(app_db.GetIPFSGatewaysParams{
 		Active: sql.NullBool{Bool: true, Valid: true},
 	})
 	if err != nil {

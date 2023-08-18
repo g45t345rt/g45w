@@ -15,7 +15,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/walletapi"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/containers"
@@ -112,7 +112,7 @@ func runApp() error {
 		walletapi.Initialize_LookupTable(1, 1<<21)
 
 		loadState.SetStatus(lang.Translate("Loading app data"), nil)
-		err = app_data.Load()
+		err = app_db.Load()
 		if err != nil {
 			loadState.SetStatus("", err)
 			return

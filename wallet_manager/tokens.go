@@ -15,7 +15,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/app_data/schema_version"
+	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/multi_fetch"
 	"github.com/g45t345rt/g45w/sc"

@@ -2,29 +2,29 @@ package node_manager
 
 import (
 	"github.com/deroproject/derohe/walletapi"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/settings"
 )
 
-var CurrentNode *app_data.NodeConnection
+var CurrentNode *app_db.NodeConnection
 
 func Load() error {
 	endpoint := settings.App.NodeEndpoint
 	if endpoint != "" {
-		var nodeConn *app_data.NodeConnection
-		integratedNodeConn := app_data.INTEGRATED_NODE_CONNECTION
+		var nodeConn *app_db.NodeConnection
+		integratedNodeConn := app_db.INTEGRATED_NODE_CONNECTION
 		if endpoint == integratedNodeConn.Endpoint {
 			nodeConn = &integratedNodeConn
 		} else {
-			conn, err := app_data.GetNodeConnection(endpoint)
+			conn, err := app_db.GetNodeConnection(endpoint)
 			if err != nil {
 				return err
 			}
 
 			nodeConn = conn
 			if nodeConn == nil {
-				nodeConn = &app_data.NodeConnection{
+				nodeConn = &app_db.NodeConnection{
 					Name:     "",
 					Endpoint: endpoint,
 				}
@@ -42,7 +42,7 @@ func Load() error {
 	return nil
 }
 
-func Connect(nodeConn app_data.NodeConnection, save bool) error {
+func Connect(nodeConn app_db.NodeConnection, save bool) error {
 	if nodeConn.Integrated {
 		err := integrated_node.Start()
 		if err != nil {
@@ -56,7 +56,7 @@ func Connect(nodeConn app_data.NodeConnection, save bool) error {
 	}
 
 	if integrated_node.Running &&
-		settings.App.NodeEndpoint == app_data.INTEGRATED_NODE_CONNECTION.Endpoint {
+		settings.App.NodeEndpoint == app_db.INTEGRATED_NODE_CONNECTION.Endpoint {
 		integrated_node.Stop()
 	}
 

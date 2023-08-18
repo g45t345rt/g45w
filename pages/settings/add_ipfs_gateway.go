@@ -11,7 +11,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -185,7 +185,7 @@ func (p *PageAddIPFSGateway) submitForm(gtx layout.Context) {
 		}
 
 		endpoint := txtEndpoint.Text()
-		gateway := app_data.IPFSGateway{
+		gateway := app_db.IPFSGateway{
 			Name:     txtName.Text(),
 			Endpoint: endpoint,
 			Active:   true,
@@ -197,7 +197,7 @@ func (p *PageAddIPFSGateway) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = app_data.InsertIPFSGateway(gateway)
+		err = app_db.InsertIPFSGateway(gateway)
 		if err != nil {
 			setError(err)
 			return

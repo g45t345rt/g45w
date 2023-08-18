@@ -11,17 +11,17 @@ import (
 
 //go:embed images/*
 var images embed.FS
-var imageCache map[string]image.Image
-var cacheMutex sync.Mutex
+var imageMemCache map[string]image.Image
+var imageMemCacheMutex sync.Mutex
 
 func GetImage(path string) (image.Image, error) {
-	if imageCache == nil {
-		cacheMutex.Lock()
-		imageCache = make(map[string]image.Image)
-		cacheMutex.Unlock()
+	if imageMemCache == nil {
+		imageMemCacheMutex.Lock()
+		imageMemCache = make(map[string]image.Image)
+		imageMemCacheMutex.Unlock()
 	}
 
-	img, ok := imageCache[path]
+	img, ok := imageMemCache[path]
 	if ok {
 		return img, nil
 	}
@@ -32,9 +32,9 @@ func GetImage(path string) (image.Image, error) {
 	}
 
 	newImg, _, err := image.Decode(bytes.NewBuffer(data))
-	cacheMutex.Lock()
-	imageCache[path] = newImg
-	cacheMutex.Unlock()
+	imageMemCacheMutex.Lock()
+	imageMemCache[path] = newImg
+	imageMemCacheMutex.Unlock()
 
 	return newImg, err
 }

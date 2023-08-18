@@ -14,7 +14,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_data"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -127,7 +127,7 @@ func (p *PageSelectNode) Leave() {
 func (p *PageSelectNode) LoadRemoteNodes() error {
 	items := make([]NodeListItem, 0)
 
-	nodeConnections, err := app_data.GetNodeConnections()
+	nodeConnections, err := app_db.GetNodeConnections()
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonResetNodeList.Clicked() {
-		err := app_data.ResetNodeConnections()
+		err := app_db.ResetNodeConnections()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -234,7 +234,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonSetIntegratedNode.Clicked() {
-		err := node_manager.Connect(app_data.INTEGRATED_NODE_CONNECTION, true)
+		err := node_manager.Connect(app_db.INTEGRATED_NODE_CONNECTION, true)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -269,7 +269,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	})
 }
 
-func (p *PageSelectNode) connect(nodeConn app_data.NodeConnection) {
+func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 	if p.connecting {
 		return
 	}
@@ -343,7 +343,7 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText stri
 }
 
 type NodeListItem struct {
-	conn           app_data.NodeConnection
+	conn           app_db.NodeConnection
 	clickable      *widget.Clickable
 	buttonSelect   *components.Button
 	buttonEdit     *components.Button
@@ -352,7 +352,7 @@ type NodeListItem struct {
 	rounded unit.Dp
 }
 
-func NewNodeListItem(conn app_data.NodeConnection) NodeListItem {
+func NewNodeListItem(conn app_db.NodeConnection) NodeListItem {
 	buttonSelect := components.NewButton(components.ButtonStyle{
 		Rounded:  components.UniformRounded(unit.Dp(5)),
 		TextSize: unit.Sp(14),
