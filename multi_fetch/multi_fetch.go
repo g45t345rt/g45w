@@ -48,7 +48,7 @@ func IPFSFetch(cId string) (*http.Response, error) {
 	}
 
 	for _, gateway := range gateways {
-		res, err := gateway.Fetch(cId, 3*time.Second)
+		res, err := gateway.Fetch(cId, 5*time.Second)
 		if err != nil {
 			continue
 		}

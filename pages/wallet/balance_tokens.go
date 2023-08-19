@@ -745,28 +745,16 @@ type TokenListItem struct {
 	token      *wallet_manager.Token
 	clickable  *widget.Clickable
 	imageHover *prefabs.ImageHoverClick
-	tokenImage paint.ImageOp
-	hasImage   bool
 
 	balance uint64
 }
 
 func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
-	tokenImageItem := &TokenListItem{
+	return &TokenListItem{
 		token:      &token,
 		imageHover: prefabs.NewImageHoverClick(),
 		clickable:  new(widget.Clickable),
 	}
-
-	go func() {
-		imgOp, err := tokenImageItem.token.GetImageOp()
-		if err == nil {
-			tokenImageItem.tokenImage = imgOp
-			tokenImageItem.hasImage = true
-		}
-	}()
-
-	return tokenImageItem
 }
 
 func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -780,12 +768,6 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 		page_instance.header.AddHistory(PAGE_SC_TOKEN)
 	}
 
-	if item.hasImage {
-		item.imageHover.Image.Src = item.tokenImage
-	} else {
-		item.imageHover.Image.Src = theme.Current.TokenImage
-	}
-
 	m := op.Record(gtx.Ops)
 	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
@@ -794,6 +776,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					item.imageHover.Image.Src = item.token.LoadImageOp()
 					gtx.Constraints.Max.X = gtx.Dp(50)
 					gtx.Constraints.Max.Y = gtx.Dp(50)
 					return item.imageHover.Layout(gtx)

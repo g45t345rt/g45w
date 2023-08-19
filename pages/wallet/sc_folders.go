@@ -515,7 +515,6 @@ type TokenFolderItem struct {
 
 	token      *wallet_manager.Token
 	tokenImage *components.Image
-	hasImage   bool
 
 	folder     *wallet_manager.TokenFolder
 	folderIcon *widget.Icon
@@ -532,23 +531,13 @@ func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
 		Rounded: components.UniformRounded(unit.Dp(10)),
 	}
 
-	tokenFolderItem := &TokenFolderItem{
+	return &TokenFolderItem{
 		token:      &token,
 		clickable:  new(widget.Clickable),
 		tokenImage: tokenImage,
 		name:       token.Name,
 		status:     status,
 	}
-
-	go func() {
-		imgOp, err := tokenFolderItem.token.GetImageOp()
-		if err == nil {
-			tokenFolderItem.tokenImage.Src = imgOp
-			tokenFolderItem.hasImage = true
-		}
-	}()
-
-	return tokenFolderItem
 }
 
 func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int) *TokenFolderItem {
@@ -600,10 +589,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 				}
 
 				if item.tokenImage != nil {
-					if !item.hasImage {
-						item.tokenImage.Src = theme.Current.TokenImage
-					}
-
+					item.tokenImage.Src = item.token.LoadImageOp()
 					return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return item.tokenImage.Layout(gtx)
 					})

@@ -136,13 +136,6 @@ func (p *PageSCToken) Enter() {
 	wallet.Memory.TokenAdd(scId) // we don't check error because the only possible error is if the token was already added
 
 	p.tokenInfo = NewTokenInfoList(p.token)
-	p.tokenImage.Image.Src = theme.Current.TokenImage
-	go func() {
-		imgOp, err := p.token.GetImageOp()
-		if err == nil {
-			p.tokenImage.Image.Src = imgOp
-		}
-	}()
 
 	page_instance.header.Title = func() string { return p.token.Name }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -185,6 +178,7 @@ func (p *PageSCToken) LoadTxs() {
 
 func (p *PageSCToken) SetToken(token *wallet_manager.Token) {
 	p.token = token
+	p.token.RefreshImageOp()
 	p.balanceContainer.SetTokenAndRefreshBalance(p.token)
 }
 
@@ -287,6 +281,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 						Alignment: layout.Middle,
 					}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							p.tokenImage.Image.Src = p.token.LoadImageOp()
 							gtx.Constraints.Max.X = gtx.Dp(50)
 							gtx.Constraints.Max.Y = gtx.Dp(50)
 							return p.tokenImage.Layout(gtx)

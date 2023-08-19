@@ -27,6 +27,7 @@ import (
 	"github.com/g45t345rt/g45w/sc/g45_sc"
 	"github.com/g45t345rt/g45w/sc/unknown_sc"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 )
 
 type TokenFolder struct {
@@ -51,6 +52,9 @@ type Token struct {
 	FolderId          sql.NullInt64
 	CreatedTimestamp  sql.NullInt64 // date created on the blockchain
 	AddedTimestamp    sql.NullInt64 // date added to the sql table
+
+	imgLoaded bool
+	imageOp   *paint.ImageOp
 }
 
 func (token *Token) DataDirPath() (string, error) {
@@ -62,6 +66,28 @@ func (token *Token) DataDirPath() (string, error) {
 	}
 
 	return tokenDataDirPath, nil
+}
+
+func (token *Token) RefreshImageOp() {
+	token.imgLoaded = false
+}
+
+func (token *Token) LoadImageOp() paint.ImageOp {
+	if !token.imgLoaded {
+		token.imgLoaded = true
+		go func() {
+			imgOp, err := token.GetImageOp()
+			if err == nil {
+				token.imageOp = &imgOp
+			}
+		}()
+	}
+
+	if token.imageOp != nil {
+		return *token.imageOp
+	}
+
+	return theme.Current.TokenImage
 }
 
 var imageMemCache map[string]paint.ImageOp

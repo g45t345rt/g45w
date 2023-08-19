@@ -475,6 +475,7 @@ type TokenContainer struct {
 	nameEditor *widget.Editor
 	scIdEditor *widget.Editor
 	tokenImage *components.Image
+	token      *wallet_manager.Token
 }
 
 func NewTokenContainer() *TokenContainer {
@@ -507,14 +508,7 @@ func (t *TokenContainer) SetToken(token *wallet_manager.Token) {
 	}
 
 	t.scIdEditor.SetText(scId)
-	t.tokenImage.Src = theme.Current.TokenImage
-
-	go func() {
-		imgOp, err := token.GetImageOp()
-		if err == nil {
-			t.tokenImage.Src = imgOp
-		}
-	}()
+	t.token = token
 }
 
 func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -525,6 +519,7 @@ func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.D
 			Alignment: layout.Middle,
 		}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				t.tokenImage.Src = t.token.LoadImageOp()
 				gtx.Constraints.Max.X = gtx.Dp(50)
 				gtx.Constraints.Max.Y = gtx.Dp(50)
 				return t.tokenImage.Layout(gtx)
