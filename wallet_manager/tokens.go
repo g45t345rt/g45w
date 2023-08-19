@@ -2,10 +2,12 @@ package wallet_manager
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"fmt"
 	"image"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -15,8 +17,10 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/assets"
+	"github.com/g45t345rt/g45w/caching"
 	"github.com/g45t345rt/g45w/multi_fetch"
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/sc/dex_sc"
@@ -60,86 +64,76 @@ func (token *Token) DataDirPath() (string, error) {
 	return tokenDataDirPath, nil
 }
 
-var imageCache map[string]paint.ImageOp
-var cacheMutex sync.Mutex
+var imageMemCache map[string]paint.ImageOp
+var imageMemCacheMutex sync.Mutex
 
-func (token *Token) GetImageOp() (paint.ImageOp, error) {
-	if imageCache == nil {
-		cacheMutex.Lock()
-		imageCache = make(map[string]paint.ImageOp)
+func (token *Token) GetImageOp() (imgOp paint.ImageOp, err error) {
+	if imageMemCache == nil {
+		imageMemCacheMutex.Lock()
+		imageMemCache = make(map[string]paint.ImageOp)
 
 		// load default native token image
 		img, _ := assets.GetImage("dero.jpg")
-		imageCache[crypto.ZEROHASH.String()] = paint.NewImageOp(img)
-		cacheMutex.Unlock()
+		imageMemCache[crypto.ZEROHASH.String()] = paint.NewImageOp(img)
+		imageMemCacheMutex.Unlock()
 	}
 
-	cacheMutex.Lock()
-	imgOp, ok := imageCache[token.SCID]
-	cacheMutex.Unlock()
+	imageMemCacheMutex.Lock()
+	imgOp, ok := imageMemCache[token.SCID]
+	imageMemCacheMutex.Unlock()
 
 	if ok {
-		return imgOp, nil
+		return
 	}
 
 	if token.ImageUrl.Valid {
-		dataDirPath, err := token.DataDirPath()
+		relCachePath := filepath.Join("tokens", token.SCID)
+		cacheFileName := "image"
+
+		var imgData []byte
+		var exists bool
+		exists, err = caching.Get(relCachePath, cacheFileName, &imgData)
 		if err != nil {
-			return paint.ImageOp{}, err
+			return
 		}
 
-		cacheExists := true
-		imagePath := filepath.Join(dataDirPath, "image.cache")
-		_, err = os.Stat(imagePath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				cacheExists = false
-			} else {
-				return paint.ImageOp{}, err
-			}
-		}
-
-		var data []byte
-		if cacheExists {
-			data, err = os.ReadFile(imagePath)
-			if err != nil {
-				return paint.ImageOp{}, err
-			}
-		} else {
+		if !exists {
 			// download from ipfs/http
-			res, err := multi_fetch.Fetch(token.ImageUrl.String)
+			var res *http.Response
+			res, err = multi_fetch.Fetch(token.ImageUrl.String)
 			if err != nil {
-				return paint.ImageOp{}, err
+				return
 			}
 			defer res.Body.Close()
 
-			data, err = io.ReadAll(res.Body)
+			imgData, err = io.ReadAll(res.Body)
 			if err != nil {
-				return paint.ImageOp{}, err
+				return
+			}
+
+			err = caching.Store(relCachePath, cacheFileName, imgData)
+			if err != nil {
+				return
 			}
 		}
 
-		img, _, err := image.Decode(bytes.NewBuffer(data))
+		var img image.Image
+		buffer := bytes.NewBuffer(imgData)
+		img, _, err = image.Decode(buffer)
 		if err != nil {
-			return paint.ImageOp{}, err
+			return
 		}
 
-		if !cacheExists {
-			err = os.WriteFile(imagePath, data, os.ModePerm)
-			if err != nil {
-				return paint.ImageOp{}, err
-			}
-		}
+		imgOp = paint.NewImageOp(img)
+		imageMemCacheMutex.Lock()
+		imageMemCache[token.SCID] = imgOp
+		imageMemCacheMutex.Unlock()
 
-		newImgOp := paint.NewImageOp(img)
-		cacheMutex.Lock()
-		imageCache[token.SCID] = newImgOp
-		cacheMutex.Unlock()
-
-		return newImgOp, nil
+		return
 	}
 
-	return paint.ImageOp{}, fmt.Errorf("no image")
+	err = fmt.Errorf("no image")
+	return
 }
 
 func (token *Token) Parse(scId string, scResult rpc.GetSC_Result) error {
@@ -233,6 +227,31 @@ func (token *Token) Parse(scId string, scResult rpc.GetSC_Result) error {
 	}
 
 	return nil
+}
+
+func GetSC(scId string) (result rpc.GetSC_Result, err error) {
+	cacheFileName := "get_sc"
+	relCachePath := filepath.Join("tokens", scId)
+	exists, err := caching.Get(relCachePath, cacheFileName, &result)
+	if err != nil {
+		return
+	}
+
+	if exists {
+		return
+	}
+
+	err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+		SCID:      scId,
+		Variables: true,
+		Code:      true,
+	}, &result)
+	if err != nil {
+		return
+	}
+
+	err = caching.Store(relCachePath, cacheFileName, result)
+	return
 }
 
 func DeroToken() *Token {

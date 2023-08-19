@@ -1,7 +1,6 @@
 package page_wallet
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"image"
@@ -17,8 +16,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -182,18 +179,9 @@ func (p *PageAddSCForm) submitForm() (*wallet_manager.Token, error) {
 		return nil, fmt.Errorf("scid is empty")
 	}
 
-	var result rpc.GetSC_Result
-	err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
-		SCID:      scId,
-		Variables: true,
-		Code:      true,
-	}, &result)
+	result, err := wallet_manager.GetSC(scId)
 	if err != nil {
 		return nil, err
-	}
-
-	if result.Code == "" {
-		return nil, fmt.Errorf("token does not exists")
 	}
 
 	token := &wallet_manager.Token{}

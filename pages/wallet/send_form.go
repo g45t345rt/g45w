@@ -507,12 +507,14 @@ func (t *TokenContainer) SetToken(token *wallet_manager.Token) {
 	}
 
 	t.scIdEditor.SetText(scId)
-	imgOp, err := token.GetImageOp()
-	if err == nil {
-		t.tokenImage.Src = imgOp
-	} else {
-		t.tokenImage.Src = theme.Current.TokenImage
-	}
+	t.tokenImage.Src = theme.Current.TokenImage
+
+	go func() {
+		imgOp, err := token.GetImageOp()
+		if err == nil {
+			t.tokenImage.Src = imgOp
+		}
+	}()
 }
 
 func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
