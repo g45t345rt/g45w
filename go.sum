@@ -5,8 +5,6 @@ gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 h1:AGDDxsJE1RpcXTAxPG2B4jrwVUJG
 gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2/go.mod h1:A8M0Cn5o+vY5LTMlnRoK3O5kG+rH0kWfJjeKd9QpBmQ=
 gioui.org/shader v1.0.6 h1:cvZmU+eODFR2545X+/8XucgZdTtEjR3QWW6W65b0q5Y=
 gioui.org/shader v1.0.6/go.mod h1:mWdiME581d/kV7/iEhLmUgUK5iZ09XR5XpduXzbePVM=
-gioui.org/x v0.0.0-20230523210033-8432ec5563bb h1:VnqXLYSd8UsVh6hrJJi6HjYl8Ow+iyDQTnwdKTp6lvY=
-gioui.org/x v0.0.0-20230523210033-8432ec5563bb/go.mod h1:nMctdnZS2HKxfSXb+bCPnhw1n2LLsXoxtTarZjtIBuI=
 git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 h1:bGG/g4ypjrCJoSvFrP5hafr9PPB5aw8SjcOWWila7ZI=
 git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0/go.mod h1:+axXBRUTIDlCeE73IKeD/os7LoEnTKdkp8/gQOFjqyo=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
@@ -57,6 +55,8 @@ github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f h1:V35UWCxuvg2//d
 github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f/go.mod h1:oNz7lyXVe/P8qJ6chyHMRkgGHfNOY/t15ZC9zWZSRg4=
 github.com/g45t345rt/gio v0.0.0-20230812135712-9a6f11b3b796 h1:D7gKnJnE9vOaiwEBMuoBwGMQHz6fxNS5rwYZvHaEInM=
 github.com/g45t345rt/gio v0.0.0-20230812135712-9a6f11b3b796/go.mod h1:1H72sKEk/fNFV+l0JNeM2Dt3co3Y4uaQcD+I+/GQ0e4=
+github.com/g45t345rt/gio-x v0.0.0-20230821165433-c4f13412c995 h1:EW8ZIfNd4UVjBvANR1c0zowAMFRuwa0cY/ZR1EFt+fs=
+github.com/g45t345rt/gio-x v0.0.0-20230821165433-c4f13412c995/go.mod h1:rCGN2nZ8ZHqrtseJoQxCMZpt2xrZUrdZ2WuMRLBJmYs=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
 github.com/gin-gonic/gin v1.6.3 h1:ahKqKTFpO5KTPHxWZjEdPScmYaGtLo8Y4DMHoEsnp14=

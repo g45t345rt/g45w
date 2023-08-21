@@ -2,6 +2,8 @@ replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-2023
 
 replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230812135712-9a6f11b3b796
 
+replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230821165433-c4f13412c995
+
 module github.com/g45t345rt/g45w
 
 go 1.19
@@ -49,7 +51,7 @@ require (
 require (
 	gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 // indirect
 	gioui.org/shader v1.0.6 // indirect
-	gioui.org/x v0.0.0-20230523210033-8432ec5563bb
+	gioui.org/x v0.2.0
 	github.com/VictoriaMetrics/metrics v1.24.0 // indirect
 	github.com/beevik/ntp v1.0.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect

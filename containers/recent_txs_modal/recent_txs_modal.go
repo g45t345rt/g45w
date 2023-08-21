@@ -16,6 +16,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/browser"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -280,7 +281,11 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	if item.buttonOpen.Clicked() {
 		go func() {
 			url := fmt.Sprintf("https://explorer.dero.io/tx/%s", txId)
-			app_instance.Window.OpenUrl(url)
+			err := browser.OpenUrl(url)
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			}
 		}()
 	}
 
