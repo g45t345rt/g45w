@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"gioui.org/app"
+	sysTheme "gioui.org/x/pref/theme"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/theme"
 )
@@ -72,7 +73,14 @@ func Load() error {
 		SendRingSize: 16,
 		NodeEndpoint: "",
 		TabBarsKey:   "tokens",
-		ThemeKey:     "light",
+	}
+
+	// check system user theme preference
+	isDark, _ := sysTheme.IsDarkMode()
+	if isDark {
+		appSettings.ThemeKey = "dark"
+	} else {
+		appSettings.ThemeKey = "light"
 	}
 
 	_, err = os.Stat(settingsPath)
