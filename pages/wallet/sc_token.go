@@ -14,7 +14,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -132,8 +131,7 @@ func (p *PageSCToken) Enter() {
 	p.isActive = true
 
 	wallet := wallet_manager.OpenedWallet
-	scId := crypto.HashHexToHash(p.token.SCID)
-	wallet.Memory.TokenAdd(scId) // we don't check error because the only possible error is if the token was already added
+	wallet.Memory.TokenAdd(p.token.GetHash()) // we don't check error because the only possible error is if the token was already added
 
 	p.tokenInfo = NewTokenInfoList(p.token)
 
@@ -179,7 +177,7 @@ func (p *PageSCToken) LoadTxs() {
 func (p *PageSCToken) SetToken(token *wallet_manager.Token) {
 	p.token = token
 	p.token.RefreshImageOp()
-	p.balanceContainer.SetTokenAndRefreshBalance(p.token)
+	p.balanceContainer.SetToken(p.token)
 	p.LoadTxs()
 }
 
@@ -258,7 +256,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 		switch key {
 		case "refresh_cache":
-			wallet.RefreshBalanceResult(p.token.SCID)
+			wallet.ResetBalanceResult(p.token.SCID)
 			successMsg = lang.Translate("Cache refreshed.")
 		case "add_favorite":
 			p.token.IsFavorite = sql.NullBool{Bool: true, Valid: true}
@@ -519,7 +517,6 @@ type BalanceContainer struct {
 	token             *wallet_manager.Token
 	balanceEditor     *widget.Editor
 	buttonHideBalance *ButtonHideBalance
-	balance           uint64
 }
 
 func NewBalanceContainer() *BalanceContainer {
@@ -534,11 +531,8 @@ func NewBalanceContainer() *BalanceContainer {
 	}
 }
 
-func (b *BalanceContainer) SetTokenAndRefreshBalance(token *wallet_manager.Token) {
+func (b *BalanceContainer) SetToken(token *wallet_manager.Token) {
 	b.token = token
-	wallet := wallet_manager.OpenedWallet
-	scId := crypto.HashHexToHash(token.SCID)
-	b.balance, _ = wallet.Memory.Get_Balance_scid(scId)
 }
 
 func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -561,15 +555,17 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 							}),
 							layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								balance := utils.ShiftNumber{Number: b.balance, Decimals: int(b.token.Decimals)}.Format()
+								wallet := wallet_manager.OpenedWallet
+								balance, _ := wallet.Memory.Get_Balance_scid(b.token.GetHash())
+								amount := utils.ShiftNumber{Number: balance, Decimals: int(b.token.Decimals)}.Format()
 
 								r := op.Record(gtx.Ops)
 								balanceEditor := material.Editor(th, b.balanceEditor, "")
 								balanceEditor.TextSize = unit.Sp(34)
 								balanceEditor.Font.Weight = font.Bold
 
-								if balanceEditor.Editor.Text() != balance {
-									balanceEditor.Editor.SetText(balance)
+								if balanceEditor.Editor.Text() != amount {
+									balanceEditor.Editor.SetText(amount)
 								}
 
 								dims := balanceEditor.Layout(gtx)

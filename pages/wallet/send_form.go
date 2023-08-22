@@ -16,7 +16,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
@@ -164,7 +163,7 @@ func (p *PageSendForm) Leave() {
 
 func (p *PageSendForm) SetToken(token *wallet_manager.Token) {
 	p.token = token
-	p.balanceContainer.SetTokenAndRefreshBalance(p.token)
+	p.balanceContainer.SetToken(p.token)
 	p.tokenContainer.SetToken(p.token)
 }
 
@@ -210,8 +209,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	if p.buttonSetMax.Clicked() {
 		wallet := wallet_manager.OpenedWallet
-		scId := crypto.HashHexToHash(p.token.SCID)
-		balance, _ := wallet.Memory.Get_Balance_scid(scId)
+		balance, _ := wallet.Memory.Get_Balance_scid(p.token.GetHash())
 		amount := utils.ShiftNumber{Number: balance, Decimals: int(p.token.Decimals)}.Format()
 		p.txtAmount.SetValue(amount)
 	}
@@ -435,8 +433,7 @@ func (p *PageSendForm) prepareTx() error {
 		return err
 	}
 
-	scId := crypto.HashHexToHash(p.token.SCID)
-
+	scId := p.token.GetHash()
 	ringsize := uint64(p.ringSizeSelector.Value)
 
 	wallet := wallet_manager.OpenedWallet

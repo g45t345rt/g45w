@@ -229,7 +229,7 @@ func (w *Wallet) OrderList(newOrder int) error {
 	return saveWalletInfo(w.Info.Addr, w.Info)
 }
 
-func (w *Wallet) RefreshBalanceResult(scId string) {
+func (w *Wallet) ResetBalanceResult(scId string) {
 	account := w.Memory.GetAccount()
 	hash := crypto.HashHexToHash(scId)
 

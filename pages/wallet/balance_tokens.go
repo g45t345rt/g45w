@@ -165,8 +165,6 @@ func (p *PageBalanceTokens) LoadTokens() error {
 	}
 
 	p.tokenItems = tokenItems
-	p.RefreshTokensBalance()
-
 	return nil
 }
 
@@ -182,15 +180,6 @@ func (p *PageBalanceTokens) LoadTxs() {
 
 	p.txItems = txItems
 	p.txBar.txCount = len(entries)
-}
-
-func (p *PageBalanceTokens) RefreshTokensBalance() {
-	wallet := wallet_manager.OpenedWallet
-	for _, tokenItem := range p.tokenItems {
-		scId := crypto.HashHexToHash(tokenItem.token.SCID)
-		b, _ := wallet.Memory.Get_Balance_scid(scId)
-		tokenItem.balance = b
-	}
 }
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
@@ -745,8 +734,6 @@ type TokenListItem struct {
 	token      *wallet_manager.Token
 	clickable  *widget.Clickable
 	imageHover *prefabs.ImageHoverClick
-
-	balance uint64
 }
 
 func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
@@ -829,8 +816,10 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 				Left: unit.Dp(8), Right: unit.Dp(8),
 				Bottom: unit.Dp(5), Top: unit.Dp(5),
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				balance := utils.ShiftNumber{Number: uint64(item.balance), Decimals: int(item.token.Decimals)}
-				lbl := material.Label(th, unit.Sp(18), balance.Format())
+				wallet := wallet_manager.OpenedWallet
+				balance, _ := wallet.Memory.Get_Balance_scid(item.token.GetHash())
+				amount := utils.ShiftNumber{Number: uint64(balance), Decimals: int(item.token.Decimals)}
+				lbl := material.Label(th, unit.Sp(18), amount.Format())
 				lbl.Font.Weight = font.Bold
 				return lbl.Layout(gtx)
 			})

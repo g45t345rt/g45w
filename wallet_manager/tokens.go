@@ -55,6 +55,17 @@ type Token struct {
 
 	imgLoaded bool
 	imageOp   *paint.ImageOp
+	hash      *crypto.Hash
+}
+
+func (token *Token) GetHash() crypto.Hash {
+	if token.hash != nil {
+		return *token.hash
+	}
+
+	hash := crypto.HashHexToHash(token.SCID)
+	token.hash = &hash
+	return hash
 }
 
 func (token *Token) DataDirPath() (string, error) {
@@ -629,7 +640,21 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 }
 
 func (w *Wallet) InsertToken(token Token) error {
-	_, err := w.DB.Exec(`
+	row := w.DB.QueryRow(`
+		SELECT COUNT(*) FROM tokens
+		WHERE sc_id = ? AND folder_id = ?
+	`, token.SCID, token.FolderId)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		return nil
+	}
+
+	_, err = w.DB.Exec(`
 		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id,created_timestamp,added_timestamp)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,

@@ -226,12 +226,16 @@ type SCCollectionDetailsContainer struct {
 	tokenBalances []ScanTokenBalanceResult
 	scanDone      bool
 
-	list *widget.List
+	list     *widget.List
+	scanList *widget.List
 }
 
 func NewSCCollectionDetailsContainer() *SCCollectionDetailsContainer {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
+
+	scanList := new(widget.List)
+	scanList.Axis = layout.Vertical
 
 	scIdEditor := new(widget.Editor)
 	scIdEditor.WrapPolicy = text.WrapGraphemes
@@ -274,13 +278,15 @@ func NewSCCollectionDetailsContainer() *SCCollectionDetailsContainer {
 	buttonStop.Style.Font.Weight = font.Bold
 
 	addIcon, _ := widget.NewIcon(icons.AVLibraryAdd)
+	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonStoreTokens := components.NewButton(components.ButtonStyle{
-		Rounded:   components.UniformRounded(unit.Dp(5)),
-		Icon:      addIcon,
-		TextSize:  unit.Sp(14),
-		IconGap:   unit.Dp(10),
-		Inset:     layout.UniformInset(unit.Dp(10)),
-		Animation: components.NewButtonAnimationDefault(),
+		Rounded:     components.UniformRounded(unit.Dp(5)),
+		Icon:        addIcon,
+		TextSize:    unit.Sp(14),
+		IconGap:     unit.Dp(10),
+		Inset:       layout.UniformInset(unit.Dp(10)),
+		Animation:   components.NewButtonAnimationDefault(),
+		LoadingIcon: loadingIcon,
 	})
 	buttonStoreTokens.Label.Alignment = text.Middle
 	buttonStoreTokens.Style.Font.Weight = font.Bold
@@ -295,7 +301,8 @@ func NewSCCollectionDetailsContainer() *SCCollectionDetailsContainer {
 		buttonStoreTokens: buttonStoreTokens,
 		tokenBalances:     make([]ScanTokenBalanceResult, 0),
 
-		list: list,
+		list:     list,
+		scanList: scanList,
 	}
 }
 
@@ -381,7 +388,6 @@ func (c *SCCollectionDetailsContainer) scan() {
 }
 
 func (c *SCCollectionDetailsContainer) storeTokens() error {
-	c.buttonStoreTokens.SetLoading(true)
 	wallet := wallet_manager.OpenedWallet
 	for _, tokenBalance := range c.tokenBalances {
 		token := tokenBalance.Token
@@ -414,6 +420,7 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 	}
 
 	if c.buttonStoreTokens.Clicked() {
+		c.buttonStoreTokens.SetLoading(true)
 		go c.storeTokens()
 	}
 
@@ -511,10 +518,11 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		var childs []layout.FlexChild
+		var scanWidgets []layout.Widget
+
 		for i := range c.tokenBalances {
 			idx := len(c.tokenBalances) - 1 - i
-			childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			scanWidgets = append(scanWidgets, func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{Top: unit.Dp(2)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					hashBalance := c.tokenBalances[idx]
 					scId := utils.ReduceTxId(hashBalance.SCID)
@@ -540,10 +548,15 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 						}),
 					)
 				})
-			}))
+			})
 		}
 
-		return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
+		listStyle := material.List(th, c.scanList)
+		gtx.Constraints.Max.Y = gtx.Dp(200)
+
+		return listStyle.Layout(gtx, len(scanWidgets), func(gtx layout.Context, index int) layout.Dimensions {
+			return scanWidgets[index](gtx)
+		})
 	})
 
 	listStyle := material.List(th, c.list)
@@ -554,32 +567,5 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 			Left: unit.Dp(0), Right: unit.Dp(0),
 		}.Layout(gtx, widgets[index])
-	})
-}
-
-type CollectionScanList struct {
-	list *widget.List
-}
-
-func NewCollectionScanList() *CollectionScanList {
-	list := new(widget.List)
-	list.Axis = layout.Vertical
-	return &CollectionScanList{}
-}
-
-func (l *CollectionScanList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	listStyle := material.List(th, l.list)
-
-	return listStyle.Layout(gtx, 0, func(gtx layout.Context, index int) layout.Dimensions {
-		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				lbl := material.Label(th, unit.Sp(14), "")
-				return lbl.Layout(gtx)
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				lbl := material.Label(th, unit.Sp(14), "")
-				return lbl.Layout(gtx)
-			}),
-		)
 	})
 }
