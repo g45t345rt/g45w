@@ -8,11 +8,11 @@ import (
 )
 
 type Contact struct {
-	Name      string
-	Addr      string
-	Note      string
-	Timestamp int64
-	ListOrder sql.NullInt32
+	Name      string        `json:"name"`
+	Addr      string        `json:"addr"`
+	Note      string        `json:"note"`
+	Timestamp int64         `json:"timestamp"`
+	ListOrder sql.NullInt32 `json:"list_order"`
 }
 
 func initDatabaseContacts(db *sql.DB) error {

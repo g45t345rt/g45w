@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"encoding/json"
 	"image"
 
 	"gioui.org/font"
@@ -14,7 +15,9 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -32,10 +35,11 @@ type PageContacts struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	contactItems []*ContactListItem
+	contactMenuSelect *ContactMenuSelect
+	contactItems      []*ContactListItem
 
-	list             *widget.List
-	buttonAddContact *components.Button
+	list              *widget.List
+	buttonMenuContact *components.Button
 }
 
 var _ router.Page = &PageContacts{}
@@ -52,18 +56,21 @@ func NewPageContacts() *PageContacts {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	addIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
-	buttonAddContact := components.NewButton(components.ButtonStyle{
-		Icon:      addIcon,
+	menuIcon, _ := widget.NewIcon(icons.NavigationMenu)
+	buttonMenuContact := components.NewButton(components.ButtonStyle{
+		Icon:      menuIcon,
 		Animation: components.NewButtonAnimationScale(.98),
 	})
+
+	contactMenuSelect := NewContactMenuSelect()
 
 	return &PageContacts{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		list:             list,
-		buttonAddContact: buttonAddContact,
+		list:              list,
+		buttonMenuContact: buttonMenuContact,
+		contactMenuSelect: contactMenuSelect,
 	}
 }
 
@@ -75,7 +82,7 @@ func (p *PageContacts) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Contacts") }
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = p.buttonAddContact
+	page_instance.header.ButtonRight = p.buttonMenuContact
 
 	if !page_instance.header.IsHistory(PAGE_CONTACTS) {
 		p.animationEnter.Start()
@@ -127,10 +134,97 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonAddContact.Clicked() {
-		page_instance.pageContactForm.ClearForm()
-		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
-		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
+	if p.buttonMenuContact.Clicked() {
+		p.contactMenuSelect.SelectModal.Modal.SetVisible(true)
+	}
+
+	selected, key := p.contactMenuSelect.SelectModal.Selected()
+	if selected {
+		switch key {
+		case "add_contact":
+			page_instance.pageContactForm.ClearForm()
+			page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
+			page_instance.header.AddHistory(PAGE_CONTACT_FORM)
+			p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
+		case "export_contacts":
+			go func() {
+				exportContacts := func() error {
+					file, err := app_instance.Explorer.CreateFile("contacts.json")
+					if err != nil {
+						return err
+					}
+
+					wallet := wallet_manager.OpenedWallet
+					contacts, err := wallet.GetContacts(wallet_manager.GetContactsParams{})
+					if err != nil {
+						return err
+					}
+
+					data, err := json.MarshalIndent(contacts, "", " ")
+					if err != nil {
+						return err
+					}
+
+					_, err = file.Write(data)
+					if err != nil {
+						return err
+					}
+					defer file.Close()
+
+					return nil
+				}
+
+				err := exportContacts()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, 0)
+				} else {
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts exported."))
+					notification_modals.SuccessInstance.SetVisible(true, 0)
+					p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
+				}
+			}()
+		case "import_contacts":
+			importContacts := func() error {
+				file, err := app_instance.Explorer.ChooseFile(".json")
+				if err != nil {
+					return err
+				}
+
+				reader := utils.ReadCloser{ReadCloser: file}
+				data, err := reader.ReadAll()
+				if err != nil {
+					return err
+				}
+
+				var contacts []wallet_manager.Contact
+				err = json.Unmarshal(data, &contacts)
+				if err != nil {
+					return err
+				}
+
+				wallet := wallet_manager.OpenedWallet
+				for _, contact := range contacts {
+					err = wallet.StoreContact(contact)
+					if err != nil {
+						return err
+					}
+				}
+
+				return nil
+			}
+
+			err := importContacts()
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, 0)
+			} else {
+				p.Load()
+				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts imported."))
+				notification_modals.SuccessInstance.SetVisible(true, 0)
+				p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
+			}
+		}
 	}
 
 	widgets := []layout.ListElement{}
@@ -289,4 +383,41 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 
 		return dims
 	})
+}
+
+type ContactMenuSelect struct {
+	SelectModal *prefabs.SelectModal
+}
+
+func NewContactMenuSelect() *ContactMenuSelect {
+	var items []*prefabs.SelectListItem
+	addContactIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
+	items = append(items, prefabs.NewSelectListItem("add_contact", prefabs.ListItemMenuItem{
+		Icon:  addContactIcon,
+		Title: "Add contact", //@lang.Translate("Add contact")
+	}.Layout))
+
+	downIcon, _ := widget.NewIcon(icons.FileFileDownload)
+	items = append(items, prefabs.NewSelectListItem("import_contacts", prefabs.ListItemMenuItem{
+		Icon:  downIcon,
+		Title: "Import contacts", //@lang.Translate("Import contacts")
+	}.Layout))
+
+	upIcon, _ := widget.NewIcon(icons.FileFileUpload)
+	items = append(items, prefabs.NewSelectListItem("export_contacts", prefabs.ListItemMenuItem{
+		Icon:  upIcon,
+		Title: "Export contacts", //@lang.Translate("Export contacts")
+	}.Layout))
+
+	selectModal := prefabs.NewSelectModal()
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			selectModal.Layout(gtx, th, items)
+		},
+	})
+
+	return &ContactMenuSelect{
+		SelectModal: selectModal,
+	}
 }

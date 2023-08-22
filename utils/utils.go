@@ -231,3 +231,26 @@ func DecodeAddress(value string) (string, error) {
 
 	return rpc.NewAddressFromKeys(p).String(), nil
 }
+
+type ReadCloser struct {
+	io.ReadCloser
+}
+
+func (file ReadCloser) ReadAll() (data []byte, err error) {
+	for {
+		buffer := make([]byte, 1024)
+		count, readErr := file.Read(buffer)
+		if readErr != nil {
+			if readErr != io.EOF {
+				err = readErr
+				return
+			}
+			break
+		}
+
+		data = append(data, buffer[:count]...)
+	}
+	defer file.Close()
+
+	return
+}

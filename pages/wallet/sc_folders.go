@@ -346,7 +346,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 						var childs []layout.FlexChild
 						for a := 0; a < p.gridColumnCount; a++ {
 							columnIndex := a
-							itemIndex := rowIndex + columnIndex
+							itemIndex := (rowIndex * p.gridColumnCount) + columnIndex
 
 							childs = append(childs,
 								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -691,27 +691,6 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 	)
 }
 
-type FolderMenuItem struct {
-	Key   string
-	Icon  *widget.Icon
-	Title string
-}
-
-func (t FolderMenuItem) Layout(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Max.X = gtx.Dp(45)
-			gtx.Constraints.Max.Y = gtx.Dp(30)
-			return t.Icon.Layout(gtx, th.Fg)
-		}),
-		layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(20), lang.Translate(t.Title))
-			return lbl.Layout(gtx)
-		}),
-	)
-}
-
 type FolderMenuSelect struct {
 	SelectModal *prefabs.SelectModal
 }
@@ -719,49 +698,49 @@ type FolderMenuSelect struct {
 func NewFolderMenuSelect() *FolderMenuSelect {
 	var items []*prefabs.SelectListItem
 	addIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
-	items = append(items, prefabs.NewSelectListItem("add_token", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("add_token", prefabs.ListItemMenuItem{
 		Icon:  addIcon,
 		Title: "Add token", //@lang.Translate("Add token")
 	}.Layout))
 
 	scanIcon, _ := widget.NewIcon(icons.ActionSearch)
-	items = append(items, prefabs.NewSelectListItem("scan_collection", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("scan_collection", prefabs.ListItemMenuItem{
 		Icon:  scanIcon,
 		Title: "Scan collection", //@lang.Translate("Scan collection")
 	}.Layout))
 
 	folderIcon, _ := widget.NewIcon(icons.FileCreateNewFolder)
-	items = append(items, prefabs.NewSelectListItem("new_folder", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("new_folder", prefabs.ListItemMenuItem{
 		Icon:  folderIcon,
 		Title: "New folder", //@lang.Translate("New folder")
 	}.Layout))
 
 	editIcon, _ := widget.NewIcon(icons.EditorBorderColor)
-	items = append(items, prefabs.NewSelectListItem("rename_folder", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("rename_folder", prefabs.ListItemMenuItem{
 		Icon:  editIcon,
 		Title: "Rename folder", //@lang.Translate("Rename folder")
 	}.Layout))
 
 	listIcon, _ := widget.NewIcon(icons.ActionList)
-	items = append(items, prefabs.NewSelectListItem("view_list", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("view_list", prefabs.ListItemMenuItem{
 		Icon:  listIcon,
 		Title: "View list", //@lang.Translate("View list")
 	}.Layout))
 
 	gridIcon, _ := widget.NewIcon(icons.ActionViewModule)
-	items = append(items, prefabs.NewSelectListItem("view_grid", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("view_grid", prefabs.ListItemMenuItem{
 		Icon:  gridIcon,
 		Title: "View grid", //@lang.Translate("View grid")
 	}.Layout))
 
 	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-	items = append(items, prefabs.NewSelectListItem("refresh_cache", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("refresh_cache", prefabs.ListItemMenuItem{
 		Icon:  refreshIcon,
 		Title: "Refresh cache", //@lang.Translate("Refresh cache")
 	}.Layout))
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
-	items = append(items, prefabs.NewSelectListItem("delete_folder", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("delete_folder", prefabs.ListItemMenuItem{
 		Icon:  deleteIcon,
 		Title: "Delete this folder", //@lang.Translate("Delete this folder")
 	}.Layout))

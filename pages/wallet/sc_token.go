@@ -396,31 +396,31 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 	var items []*prefabs.SelectListItem
 
 	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-	items = append(items, prefabs.NewSelectListItem("refresh_cache", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("refresh_cache", prefabs.ListItemMenuItem{
 		Icon:  refreshIcon,
 		Title: "Refresh cache", //@lang.Translate("Refresh cache")
 	}.Layout))
 
 	addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
-	items = append(items, prefabs.NewSelectListItem("add_favorite", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("add_favorite", prefabs.ListItemMenuItem{
 		Icon:  addFavIcon,
 		Title: "Add to favorites", //@lang.Translate("Add to favorites")
 	}.Layout))
 
 	delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
-	items = append(items, prefabs.NewSelectListItem("remove_favorite", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("remove_favorite", prefabs.ListItemMenuItem{
 		Icon:  delFavIcon,
 		Title: "Remove from favorites", //@lang.Translate("Remove from favorites")
 	}.Layout))
 
 	editIcon, _ := widget.NewIcon(icons.ActionInput)
-	items = append(items, prefabs.NewSelectListItem("edit_token", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("edit_token", prefabs.ListItemMenuItem{
 		Icon:  editIcon,
 		Title: "Edit token", //@lang.Translate("Edit token")
 	}.Layout))
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
-	items = append(items, prefabs.NewSelectListItem("remove_token", FolderMenuItem{
+	items = append(items, prefabs.NewSelectListItem("remove_token", prefabs.ListItemMenuItem{
 		Icon:  deleteIcon,
 		Title: "Remove token", //@lang.Translate("Remove token")
 	}.Layout))

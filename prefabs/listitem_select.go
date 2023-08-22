@@ -4,9 +4,11 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
+	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )
@@ -83,4 +85,25 @@ func (n *ListItemSelect) Layout(gtx layout.Context, th *material.Theme, firstBut
 			}),
 		)
 	})
+}
+
+type ListItemMenuItem struct {
+	Key   string
+	Icon  *widget.Icon
+	Title string
+}
+
+func (t ListItemMenuItem) Layout(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
+	return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Max.X = gtx.Dp(45)
+			gtx.Constraints.Max.Y = gtx.Dp(30)
+			return t.Icon.Layout(gtx, th.Fg)
+		}),
+		layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(20), lang.Translate(t.Title))
+			return lbl.Layout(gtx)
+		}),
+	)
 }

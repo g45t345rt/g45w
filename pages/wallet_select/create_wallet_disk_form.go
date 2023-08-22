@@ -2,7 +2,6 @@ package page_wallet_select
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"gioui.org/font"
@@ -20,6 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -137,31 +137,19 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	if p.buttonLoad.Clicked() {
 		go func() {
 			loadFile := func() (filePath string, data []byte, err error) {
-				reader, err := app_instance.Explorer.ChooseFile()
+				file, err := app_instance.Explorer.ChooseFile()
 				if err != nil {
 					return
 				}
 
-				switch f := reader.(type) {
+				switch f := file.(type) {
 				case *os.File:
 					filePath = f.Name()
 				default:
 				}
 
-				for {
-					buffer := make([]byte, 1024)
-					count, readErr := reader.Read(buffer)
-					if readErr != nil {
-						if readErr != io.EOF {
-							err = readErr
-							return
-						}
-						break
-					}
-
-					data = append(data, buffer[:count]...)
-				}
-
+				reader := utils.ReadCloser{ReadCloser: file}
+				data, err = reader.ReadAll()
 				return
 			}
 
