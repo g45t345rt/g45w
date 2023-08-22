@@ -153,6 +153,7 @@ func (p *PageTransaction) Enter() {
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
+	page_instance.header.ButtonRight = nil
 
 	p.isActive = true
 	if !page_instance.header.IsHistory(PAGE_TRANSACTION) {
@@ -232,6 +233,7 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						lbl := material.Label(th, unit.Sp(16), lang.Translate("Sender"))
 						lbl.Font.Weight = font.Bold
+						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
@@ -247,6 +249,7 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						lbl := material.Label(th, unit.Sp(16), lang.Translate("Destination"))
 						lbl.Font.Weight = font.Bold
+						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
@@ -275,6 +278,7 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				lbl := material.Label(th, unit.Sp(16), lang.Translate("Block Hash"))
 				lbl.Font.Weight = font.Bold
+				lbl.Color = theme.Current.TextMuteColor
 				return lbl.Layout(gtx)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
@@ -291,6 +295,7 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), lang.Translate("Proof"))
 					lbl.Font.Weight = font.Bold
+					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
@@ -383,6 +388,7 @@ func (i InfoRowLayout) Layout(gtx layout.Context, th *material.Theme, title stri
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 				lbl := material.Label(th, unit.Sp(16), title)
 				lbl.Font.Weight = font.Bold
+				lbl.Color = theme.Current.TextMuteColor
 				return lbl.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {

@@ -224,9 +224,31 @@ func (w *Wallet) Rename(newName string) error {
 	return saveWalletInfo(w.Info.Addr, w.Info)
 }
 
-func (w *Wallet) Order(newOrder int) error {
+func (w *Wallet) OrderList(newOrder int) error {
 	w.Info.ListOrder = newOrder
 	return saveWalletInfo(w.Info.Addr, w.Info)
+}
+
+func (w *Wallet) RefreshBalanceResult(scId string) {
+	account := w.Memory.GetAccount()
+	hash := crypto.HashHexToHash(scId)
+
+	account.Lock()
+	idxToDelete := -1
+	for i, balanceResult := range account.Balance_Result {
+		if balanceResult.SCID == hash {
+			idxToDelete = i
+			break
+		}
+	}
+	if idxToDelete > -1 {
+		if idxToDelete == len(account.Balance_Result)-1 {
+			account.Balance_Result = account.Balance_Result[:idxToDelete]
+		} else {
+			account.Balance_Result = append(account.Balance_Result[:idxToDelete], account.Balance_Result[idxToDelete+1:]...)
+		}
+	}
+	account.Unlock()
 }
 
 func (w *Wallet) ChangePassword(password string, newPassword string) error {

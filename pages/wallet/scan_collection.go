@@ -386,8 +386,11 @@ func (c *SCCollectionDetailsContainer) storeTokens() error {
 	for _, tokenBalance := range c.tokenBalances {
 		token := tokenBalance.Token
 		if token != nil {
-			folderId := page_instance.pageSCFolders.currentFolder.ID
-			token.FolderId = sql.NullInt64{Int64: folderId, Valid: true}
+			currentFolder := page_instance.pageSCFolders.currentFolder
+			if currentFolder != nil {
+				token.FolderId = sql.NullInt64{Int64: currentFolder.ID, Valid: true}
+			}
+
 			err := wallet.InsertToken(*token)
 			if err != nil {
 				return err

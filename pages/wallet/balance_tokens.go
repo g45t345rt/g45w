@@ -177,7 +177,7 @@ func (p *PageBalanceTokens) LoadTxs() {
 	txItems := []*TxListItem{}
 
 	for _, entry := range entries {
-		txItems = append(txItems, NewTxListItem(entry))
+		txItems = append(txItems, NewTxListItem(entry, 5))
 	}
 
 	p.txItems = txItems
@@ -1036,14 +1036,14 @@ type TxListItem struct {
 	decimals  int
 }
 
-func NewTxListItem(entry rpc.Entry) *TxListItem {
+func NewTxListItem(entry rpc.Entry, decimals int) *TxListItem {
 	return &TxListItem{
 		entry: entry,
 		image: &components.Image{
 			Fit: components.Cover,
 		},
 		clickable: new(widget.Clickable),
-		decimals:  5,
+		decimals:  decimals,
 	}
 }
 

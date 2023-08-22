@@ -169,7 +169,7 @@ func (p *PageSCToken) LoadTxs() {
 	txItems := []*TxListItem{}
 
 	for _, entry := range entries {
-		txItems = append(txItems, NewTxListItem(entry))
+		txItems = append(txItems, NewTxListItem(entry, int(p.token.Decimals)))
 	}
 
 	p.txItems = txItems
@@ -180,6 +180,7 @@ func (p *PageSCToken) SetToken(token *wallet_manager.Token) {
 	p.token = token
 	p.token.RefreshImageOp()
 	p.balanceContainer.SetTokenAndRefreshBalance(p.token)
+	p.LoadTxs()
 }
 
 func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -210,6 +211,30 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		image_modal.Instance.Open(p.token.Name, p.tokenImage.Image.Src)
 	}
 
+	{
+		changed, tab := p.txBar.Changed()
+		if changed {
+			switch tab {
+			case "all":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{}
+			case "in":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{
+					In: sql.NullBool{Bool: true, Valid: true},
+				}
+			case "out":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{
+					Out: sql.NullBool{Bool: true, Valid: true},
+				}
+			case "coinbase":
+				p.getTransfersParams = wallet_manager.GetTransfersParams{
+					Coinbase: sql.NullBool{Bool: true, Valid: true},
+				}
+			}
+
+			p.LoadTxs()
+		}
+	}
+
 	if p.confirmRemoveToken.ClickedYes() {
 		wallet := wallet_manager.OpenedWallet
 		err := wallet.DelToken(p.token.ID)
@@ -232,6 +257,9 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		var successMsg = ""
 
 		switch key {
+		case "refresh_cache":
+			wallet.RefreshBalanceResult(p.token.SCID)
+			successMsg = lang.Translate("Cache refreshed.")
 		case "add_favorite":
 			p.token.IsFavorite = sql.NullBool{Bool: true, Valid: true}
 			err = wallet.UpdateToken(*p.token)
@@ -368,6 +396,13 @@ type TokenMenuSelect struct {
 
 func NewTokenMenuSelect() *TokenMenuSelect {
 	var items []*prefabs.SelectListItem
+
+	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	items = append(items, prefabs.NewSelectListItem("refresh_cache", FolderMenuItem{
+		Icon:  refreshIcon,
+		Title: "Refresh cache", //@lang.Translate("Refresh cache")
+	}.Layout))
+
 	addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
 	items = append(items, prefabs.NewSelectListItem("add_favorite", FolderMenuItem{
 		Icon:  addFavIcon,
