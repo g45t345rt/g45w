@@ -368,6 +368,7 @@ func (p *PayloadArgInfo) Layout(gtx layout.Context, th *material.Theme) layout.D
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(16), name)
 			lbl.Font.Weight = font.Bold
+			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),

@@ -47,10 +47,12 @@ type PageSCFolders struct {
 	confirmDeleteFolder *prefabs.Confirm
 	buttonFolderGoBack  *components.Button
 
-	currentFolder *wallet_manager.TokenFolder // nil is root
-	folderCount   int
-	tokenCount    int
-	folderPath    string
+	currentFolder   *wallet_manager.TokenFolder // nil is root
+	folderCount     int
+	tokenCount      int
+	folderPath      string
+	viewLayout      string // "grid", "list"
+	gridColumnCount int
 }
 
 var _ router.Page = &PageSCFolders{}
@@ -103,6 +105,8 @@ func NewPageSCFolders() *PageSCFolders {
 		createFolderModal:   createFolderModal,
 		confirmDeleteFolder: confirmDeleteFolder,
 		buttonFolderGoBack:  buttonFolderGoBack,
+		viewLayout:          "grid",
+		gridColumnCount:     3,
 	}
 }
 
@@ -166,7 +170,7 @@ func (p *PageSCFolders) Load() error {
 			return err
 		}
 
-		p.items = append(p.items, NewTokenFolderItemFolder(folder, count))
+		p.items = append(p.items, NewTokenFolderItemFolder(folder, count, &p.viewLayout))
 	}
 
 	p.folderCount = len(folders)
@@ -179,7 +183,7 @@ func (p *PageSCFolders) Load() error {
 	}
 
 	for _, token := range tokens {
-		p.items = append(p.items, NewTokenFolderItemToken(token))
+		p.items = append(p.items, NewTokenFolderItemToken(token, &p.viewLayout))
 	}
 
 	p.tokenCount = len(tokens)
@@ -227,6 +231,24 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		case "rename_folder":
 			p.createFolderModal.setFolder(p.currentFolder)
 			p.createFolderModal.modal.SetVisible(true)
+		case "view_list":
+			p.viewLayout = "list"
+			p.gridColumnCount = 1
+		case "view_grid":
+			p.viewLayout = "grid"
+			p.gridColumnCount = 3
+		case "refresh_cache":
+			go func() {
+				wallet := wallet_manager.OpenedWallet
+
+				for _, item := range p.items {
+					wallet.Memory.TokenAdd(item.token.GetHash())
+					wallet.ResetBalanceResult(item.token.SCID)
+				}
+
+				notification_modals.SuccessInstance.SetText("Success", lang.Translate("Cache refreshed."))
+				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			}()
 		case "delete_folder":
 			p.confirmDeleteFolder.SetVisible(true)
 		}
@@ -317,34 +339,30 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					)
 				})
 
-				start := len(widgets)
-				for i := 0; i < len(p.items); i += 3 {
+				for i := 0; i < len(p.items); i += p.gridColumnCount {
 					widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
-						itemIndex := (index - start) * 3
+						rowIndex := index - 1
 
-						dims := layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								if itemIndex < len(p.items) {
-									return p.items[itemIndex].Layout(gtx, th)
-								}
-								return layout.Dimensions{}
-							}),
-							layout.Rigid(layout.Spacer{Width: unit.Dp(20)}.Layout),
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								if itemIndex+1 < len(p.items) {
-									return p.items[itemIndex+1].Layout(gtx, th)
-								}
-								return layout.Dimensions{}
-							}),
-							layout.Rigid(layout.Spacer{Width: unit.Dp(20)}.Layout),
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								if itemIndex+2 < len(p.items) {
-									return p.items[itemIndex+2].Layout(gtx, th)
-								}
-								return layout.Dimensions{}
-							}),
-						)
-						return dims
+						var childs []layout.FlexChild
+						for a := 0; a < p.gridColumnCount; a++ {
+							columnIndex := a
+							itemIndex := rowIndex + columnIndex
+
+							childs = append(childs,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									if itemIndex < len(p.items) {
+										return p.items[itemIndex].Layout(gtx, th)
+									}
+									return layout.Dimensions{}
+								}),
+							)
+
+							if columnIndex < p.gridColumnCount-1 {
+								childs = append(childs, layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout))
+							}
+						}
+
+						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, childs...)
 					})
 				}
 			}
@@ -519,11 +537,12 @@ type TokenFolderItem struct {
 	folder     *wallet_manager.TokenFolder
 	folderIcon *widget.Icon
 
-	name   string
-	status string
+	name       string
+	status     string
+	viewLayout *string
 }
 
-func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
+func NewTokenFolderItemToken(token wallet_manager.Token, viewLayout *string) *TokenFolderItem {
 	status := utils.ReduceTxId(token.SCID)
 
 	tokenImage := &components.Image{
@@ -537,10 +556,11 @@ func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
 		tokenImage: tokenImage,
 		name:       token.Name,
 		status:     status,
+		viewLayout: viewLayout,
 	}
 }
 
-func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int) *TokenFolderItem {
+func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int, viewLayout *string) *TokenFolderItem {
 	folderIcon, _ := widget.NewIcon(icons.FileFolder)
 
 	status := lang.Translate("{} tokens")
@@ -552,6 +572,7 @@ func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int)
 		clickable:  new(widget.Clickable),
 		name:       folder.Name,
 		status:     status,
+		viewLayout: viewLayout,
 	}
 }
 
@@ -572,6 +593,60 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 			page_instance.header.AddHistory(PAGE_SC_TOKEN)
 			app_instance.Window.Invalidate()
 		}
+	}
+
+	if *item.viewLayout == "list" {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					r := op.Record(gtx.Ops)
+					dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceStart}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								gtx.Constraints.Max = image.Point{X: gtx.Dp(50), Y: gtx.Dp(50)}
+								gtx.Constraints.Min = gtx.Constraints.Max
+
+								if item.folderIcon != nil {
+									return item.folderIcon.Layout(gtx, th.Fg)
+								}
+
+								if item.tokenImage != nil {
+									item.tokenImage.Src = item.token.LoadImageOp()
+									return item.tokenImage.Layout(gtx)
+								}
+
+								return layout.Dimensions{}
+							}),
+							layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										lbl := material.Label(th, unit.Sp(16), item.name)
+										lbl.Font.Weight = font.Bold
+										return lbl.Layout(gtx)
+									}),
+									layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										lbl := material.Label(th, unit.Sp(16), item.status)
+										lbl.Color = theme.Current.TextMuteColor
+										return lbl.Layout(gtx)
+									}),
+								)
+							}),
+						)
+					})
+					c := r.Stop()
+
+					paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(image.Rectangle{
+						Max: dims.Size,
+					}, gtx.Dp(10)).Op(gtx.Ops))
+
+					c.Add(gtx.Ops)
+					return dims
+				})
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+		)
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -673,10 +748,16 @@ func NewFolderMenuSelect() *FolderMenuSelect {
 		Title: "View list", //@lang.Translate("View list")
 	}.Layout))
 
-	viewFolderIcon, _ := widget.NewIcon(icons.FileFolder)
-	items = append(items, prefabs.NewSelectListItem("view_folder", FolderMenuItem{
-		Icon:  viewFolderIcon,
-		Title: "View folder", //@lang.Translate("View folder")
+	gridIcon, _ := widget.NewIcon(icons.ActionViewModule)
+	items = append(items, prefabs.NewSelectListItem("view_grid", FolderMenuItem{
+		Icon:  gridIcon,
+		Title: "View grid", //@lang.Translate("View grid")
+	}.Layout))
+
+	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	items = append(items, prefabs.NewSelectListItem("refresh_cache", FolderMenuItem{
+		Icon:  refreshIcon,
+		Title: "Refresh cache", //@lang.Translate("Refresh cache")
 	}.Layout))
 
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
@@ -697,6 +778,10 @@ func NewFolderMenuSelect() *FolderMenuSelect {
 					add = page_instance.pageSCFolders.currentFolder != nil
 				case "delete_folder":
 					add = page_instance.pageSCFolders.currentFolder != nil
+				case "view_grid":
+					add = page_instance.pageSCFolders.viewLayout == "list"
+				case "view_list":
+					add = page_instance.pageSCFolders.viewLayout == "grid"
 				}
 
 				if add {

@@ -267,20 +267,21 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			walletSynced := false
 
 			walletHeight := wallet.Memory.Get_Height()
-			networkHeight := uint64(0)
+			stableHeight := uint64(0)
+			nodeHeight := uint64(0)
 
 			if currentNode.Integrated {
 				nodeStatus := node_status_bar.Instance.IntegratedNodeStatus
-				nodeHeight := uint64(nodeStatus.Height)
-				networkHeight = uint64(nodeStatus.BestHeight)
-				nodeSynced = nodeHeight >= networkHeight-8
-				walletSynced = walletHeight >= networkHeight-8
+				nodeHeight = uint64(nodeStatus.Height)
+				stableHeight = uint64(nodeStatus.BestHeight)
+				nodeSynced = nodeHeight >= stableHeight-8
+				walletSynced = walletHeight >= stableHeight-8
 			} else {
 				nodeStatus := node_status_bar.Instance.RemoteNodeInfo.Result
-				nodeHeight := uint64(nodeStatus.Height)
-				networkHeight = uint64(nodeStatus.StableHeight)
-				nodeSynced = nodeHeight >= networkHeight
-				walletSynced = walletHeight >= networkHeight
+				nodeHeight = uint64(nodeStatus.Height)
+				stableHeight = uint64(nodeStatus.StableHeight)
+				nodeSynced = nodeHeight >= stableHeight
+				walletSynced = walletHeight >= stableHeight
 			}
 
 			if nodeSynced {
@@ -303,14 +304,14 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 					})
 				} else if !walletSynced {
 					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-						text := lang.Translate("The wallet is not synced. Please wait and let it sync. The network height is currently {}.")
-						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
+						text := lang.Translate("The wallet is not synced. Please wait and let it sync. The node height is currently {}.")
+						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(nodeHeight), -1))
 					})
 				}
 			} else {
 				widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-					text := lang.Translate("The node is out of synced. Please wait and let it sync. The network height is currently {}.")
-					return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(networkHeight), -1))
+					text := lang.Translate("The node is out of synced. Please wait and let it sync. The stable height is currently {}.")
+					return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(stableHeight), -1))
 				})
 			}
 		} else {
@@ -464,12 +465,17 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 type AlertBox struct {
 	iconWarning *widget.Icon
+	textEditor  *widget.Editor
 }
 
 func NewAlertBox() *AlertBox {
 	iconWarning, _ := widget.NewIcon(icons.AlertWarning)
+	textEditor := new(widget.Editor)
+	textEditor.ReadOnly = true
+
 	return &AlertBox{
 		iconWarning: iconWarning,
+		textEditor:  textEditor,
 	}
 }
 
@@ -493,9 +499,15 @@ func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme, text string) l
 					}),
 					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(14), text)
-						lbl.Color = color
-						return lbl.Layout(gtx)
+						editor := material.Editor(th, n.textEditor, "")
+						editor.Color = color
+						editor.TextSize = unit.Sp(14)
+
+						if n.textEditor.Text() != text {
+							n.textEditor.SetText(text)
+						}
+
+						return editor.Layout(gtx)
 					}),
 				)
 			})

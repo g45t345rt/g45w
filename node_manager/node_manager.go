@@ -43,20 +43,24 @@ func Load() error {
 }
 
 func Connect(nodeConn app_db.NodeConnection, save bool) error {
-	if nodeConn.Integrated {
+	integratedEndpoint := app_db.INTEGRATED_NODE_CONNECTION.Endpoint
+	endpoint := nodeConn.Endpoint
+	if nodeConn.Endpoint == integratedEndpoint {
 		err := integrated_node.Start()
 		if err != nil {
 			return err
 		}
+
+		endpoint = "ws://127.0.0.1:10102/ws"
 	}
 
-	err := walletapi.Connect(nodeConn.Endpoint)
+	err := walletapi.Connect(endpoint)
 	if err != nil {
 		return err
 	}
 
 	if integrated_node.Running &&
-		settings.App.NodeEndpoint == app_db.INTEGRATED_NODE_CONNECTION.Endpoint {
+		settings.App.NodeEndpoint == integratedEndpoint {
 		integrated_node.Stop()
 	}
 

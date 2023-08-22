@@ -1,7 +1,9 @@
 package integrated_node
 
 import (
+	"fmt"
 	"io"
+	"net"
 	"os"
 	"runtime"
 	"time"
@@ -9,6 +11,7 @@ import (
 	"github.com/deroproject/derohe/block"
 	"github.com/deroproject/derohe/blockchain"
 	derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
+	"github.com/deroproject/derohe/config"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/metrics"
 	"github.com/deroproject/derohe/p2p"
@@ -21,9 +24,25 @@ var Chain *blockchain.Blockchain
 var RPCServer *derodrpc.RPCServer
 var Running bool
 
+func isTcpPortInUse(addr string) bool {
+	conn, err := net.Listen("tcp", addr)
+	if err != nil {
+		return true
+	}
+	defer conn.Close()
+
+	return false
+}
+
 func Start() error {
 	if Running {
 		return nil
+	}
+
+	rpcPort := config.Mainnet.RPC_Default_Port
+	rpcAddr := fmt.Sprintf("127.0.0.1:%d", rpcPort)
+	if isTcpPortInUse(rpcAddr) {
+		return fmt.Errorf("rpc port (%d) already in use", rpcPort)
 	}
 
 	nodeDir := settings.IntegratedNodeDir
