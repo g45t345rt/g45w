@@ -1,8 +1,6 @@
 package prefabs
 
 import (
-	"fmt"
-
 	"gioui.org/gesture"
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
@@ -25,9 +23,9 @@ type Header struct {
 	router       *router.Router
 	history      []interface{}
 
-	slideLeft   *gesture.Drag
+	slideRight  *gesture.Drag
 	slideStartX float32
-	startSlide  bool
+	calcSlide   bool
 }
 
 type HeaderTitleLayoutFunc func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions
@@ -42,7 +40,7 @@ func NewHeader(r *router.Router) *Header {
 		buttonGoBack: buttonGoBack,
 		router:       r,
 		history:      make([]interface{}, 0),
-		slideLeft:    new(gesture.Drag),
+		slideRight:   new(gesture.Drag),
 	}
 
 	return header
@@ -99,37 +97,36 @@ func (h *Header) handleKeyGoBack(gtx layout.Context) {
 	}
 }
 
-func (h *Header) swipeLeftGoBack(gtx layout.Context) {
+func (h *Header) swipeRightGoBack(gtx layout.Context) {
 	var de *pointer.Event
-	for _, e := range h.slideLeft.Events(gtx.Metric, gtx, gesture.Horizontal) {
+	for _, e := range h.slideRight.Events(gtx.Metric, gtx, gesture.Horizontal) {
 		switch e.Type {
 		case pointer.Drag:
 			de = &e
 		case pointer.Press:
 			h.slideStartX = 0
-			h.startSlide = true
+			h.calcSlide = true
 		}
 	}
 
-	if de != nil && h.startSlide {
+	if de != nil && h.calcSlide {
 		if h.slideStartX == 0 {
 			h.slideStartX = de.Position.X
 		}
 
 		slideWidth := float32(gtx.Constraints.Max.Div(2).X) // half the screen
-		if h.slideStartX-de.Position.X > slideWidth {
-			h.startSlide = false
+		if h.slideStartX-de.Position.X < -slideWidth {
+			h.calcSlide = false
 			h.GoBack()
-			fmt.Println("back")
 		}
 	}
 
-	h.slideLeft.Add(gtx.Ops)
+	h.slideRight.Add(gtx.Ops)
 }
 
 func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout HeaderTitleLayoutFunc) layout.Dimensions {
 	h.handleKeyGoBack(gtx)
-	h.swipeLeftGoBack(gtx)
+	h.swipeRightGoBack(gtx)
 
 	if h.buttonGoBack.Clicked() {
 		h.GoBack()

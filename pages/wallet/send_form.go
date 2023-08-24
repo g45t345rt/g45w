@@ -524,6 +524,8 @@ type WalletAddrInput struct {
 	addrMenuSelect      *AddrMenuSelect
 	buttonAddrMenu      *components.Button
 	newContactClickable *widget.Clickable
+
+	txtDims layout.Dimensions
 }
 
 func NewWalletAddrInput() *WalletAddrInput {
@@ -534,10 +536,11 @@ func NewWalletAddrInput() *WalletAddrInput {
 	buttonAddrMenu := components.NewButton(components.ButtonStyle{
 		Rounded: components.UniformRounded(unit.Dp(5)),
 		Icon:    addrIcon,
-		Inset: layout.Inset{
-			Top: unit.Dp(14), Bottom: unit.Dp(14),
-			Left: unit.Dp(12), Right: unit.Dp(12),
-		},
+		/*Inset: layout.Inset{
+			Top: unit.Dp(15), Bottom: unit.Dp(15),
+			Left: unit.Dp(13), Right: unit.Dp(13),
+		},*/
+		Animation: components.NewButtonAnimationDefault(),
 	})
 
 	qrScanCamModal := prefabs.NewCameraQRScanModal()
@@ -595,11 +598,16 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					p.txtWalletAddr.Colors = theme.Current.InputColors
-					return p.txtWalletAddr.Layout(gtx, th, "")
+					p.txtDims = p.txtWalletAddr.Layout(gtx, th, "")
+					return p.txtDims
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					p.buttonAddrMenu.Style.Colors = theme.Current.ButtonPrimaryColors
+					p.buttonAddrMenu.Flex = true
+					size := image.Pt(p.txtDims.Size.Y, p.txtDims.Size.Y)
+					gtx.Constraints.Min = size
+					gtx.Constraints.Max = size
 					return p.buttonAddrMenu.Layout(gtx, th)
 				}),
 			)
@@ -650,7 +658,7 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 					layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return p.newContactClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(16), lang.Translate("Create new contact"))
+							lbl := material.Label(th, unit.Sp(16), lang.Translate("Create new contact?"))
 							return lbl.Layout(gtx)
 						})
 					}),

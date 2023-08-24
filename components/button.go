@@ -59,6 +59,7 @@ type Button struct {
 	Focused   bool
 	Disabled  bool
 	Loading   bool
+	Flex      bool
 
 	animClickable    *widget.Clickable
 	hoverSwitchState bool
@@ -240,7 +241,13 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			dims := style.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					if style.Icon != nil && btn.Text == "" {
-						return style.Icon.Layout(gtx, textColor)
+						if btn.Flex {
+							return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+								return style.Icon.Layout(gtx, textColor)
+							})
+						} else {
+							return style.Icon.Layout(gtx, textColor)
+						}
 					}
 
 					return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
@@ -279,6 +286,10 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 				})
 			})
 			m := c.Stop()
+
+			if btn.Flex {
+				dims = layout.Dimensions{Size: gtx.Constraints.Max}
+			}
 
 			bounds := image.Rectangle{Max: dims.Size}
 			paint.FillShape(gtx.Ops, backgroundColor,

@@ -253,13 +253,8 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 	})
 	c := r.Stop()
 
-	if modal.Style.CloseOnOutsideClick {
-		return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			c.Add(gtx.Ops)
-			return dims
-		})
-	}
-
-	c.Add(gtx.Ops)
-	return dims
+	return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		c.Add(gtx.Ops)
+		return dims
+	})
 }
