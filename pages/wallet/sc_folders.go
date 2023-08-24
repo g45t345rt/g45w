@@ -322,6 +322,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			if len(p.items) == 0 {
 				widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), lang.Translate("This folder is empty. Click the menu button to add folders or more tokens."))
+					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				})
 			} else {

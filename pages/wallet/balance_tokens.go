@@ -98,8 +98,8 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	})
 
 	tabBarsItems := []*components.TabBarsItem{
-		components.NewTabBarItem("tokens"),
 		components.NewTabBarItem("txs"),
+		components.NewTabBarItem("tokens"),
 	}
 	defaultTabKey := settings.App.TabBarsKey
 	tabBars := components.NewTabBars(defaultTabKey, tabBarsItems)

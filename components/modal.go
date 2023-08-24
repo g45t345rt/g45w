@@ -95,6 +95,7 @@ type ModalColors struct {
 
 type ModalStyle struct {
 	CloseOnOutsideClick bool
+	KeepClickableArea   bool
 	CloseOnInsideClick  bool
 	Direction           layout.Direction
 	Inset               layout.Inset
@@ -253,8 +254,13 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 	})
 	c := r.Stop()
 
-	return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		c.Add(gtx.Ops)
-		return dims
-	})
+	if modal.Style.CloseOnOutsideClick || modal.Style.KeepClickableArea {
+		return modal.clickableOut.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			c.Add(gtx.Ops)
+			return dims
+		})
+	}
+
+	c.Add(gtx.Ops)
+	return dims
 }

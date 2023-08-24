@@ -238,7 +238,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.walletAddrInput.Layout(gtx, th)
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return p.walletAddrInput.Layout(gtx, th)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.ringSizeSelector.Layout(gtx, th)

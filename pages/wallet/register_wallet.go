@@ -296,6 +296,10 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 		return p.buttonStart.Layout(gtx, th)
 	})
 
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+	})
+
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 

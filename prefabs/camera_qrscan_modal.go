@@ -38,6 +38,7 @@ func NewCameraQRScanModal() *CameraQRScanModal {
 	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: false,
 		CloseOnInsideClick:  false,
+		KeepClickableArea:   true,
 		Direction:           layout.Center,
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(25),
