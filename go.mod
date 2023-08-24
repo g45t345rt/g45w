@@ -2,7 +2,7 @@ replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-2023
 
 replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230812135712-9a6f11b3b796
 
-replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230821165433-c4f13412c995
+replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230824180256-849ea803e135
 
 module github.com/g45t345rt/g45w
 
@@ -12,6 +12,7 @@ require (
 	gioui.org v0.2.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
+	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/shirou/gopsutil/v3 v3.23.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1

@@ -20,6 +20,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -41,11 +42,13 @@ type PageSendForm struct {
 	txtAmount        *prefabs.TextField
 	txtWalletAddr    *components.Input
 	buttonBuildTx    *components.Button
-	buttonContacts   *components.Button
+	buttonAddr       *components.Button
 	buttonOptions    *components.Button
 	buttonSetMax     *components.Button
 	balanceContainer *BalanceContainer
 	tokenContainer   *TokenContainer
+	qrScanCamModal   *prefabs.CameraQRScanModal
+	addrMenuSelect   *AddrMenuSelect
 
 	token *wallet_manager.Token
 
@@ -109,10 +112,10 @@ func NewPageSendForm() *PageSendForm {
 	buttonOptions.Label.Alignment = text.Middle
 	buttonOptions.Style.Font.Weight = font.Bold
 
-	contactIcon, _ := widget.NewIcon(icons.SocialPerson)
-	buttonContacts := components.NewButton(components.ButtonStyle{
+	addrIcon, _ := widget.NewIcon(icons.SocialPeople)
+	buttonAddr := components.NewButton(components.ButtonStyle{
 		Rounded: components.UniformRounded(unit.Dp(5)),
-		Icon:    contactIcon,
+		Icon:    addrIcon,
 		Inset: layout.Inset{
 			Top: unit.Dp(14), Bottom: unit.Dp(14),
 			Left: unit.Dp(12), Right: unit.Dp(12),
@@ -126,6 +129,15 @@ func NewPageSendForm() *PageSendForm {
 
 	balanceContainer := NewBalanceContainer()
 	tokenContainer := NewTokenContainer()
+	addrMenuSelect := NewAddrMenuSelect()
+
+	qrScanCamModal := prefabs.NewCameraQRScanModal()
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			qrScanCamModal.Layout(gtx, th)
+		},
+	})
 
 	return &PageSendForm{
 		txtAmount:        txtAmount,
@@ -135,11 +147,13 @@ func NewPageSendForm() *PageSendForm {
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
 		list:             list,
-		buttonContacts:   buttonContacts,
+		buttonAddr:       buttonAddr,
 		buttonOptions:    buttonOptions,
 		buttonSetMax:     buttonSetMax,
 		balanceContainer: balanceContainer,
 		tokenContainer:   tokenContainer,
+		addrMenuSelect:   addrMenuSelect,
+		qrScanCamModal:   qrScanCamModal,
 	}
 }
 
@@ -202,9 +216,30 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		page_instance.header.AddHistory(PAGE_SEND_OPTIONS_FORM)
 	}
 
-	if p.buttonContacts.Clicked() {
-		page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
-		page_instance.header.AddHistory(PAGE_CONTACTS)
+	if p.buttonAddr.Clicked() {
+		p.addrMenuSelect.SelectModal.Modal.SetVisible(true)
+
+	}
+
+	{
+		selected, key := p.addrMenuSelect.SelectModal.Selected()
+		if selected {
+			switch key {
+			case "contact_list":
+				page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
+				page_instance.header.AddHistory(PAGE_CONTACTS)
+			case "scan_qrcode":
+				p.qrScanCamModal.Show()
+			}
+			p.addrMenuSelect.SelectModal.Modal.SetVisible(false)
+		}
+	}
+
+	{
+		sent, value := p.qrScanCamModal.Value()
+		if sent {
+			p.txtWalletAddr.SetValue(value)
+		}
 	}
 
 	if p.buttonSetMax.Clicked() {
@@ -268,8 +303,8 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 						}),
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							p.buttonContacts.Style.Colors = theme.Current.ButtonPrimaryColors
-							return p.buttonContacts.Layout(gtx, th)
+							p.buttonAddr.Style.Colors = theme.Current.ButtonPrimaryColors
+							return p.buttonAddr.Layout(gtx, th)
 						}),
 					)
 				}),
@@ -549,4 +584,36 @@ func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	c.Add(gtx.Ops)
 	return dims
+}
+
+type AddrMenuSelect struct {
+	SelectModal *prefabs.SelectModal
+}
+
+func NewAddrMenuSelect() *AddrMenuSelect {
+	var items []*prefabs.SelectListItem
+
+	contactIcon, _ := widget.NewIcon(icons.SocialGroup)
+	items = append(items, prefabs.NewSelectListItem("contact_list", prefabs.ListItemMenuItem{
+		Icon:  contactIcon,
+		Title: "Contact list", //@lang.Translate("Contact list")
+	}.Layout))
+
+	scanIcon, _ := widget.NewIcon(icons.HardwareScanner)
+	items = append(items, prefabs.NewSelectListItem("scan_qrcode", prefabs.ListItemMenuItem{
+		Icon:  scanIcon,
+		Title: "Scan QR Code", //@lang.Translate("Scan QR Code")
+	}.Layout))
+
+	selectModal := prefabs.NewSelectModal()
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			selectModal.Layout(gtx, th, items)
+		},
+	})
+
+	return &AddrMenuSelect{
+		SelectModal: selectModal,
+	}
 }

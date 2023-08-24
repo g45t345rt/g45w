@@ -13,6 +13,7 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/widget/material"
+	"gioui.org/x/camera"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_db"
@@ -30,6 +31,11 @@ import (
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
+
+	// add android permissions
+	_ "gioui.org/app/permission/camera"
+	_ "gioui.org/app/permission/networkstate"
+	_ "gioui.org/app/permission/storage"
 )
 
 func loadFontCollection() ([]font.FontFace, error) {
@@ -148,6 +154,7 @@ func runApp() error {
 	for {
 		e := <-window.Events()
 		explorer.ListenEvents(e)
+		camera.ListenEvents(e)
 		switch e := e.(type) {
 		case system.DestroyEvent:
 			return e.Err
