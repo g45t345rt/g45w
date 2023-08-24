@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gioui.org/font"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -39,16 +40,14 @@ import (
 type PageSendForm struct {
 	isActive bool
 
-	txtAmount        *prefabs.TextField
-	txtWalletAddr    *components.Input
+	txtAmount *prefabs.TextField
+
 	buttonBuildTx    *components.Button
-	buttonAddr       *components.Button
 	buttonOptions    *components.Button
 	buttonSetMax     *components.Button
 	balanceContainer *BalanceContainer
 	tokenContainer   *TokenContainer
-	qrScanCamModal   *prefabs.CameraQRScanModal
-	addrMenuSelect   *AddrMenuSelect
+	walletAddrInput  *WalletAddrInput
 
 	token *wallet_manager.Token
 
@@ -78,8 +77,6 @@ func NewPageSendForm() *PageSendForm {
 	txtAmount := prefabs.NewNumberTextField()
 	txtAmount.Input.TextSize = unit.Sp(26)
 	txtAmount.Input.FontWeight = font.Bold
-
-	txtWalletAddr := components.NewInput()
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
@@ -112,16 +109,6 @@ func NewPageSendForm() *PageSendForm {
 	buttonOptions.Label.Alignment = text.Middle
 	buttonOptions.Style.Font.Weight = font.Bold
 
-	addrIcon, _ := widget.NewIcon(icons.SocialPeople)
-	buttonAddr := components.NewButton(components.ButtonStyle{
-		Rounded: components.UniformRounded(unit.Dp(5)),
-		Icon:    addrIcon,
-		Inset: layout.Inset{
-			Top: unit.Dp(14), Bottom: unit.Dp(14),
-			Left: unit.Dp(12), Right: unit.Dp(12),
-		},
-	})
-
 	buttonSetMax := components.NewButton(components.ButtonStyle{
 		TextSize: unit.Sp(16),
 	})
@@ -129,31 +116,20 @@ func NewPageSendForm() *PageSendForm {
 
 	balanceContainer := NewBalanceContainer()
 	tokenContainer := NewTokenContainer()
-	addrMenuSelect := NewAddrMenuSelect()
-
-	qrScanCamModal := prefabs.NewCameraQRScanModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			qrScanCamModal.Layout(gtx, th)
-		},
-	})
+	walletAddrInput := NewWalletAddrInput()
 
 	return &PageSendForm{
 		txtAmount:        txtAmount,
-		txtWalletAddr:    txtWalletAddr,
 		buttonBuildTx:    buttonBuildTx,
 		ringSizeSelector: ringSizeSelector,
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
 		list:             list,
-		buttonAddr:       buttonAddr,
 		buttonOptions:    buttonOptions,
 		buttonSetMax:     buttonSetMax,
 		balanceContainer: balanceContainer,
 		tokenContainer:   tokenContainer,
-		addrMenuSelect:   addrMenuSelect,
-		qrScanCamModal:   qrScanCamModal,
+		walletAddrInput:  walletAddrInput,
 	}
 }
 
@@ -216,32 +192,6 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		page_instance.header.AddHistory(PAGE_SEND_OPTIONS_FORM)
 	}
 
-	if p.buttonAddr.Clicked() {
-		p.addrMenuSelect.SelectModal.Modal.SetVisible(true)
-
-	}
-
-	{
-		selected, key := p.addrMenuSelect.SelectModal.Selected()
-		if selected {
-			switch key {
-			case "contact_list":
-				page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
-				page_instance.header.AddHistory(PAGE_CONTACTS)
-			case "scan_qrcode":
-				p.qrScanCamModal.Show()
-			}
-			p.addrMenuSelect.SelectModal.Modal.SetVisible(false)
-		}
-	}
-
-	{
-		sent, value := p.qrScanCamModal.Value()
-		if sent {
-			p.txtWalletAddr.SetValue(value)
-		}
-	}
-
 	if p.buttonSetMax.Clicked() {
 		wallet := wallet_manager.OpenedWallet
 		balance, _ := wallet.Memory.Get_Balance_scid(p.token.GetHash())
@@ -288,57 +238,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(20), lang.Translate("Wallet Addr / Name"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							p.txtWalletAddr.Colors = theme.Current.InputColors
-							return p.txtWalletAddr.Layout(gtx, th, "")
-						}),
-						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							p.buttonAddr.Style.Colors = theme.Current.ButtonPrimaryColors
-							return p.buttonAddr.Layout(gtx, th)
-						}),
-					)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					addr := p.txtWalletAddr.Editor.Text()
-
-					wallet := wallet_manager.OpenedWallet
-					if wallet != nil {
-						contact, _ := wallet.GetContact(addr)
-						if contact != nil {
-							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-								layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
-								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-											lbl := material.Label(th, unit.Sp(16), lang.Translate("Matching contact:"))
-											lbl.Color = theme.Current.TextMuteColor
-											return lbl.Layout(gtx)
-										}),
-										layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
-										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-											lbl := material.Label(th, unit.Sp(16), contact.Name)
-											lbl.Font.Weight = font.Bold
-											return lbl.Layout(gtx)
-										}),
-									)
-								}),
-							)
-						}
-					}
-
-					return layout.Dimensions{}
-				}),
-			)
+			return p.walletAddrInput.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.ringSizeSelector.Layout(gtx, th)
@@ -362,11 +262,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	listStyle.AnchorStrategy = material.Overlay
 
 	if p.txtAmount.Input.Clickable.Clicked() {
-		p.list.ScrollTo(1)
+		p.list.ScrollTo(2)
 	}
 
-	if p.txtWalletAddr.Clickable.Clicked() {
-		p.list.ScrollTo(2)
+	if p.walletAddrInput.txtWalletAddr.Clickable.Clicked() {
+		p.list.ScrollTo(3)
 	}
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
@@ -379,7 +279,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 func (p *PageSendForm) ClearForm() {
 	txtAmount := p.txtAmount
-	txtWalletAddr := p.txtWalletAddr
+	txtWalletAddr := p.walletAddrInput.txtWalletAddr
 	txtComment := page_instance.pageSendOptionsForm.txtComment
 	txtDstPort := page_instance.pageSendOptionsForm.txtDstPort
 	txtDescription := page_instance.pageSendOptionsForm.txtDescription
@@ -407,7 +307,7 @@ func (p *PageSendForm) prepareTx() error {
 		return fmt.Errorf(lang.Translate("Amount must be greater than 0."))
 	}
 
-	txtWalletAddr := p.txtWalletAddr
+	txtWalletAddr := p.walletAddrInput.txtWalletAddr
 	if txtWalletAddr.Value() == "" {
 		return fmt.Errorf(lang.Translate("Destination address is empty."))
 	}
@@ -616,4 +516,148 @@ func NewAddrMenuSelect() *AddrMenuSelect {
 	return &AddrMenuSelect{
 		SelectModal: selectModal,
 	}
+}
+
+type WalletAddrInput struct {
+	txtWalletAddr       *components.Input
+	qrScanCamModal      *prefabs.CameraQRScanModal
+	addrMenuSelect      *AddrMenuSelect
+	buttonAddrMenu      *components.Button
+	newContactClickable *widget.Clickable
+}
+
+func NewWalletAddrInput() *WalletAddrInput {
+	addrMenuSelect := NewAddrMenuSelect()
+	txtWalletAddr := components.NewInput()
+
+	addrIcon, _ := widget.NewIcon(icons.SocialPeople)
+	buttonAddrMenu := components.NewButton(components.ButtonStyle{
+		Rounded: components.UniformRounded(unit.Dp(5)),
+		Icon:    addrIcon,
+		Inset: layout.Inset{
+			Top: unit.Dp(14), Bottom: unit.Dp(14),
+			Left: unit.Dp(12), Right: unit.Dp(12),
+		},
+	})
+
+	qrScanCamModal := prefabs.NewCameraQRScanModal()
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 1,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			qrScanCamModal.Layout(gtx, th)
+		},
+	})
+
+	return &WalletAddrInput{
+		txtWalletAddr:       txtWalletAddr,
+		addrMenuSelect:      addrMenuSelect,
+		qrScanCamModal:      qrScanCamModal,
+		buttonAddrMenu:      buttonAddrMenu,
+		newContactClickable: new(widget.Clickable),
+	}
+}
+
+func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if p.buttonAddrMenu.Clicked() {
+		p.addrMenuSelect.SelectModal.Modal.SetVisible(true)
+	}
+
+	{
+		selected, key := p.addrMenuSelect.SelectModal.Selected()
+		if selected {
+			switch key {
+			case "contact_list":
+				page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
+				page_instance.header.AddHistory(PAGE_CONTACTS)
+			case "scan_qrcode":
+				p.qrScanCamModal.Show()
+			}
+			p.addrMenuSelect.SelectModal.Modal.SetVisible(false)
+		}
+	}
+
+	{
+		sent, value := p.qrScanCamModal.Value()
+		if sent {
+			p.txtWalletAddr.SetValue(value)
+		}
+	}
+
+	var childs []layout.FlexChild
+
+	childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		lbl := material.Label(th, unit.Sp(20), lang.Translate("Wallet Addr / Name"))
+		lbl.Font.Weight = font.Bold
+		return lbl.Layout(gtx)
+	}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					p.txtWalletAddr.Colors = theme.Current.InputColors
+					return p.txtWalletAddr.Layout(gtx, th, "")
+				}),
+				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonAddrMenu.Style.Colors = theme.Current.ButtonPrimaryColors
+					return p.buttonAddrMenu.Layout(gtx, th)
+				}),
+			)
+		}),
+	)
+
+	addr := p.txtWalletAddr.Editor.Text()
+
+	wallet := wallet_manager.OpenedWallet
+	if wallet != nil {
+		contact, _ := wallet.GetContact(addr)
+		if contact != nil {
+			childs = append(childs,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), lang.Translate("Matching contact:"))
+									lbl.Color = theme.Current.TextMuteColor
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), contact.Name)
+									lbl.Font.Weight = font.Bold
+									return lbl.Layout(gtx)
+								}),
+							)
+						}),
+					)
+				}),
+			)
+		} else if addr != "" {
+			if p.newContactClickable.Hovered() {
+				pointer.CursorPointer.Add(gtx.Ops)
+			}
+
+			if p.newContactClickable.Clicked() {
+				page_instance.pageContactForm.txtAddr.SetValue(addr)
+				page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
+				page_instance.header.AddHistory(PAGE_CONTACT_FORM)
+			}
+
+			childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return p.newContactClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(16), lang.Translate("Create new contact"))
+							return lbl.Layout(gtx)
+						})
+					}),
+				)
+			}))
+		}
+	}
+
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
 }
