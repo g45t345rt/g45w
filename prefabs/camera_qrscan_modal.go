@@ -1,6 +1,7 @@
 package prefabs
 
 import (
+	"errors"
 	"math"
 
 	"gioui.org/f32"
@@ -25,11 +26,12 @@ type CameraQRScanModal struct {
 	buttonOk     *components.Button
 	buttonRetry  *components.Button
 
-	scanned  bool
-	scanning bool
-	value    string
-	err      error
-	send     bool
+	scanned           bool
+	scanning          bool
+	value             string
+	err               error
+	send              bool
+	cameraOrientation int
 
 	Modal *components.Modal
 }
@@ -90,7 +92,38 @@ func (w *CameraQRScanModal) Value() (bool, string) {
 }
 
 func (w *CameraQRScanModal) scan() {
-	err := camera.Open()
+	cameraId := ""
+	ids, err := camera.GetIdList()
+	if err != nil {
+		w.err = err
+		return
+	}
+
+	for _, id := range ids {
+		lensFacing, err := camera.GetLensFacing(id)
+		if err != nil {
+			w.err = err
+			return
+		}
+
+		if lensFacing == camera.LensFacingBack {
+			cameraId = id
+			break
+		}
+	}
+
+	if cameraId == "" {
+		w.err = errors.New("no back camera")
+		return
+	}
+
+	w.cameraOrientation, err = camera.GetSensorOrientation(cameraId)
+	if err != nil {
+		w.err = err
+		return
+	}
+
+	err = camera.OpenFeed(cameraId, 256, 256)
 	if err != nil {
 		w.err = err
 		return
@@ -100,7 +133,7 @@ func (w *CameraQRScanModal) scan() {
 	w.scanned = false
 	w.scanning = true
 	go func() {
-		for imageResult := range camera.GetImage() {
+		for imageResult := range camera.GetFeed() {
 			if imageResult.Err != nil {
 				continue
 			}
@@ -116,7 +149,7 @@ func (w *CameraQRScanModal) scan() {
 				w.scanned = true
 				w.value = result.String()
 				w.scanning = false
-				camera.Close()
+				camera.CloseFeed()
 				app_instance.Window.Invalidate()
 				break
 			}
@@ -133,7 +166,7 @@ func (w *CameraQRScanModal) Show() {
 
 func (w *CameraQRScanModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if w.buttonCancel.Clicked() {
-		go camera.Close()
+		go camera.CloseFeed()
 		w.Modal.SetVisible(false)
 	}
 
@@ -156,7 +189,7 @@ func (w *CameraQRScanModal) Layout(gtx layout.Context, th *material.Theme) layou
 						w.cameraImage.Transform = func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
 							pt := dims.Size.Div(2)
 							origin := f32.Pt(float32(pt.X), float32(pt.Y))
-							rotate := float32(90 * (math.Pi / 180))
+							rotate := float32(w.cameraOrientation) * (math.Pi / 180)
 							return trans.Rotate(origin, rotate)
 						}
 
@@ -166,13 +199,31 @@ func (w *CameraQRScanModal) Layout(gtx layout.Context, th *material.Theme) layou
 			}
 
 			if w.err != nil {
-				childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(14), w.err.Error())
-					return lbl.Layout(gtx)
-				}))
+				childs = append(childs,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(14), w.err.Error())
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								w.buttonCancel.Text = lang.Translate("CANCEL")
+								w.buttonCancel.Style.Colors = theme.Current.ButtonPrimaryColors
+								return w.buttonCancel.Layout(gtx, th)
+							}),
+							layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								w.buttonRetry.Text = lang.Translate("RETRY")
+								w.buttonRetry.Style.Colors = theme.Current.ButtonPrimaryColors
+								return w.buttonRetry.Layout(gtx, th)
+							}),
+						)
+					}),
+				)
 			}
 
-			if w.err != nil || w.scanning {
+			if w.scanning {
 				childs = append(childs,
 					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {

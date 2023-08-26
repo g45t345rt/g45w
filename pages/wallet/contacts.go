@@ -185,45 +185,47 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				}
 			}()
 		case "import_contacts":
-			importContacts := func() error {
-				file, err := app_instance.Explorer.ChooseFile(".json")
-				if err != nil {
-					return err
-				}
-
-				reader := utils.ReadCloser{ReadCloser: file}
-				data, err := reader.ReadAll()
-				if err != nil {
-					return err
-				}
-
-				var contacts []wallet_manager.Contact
-				err = json.Unmarshal(data, &contacts)
-				if err != nil {
-					return err
-				}
-
-				wallet := wallet_manager.OpenedWallet
-				for _, contact := range contacts {
-					err = wallet.StoreContact(contact)
+			go func() {
+				importContacts := func() error {
+					file, err := app_instance.Explorer.ChooseFile(".json")
 					if err != nil {
 						return err
 					}
+
+					reader := utils.ReadCloser{ReadCloser: file}
+					data, err := reader.ReadAll()
+					if err != nil {
+						return err
+					}
+
+					var contacts []wallet_manager.Contact
+					err = json.Unmarshal(data, &contacts)
+					if err != nil {
+						return err
+					}
+
+					wallet := wallet_manager.OpenedWallet
+					for _, contact := range contacts {
+						err = wallet.StoreContact(contact)
+						if err != nil {
+							return err
+						}
+					}
+
+					return nil
 				}
 
-				return nil
-			}
-
-			err := importContacts()
-			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, 0)
-			} else {
-				p.Load()
-				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts imported."))
-				notification_modals.SuccessInstance.SetVisible(true, 0)
-				p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
-			}
+				err := importContacts()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, 0)
+				} else {
+					p.Load()
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts imported."))
+					notification_modals.SuccessInstance.SetVisible(true, 0)
+					p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
+				}
+			}()
 		}
 	}
 

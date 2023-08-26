@@ -2,7 +2,7 @@ replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-2023
 
 replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230812135712-9a6f11b3b796
 
-replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230824180256-849ea803e135
+replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230826030749-686df1af5bb1
 
 module github.com/g45t345rt/g45w
 
