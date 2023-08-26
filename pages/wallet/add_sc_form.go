@@ -179,7 +179,7 @@ func (p *PageAddSCForm) submitForm() (*wallet_manager.Token, error) {
 		return nil, fmt.Errorf("scid is empty")
 	}
 
-	result, err := wallet_manager.GetSC(scId)
+	result, _, err := wallet_manager.GetSC(scId)
 	if err != nil {
 		return nil, err
 	}

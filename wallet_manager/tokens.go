@@ -266,15 +266,15 @@ func (token *Token) Parse(scId string, scResult rpc.GetSC_Result) error {
 	return nil
 }
 
-func GetSC(scId string) (result rpc.GetSC_Result, err error) {
+func GetSC(scId string) (result rpc.GetSC_Result, cached bool, err error) {
 	cacheFileName := "get_sc"
 	relCachePath := filepath.Join("tokens", scId)
-	exists, err := caching.Get(relCachePath, cacheFileName, &result)
+	cached, err = caching.Get(relCachePath, cacheFileName, &result)
 	if err != nil {
 		return
 	}
 
-	if exists {
+	if cached {
 		return
 	}
 
