@@ -8,11 +8,14 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )
@@ -94,7 +97,7 @@ func (l *LoadState) SetStatus(status string, err error) {
 }
 
 func (l *LoadState) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+	layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		gtx.Constraints.Min.X = gtx.Constraints.Max.X
 		return layout.UniformInset(unit.Dp(30)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			if l.err != nil {
@@ -131,4 +134,19 @@ func (l *LoadState) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			}
 		})
 	})
+
+	layout.S.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(14), settings.Version)
+				lbl.Font.Weight = font.Bold
+				lbl.Alignment = text.Middle
+				lbl.Color = theme.Current.TextMuteColor
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+		)
+	})
+
+	return layout.Dimensions{}
 }
