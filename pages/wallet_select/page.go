@@ -144,6 +144,9 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			endColor := theme.Current.BgGradientEndColor
 			defer utils.PaintLinearGradient(gtx, startColor, endColor).Pop()
 
+			p.header.HandleKeyGoBack(gtx)
+			p.header.HandleSwipeRightGoBack(gtx)
+
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{

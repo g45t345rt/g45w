@@ -80,12 +80,7 @@ func (h *Header) GoBack() {
 	}
 }
 
-func (h *Header) handleKeyGoBack(gtx layout.Context) {
-	key.InputOp{
-		Tag:  h,
-		Keys: key.NameEscape + "|" + key.NameBack,
-	}.Add(gtx.Ops)
-
+func (h *Header) HandleKeyGoBack(gtx layout.Context) {
 	for _, e := range gtx.Events(h) {
 		switch e := e.(type) {
 		case key.Event:
@@ -94,9 +89,14 @@ func (h *Header) handleKeyGoBack(gtx layout.Context) {
 			}
 		}
 	}
+
+	key.InputOp{
+		Tag:  h,
+		Keys: key.NameEscape + "|" + key.NameBack,
+	}.Add(gtx.Ops)
 }
 
-func (h *Header) swipeRightGoBack(gtx layout.Context) {
+func (h *Header) HandleSwipeRightGoBack(gtx layout.Context) {
 	var de *pointer.Event
 	for _, e := range h.slideRight.Events(gtx.Metric, gtx, gesture.Horizontal) {
 		switch e.Type {
@@ -124,9 +124,6 @@ func (h *Header) swipeRightGoBack(gtx layout.Context) {
 }
 
 func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout HeaderTitleLayoutFunc) layout.Dimensions {
-	h.handleKeyGoBack(gtx)
-	h.swipeRightGoBack(gtx)
-
 	if h.buttonGoBack.Clicked() {
 		h.GoBack()
 	}

@@ -203,6 +203,9 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				}
 			}
 
+			p.header.HandleKeyGoBack(gtx)
+			p.header.HandleSwipeRightGoBack(gtx)
+
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return node_status_bar.Instance.Layout(gtx, th)
