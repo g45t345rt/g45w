@@ -8,6 +8,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/theme"
@@ -39,7 +40,7 @@ func NewPasswordModal() *PasswordModal {
 	))
 
 	iconLock, _ := widget.NewIcon(icons.ActionLock)
-	iconLoading, _ := widget.NewIcon(icons.NavigationRefresh)
+	iconLoading, _ := widget.NewIcon(app_icons.LoadingSpinner)
 
 	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
@@ -123,7 +124,8 @@ func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 						if w.loading {
 							r := op.Record(gtx.Ops)
-							dims := w.iconLoading.Layout(gtx, th.Fg)
+							iconColor := theme.Current.InputColors.HintColor
+							dims := w.iconLoading.Layout(gtx, iconColor)
 							c := r.Stop()
 
 							{

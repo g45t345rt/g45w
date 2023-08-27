@@ -21,6 +21,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
@@ -504,7 +505,7 @@ func NewAddrMenuSelect() *AddrMenuSelect {
 		Title: "Contact list", //@lang.Translate("Contact list")
 	}.Layout))
 
-	scanIcon, _ := widget.NewIcon(icons.HardwareScanner)
+	scanIcon, _ := widget.NewIcon(app_icons.QRCodeScanner)
 	items = append(items, prefabs.NewSelectListItem("scan_qrcode", prefabs.ListItemMenuItem{
 		Icon:  scanIcon,
 		Title: "Scan QR Code", //@lang.Translate("Scan QR Code")

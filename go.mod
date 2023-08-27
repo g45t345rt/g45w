@@ -17,11 +17,12 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tanema/gween v0.0.0-20221212145351-621cc8a459d1
 	github.com/xeonx/timeago v1.0.0-rc5
-	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1
+	golang.org/x/exp/shiny v0.0.0-20230725093048-515e97ebf090
 )
 
 require (
 	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
+	github.com/gio-eui/ivgconv v0.0.0-20230728141110-3b7424472495 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -95,11 +96,11 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.8.0
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95 // indirect
-	golang.org/x/image v0.7.0 // indirect
+	golang.org/x/image v0.9.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.9.0
+	golang.org/x/text v0.11.0
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -121,6 +121,9 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 			p.txtDescription.Input.EditorMinY = gtx.Dp(75)
 			return p.txtDescription.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
 		},
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+		},
 	}
 
 	listStyle := material.List(th, p.list)
