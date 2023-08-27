@@ -111,7 +111,6 @@
   "Cache Directory": "缓存目录",
   "Change Password": "更改密码",
   "Checking transaction...": "正在检查交易...",
-  "Chinese": "中文",
   "Coinbase": "Coinbase",
   "Confirm": "确认",
   "Connecting...": "连接中...",
@@ -265,7 +264,6 @@
   "Create new contact?": "创建新联系人？",
   "Created Date": "创建日期",
   "Data was loaded.": "数据已加载。",
-  "Enter 25 word seed phrase separated by spaces.": "输入由空格分隔的 25 个助记词。",
   "Export contacts": "导出联系人",
   "Import contacts": "导入联系人",
   "OK": "确定",
@@ -280,5 +278,8 @@
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "节点未同步。请等待并让它同步。稳定高度目前为 {}。",
   "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "钱包未同步。请等待并让它同步。节点高度目前为 {}。",
   "View grid": "查看网格",
-  "error": "错误"
+  "error": "错误",
+  "Chinese Simplified": "简体中文",
+  "Chinese Traditional": "繁體中文",
+  "Enter 25 word seed phrase seperated by spaces.": "请输入由空格分隔的 25 个单词的种子短语。"
 }

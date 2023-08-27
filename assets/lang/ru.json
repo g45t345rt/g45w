@@ -111,7 +111,6 @@
   "Cache Directory": "Кэш-директория",
   "Change Password": "Изменить пароль",
   "Checking transaction...": "Проверка транзакции...",
-  "Chinese": "Китайский",
   "Coinbase": "Coinbase",
   "Confirm": "Подтвердить",
   "Connecting...": "Подключение...",
@@ -265,7 +264,6 @@
   "Create new contact?": "Создать новый контакт?",
   "Created Date": "Дата создания",
   "Data was loaded.": "Данные были загружены.",
-  "Enter 25 word seed phrase separated by spaces.": "Введите фразу из 25 слов, разделенных пробелами.",
   "Export contacts": "Экспорт контактов",
   "Import contacts": "Импорт контактов",
   "OK": "ОК",
@@ -280,5 +278,8 @@
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "Узел не синхронизирован. Пожалуйста, подождите и дайте ему синхронизироваться. Текущая стабильная высота: {}.",
   "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "Кошелек не синхронизирован. Пожалуйста, подождите и дайте ему синхронизироваться. Текущая высота узла: {}.",
   "View grid": "Просмотреть сетку",
-  "error": "ошибка"
+  "error": "ошибка",
+  "Chinese Simplified": "Упрощенный китайский",
+  "Chinese Traditional": "Традиционный китайский",
+  "Enter 25 word seed phrase seperated by spaces.": "Введите 25-словную фразу для сид-ключа, разделенную пробелами."
 }

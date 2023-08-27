@@ -111,7 +111,6 @@
   "Cache Directory": "Cache Directory",
   "Change Password": "Wachtwoord Wijzigen",
   "Checking transaction...": "Transactie aan het controleren...",
-  "Chinese": "Chinees",
   "Coinbase": "Coinbase",
   "Confirm": "Bevestigen",
   "Connecting...": "Verbinding maken...",
@@ -265,7 +264,6 @@
   "Create new contact?": "Nieuw contact aanmaken?",
   "Created Date": "Aanmaakdatum",
   "Data was loaded.": "Gegevens zijn geladen.",
-  "Enter 25 word seed phrase separated by spaces.": "Voer een 25-woord zaadzin in, gescheiden door spaties.",
   "Export contacts": "Contacten exporteren",
   "Import contacts": "Contacten importeren",
   "OK": "OK",
@@ -280,5 +278,8 @@
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "De node is niet gesynchroniseerd. Wacht even en laat hem synchroniseren. De stabiele hoogte is momenteel {}.",
   "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "De portemonnee is niet gesynchroniseerd. Wacht even en laat hem synchroniseren. De hoogte van de node is momenteel {}.",
   "View grid": "Raster bekijken",
-  "error": "fout"
+  "error": "fout",
+  "Chinese Simplified": "Vereenvoudigd Chinees",
+  "Chinese Traditional": "Traditioneel Chinees",
+  "Enter 25 word seed phrase seperated by spaces.": "Voer een zin van 25 woorden in, gescheiden door spaties."
 }

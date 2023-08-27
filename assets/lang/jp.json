@@ -111,7 +111,6 @@
   "Cache Directory": "キャッシュディレクトリ",
   "Change Password": "パスワード変更",
   "Checking transaction...": "取引を確認中...",
-  "Chinese": "中国語",
   "Coinbase": "コインベース",
   "Confirm": "確認",
   "Connecting...": "接続中...",
@@ -265,7 +264,6 @@
   "Create new contact?": "新しい連絡先を作成しますか？",
   "Created Date": "作成日",
   "Data was loaded.": "データが読み込まれました。",
-  "Enter 25 word seed phrase separated by spaces.": "スペースで区切られた25語のシードフレーズを入力してください。",
   "Export contacts": "連絡先をエクスポート",
   "Import contacts": "連絡先をインポート",
   "OK": "OK",
@@ -280,5 +278,8 @@
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "ノードが同期されていません。同期が完了するまでお待ちください。安定した高さは現在 {} です。",
   "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "ウォレットが同期されていません。同期が完了するまでお待ちください。ノードの高さは現在 {} です。",
   "View grid": "グリッドを表示",
-  "error": "エラー"
+  "error": "エラー",
+  "Chinese Simplified": "簡体字中国語",
+  "Chinese Traditional": "繁体字中国語",
+  "Enter 25 word seed phrase seperated by spaces.": "スペースで区切られた25語のシードフレーズを入力してください。"
 }

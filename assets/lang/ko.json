@@ -111,7 +111,6 @@
   "Cache Directory": "캐시 디렉터리",
   "Change Password": "비밀번호 변경",
   "Checking transaction...": "거래 확인 중...",
-  "Chinese": "중국어",
   "Coinbase": "코인베이스",
   "Confirm": "확인",
   "Connecting...": "연결 중...",
@@ -265,7 +264,6 @@
   "Create new contact?": "새 연락처를 만드시겠습니까?",
   "Created Date": "생성 날짜",
   "Data was loaded.": "데이터가 로드되었습니다.",
-  "Enter 25 word seed phrase separated by spaces.": "공백으로 구분된 25 단어 시드 구문을 입력하세요.",
   "Export contacts": "연락처 내보내기",
   "Import contacts": "연락처 가져오기",
   "OK": "확인",
@@ -280,5 +278,8 @@
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "노드가 동기화되지 않았습니다. 동기화가 완료될 때까지 기다려주세요. 안정된 높이는 현재 {}입니다.",
   "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "지갑이 동기화되지 않았습니다. 동기화가 완료될 때까지 기다려주세요. 노드 높이는 현재 {}입니다.",
   "View grid": "그리드 보기",
-  "error": "오류"
+  "error": "오류",
+  "Chinese Simplified": "중국어 간체",
+  "Chinese Traditional": "중국어 번체",
+  "Enter 25 word seed phrase seperated by spaces.": "공백으로 구분된 25 단어 시드 구문을 입력하세요."
 }

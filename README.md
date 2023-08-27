@@ -141,13 +141,16 @@ If your alias is not here pls let me know.
 
 ### Translation
 
-Most translations were done with ChatGPT and are far from being accurate. If you notice any errors, pls update the values in `/assets/lang` folder and create a pull request.  
+Most translations were done with ChatGPT and are far from being accurate.  
+If you notice any errors, pls update the values in `/assets/lang` folder and create a pull request.  
 
 `jvx`
 
 ### Testing
 
-`jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`, `Lutamm`, `VastoLorde`, `rexBGcoxx`, `Kray0005`, `Apollo`, `Coose`
+`jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`,  
+`Lutamm`, `VastoLorde`, `rexBGcoxx`, `Kray0005`, `Apollo`, `Coose`, `Cypherpunk`, `o1o7`
+`keyper`, `Zalamender`
 
 ## License
 

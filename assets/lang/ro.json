@@ -111,7 +111,6 @@
   "Cache Directory": "Director Cache",
   "Change Password": "Schimbă Parola",
   "Checking transaction...": "Se verifică tranzacția...",
-  "Chinese": "Chineză",
   "Coinbase": "Coinbase",
   "Confirm": "Confirmă",
   "Connecting...": "Conectare...",
@@ -265,7 +264,6 @@
   "Create new contact?": "Creați un contact nou?",
   "Created Date": "Data de creare",
   "Data was loaded.": "Datele au fost încărcate.",
-  "Enter 25 word seed phrase separated by spaces.": "Introduceți o frază de 25 de cuvinte separate prin spații.",
   "Export contacts": "Exportă contacte",
   "Import contacts": "Importă contacte",
   "OK": "OK",
@@ -280,5 +278,8 @@
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "Nodul nu este sincronizat. Vă rugăm să așteptați și lăsați-l să se sincronizeze. Înălțimea stabilă este în prezent {}.",
   "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "Portofelul nu este sincronizat. Vă rugăm să așteptați și lăsați-l să se sincronizeze. Înălțimea nodului este în prezent {}.",
   "View grid": "Vizualizează grila",
-  "error": "eroare"
+  "error": "eroare",
+  "Chinese Simplified": "Chineză Simplificată",
+  "Chinese Traditional": "Chineză Tradițională",
+  "Enter 25 word seed phrase seperated by spaces.": "Introduceți o frază de 25 de cuvinte pentru sămânță, separate prin spații."
 }

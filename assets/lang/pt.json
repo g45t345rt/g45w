@@ -111,7 +111,6 @@
   "Cache Directory": "Diretório de Cache",
   "Change Password": "Alterar Senha",
   "Checking transaction...": "Verificando transação...",
-  "Chinese": "Chinês",
   "Coinbase": "Coinbase",
   "Confirm": "Confirmar",
   "Connecting...": "Conectando...",
@@ -265,7 +264,6 @@
   "Create new contact?": "Criar novo contato?",
   "Created Date": "Data de criação",
   "Data was loaded.": "Dados foram carregados.",
-  "Enter 25 word seed phrase separated by spaces.": "Digite a frase-semente de 25 palavras separadas por espaços.",
   "Export contacts": "Exportar contatos",
   "Import contacts": "Importar contatos",
   "OK": "OK",
@@ -280,5 +278,8 @@
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "O nó não está sincronizado. Por favor, aguarde e deixe-o sincronizar. A altura estável é atualmente {}.",
   "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "A carteira não está sincronizada. Por favor, aguarde e deixe-a sincronizar. A altura do nó é atualmente {}.",
   "View grid": "Ver grade",
-  "error": "erro"
+  "error": "erro",
+  "Chinese Simplified": "Chinês Simplificado",
+  "Chinese Traditional": "Chinês Tradicional",
+  "Enter 25 word seed phrase seperated by spaces.": "Digite uma frase de semente de 25 palavras separadas por espaços."
 }

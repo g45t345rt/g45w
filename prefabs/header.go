@@ -23,7 +23,7 @@ type Header struct {
 	router       *router.Router
 	history      []interface{}
 
-	slideRight  *gesture.Drag
+	slideRight  gesture.Drag
 	slideStartX float32
 	calcSlide   bool
 }
@@ -40,7 +40,6 @@ func NewHeader(r *router.Router) *Header {
 		buttonGoBack: buttonGoBack,
 		router:       r,
 		history:      make([]interface{}, 0),
-		slideRight:   new(gesture.Drag),
 	}
 
 	return header

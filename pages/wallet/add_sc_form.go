@@ -127,17 +127,19 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if p.buttonFetchData.Clicked() {
-		p.scDetailsContainer.token = nil
-		p.buttonFetchData.SetLoading(true)
-		token, err := p.submitForm()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		go func() {
+			p.scDetailsContainer.token = nil
+			p.buttonFetchData.SetLoading(true)
+			token, err := p.submitForm()
+			if err != nil {
+				notification_modals.ErrorInstance.SetText("Error", err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 
-		}
+			}
 
-		p.buttonFetchData.SetLoading(false)
-		p.scDetailsContainer.Set(token)
+			p.buttonFetchData.SetLoading(false)
+			p.scDetailsContainer.Set(token)
+		}()
 	}
 
 	widgets := []layout.Widget{
@@ -324,85 +326,106 @@ func (c *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layo
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		r := op.Record(gtx.Ops)
-		dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("SCID"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					editor := material.Editor(th, c.scIdEditor, "")
-					editor.TextSize = unit.Sp(14)
-					return editor.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("Name"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					editor := material.Editor(th, c.nameEditor, "")
-					editor.TextSize = unit.Sp(14)
-					return editor.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("Max Supply"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					editor := material.Editor(th, c.maxSupplyEditor, "")
-					editor.TextSize = unit.Sp(14)
-					return editor.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("Decimals"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					editor := material.Editor(th, c.decimalsEditor, "")
-					editor.TextSize = unit.Sp(14)
-					return editor.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("Symbol"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					editor := material.Editor(th, c.symbolEditor, "")
-					editor.TextSize = unit.Sp(14)
-					return editor.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("Standard Type"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					editor := material.Editor(th, c.standardTypeEditor, "")
-					editor.TextSize = unit.Sp(14)
-					return editor.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), lang.Translate("Created Date"))
-					lbl.Font.Weight = font.Bold
-					return lbl.Layout(gtx)
-				}),
+		var childs []layout.FlexChild
+
+		childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("SCID"))
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
+		}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				editor := material.Editor(th, c.scIdEditor, "")
+				editor.TextSize = unit.Sp(14)
+				return editor.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+
+		childs = append(childs,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("Name"))
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				editor := material.Editor(th, c.nameEditor, "")
+				editor.TextSize = unit.Sp(14)
+				return editor.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+
+		childs = append(childs,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("Max Supply"))
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				editor := material.Editor(th, c.maxSupplyEditor, "")
+				editor.TextSize = unit.Sp(14)
+				return editor.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+
+		childs = append(childs,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("Decimals"))
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				editor := material.Editor(th, c.decimalsEditor, "")
+				editor.TextSize = unit.Sp(14)
+				return editor.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+
+		childs = append(childs,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("Symbol"))
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				editor := material.Editor(th, c.symbolEditor, "")
+				editor.TextSize = unit.Sp(14)
+				return editor.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+
+		childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("Standard Type"))
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
+		}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				editor := material.Editor(th, c.standardTypeEditor, "")
+				editor.TextSize = unit.Sp(14)
+				return editor.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+
+		if c.dateEditor.Text() != "" {
+			childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("Created Date"))
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
+			}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					editor := material.Editor(th, c.dateEditor, "")
 					editor.TextSize = unit.Sp(14)
 					return editor.Layout(gtx)
 				}),
 			)
+		}
+
+		dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
 		})
 		c := r.Stop()
 

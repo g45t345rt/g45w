@@ -134,18 +134,20 @@ func (p *PageScanCollection) Layout(gtx layout.Context, th *material.Theme) layo
 	}
 
 	if p.buttonFetchData.Clicked() {
-		p.scCollectionDetailsContainer.collection = nil
-		p.buttonFetchData.SetLoading(true)
-		scId, scType, scResult, err := p.submitForm()
-		if err == nil {
-			err = p.scCollectionDetailsContainer.Set(scId, scType, scResult)
-		}
-		p.buttonFetchData.SetLoading(false)
+		go func() {
+			p.scCollectionDetailsContainer.collection = nil
+			p.buttonFetchData.SetLoading(true)
+			scId, scType, scResult, err := p.submitForm()
+			if err == nil {
+				err = p.scCollectionDetailsContainer.Set(scId, scType, scResult)
+			}
+			p.buttonFetchData.SetLoading(false)
 
-		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		}
+			if err != nil {
+				notification_modals.ErrorInstance.SetText("Error", err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			}
+		}()
 	}
 
 	widgets := []layout.Widget{
