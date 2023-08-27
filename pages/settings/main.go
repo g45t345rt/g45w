@@ -38,8 +38,8 @@ type PageMain struct {
 var _ router.Page = &PageMain{}
 
 func NewPageFront() *PageMain {
-	defaultLangKey := settings.App.LanguageKey
-	defaultThemeKey := settings.App.ThemeKey
+	defaultLangKey := settings.App.Language
+	defaultThemeKey := settings.App.Theme
 	langSelector := prefabs.NewLangSelector(defaultLangKey)
 	themeSelector := prefabs.NewThemeSelector(defaultThemeKey)
 
@@ -150,26 +150,26 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	}
 
 	if p.langSelector.Changed() {
-		settings.App.LanguageKey = p.langSelector.Value
+		settings.App.Language = p.langSelector.Value
 		err := settings.Save()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			lang.Current = settings.App.LanguageKey
+			lang.Current = settings.App.Language
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Language applied."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}
 
 	if p.themeSelector.Changed() {
-		settings.App.ThemeKey = p.themeSelector.Value
+		settings.App.Theme = p.themeSelector.Value
 		err := settings.Save()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			theme.Current = theme.Get(settings.App.ThemeKey)
+			theme.Current = theme.Get(settings.App.Theme)
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Theme applied."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}

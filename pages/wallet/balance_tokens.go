@@ -101,7 +101,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		components.NewTabBarItem("txs"),
 		components.NewTabBarItem("tokens"),
 	}
-	defaultTabKey := settings.App.TabBarsKey
+	defaultTabKey := settings.App.MainTabBars
 	tabBars := components.NewTabBars(defaultTabKey, tabBarsItems)
 
 	txBar := NewTxBar()
@@ -374,7 +374,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	{
 		changed, key := p.tabBars.Changed()
 		if changed {
-			settings.App.TabBarsKey = key
+			settings.App.MainTabBars = key
 			settings.Save()
 		}
 	}

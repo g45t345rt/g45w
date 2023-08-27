@@ -1,4 +1,4 @@
-package prefabs
+package qrcode_scan_modal
 
 import (
 	"errors"
@@ -15,6 +15,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
@@ -36,7 +37,9 @@ type CameraQRScanModal struct {
 	Modal *components.Modal
 }
 
-func NewCameraQRScanModal() *CameraQRScanModal {
+var Instance *CameraQRScanModal
+
+func LoadInstance() {
 	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: false,
 		CloseOnInsideClick:  false,
@@ -73,13 +76,18 @@ func NewCameraQRScanModal() *CameraQRScanModal {
 		Rounded: components.UniformRounded(unit.Dp(10)),
 	}
 
-	return &CameraQRScanModal{
+	Instance = &CameraQRScanModal{
 		Modal:        modal,
 		cameraImage:  cameraImage,
 		buttonCancel: buttonCancel,
 		buttonRetry:  buttonRetry,
 		buttonOk:     buttonOk,
 	}
+
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 2,
+		Layout:    Instance.layout,
+	})
 }
 
 func (w *CameraQRScanModal) Value() (bool, string) {
@@ -164,7 +172,7 @@ func (w *CameraQRScanModal) Show() {
 	w.Modal.SetVisible(true)
 }
 
-func (w *CameraQRScanModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (w *CameraQRScanModal) layout(gtx layout.Context, th *material.Theme) {
 	if w.buttonCancel.Clicked() {
 		go camera.CloseFeed()
 		w.Modal.SetVisible(false)
@@ -180,7 +188,7 @@ func (w *CameraQRScanModal) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	w.Modal.Style.Colors = theme.Current.ModalColors
-	return w.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+	w.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			var childs []layout.FlexChild
 			if w.scanning {

@@ -6,6 +6,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 )
 
@@ -16,4 +17,5 @@ func Load() {
 	recent_txs_modal.LoadInstance()
 	build_tx_modal.LoadInstance()
 	image_modal.LoadInstance()
+	qrcode_scan_modal.LoadInstance()
 }

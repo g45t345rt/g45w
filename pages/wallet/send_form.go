@@ -26,6 +26,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -526,7 +527,6 @@ func NewAddrMenuSelect() *AddrMenuSelect {
 
 type WalletAddrInput struct {
 	txtWalletAddr       *components.Input
-	qrScanCamModal      *prefabs.CameraQRScanModal
 	addrMenuSelect      *AddrMenuSelect
 	buttonAddrMenu      *components.Button
 	newContactClickable *widget.Clickable
@@ -549,18 +549,9 @@ func NewWalletAddrInput() *WalletAddrInput {
 		Animation: components.NewButtonAnimationDefault(),
 	})
 
-	qrScanCamModal := prefabs.NewCameraQRScanModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			qrScanCamModal.Layout(gtx, th)
-		},
-	})
-
 	return &WalletAddrInput{
 		txtWalletAddr:       txtWalletAddr,
 		addrMenuSelect:      addrMenuSelect,
-		qrScanCamModal:      qrScanCamModal,
 		buttonAddrMenu:      buttonAddrMenu,
 		newContactClickable: new(widget.Clickable),
 	}
@@ -579,14 +570,14 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 				page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 				page_instance.header.AddHistory(PAGE_CONTACTS)
 			case "scan_qrcode":
-				p.qrScanCamModal.Show()
+				qrcode_scan_modal.Instance.Show()
 			}
 			p.addrMenuSelect.SelectModal.Modal.SetVisible(false)
 		}
 	}
 
 	{
-		sent, value := p.qrScanCamModal.Value()
+		sent, value := qrcode_scan_modal.Instance.Value()
 		if sent {
 			p.txtWalletAddr.SetValue(value)
 		}

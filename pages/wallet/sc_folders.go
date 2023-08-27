@@ -24,6 +24,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -47,11 +48,11 @@ type PageSCFolders struct {
 	confirmDeleteFolder *prefabs.Confirm
 	buttonFolderGoBack  *components.Button
 
-	currentFolder   *wallet_manager.TokenFolder // nil is root
-	folderCount     int
-	tokenCount      int
-	folderPath      string
-	viewLayout      string // "grid", "list"
+	currentFolder *wallet_manager.TokenFolder // nil is root
+	folderCount   int
+	tokenCount    int
+	folderPath    string
+	//viewLayout      string // "grid", "list"
 	gridColumnCount int
 }
 
@@ -96,7 +97,7 @@ func NewPageSCFolders() *PageSCFolders {
 		},
 	})
 
-	return &PageSCFolders{
+	page := &PageSCFolders{
 		animationEnter:      animationEnter,
 		animationLeave:      animationLeave,
 		list:                list,
@@ -105,9 +106,11 @@ func NewPageSCFolders() *PageSCFolders {
 		createFolderModal:   createFolderModal,
 		confirmDeleteFolder: confirmDeleteFolder,
 		buttonFolderGoBack:  buttonFolderGoBack,
-		viewLayout:          "grid",
-		gridColumnCount:     3,
 	}
+
+	page.SetLayout(settings.App.FolderLayout)
+
+	return page
 }
 
 func (p *PageSCFolders) IsActive() bool {
@@ -142,6 +145,18 @@ func (p *PageSCFolders) Leave() {
 	p.animationEnter.Reset()
 }
 
+func (p *PageSCFolders) SetLayout(layout string) {
+	switch layout {
+	case settings.FolderLayoutGrid:
+		p.gridColumnCount = 3
+	case settings.FolderLayoutList:
+		p.gridColumnCount = 1
+	}
+
+	settings.App.FolderLayout = layout
+	settings.Save()
+}
+
 func (p *PageSCFolders) Load() error {
 	wallet := wallet_manager.OpenedWallet
 	folder := p.currentFolder
@@ -170,7 +185,7 @@ func (p *PageSCFolders) Load() error {
 			return err
 		}
 
-		p.items = append(p.items, NewTokenFolderItemFolder(folder, count, &p.viewLayout))
+		p.items = append(p.items, NewTokenFolderItemFolder(folder, count))
 	}
 
 	p.folderCount = len(folders)
@@ -183,7 +198,7 @@ func (p *PageSCFolders) Load() error {
 	}
 
 	for _, token := range tokens {
-		p.items = append(p.items, NewTokenFolderItemToken(token, &p.viewLayout))
+		p.items = append(p.items, NewTokenFolderItemToken(token))
 	}
 
 	p.tokenCount = len(tokens)
@@ -232,11 +247,9 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			p.createFolderModal.setFolder(p.currentFolder)
 			p.createFolderModal.modal.SetVisible(true)
 		case "view_list":
-			p.viewLayout = "list"
-			p.gridColumnCount = 1
+			p.SetLayout(settings.FolderLayoutList)
 		case "view_grid":
-			p.viewLayout = "grid"
-			p.gridColumnCount = 3
+			p.SetLayout(settings.FolderLayoutGrid)
 		case "refresh_cache":
 			go func() {
 				wallet := wallet_manager.OpenedWallet
@@ -538,12 +551,11 @@ type TokenFolderItem struct {
 	folder     *wallet_manager.TokenFolder
 	folderIcon *widget.Icon
 
-	name       string
-	status     string
-	viewLayout *string
+	name   string
+	status string
 }
 
-func NewTokenFolderItemToken(token wallet_manager.Token, viewLayout *string) *TokenFolderItem {
+func NewTokenFolderItemToken(token wallet_manager.Token) *TokenFolderItem {
 	status := utils.ReduceTxId(token.SCID)
 
 	tokenImage := &components.Image{
@@ -557,11 +569,10 @@ func NewTokenFolderItemToken(token wallet_manager.Token, viewLayout *string) *To
 		tokenImage: tokenImage,
 		name:       token.Name,
 		status:     status,
-		viewLayout: viewLayout,
 	}
 }
 
-func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int, viewLayout *string) *TokenFolderItem {
+func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int) *TokenFolderItem {
 	folderIcon, _ := widget.NewIcon(icons.FileFolder)
 
 	status := lang.Translate("{} tokens")
@@ -573,7 +584,6 @@ func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int,
 		clickable:  new(widget.Clickable),
 		name:       folder.Name,
 		status:     status,
-		viewLayout: viewLayout,
 	}
 }
 
@@ -596,7 +606,52 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 	}
 
-	if *item.viewLayout == "list" {
+	viewLayout := settings.App.FolderLayout
+
+	switch viewLayout {
+	case settings.FolderLayoutGrid:
+
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Max.Y = gtx.Constraints.Max.X
+					paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(image.Rectangle{
+						Max: gtx.Constraints.Max,
+					}, gtx.Dp(10)).Op(gtx.Ops))
+
+					if item.folderIcon != nil {
+						return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return item.folderIcon.Layout(gtx, th.Fg)
+						})
+					}
+
+					if item.tokenImage != nil {
+						item.tokenImage.Src = item.token.LoadImageOp()
+						return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return item.tokenImage.Layout(gtx)
+						})
+					}
+
+					return layout.Dimensions{}
+				})
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), item.name)
+				lbl.Alignment = text.Middle
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(14), item.status)
+				lbl.Color = theme.Current.TextMuteColor
+				lbl.Alignment = text.Middle
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+		)
+	case settings.FolderLayoutList:
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -650,46 +705,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		)
 	}
 
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				gtx.Constraints.Max.Y = gtx.Constraints.Max.X
-				paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(image.Rectangle{
-					Max: gtx.Constraints.Max,
-				}, gtx.Dp(10)).Op(gtx.Ops))
-
-				if item.folderIcon != nil {
-					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return item.folderIcon.Layout(gtx, th.Fg)
-					})
-				}
-
-				if item.tokenImage != nil {
-					item.tokenImage.Src = item.token.LoadImageOp()
-					return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return item.tokenImage.Layout(gtx)
-					})
-				}
-
-				return layout.Dimensions{}
-			})
-		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), item.name)
-			lbl.Alignment = text.Middle
-			lbl.Font.Weight = font.Bold
-			return lbl.Layout(gtx)
-		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), item.status)
-			lbl.Color = theme.Current.TextMuteColor
-			lbl.Alignment = text.Middle
-			return lbl.Layout(gtx)
-		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-	)
+	return layout.Dimensions{}
 }
 
 type FolderMenuSelect struct {
@@ -759,9 +775,9 @@ func NewFolderMenuSelect() *FolderMenuSelect {
 				case "delete_folder":
 					add = page_instance.pageSCFolders.currentFolder != nil
 				case "view_grid":
-					add = page_instance.pageSCFolders.viewLayout == "list"
+					add = settings.App.FolderLayout == settings.FolderLayoutList
 				case "view_list":
-					add = page_instance.pageSCFolders.viewLayout == "grid"
+					add = settings.App.FolderLayout == settings.FolderLayoutGrid
 				}
 
 				if add {

@@ -11,13 +11,21 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 )
 
+var (
+	MainTabBarsToken = "tokens"
+	MainTabBarsTxs   = "txs"
+	FolderLayoutGrid = "grid"
+	FolderLayoutList = "list"
+)
+
 type AppSettings struct {
-	LanguageKey  string `json:"language"`
+	Language     string `json:"language"`
 	HideBalance  bool   `json:"hide_balance"`
 	SendRingSize int    `json:"send_ring_size"`
 	NodeEndpoint string `json:"node_endpoint"`
-	TabBarsKey   string `json:"tab_bars_key"`
-	ThemeKey     string `json:"theme"`
+	MainTabBars  string `json:"main_tab_bars"`
+	Theme        string `json:"theme"`
+	FolderLayout string `json:"folder_layout"`
 }
 
 var (
@@ -68,19 +76,20 @@ func Load() error {
 
 	// settings with default values
 	appSettings := AppSettings{
-		LanguageKey:  "en",
+		Language:     "en",
 		HideBalance:  false,
 		SendRingSize: 16,
 		NodeEndpoint: "",
-		TabBarsKey:   "tokens",
+		MainTabBars:  MainTabBarsTxs,
+		FolderLayout: FolderLayoutGrid,
 	}
 
 	// check system user theme preference
 	isDark, _ := sysTheme.IsDarkMode()
 	if isDark {
-		appSettings.ThemeKey = "dark"
+		appSettings.Theme = "dark"
 	} else {
-		appSettings.ThemeKey = "light"
+		appSettings.Theme = "light"
 	}
 
 	_, err = os.Stat(settingsPath)
@@ -96,20 +105,20 @@ func Load() error {
 		}
 	}
 
-	language := lang.Get(appSettings.LanguageKey)
+	language := lang.Get(appSettings.Language)
 	if language != nil {
 		lang.Current = language.Key
 	} else {
 		lang.Current = "en"
-		appSettings.LanguageKey = "en"
+		appSettings.Language = "en"
 	}
 
-	currentTheme := theme.Get(appSettings.ThemeKey)
+	currentTheme := theme.Get(appSettings.Theme)
 	if currentTheme != nil {
 		theme.Current = currentTheme
 	} else {
 		theme.Current = theme.Light
-		appSettings.ThemeKey = "light"
+		appSettings.Theme = "light"
 	}
 
 	App = appSettings
@@ -117,7 +126,7 @@ func Load() error {
 }
 
 func Save() error {
-	data, err := json.Marshal(App)
+	data, err := json.MarshalIndent(App, "", " ")
 	if err != nil {
 		return err
 	}
