@@ -2,7 +2,6 @@ package page_settings
 
 import (
 	"fmt"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -199,8 +198,8 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					s := material.Switch(th, p.switchActive, lang.Translate("Set Active Gateway"))
-					s.Color.Enabled = color.NRGBA{A: 255}
+					s := material.Switch(th, p.switchActive, "")
+					s.Color = theme.Current.SwitchColors
 					return s.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),

@@ -105,4 +105,10 @@ var Blue = &Theme{
 	ListScrollBarBgColor: whiteColor,
 	ListItemTagBgColor:   blueColor,
 	ListItemTagTextColor: whiteColor,
+
+	SwitchColors: SwitchColors{
+		Enabled:  whiteColor,
+		Disabled: blueColor,
+		Track:    color.NRGBA{A: 100},
+	},
 }

@@ -105,4 +105,10 @@ var Dark = &Theme{
 	ListScrollBarBgColor: whiteColor,
 	ListItemTagBgColor:   blackColor,
 	ListItemTagTextColor: whiteColor,
+
+	SwitchColors: SwitchColors{
+		Enabled:  whiteColor,
+		Disabled: blackColor,
+		Track:    color.NRGBA{A: 100},
+	},
 }

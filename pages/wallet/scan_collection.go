@@ -135,7 +135,6 @@ func (p *PageScanCollection) Layout(gtx layout.Context, th *material.Theme) layo
 
 	if p.buttonFetchData.Clicked() {
 		go func() {
-			p.scCollectionDetailsContainer.collection = nil
 			p.buttonFetchData.SetLoading(true)
 			scId, scType, scResult, err := p.submitForm()
 			if err == nil {
@@ -222,6 +221,7 @@ type SCCollectionDetailsContainer struct {
 	buttonScan        *components.Button
 	buttonStop        *components.Button
 	buttonAddTokens   *components.Button
+	withBalanceOnly   *widget.Bool
 
 	scanIdx       int
 	scanning      bool
@@ -300,6 +300,7 @@ func NewSCCollectionDetailsContainer() *SCCollectionDetailsContainer {
 		buttonScan:        buttonScan,
 		buttonStop:        buttonStop,
 		buttonAddTokens:   buttonAddTokens,
+		withBalanceOnly:   new(widget.Bool),
 
 		tokenBalances: make([]ScanTokenBalanceResult, 0),
 
@@ -387,6 +388,10 @@ func (c *SCCollectionDetailsContainer) scan() {
 func (c *SCCollectionDetailsContainer) storeTokens() error {
 	wallet := wallet_manager.OpenedWallet
 	for _, tokenBalance := range c.tokenBalances {
+		if c.withBalanceOnly.Value && tokenBalance.Balance == 0 {
+			continue
+		}
+
 		token := tokenBalance.Token
 		if token != nil {
 			currentFolder := page_instance.pageSCFolders.currentFolder
@@ -497,17 +502,39 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 		}
 
 		if !c.scanning && c.scanIdx > 0 {
-			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					c.buttonScan.Text = lang.Translate("RESUME")
-					c.buttonScan.Style.Colors = theme.Current.ButtonPrimaryColors
-					return c.buttonScan.Layout(gtx, th)
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							c.buttonScan.Text = lang.Translate("RESUME")
+							c.buttonScan.Style.Colors = theme.Current.ButtonPrimaryColors
+							return c.buttonScan.Layout(gtx, th)
+						}),
+						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							c.buttonAddTokens.Text = lang.Translate("ADD TOKENS")
+							c.buttonAddTokens.Style.Colors = theme.Current.ButtonPrimaryColors
+							return c.buttonAddTokens.Layout(gtx, th)
+						}),
+					)
 				}),
-				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					c.buttonAddTokens.Text = lang.Translate("ADD TOKENS")
-					c.buttonAddTokens.Style.Colors = theme.Current.ButtonPrimaryColors
-					return c.buttonAddTokens.Layout(gtx, th)
+				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{
+						Axis:      layout.Horizontal,
+						Alignment: layout.Middle,
+					}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							s := material.Switch(th, c.withBalanceOnly, "")
+							s.Color = theme.Current.SwitchColors
+							return s.Layout(gtx)
+						}),
+						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(16), lang.Translate("Add only with balance"))
+							return lbl.Layout(gtx)
+						}),
+					)
 				}),
 			)
 		}

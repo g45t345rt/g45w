@@ -46,6 +46,7 @@ type PageSCFolders struct {
 	folderMenuSelect    *FolderMenuSelect
 	createFolderModal   *CreateFolderModal
 	confirmDeleteFolder *prefabs.Confirm
+	confirmRemoveTokens *prefabs.Confirm
 	buttonFolderGoBack  *components.Button
 
 	currentFolder *wallet_manager.TokenFolder // nil is root
@@ -83,6 +84,7 @@ func NewPageSCFolders() *PageSCFolders {
 
 	createFolderModal := NewCreateFolderModal()
 	confirmDeleteFolder := prefabs.NewConfirm(layout.Center)
+	confirmRemoveTokens := prefabs.NewConfirm(layout.Center)
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
@@ -90,6 +92,12 @@ func NewPageSCFolders() *PageSCFolders {
 			createFolderModal.Layout(gtx, th)
 
 			confirmDeleteFolder.Layout(gtx, th, prefabs.ConfirmText{
+				Prompt: lang.Translate("Are you sure?"),
+				No:     lang.Translate("NO"),
+				Yes:    lang.Translate("YES"),
+			})
+
+			confirmRemoveTokens.Layout(gtx, th, prefabs.ConfirmText{
 				Prompt: lang.Translate("Are you sure?"),
 				No:     lang.Translate("NO"),
 				Yes:    lang.Translate("YES"),
@@ -106,6 +114,7 @@ func NewPageSCFolders() *PageSCFolders {
 		createFolderModal:   createFolderModal,
 		confirmDeleteFolder: confirmDeleteFolder,
 		buttonFolderGoBack:  buttonFolderGoBack,
+		confirmRemoveTokens: confirmRemoveTokens,
 	}
 
 	page.SetLayout(settings.App.FolderLayout)
@@ -255,13 +264,17 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				wallet := wallet_manager.OpenedWallet
 
 				for _, item := range p.items {
-					wallet.Memory.TokenAdd(item.token.GetHash())
-					wallet.ResetBalanceResult(item.token.SCID)
+					if item.token != nil {
+						wallet.Memory.TokenAdd(item.token.GetHash())
+						wallet.ResetBalanceResult(item.token.SCID)
+					}
 				}
 
 				notification_modals.SuccessInstance.SetText("Success", lang.Translate("Cache refreshed."))
 				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			}()
+		case "remove_tokens":
+			p.confirmRemoveTokens.SetVisible(true)
 		case "delete_folder":
 			p.confirmDeleteFolder.SetVisible(true)
 		}
@@ -278,6 +291,22 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			p.changeFolder(p.currentFolder.ParentId)
 		}
+	}
+
+	if p.confirmRemoveTokens.ClickedYes() {
+		go func() {
+			wallet := wallet_manager.OpenedWallet
+
+			for _, item := range p.items {
+				if item.token != nil { // not a folder
+					wallet.DelToken(item.token.ID)
+				}
+			}
+
+			notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			p.Load()
+		}()
 	}
 
 	if p.buttonFolderGoBack.Clicked() {
@@ -760,6 +789,11 @@ func NewFolderMenuSelect() *FolderMenuSelect {
 	items = append(items, prefabs.NewSelectListItem("delete_folder", prefabs.ListItemMenuItem{
 		Icon:  deleteIcon,
 		Title: "Delete this folder", //@lang.Translate("Delete this folder")
+	}.Layout))
+
+	items = append(items, prefabs.NewSelectListItem("remove_tokens", prefabs.ListItemMenuItem{
+		Icon:  deleteIcon,
+		Title: "Remove tokens", //@lang.Translate("Remove tokens")
 	}.Layout))
 
 	selectModal := prefabs.NewSelectModal()

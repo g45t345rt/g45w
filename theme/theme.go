@@ -71,12 +71,21 @@ type Theme struct {
 	ListItemTagBgColor   color.NRGBA
 	ListItemTagTextColor color.NRGBA
 
+	// Switch
+	SwitchColors SwitchColors
+
 	// Images
 	ArrowDownArcImage paint.ImageOp
 	ArrowUpArcImage   paint.ImageOp
 	CoinbaseImage     paint.ImageOp
 	TokenImage        paint.ImageOp
 	ManageFilesImage  paint.ImageOp
+}
+
+type SwitchColors struct {
+	Enabled  color.NRGBA
+	Disabled color.NRGBA
+	Track    color.NRGBA
 }
 
 var Current *Theme
