@@ -84,14 +84,6 @@ func Load() error {
 		FolderLayout: FolderLayoutGrid,
 	}
 
-	// check system user theme preference
-	isDark, _ := sysTheme.IsDarkMode()
-	if isDark {
-		appSettings.Theme = "dark"
-	} else {
-		appSettings.Theme = "light"
-	}
-
 	_, err = os.Stat(settingsPath)
 	if err == nil {
 		data, err := os.ReadFile(settingsPath)
@@ -117,8 +109,15 @@ func Load() error {
 	if currentTheme != nil {
 		theme.Current = currentTheme
 	} else {
-		theme.Current = theme.Light
-		appSettings.Theme = "light"
+		// check system user theme preference
+		isDark, _ := sysTheme.IsDarkMode()
+		if isDark {
+			appSettings.Theme = "dark"
+		} else {
+			appSettings.Theme = "light"
+		}
+
+		theme.Current = theme.Get(appSettings.Theme)
 	}
 
 	App = appSettings

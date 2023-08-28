@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"gioui.org/op/paint"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 )
 
@@ -88,7 +89,9 @@ type SwitchColors struct {
 	Track    color.NRGBA
 }
 
-var Current *Theme
+// default to Light theme (avoid nil pointer in FrameEvent before settings.Load() is set)
+// settings.Load() will overwrite theme.Current with system pref or settings.json theme value
+var Current *Theme = Light
 
 // don't use map[string] the ordering is not guaranteed
 var Themes = []*Theme{Light, Dark, Blue}
@@ -101,4 +104,51 @@ func Get(key string) *Theme {
 	}
 
 	return nil
+}
+
+func LoadImages() {
+	imgArrowUpArcBlack, _ := assets.GetImage("arrow_up_arc.png")
+	opImgArrowUpArcBlack := paint.NewImageOp(imgArrowUpArcBlack)
+	imgArrowUpArcWhite, _ := assets.GetImage("arrow_up_arc_white.png")
+	opImgArrowUpArcWhite := paint.NewImageOp(imgArrowUpArcWhite)
+
+	Light.ArrowUpArcImage = opImgArrowUpArcBlack
+	Dark.ArrowUpArcImage = opImgArrowUpArcWhite
+	Blue.ArrowUpArcImage = opImgArrowUpArcWhite
+
+	imgArrowDownArcBlack, _ := assets.GetImage("arrow_down_arc.png")
+	opImgArrowDownArcBlack := paint.NewImageOp(imgArrowDownArcBlack)
+	imgArrowDownArcWhite, _ := assets.GetImage("arrow_down_arc_white.png")
+	opImgArrowDownArcWhite := paint.NewImageOp(imgArrowDownArcWhite)
+
+	Light.ArrowDownArcImage = opImgArrowDownArcBlack
+	Dark.ArrowDownArcImage = opImgArrowDownArcWhite
+	Blue.ArrowDownArcImage = opImgArrowDownArcWhite
+
+	imgCoinbaseBlack, _ := assets.GetImage("coinbase.png")
+	opImgCoinbaseBlack := paint.NewImageOp(imgCoinbaseBlack)
+	imgCoinbaseWhite, _ := assets.GetImage("coinbase_white.png")
+	opImgCoinbaseWhite := paint.NewImageOp(imgCoinbaseWhite)
+
+	Light.CoinbaseImage = opImgCoinbaseBlack
+	Dark.CoinbaseImage = opImgCoinbaseWhite
+	Blue.CoinbaseImage = opImgCoinbaseWhite
+
+	imgTokenBlack, _ := assets.GetImage("token.png")
+	opImgTokenBlack := paint.NewImageOp(imgTokenBlack)
+	imgTokenWhite, _ := assets.GetImage("token_white.png")
+	opImgTokenWhite := paint.NewImageOp(imgTokenWhite)
+
+	imgManageFilesBlack, _ := assets.GetImage("manage_files.png")
+	opImgManageFilesBlack := paint.NewImageOp(imgManageFilesBlack)
+	imgManageFilesWhite, _ := assets.GetImage("manage_files_white.png")
+	opImgManageFilesWhite := paint.NewImageOp(imgManageFilesWhite)
+
+	Light.ManageFilesImage = opImgManageFilesBlack
+	Dark.ManageFilesImage = opImgManageFilesWhite
+	Blue.ManageFilesImage = opImgManageFilesWhite
+
+	Light.TokenImage = opImgTokenBlack
+	Dark.TokenImage = opImgTokenWhite
+	Blue.TokenImage = opImgTokenWhite
 }
