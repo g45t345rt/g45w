@@ -1,6 +1,6 @@
 replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f
 
-replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230812135712-9a6f11b3b796
+replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230823193131-cf5ae4aad92e
 
 replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230826030749-686df1af5bb1
 
@@ -12,6 +12,7 @@ require (
 	gioui.org v0.2.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
+	github.com/gio-eui/ivgconv v0.0.0-20230728141110-3b7424472495
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/shirou/gopsutil/v3 v3.23.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
@@ -22,7 +23,6 @@ require (
 
 require (
 	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
-	github.com/gio-eui/ivgconv v0.0.0-20230728141110-3b7424472495 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
