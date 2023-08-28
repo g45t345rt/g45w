@@ -1,7 +1,7 @@
 package page_wallet
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"gioui.org/font"
@@ -210,9 +210,14 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					addr, err := globals.ParseValidateAddress(p.txtAddr.Value())
-					if err == nil && addr.IsIntegratedAddress() {
+					if err == nil {
+						status := lang.Translate("This is a valid address.")
+						if addr.IsIntegratedAddress() {
+							status = lang.Translate("This is an integrated address.")
+						}
+
 						return layout.Inset{Top: unit.Dp(3)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(14), lang.Translate("This is an integrated address."))
+							lbl := material.Label(th, unit.Sp(14), status)
 							lbl.Color = theme.Current.TextMuteColor
 							return lbl.Layout(gtx)
 						})
@@ -289,14 +294,19 @@ func (p *PageContactForm) submitForm() error {
 	txtAddr := p.txtAddr.Editor()
 	txtNote := p.txtNote.Editor()
 
-	_, err := globals.ParseValidateAddress(txtAddr.Text())
-	if err != nil {
-		return errors.New("invalid address")
+	// don't validate addr because of service names
+	//_, err := globals.ParseValidateAddress(txtAddr.Text())
+	//	if err != nil {
+	//	return errors.New("invalid address")
+	//}
+
+	if txtName.Text() == "" {
+		return fmt.Errorf("name cannot be empty")
 	}
 
 	wallet := wallet_manager.OpenedWallet
 
-	err = wallet.StoreContact(wallet_manager.Contact{
+	err := wallet.StoreContact(wallet_manager.Contact{
 		Name:      txtName.Text(),
 		Addr:      txtAddr.Text(),
 		Note:      txtNote.Text(),

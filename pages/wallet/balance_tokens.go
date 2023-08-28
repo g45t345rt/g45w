@@ -921,6 +921,11 @@ func NewTxBar() *TxBar {
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
 			Left: unit.Dp(8), Right: unit.Dp(8),
 		},
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
 		Rounded:   components.UniformRounded(5),
 		Animation: components.NewButtonAnimationDefault(),
 	})
@@ -1015,7 +1020,7 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					t.buttonFilter.Text = lang.Translate("Filter")
-					t.buttonFilter.Style.Colors = theme.Current.ButtonPrimaryColors
+					t.buttonFilter.Style.Colors = theme.Current.ButtonSecondaryColors
 					return t.buttonFilter.Layout(gtx, th)
 				}),
 			)

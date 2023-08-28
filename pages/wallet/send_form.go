@@ -300,6 +300,8 @@ func (p *PageSendForm) ClearForm() {
 }
 
 func (p *PageSendForm) prepareTx() error {
+	wallet := wallet_manager.OpenedWallet
+
 	txtAmount := p.txtAmount
 	if txtAmount.Value() == "" {
 		return fmt.Errorf(lang.Translate("Amount cannot be empty."))
@@ -324,9 +326,23 @@ func (p *PageSendForm) prepareTx() error {
 
 	var arguments rpc.Arguments
 
-	address, err := rpc.NewAddress(txtWalletAddr.Value())
+	addrValue := txtWalletAddr.Value()
+	address, err := rpc.NewAddress(addrValue)
 	if err != nil {
-		return err
+		addrString, err := wallet.Memory.NameToAddress(addrValue)
+
+		if err != nil {
+			if utils.IsErrLeafNotFound(err) {
+				return fmt.Errorf("address not found for [%s]", addrValue)
+			}
+
+			return err
+		}
+
+		address, err = rpc.NewAddress(addrString)
+		if err != nil {
+			return err
+		}
 	}
 
 	if address.IsIntegratedAddress() {
@@ -377,8 +393,6 @@ func (p *PageSendForm) prepareTx() error {
 
 	scId := p.token.GetHash()
 	ringsize := uint64(p.ringSizeSelector.Value)
-
-	wallet := wallet_manager.OpenedWallet
 	balance, _ := wallet.Memory.Get_Balance_scid(scId)
 
 	transfers := []rpc.Transfer{
@@ -645,6 +659,7 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 			}
 
 			if p.newContactClickable.Clicked() {
+				page_instance.pageContactForm.ClearForm()
 				page_instance.pageContactForm.txtAddr.SetValue(addr)
 				page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
 				page_instance.header.AddHistory(PAGE_CONTACT_FORM)

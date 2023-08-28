@@ -10,12 +10,14 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gioui.org/f32"
 	"gioui.org/gpu/headless"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"golang.org/x/text/language"
@@ -253,4 +255,13 @@ func (file ReadCloser) ReadAll() (data []byte, err error) {
 	defer file.Close()
 
 	return
+}
+
+func IsErrLeafNotFound(err error) bool {
+	jrcp2Err, ok := err.(*jrpc2.Error)
+	if ok && strings.HasPrefix(jrcp2Err.Message, "leaf not found") {
+		return true
+	}
+
+	return false
 }
