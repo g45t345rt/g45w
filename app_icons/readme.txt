@@ -12,7 +12,7 @@ https://github.com/gio-eui/md3-icons
 The best platform to get svg icons with MIT license
 https://www.svgrepo.com/
 
-Use `go run /svg_to_iconvg -fileName qr_code_scanner -name QRCodeScanner` to convert svg icons to iconvg format and copy bytes in icons.go.
+Use `go run ./svg_to_iconvg -fileName qr_code_scanner -name QRCodeScanner` to convert svg icons to iconvg format and copy bytes in icons.go.
 
 !!NOTE!!
 The SVG must use fills instead of strokes or the iconvg will not be rendered correctly.  

@@ -13,6 +13,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -32,6 +33,7 @@ type PageSettings struct {
 
 	buttonDeleteWallet      *components.Button
 	buttonInfo              *components.Button
+	buttonServiceNames      *components.Button
 	txtWalletName           *prefabs.TextField
 	txtWalletChangePassword *prefabs.TextField
 	buttonSave              *components.Button
@@ -102,6 +104,22 @@ func NewPageSettings() *PageSettings {
 	buttonInfo.Label.Alignment = text.Middle
 	buttonInfo.Style.Font.Weight = font.Bold
 
+	nameIcon, _ := widget.NewIcon(app_icons.Badge)
+	buttonServiceNames := components.NewButton(components.ButtonStyle{
+		Icon:      nameIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+	})
+	buttonServiceNames.Label.Alignment = text.Middle
+	buttonServiceNames.Style.Font.Weight = font.Bold
+
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	exportIcon, _ := widget.NewIcon(icons.EditorPublish)
 	buttonExportTxs := components.NewButton(components.ButtonStyle{
@@ -155,6 +173,7 @@ func NewPageSettings() *PageSettings {
 		buttonInfo:              buttonInfo,
 		buttonCleanWallet:       buttonCleanWallet,
 		buttonExportTxs:         buttonExportTxs,
+		buttonServiceNames:      buttonServiceNames,
 	}
 }
 
@@ -168,6 +187,7 @@ func (p *PageSettings) Enter() {
 	page_instance.header.Title = func() string { return lang.Translate("Settings") }
 	p.txtWalletName.SetValue(walletName)
 	page_instance.header.Subtitle = nil
+	page_instance.header.ButtonRight = nil
 
 	p.isActive = true
 
@@ -191,6 +211,11 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	if p.buttonSave.Clicked() {
 		p.action = "save_changes"
 		p.modalWalletPassword.Modal.SetVisible(true)
+	}
+
+	if p.buttonServiceNames.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_SERVICE_NAMES)
+		page_instance.header.AddHistory(PAGE_SERVICE_NAMES)
 	}
 
 	if p.buttonInfo.Clicked() {
@@ -247,6 +272,22 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
+			p.buttonServiceNames.Text = lang.Translate("Service Names")
+
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonServiceNames.Style.Colors = theme.Current.ButtonSecondaryColors
+					return p.buttonServiceNames.Layout(gtx, th)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Manage wallet service names"))
+					lbl.Color = theme.Current.TextMuteColor
+					return lbl.Layout(gtx)
+				}),
+			)
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			p.buttonInfo.Text = lang.Translate("Wallet Information")
 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -277,7 +318,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return prefabs.Divider(gtx, 5)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonExportTxs.Text = lang.Translate("EXPORT TRANSACTIONS")
+			p.buttonExportTxs.Text = lang.Translate("Export Transactions")
 			p.buttonExportTxs.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonExportTxs.Layout(gtx, th)
 		},

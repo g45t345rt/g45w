@@ -1,15 +1,19 @@
 package wallet_manager
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"math"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/deroproject/derohe/config"
+	"github.com/deroproject/derohe/cryptography/bn256"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
@@ -261,17 +265,237 @@ func (w *Wallet) ChangePassword(password string, newPassword string) error {
 	return saveWalletData(newMemory)
 }
 
-func (w *Wallet) CalculateFees(ringsize uint64, transfers []rpc.Transfer, args rpc.Arguments) (uint64, error) {
-	feeMul := w.Memory.GetFeeMultiplier()
-	fees := uint64(len(transfers)+2) * uint64((float64(config.FEE_PER_KB) * float64(float32(ringsize/16)+feeMul)))
-	data, err := args.MarshalBinary()
-	if err != nil {
-		return 0, err
-	} else {
-		fees = fees + (uint64(len(data))*15)/10
+type RingMembers struct {
+	RingsBalances [][][]byte
+	Rings         [][]*bn256.G1
+	RingsAddrs    []map[string]bool
+	MaxBits       int
+}
+
+func (w *Wallet) BuildRingMembers(transfers []rpc.Transfer, ringsize uint64) (ringMembers RingMembers, err error) {
+	walletAddr := w.Memory.GetAddress().String()
+	account := w.Memory.GetAccount()
+
+	for _, transfer := range transfers {
+		var ring []*bn256.G1
+		var ringBalances [][]byte
+		ringAddrs := make(map[string]bool, 0)
+
+		bitsNeeded := make([]int, ringsize)
+
+		var selfEncryptedBalance *crypto.ElGamal
+		bitsNeeded[0], _, _, selfEncryptedBalance, err = w.Memory.GetEncryptedBalanceAtTopoHeight(transfer.SCID, -1, walletAddr)
+		if err != nil {
+			return
+		}
+
+		ringBalances = append(ringBalances, selfEncryptedBalance.Serialize())
+		ring = append(ring, account.Keys.Public.G1())
+		ringAddrs[walletAddr] = true
+
+		if transfer.Destination == walletAddr {
+			err = fmt.Errorf("can't send to self")
+			return
+		}
+
+		var destAddr *rpc.Address
+		destAddr, err = rpc.NewAddress(transfer.Destination)
+		if err != nil {
+			return
+		}
+
+		var destEncryptedBalance *crypto.ElGamal
+		bitsNeeded[1], _, _, destEncryptedBalance, err = w.Memory.GetEncryptedBalanceAtTopoHeight(transfer.SCID, -1, destAddr.String())
+		if err != nil {
+			return
+		}
+
+		ringBalances = append(ringBalances, destEncryptedBalance.Serialize())
+		ring = append(ring, destAddr.PublicKey.G1())
+		ringAddrs[transfer.Destination] = true
+
+	loadRingMembers:
+		var addrList []string
+		addrList, err = w.GetRandomAddresses(transfer.SCID)
+		if err != nil {
+			return
+		}
+
+		if len(addrList) < len(ringBalances) {
+			// get addr list from base asset if we don't have enough for current asset
+			addrList, err = w.GetRandomAddresses(crypto.ZEROHASH)
+			if err != nil {
+				return
+			}
+		}
+
+		for _, addr := range addrList {
+			_, addrExists := ringAddrs[addr] // avoid adding same addr including wallet addr and destination addr
+			if len(ringBalances) == int(ringsize) ||
+				addrExists {
+				continue
+			}
+
+			var memberAddr *rpc.Address
+			memberAddr, err = rpc.NewAddress(addr)
+			if err != nil {
+				return
+			}
+
+			var memberEncryptedBalance *crypto.ElGamal
+			bitsNeeded[len(ringBalances)], _, _, memberEncryptedBalance, err = w.Memory.GetEncryptedBalanceAtTopoHeight(transfer.SCID, -1, addr)
+			if err != nil {
+				return
+			}
+
+			ringBalances = append(ringBalances, memberEncryptedBalance.Serialize())
+			ring = append(ring, memberAddr.PublicKey.G1())
+			ringAddrs[memberAddr.String()] = true
+		}
+
+		if len(ringBalances) < int(ringsize) {
+			goto loadRingMembers
+		}
+
+		ringMembers.RingsBalances = append(ringMembers.RingsBalances, ringBalances)
+		ringMembers.Rings = append(ringMembers.Rings, ring)
+		ringMembers.RingsAddrs = append(ringMembers.RingsAddrs, ringAddrs)
+
+		for i := range bitsNeeded {
+			if ringMembers.MaxBits < bitsNeeded[i] {
+				ringMembers.MaxBits = bitsNeeded[i]
+			}
+		}
 	}
 
-	return fees, nil
+	ringMembers.MaxBits += 6 // extra 6 bits for unknown reasons?
+
+	return
+}
+
+func (w *Wallet) GetGasEstimate(transfers []rpc.Transfer, ringsize uint64, scArgs rpc.Arguments) (uint64, error) {
+	signer := w.Memory.GetAddress().String()
+
+	var result rpc.GasEstimate_Result
+	err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetGasEstimate", rpc.GasEstimate_Params{
+		Transfers: transfers,
+		SC_RPC:    scArgs,
+		Ringsize:  ringsize,
+		Signer:    signer,
+	}, &result)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.GasStorage, nil
+}
+
+func (w *Wallet) BuildTransaction(transfers []rpc.Transfer, ringsize uint64, scArgs rpc.Arguments, dryRun bool) (tx *transaction.Transaction, txFees uint64, gasFees uint64, err error) {
+	if len(scArgs) > 0 {
+		// smart contract call to test if it can succeed and return gas fees for the dry run
+		gasFees, err = w.GetGasEstimate(transfers, ringsize, scArgs)
+		if err != nil {
+			return
+		}
+	}
+
+	// need at least one Dero transfers
+	hasBase := false
+	for _, t := range transfers {
+		if t.SCID.IsZero() {
+			hasBase = true
+			break
+		}
+	}
+
+	if !hasBase {
+		var randomAddr string
+		randomAddr, err = w.GetRandomAddress(crypto.ZEROHASH)
+		if err != nil {
+			return
+		}
+
+		transfers = append(transfers, rpc.Transfer{
+			SCID:        crypto.ZEROHASH,
+			Destination: randomAddr,
+			Amount:      0,
+		})
+	}
+
+	var ringMembers RingMembers
+	ringMembers, err = w.BuildRingMembers(transfers, ringsize)
+	if err != nil {
+		return
+	}
+
+	topoHeight := w.Memory.Get_TopoHeight()
+
+	var encryptedBalance rpc.GetEncryptedBalance_Result
+	encryptedBalance, err = w.Memory.GetSelfEncryptedBalanceAtTopoHeight(crypto.ZEROHASH, topoHeight)
+	if err != nil {
+		return
+	}
+
+	height := uint64(encryptedBalance.Height)
+	blockHash := encryptedBalance.BlockHash
+	treeHash := encryptedBalance.Merkle_Balance_TreeHash
+
+	var treeHashRaw []byte
+	treeHashRaw, err = hex.DecodeString(treeHash)
+	if err != nil {
+		return
+	}
+
+	// build a dry transaction to get transaction size and calculate fees
+	// set fees to 1 to avoid automatic fees in statement
+	// fee value is store in tx but its too small for making any adjustments
+	tx = w.Memory.BuildTransaction(
+		transfers, ringMembers.RingsBalances, ringMembers.Rings, blockHash,
+		height, scArgs, treeHashRaw, ringMembers.MaxBits, 1)
+	if tx == nil {
+		err = fmt.Errorf("can't build transaction")
+		return
+	}
+
+	txSize := uint64(len(tx.Serialize()))
+	txFees = w.CalculateTxFees(txSize)
+	totalFees := txFees + gasFees
+
+	if dryRun {
+		return
+	}
+
+	// get len of for Dero transfers - the fees are only applied to Dero asset statements and not other tokens
+	deroTransfers := 0
+	for _, transfer := range transfers {
+		if transfer.SCID.IsZero() {
+			deroTransfers++
+		}
+	}
+
+	// set fees in BuildTransaction applies it to all Dero transfers -_-
+	// split the fees amongst all Dero transfers
+	feesPerTransfer := uint64(math.Ceil(float64(totalFees) / float64(deroTransfers)))
+
+	tx = w.Memory.BuildTransaction(
+		transfers, ringMembers.RingsBalances, ringMembers.Rings, blockHash,
+		height, scArgs, treeHashRaw, ringMembers.MaxBits, feesPerTransfer)
+	if tx == nil {
+		err = fmt.Errorf("can't build transaction")
+		return
+	}
+
+	return
+}
+
+func (w *Wallet) CalculateTxFees(sizeInBytes uint64) (fees uint64) {
+	size := sizeInBytes / 1024
+
+	if size%1024 != 0 {
+		size += 1 // add full kb for any rest
+	}
+
+	return size*config.FEE_PER_KB + 1 // add plus one Deri because mempool fee check is using > instead of >=
 }
 
 func StoreRegistrationTx(addr string, tx *transaction.Transaction) error {
@@ -347,4 +571,36 @@ func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 	}
 
 	return nil
+}
+
+func (w *Wallet) GetRandomAddresses(scId crypto.Hash) ([]string, error) {
+	var result rpc.GetRandomAddress_Result
+
+	err := walletapi.RPC_Client.Call("DERO.GetRandomAddress", rpc.GetRandomAddress_Params{
+		SCID: scId,
+	}, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result.Address, nil
+}
+
+func (w *Wallet) GetRandomAddress(scId crypto.Hash) (string, error) {
+	walletAddr := w.Memory.GetAddress().String()
+
+	addresses, err := w.GetRandomAddresses(scId)
+	if err != nil {
+		return "", err
+	}
+
+	var addrList []string
+	for _, addr := range addresses {
+		if addr != walletAddr { // make sure this wallet addr is not part of the randomly selected addr
+			addrList = append(addrList, addr)
+		}
+	}
+
+	index := rand.Intn(len(addrList))
+	return addrList[index], nil
 }

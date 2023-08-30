@@ -65,13 +65,15 @@ var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
 	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
+	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonBuildTx := components.NewButton(components.ButtonStyle{
-		Rounded:   components.UniformRounded(unit.Dp(5)),
-		Icon:      buildIcon,
-		TextSize:  unit.Sp(14),
-		IconGap:   unit.Dp(10),
-		Inset:     layout.UniformInset(unit.Dp(10)),
-		Animation: components.NewButtonAnimationDefault(),
+		Rounded:     components.UniformRounded(unit.Dp(5)),
+		Icon:        buildIcon,
+		TextSize:    unit.Sp(14),
+		IconGap:     unit.Dp(10),
+		Inset:       layout.UniformInset(unit.Dp(10)),
+		LoadingIcon: loadingIcon,
+		Animation:   components.NewButtonAnimationDefault(),
 	})
 	buttonBuildTx.Label.Alignment = text.Middle
 	buttonBuildTx.Style.Font.Weight = font.Bold
@@ -181,7 +183,9 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	if p.buttonBuildTx.Clicked() {
 		go func() {
+			p.buttonBuildTx.SetLoading(true)
 			err := p.prepareTx()
+			p.buttonBuildTx.SetLoading(false)
 			if err != nil {
 				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -393,7 +397,7 @@ func (p *PageSendForm) prepareTx() error {
 
 	scId := p.token.GetHash()
 	ringsize := uint64(p.ringSizeSelector.Value)
-	balance, _ := wallet.Memory.Get_Balance_scid(scId)
+	deroBalance, _ := wallet.Memory.Get_Balance()
 
 	transfers := []rpc.Transfer{
 		{
@@ -404,21 +408,22 @@ func (p *PageSendForm) prepareTx() error {
 		},
 	}
 
-	if scId.IsZero() && balance == amount {
-		// sender is trying to send all Dero to another wallet
+	if scId.IsZero() && deroBalance == amount {
+		// sender is trying to send entire Dero balance to another wallet
 		// let's calculate fees before and deduct
-		fees, err := wallet.CalculateFees(ringsize, transfers, arguments)
+
+		transfers[0].Amount = 0 // set amount to 0 or transaction won't build because you don't have enough funds
+		_, txFees, _, err := wallet.BuildTransaction(transfers, ringsize, nil, false)
 		if err != nil {
 			return err
 		}
 
-		transfers[0].Amount = amount - fees
+		transfers[0].Amount = amount - txFees
 	}
 
 	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
 		Transfers: transfers,
 		Ringsize:  ringsize,
-		SCData:    rpc.Arguments{},
 	})
 
 	return nil
