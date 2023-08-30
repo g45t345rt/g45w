@@ -639,7 +639,6 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 
 	switch viewLayout {
 	case settings.FolderLayoutGrid:
-
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -666,7 +665,17 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				lbl := material.Label(th, unit.Sp(16), item.name)
+				name := item.name
+				size := unit.Sp(16)
+				if len(name) > 20 {
+					size = unit.Sp(14)
+				}
+
+				if len(name) > 30 {
+					name = utils.ReduceString(name, 30, 0)
+				}
+
+				lbl := material.Label(th, size, name)
 				lbl.Alignment = text.Middle
 				lbl.Font.Weight = font.Bold
 				return lbl.Layout(gtx)
