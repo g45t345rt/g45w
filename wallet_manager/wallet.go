@@ -446,6 +446,29 @@ func (w *Wallet) BuildTransaction(transfers []rpc.Transfer, ringsize uint64, scA
 		return
 	}
 
+	// get len of for Dero transfers - the fees are only applied to Dero asset statements and not other tokens
+	deroTransfers := 0
+	assetAmounts := make(map[crypto.Hash]uint64, 0)
+	for _, transfer := range transfers {
+		_, ok := assetAmounts[transfer.SCID]
+		if !ok {
+			assetAmounts[transfer.SCID] = 0
+		}
+
+		assetAmounts[transfer.SCID] += transfer.Amount + transfer.Burn
+		if transfer.SCID.IsZero() {
+			deroTransfers++
+		}
+	}
+
+	for asset, amount := range assetAmounts {
+		balance, _ := w.Memory.Get_Balance_scid(asset)
+		if amount > balance {
+			err = fmt.Errorf("you can't send more than you have")
+			return
+		}
+	}
+
 	// build a dry transaction to get transaction size and calculate fees
 	// set fees to 1 to avoid automatic fees in statement
 	// fee value is store in tx but its too small for making any adjustments
@@ -463,14 +486,6 @@ func (w *Wallet) BuildTransaction(transfers []rpc.Transfer, ringsize uint64, scA
 
 	if dryRun {
 		return
-	}
-
-	// get len of for Dero transfers - the fees are only applied to Dero asset statements and not other tokens
-	deroTransfers := 0
-	for _, transfer := range transfers {
-		if transfer.SCID.IsZero() {
-			deroTransfers++
-		}
 	}
 
 	// set fees in BuildTransaction applies it to all Dero transfers -_-

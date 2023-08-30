@@ -169,11 +169,11 @@ func (s ShiftNumber) LocaleString(t language.Tag) string {
 }
 
 func ReduceAddr(addr string) string {
-	return ReduceString(addr, 0, 10)
+	return ReduceString(addr, 0, 8)
 }
 
 func ReduceTxId(txId string) string {
-	return ReduceString(txId, 5, 5)
+	return ReduceString(txId, 4, 4)
 }
 
 func CopyFile(src string, dest string) error {
