@@ -3,6 +3,7 @@ package containers
 import (
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
@@ -18,4 +19,5 @@ func Load() {
 	build_tx_modal.LoadInstance()
 	image_modal.LoadInstance()
 	qrcode_scan_modal.LoadInstance()
+	confirm_modal.LoadInstance()
 }

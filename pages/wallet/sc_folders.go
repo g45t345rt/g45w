@@ -20,6 +20,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -41,13 +42,11 @@ type PageSCFolders struct {
 
 	items []*TokenFolderItem
 
-	list                *widget.List
-	buttonOpenMenu      *components.Button
-	folderMenuSelect    *FolderMenuSelect
-	createFolderModal   *CreateFolderModal
-	confirmDeleteFolder *prefabs.Confirm
-	confirmRemoveTokens *prefabs.Confirm
-	buttonFolderGoBack  *components.Button
+	list               *widget.List
+	buttonOpenMenu     *components.Button
+	folderMenuSelect   *FolderMenuSelect
+	createFolderModal  *CreateFolderModal
+	buttonFolderGoBack *components.Button
 
 	currentFolder *wallet_manager.TokenFolder // nil is root
 	folderCount   int
@@ -83,38 +82,22 @@ func NewPageSCFolders() *PageSCFolders {
 	})
 
 	createFolderModal := NewCreateFolderModal()
-	confirmDeleteFolder := prefabs.NewConfirm(layout.Center)
-	confirmRemoveTokens := prefabs.NewConfirm(layout.Center)
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
 			createFolderModal.Layout(gtx, th)
-
-			confirmDeleteFolder.Layout(gtx, th, prefabs.ConfirmText{
-				Prompt: lang.Translate("Are you sure?"),
-				No:     lang.Translate("NO"),
-				Yes:    lang.Translate("YES"),
-			})
-
-			confirmRemoveTokens.Layout(gtx, th, prefabs.ConfirmText{
-				Prompt: lang.Translate("Are you sure?"),
-				No:     lang.Translate("NO"),
-				Yes:    lang.Translate("YES"),
-			})
 		},
 	})
 
 	page := &PageSCFolders{
-		animationEnter:      animationEnter,
-		animationLeave:      animationLeave,
-		list:                list,
-		buttonOpenMenu:      buttonOpenMenu,
-		folderMenuSelect:    NewFolderMenuSelect(),
-		createFolderModal:   createFolderModal,
-		confirmDeleteFolder: confirmDeleteFolder,
-		buttonFolderGoBack:  buttonFolderGoBack,
-		confirmRemoveTokens: confirmRemoveTokens,
+		animationEnter:     animationEnter,
+		animationLeave:     animationLeave,
+		list:               list,
+		buttonOpenMenu:     buttonOpenMenu,
+		folderMenuSelect:   NewFolderMenuSelect(),
+		createFolderModal:  createFolderModal,
+		buttonFolderGoBack: buttonFolderGoBack,
 	}
 
 	page.SetLayout(settings.App.FolderLayout)
@@ -274,39 +257,45 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			}()
 		case "remove_tokens":
-			p.confirmRemoveTokens.SetVisible(true)
+			go func() {
+				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+				for yes := range yesChan {
+					if yes {
+						wallet := wallet_manager.OpenedWallet
+
+						for _, item := range p.items {
+							if item.token != nil { // not a folder
+								wallet.DelToken(item.token.ID)
+							}
+						}
+
+						notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+						p.Load()
+					}
+				}
+			}()
 		case "delete_folder":
-			p.confirmDeleteFolder.SetVisible(true)
+			go func() {
+				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+				for yes := range yesChan {
+					if yes {
+						err := p.deleteCurrentFolder()
+						if err != nil {
+							notification_modals.ErrorInstance.SetText("Error", err.Error())
+							notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+						} else {
+							notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
+							notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+							p.changeFolder(p.currentFolder.ParentId)
+						}
+					}
+				}
+			}()
 		}
 		p.folderMenuSelect.SelectModal.Modal.SetVisible(false)
-	}
-
-	if p.confirmDeleteFolder.ClickedYes() {
-		err := p.deleteCurrentFolder()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			p.changeFolder(p.currentFolder.ParentId)
-		}
-	}
-
-	if p.confirmRemoveTokens.ClickedYes() {
-		go func() {
-			wallet := wallet_manager.OpenedWallet
-
-			for _, item := range p.items {
-				if item.token != nil { // not a folder
-					wallet.DelToken(item.token.ID)
-				}
-			}
-
-			notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			p.Load()
-		}()
 	}
 
 	if p.buttonFolderGoBack.Clicked() {

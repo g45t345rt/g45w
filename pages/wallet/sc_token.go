@@ -23,6 +23,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -47,7 +48,6 @@ type PageSCToken struct {
 	buttonOpenMenu      *components.Button
 	tokenMenuSelect     *TokenMenuSelect
 	sendReceiveButtons  *SendReceiveButtons
-	confirmRemoveToken  *prefabs.Confirm
 	tabBars             *components.TabBars
 	txBar               *TxBar
 	getTransfersParams  wallet_manager.GetTransfersParams
@@ -103,18 +103,6 @@ func NewPageSCToken() *PageSCToken {
 	balanceContainer := NewBalanceContainer()
 	g45DisplayContainer := NewG45DisplayContainer()
 
-	confirmRemoveToken := prefabs.NewConfirm(layout.Center)
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 2,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmRemoveToken.Layout(gtx, th, prefabs.ConfirmText{
-				Prompt: lang.Translate("Are you sure?"),
-				No:     lang.Translate("NO"),
-				Yes:    lang.Translate("YES"),
-			})
-		},
-	})
-
 	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
 	buttonCopySCID := components.NewButton(components.ButtonStyle{
 		Icon: copyIcon,
@@ -129,7 +117,6 @@ func NewPageSCToken() *PageSCToken {
 		tokenImage:          image,
 		scIdEditor:          scIdEditor,
 		sendReceiveButtons:  sendReceiveButtons,
-		confirmRemoveToken:  confirmRemoveToken,
 		tabBars:             tabBars,
 		txBar:               txBar,
 		balanceContainer:    balanceContainer,
@@ -271,21 +258,6 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
-	if p.confirmRemoveToken.ClickedYes() {
-		wallet := wallet_manager.OpenedWallet
-		err := wallet.DelToken(p.token.ID)
-
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			page_instance.header.GoBack()
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			p.tokenMenuSelect.SelectModal.Modal.SetVisible(false)
-		}
-	}
-
 	selected, key := p.tokenMenuSelect.SelectModal.Selected()
 	if selected {
 		wallet := wallet_manager.OpenedWallet
@@ -305,7 +277,26 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			err = wallet.UpdateToken(*p.token)
 			successMsg = lang.Translate("Token removed from favorites.")
 		case "remove_token":
-			p.confirmRemoveToken.SetVisible(true)
+			go func() {
+				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+				for yes := range yesChan {
+					if yes {
+						wallet := wallet_manager.OpenedWallet
+						err := wallet.DelToken(p.token.ID)
+
+						if err != nil {
+							notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+							notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+						} else {
+							page_instance.header.GoBack()
+							notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
+							notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+							p.tokenMenuSelect.SelectModal.Modal.SetVisible(false)
+						}
+					}
+				}
+			}()
 		case "g45_display_nft":
 			go func() {
 				scId := p.token.GetHash()

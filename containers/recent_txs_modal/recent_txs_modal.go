@@ -20,6 +20,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -31,10 +32,9 @@ import (
 )
 
 type RecentTxsModal struct {
-	modal        *components.Modal
-	list         *widget.List
-	buttonClear  *components.Button
-	confirmClear *prefabs.Confirm
+	modal       *components.Modal
+	list        *widget.List
+	buttonClear *components.Button
 
 	txItems []TxItem
 }
@@ -52,8 +52,6 @@ func LoadInstance() {
 		Animation: components.NewModalAnimationDown(),
 	})
 
-	confirmClear := prefabs.NewConfirm(layout.Center)
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -64,10 +62,9 @@ func LoadInstance() {
 	})
 
 	Instance = &RecentTxsModal{
-		modal:        modal,
-		list:         list,
-		buttonClear:  buttonClear,
-		confirmClear: confirmClear,
+		modal:       modal,
+		list:        list,
+		buttonClear: buttonClear,
 	}
 
 	Instance.startCheckingPendingTxs()
@@ -76,12 +73,6 @@ func LoadInstance() {
 		DrawIndex: 2,
 		Layout: func(gtx layout.Context, th *material.Theme) {
 			Instance.layout(gtx, th)
-
-			confirmClear.Layout(gtx, th, prefabs.ConfirmText{
-				Prompt: lang.Translate("Are you sure you want to clear outgoing txs?"),
-				No:     lang.Translate("NO"),
-				Yes:    lang.Translate("YES"),
-			})
 		},
 	})
 }
@@ -140,21 +131,28 @@ func (r *RecentTxsModal) SetVisible(visible bool) {
 }
 
 func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
-	if r.buttonClear.Clicked() {
-		r.confirmClear.SetVisible(true)
-	}
-
 	wallet := wallet_manager.OpenedWallet
-	if r.confirmClear.ClickedYes() {
-		err := wallet.ClearOutgoingTxs()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Outgoing txs cleared."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			r.LoadOutgoingTxs()
-		}
+
+	if r.buttonClear.Clicked() {
+		go func() {
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+				Prompt: lang.Translate("Are you sure you want to clear outgoing txs?"),
+			})
+
+			for yes := range yesChan {
+				if yes {
+					err := wallet.ClearOutgoingTxs()
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Outgoing txs cleared."))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+						r.LoadOutgoingTxs()
+					}
+				}
+			}
+		}()
 	}
 
 	r.buttonClear.Disabled = wallet == nil

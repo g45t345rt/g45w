@@ -13,8 +13,8 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/globals"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -32,12 +32,11 @@ type PageContactForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonSave    *components.Button
-	buttonDelete  *components.Button
-	txtName       *prefabs.TextField
-	txtAddr       *prefabs.TextField
-	txtNote       *prefabs.TextField
-	confirmDelete *prefabs.Confirm
+	buttonSave   *components.Button
+	buttonDelete *components.Button
+	txtName      *prefabs.TextField
+	txtAddr      *prefabs.TextField
+	txtNote      *prefabs.TextField
 
 	contact *wallet_manager.Contact
 
@@ -88,28 +87,15 @@ func NewPageContactForm() *PageContactForm {
 	txtNote.Editor().SingleLine = false
 	txtNote.Editor().Submit = false
 
-	confirmDelete := prefabs.NewConfirm(layout.Center)
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmDelete.Layout(gtx, th, prefabs.ConfirmText{
-				Prompt: lang.Translate("Are you sure?"),
-				No:     lang.Translate("NO"),
-				Yes:    lang.Translate("YES"),
-			})
-		},
-	})
-
 	return &PageContactForm{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonSave:    buttonSave,
-		buttonDelete:  buttonDelete,
-		txtName:       txtName,
-		txtAddr:       txtAddr,
-		txtNote:       txtNote,
-		confirmDelete: confirmDelete,
+		buttonSave:   buttonSave,
+		buttonDelete: buttonDelete,
+		txtName:      txtName,
+		txtAddr:      txtAddr,
+		txtNote:      txtNote,
 
 		list: list,
 	}
@@ -181,22 +167,26 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 
 	if p.buttonDelete.Clicked() {
-		p.confirmDelete.SetVisible(true)
-	}
+		go func() {
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
-	if p.confirmDelete.ClickedYes() {
-		wallet := wallet_manager.OpenedWallet
-		err := wallet.DelContact(p.contact.Addr)
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			page_instance.pageContacts.Load()
-			page_instance.header.GoBack()
-			p.ClearForm()
-		}
+			for yes := range yesChan {
+				if yes {
+					wallet := wallet_manager.OpenedWallet
+					err := wallet.DelContact(p.contact.Addr)
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+						page_instance.pageContacts.Load()
+						page_instance.header.GoBack()
+						p.ClearForm()
+					}
+				}
+			}
+		}()
 	}
 
 	widgets := []layout.Widget{

@@ -15,10 +15,10 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
-	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -32,8 +32,7 @@ type BottomBar struct {
 	ButtonClose    *BottomBarButton
 	ButtonNode     *BottomBarButton
 
-	appRouter    *router.Router
-	confirmClose *prefabs.Confirm
+	appRouter *router.Router
 }
 
 var Instance *BottomBar
@@ -80,25 +79,12 @@ func LoadInstance() *BottomBar {
 		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
-	confirmClose := prefabs.NewConfirm(layout.Center)
-	appRouter.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmClose.Layout(gtx, th, prefabs.ConfirmText{
-				Prompt: lang.Translate("Closing current wallet?"),
-				No:     lang.Translate("NO"),
-				Yes:    lang.Translate("YES"),
-			})
-		},
-	})
-
 	bottomBar := &BottomBar{
 		ButtonWallet:   NewBottomBarButton(buttonWallet),
 		ButtonTxs:      NewBottomBarButton(buttonTxs),
 		ButtonSettings: NewBottomBarButton(buttonSettings),
 		ButtonClose:    NewBottomBarButton(buttonClose),
 		ButtonNode:     NewBottomBarButton(buttonNode),
-		confirmClose:   confirmClose,
 		appRouter:      appRouter,
 	}
 	Instance = bottomBar
@@ -137,15 +123,21 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	if wallet_manager.OpenedWallet != nil {
 		b.ButtonClose.Button.Disabled = false
 		if b.ButtonClose.Button.Clicked() {
-			b.confirmClose.SetVisible(true)
+			go func() {
+				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+					Prompt: lang.Translate("Closing current wallet?"),
+				})
+
+				for yes := range yesChan {
+					if yes {
+						b.appRouter.SetCurrent(pages.PAGE_WALLET_SELECT)
+						wallet_manager.CloseOpenedWallet()
+					}
+				}
+			}()
 		}
 	} else {
 		b.ButtonClose.Button.Disabled = true
-	}
-
-	if b.confirmClose.ClickedYes() {
-		b.appRouter.SetCurrent(pages.PAGE_WALLET_SELECT)
-		wallet_manager.CloseOpenedWallet()
 	}
 
 	if b.ButtonNode.Button.Clicked() {

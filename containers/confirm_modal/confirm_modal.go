@@ -1,4 +1,4 @@
-package prefabs
+package confirm_modal
 
 import (
 	"gioui.org/font"
@@ -6,7 +6,10 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 )
 
@@ -16,21 +19,23 @@ type ConfirmText struct {
 	No     string
 }
 
-type Confirm struct {
+type ConfirmModal struct {
 	Modal *components.Modal
 
-	buttonYes *components.Button
-	buttonNo  *components.Button
+	confirmText ConfirmText
+	buttonYes   *components.Button
+	buttonNo    *components.Button
 
-	clickedYes bool
-	clickedNo  bool
+	resChan chan bool
 }
 
-func NewConfirm(direction layout.Direction) *Confirm {
+var Instance *ConfirmModal
+
+func LoadInstance() {
 	modal := components.NewModal(components.ModalStyle{
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
-		Direction:           direction,
+		Direction:           layout.Center,
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Inset:               layout.UniformInset(unit.Dp(10)),
 		Animation:           components.NewModalAnimationScaleBounce(),
@@ -54,33 +59,50 @@ func NewConfirm(direction layout.Direction) *Confirm {
 	buttonNo.Label.Alignment = text.Middle
 	buttonNo.Style.Font.Weight = font.Bold
 
-	return &Confirm{
-		Modal:      modal,
-		buttonYes:  buttonYes,
-		buttonNo:   buttonNo,
-		clickedYes: false,
-		clickedNo:  false,
+	Instance = &ConfirmModal{
+		buttonYes: buttonYes,
+		buttonNo:  buttonNo,
+		Modal:     modal,
 	}
+
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 3,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			Instance.Layout(gtx, th)
+		},
+	})
 }
 
-func (c *Confirm) ClickedYes() bool {
-	return c.clickedYes
+func (c *ConfirmModal) Open(confirmText ConfirmText) chan bool {
+	c.confirmText = confirmText
+	if c.confirmText.Prompt == "" {
+		c.confirmText.Prompt = lang.Translate("Are you sure?")
+	}
+
+	if c.confirmText.Yes == "" {
+		c.confirmText.Yes = lang.Translate("Yes")
+	}
+
+	if c.confirmText.No == "" {
+		c.confirmText.No = lang.Translate("No")
+	}
+
+	c.Modal.SetVisible(true)
+	c.resChan = make(chan bool)
+	return c.resChan
 }
 
-func (c *Confirm) ClickedNo() bool {
-	return c.clickedNo
-}
+func (c *ConfirmModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if c.buttonYes.Clicked() {
+		c.resChan <- true
+		c.Modal.SetVisible(false)
+		close(c.resChan)
+	}
 
-func (c *Confirm) SetVisible(visible bool) {
-	c.Modal.SetVisible(visible)
-}
-
-func (c *Confirm) Layout(gtx layout.Context, th *material.Theme, text ConfirmText) layout.Dimensions {
-	c.clickedYes = c.buttonYes.Clicked()
-	c.clickedNo = c.buttonNo.Clicked()
-
-	if c.clickedYes || c.clickedNo {
-		c.SetVisible(false)
+	if c.buttonNo.Clicked() {
+		c.resChan <- false
+		c.Modal.SetVisible(false)
+		close(c.resChan)
 	}
 
 	var lblSize layout.Dimensions
@@ -89,7 +111,7 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme, text ConfirmTex
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(18), text.Prompt)
+					label := material.Label(th, unit.Sp(18), c.confirmText.Prompt)
 					lblSize = label.Layout(gtx)
 					return lblSize
 				}),
@@ -98,12 +120,12 @@ func (c *Confirm) Layout(gtx layout.Context, th *material.Theme, text ConfirmTex
 					gtx.Constraints.Min.X = lblSize.Size.X
 					return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							c.buttonNo.Text = text.No
+							c.buttonNo.Text = c.confirmText.No
 							c.buttonNo.Style.Colors = theme.Current.ButtonPrimaryColors
 							return c.buttonNo.Layout(gtx, th)
 						}),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							c.buttonYes.Text = text.Yes
+							c.buttonYes.Text = c.confirmText.Yes
 							c.buttonYes.Style.Colors = theme.Current.ButtonPrimaryColors
 							return c.buttonYes.Layout(gtx, th)
 						}),

@@ -13,8 +13,8 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
@@ -40,8 +40,6 @@ type PageEditIPFSGateway struct {
 	switchActive *widget.Bool
 
 	gateway app_db.IPFSGateway
-
-	confirmDelete *prefabs.Confirm
 
 	list *widget.List
 }
@@ -89,18 +87,6 @@ func NewPageEditIPFSGateway() *PageEditIPFSGateway {
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
 
-	confirmDelete := prefabs.NewConfirm(layout.Center)
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			confirmDelete.Layout(gtx, th, prefabs.ConfirmText{
-				Prompt: lang.Translate("Are you sure?"),
-				No:     lang.Translate("NO"),
-				Yes:    lang.Translate("YES"),
-			})
-		},
-	})
-
 	return &PageEditIPFSGateway{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -110,8 +96,6 @@ func NewPageEditIPFSGateway() *PageEditIPFSGateway {
 		txtName:      txtName,
 		txtEndpoint:  txtEndpoint,
 		switchActive: new(widget.Bool),
-
-		confirmDelete: confirmDelete,
 
 		list: list,
 	}
@@ -166,20 +150,24 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 	}
 
 	if p.buttonDelete.Clicked() {
-		p.confirmDelete.SetVisible(true)
-	}
+		go func() {
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
-	if p.confirmDelete.ClickedYes() {
-		err := p.removeGateway()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
+			for yes := range yesChan {
+				if yes {
+					err := p.removeGateway()
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
 
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Gateway deleted"))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			page_instance.header.GoBack()
-		}
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Gateway deleted"))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+						page_instance.header.GoBack()
+					}
+				}
+			}
+		}()
 	}
 
 	widgets := []layout.Widget{
