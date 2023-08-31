@@ -672,14 +672,14 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 								balance, _ := wallet.Memory.Get_Balance_scid(b.token.GetHash())
 								amount := utils.ShiftNumber{Number: balance, Decimals: int(b.token.Decimals)}.Format()
 
+								if b.balanceEditor.Text() != amount {
+									b.balanceEditor.SetText(amount)
+								}
+
 								r := op.Record(gtx.Ops)
 								balanceEditor := material.Editor(th, b.balanceEditor, "")
 								balanceEditor.TextSize = unit.Sp(34)
 								balanceEditor.Font.Weight = font.Bold
-
-								if balanceEditor.Editor.Text() != amount {
-									balanceEditor.Editor.SetText(amount)
-								}
 
 								dims := balanceEditor.Layout(gtx)
 								c := r.Stop()
@@ -720,15 +720,22 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 }
 
 type G45DisplayContainer struct {
-	token        *wallet_manager.Token
+	token *wallet_manager.Token
+
 	ownerEditor  *widget.Editor
 	amountEditor *widget.Editor
 }
 
 func NewG45DisplayContainer() *G45DisplayContainer {
+	ownerEditor := new(widget.Editor)
+	ownerEditor.ReadOnly = true
+
+	amountEditor := new(widget.Editor)
+	amountEditor.ReadOnly = true
+
 	return &G45DisplayContainer{
-		ownerEditor:  new(widget.Editor),
-		amountEditor: new(widget.Editor),
+		ownerEditor:  ownerEditor,
+		amountEditor: amountEditor,
 	}
 }
 
@@ -736,9 +743,11 @@ func (d *G45DisplayContainer) SetToken(token *wallet_manager.Token) {
 	d.token = token
 }
 
-func (d *G45DisplayContainer) Load() error {
+func (d *G45DisplayContainer) Load() {
 	switch d.token.StandardType {
 	case sc.G45_NFT_TYPE:
+		d.ownerEditor.SetText("")
+
 		var result rpc.GetSC_Result
 		err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
 			SCID:       d.token.SCID,
@@ -747,19 +756,20 @@ func (d *G45DisplayContainer) Load() error {
 			KeysString: []string{"owner"},
 		}, &result)
 		if err != nil {
-			return err
+			d.ownerEditor.SetText("--")
+			return
 		}
 
 		owner, err := utils.DecodeString(result.ValuesString[0])
 		if err != nil {
-			return err
+			d.ownerEditor.SetText("--")
+			return
 		}
 
-		if owner != "" {
-			d.ownerEditor.SetText(owner)
-		}
-	case sc.G45_AT_TYPE:
-	case sc.G45_FAT_TYPE:
+		d.ownerEditor.SetText(owner)
+	case sc.G45_AT_TYPE, sc.G45_FAT_TYPE:
+		d.amountEditor.SetText("")
+
 		wallet := wallet_manager.OpenedWallet
 		addr := wallet.Memory.GetAddress().String()
 		key := fmt.Sprintf("owner_%s", addr)
@@ -772,15 +782,19 @@ func (d *G45DisplayContainer) Load() error {
 			KeysString: []string{key},
 		}, &result)
 		if err != nil {
-			return err
+			d.amountEditor.SetText("--")
+			return
 		}
 
-		amountDisplayed, _ := strconv.ParseUint(result.ValuesString[0], 10, 64)
+		amountDisplayed, err := strconv.ParseUint(result.ValuesString[0], 10, 64)
+		if err != nil {
+			d.amountEditor.SetText("--")
+			return
+		}
+
 		amount := utils.ShiftNumber{Number: amountDisplayed, Decimals: int(d.token.Decimals)}
 		d.amountEditor.SetText(amount.Format())
 	}
-
-	return nil
 }
 
 func (d *G45DisplayContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -798,14 +812,13 @@ func (d *G45DisplayContainer) Layout(gtx layout.Context, th *material.Theme) lay
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					editor := material.Editor(th, d.ownerEditor, "")
-					editor.Font.Weight = font.Bold
-					editor.TextSize = unit.Sp(16)
-
 					if d.ownerEditor.Text() == "" {
 						d.ownerEditor.SetText(lang.Translate("unknown"))
 					}
 
+					editor := material.Editor(th, d.ownerEditor, "")
+					editor.Font.Weight = font.Bold
+					editor.TextSize = unit.Sp(16)
 					return editor.Layout(gtx)
 				}),
 			)

@@ -37,9 +37,12 @@ type PageRemoteNode struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonReconnect *components.Button
-	nodeInfo        *RemoteNodeInfo
-	connecting      bool
+	buttonReconnect  *components.Button
+	buttonDisconnect *components.Button
+	nodeInfo         *RemoteNodeInfo
+	connecting       bool
+
+	list *widget.List
 }
 
 var _ router.Page = &PageRemoteNode{}
@@ -53,6 +56,9 @@ func NewPageRemoteNode() *PageRemoteNode {
 		gween.New(0, 1, .5, ease.OutCubic),
 	))
 
+	list := new(widget.List)
+	list.Axis = layout.Vertical
+
 	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonReconnect := components.NewButton(components.ButtonStyle{
 		Rounded:   components.UniformRounded(unit.Dp(5)),
@@ -65,13 +71,27 @@ func NewPageRemoteNode() *PageRemoteNode {
 	buttonReconnect.Label.Alignment = text.Middle
 	buttonReconnect.Style.Font.Weight = font.Bold
 
+	cancelIcon, _ := widget.NewIcon(icons.NavigationCancel)
+	buttonDisconnect := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      cancelIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonDisconnect.Label.Alignment = text.Middle
+	buttonDisconnect.Style.Font.Weight = font.Bold
+
 	nodeInfo := NewRemoteNodeInfo(3 * time.Second)
 
 	return &PageRemoteNode{
-		animationEnter:  animationEnter,
-		animationLeave:  animationLeave,
-		nodeInfo:        nodeInfo,
-		buttonReconnect: buttonReconnect,
+		animationEnter:   animationEnter,
+		animationLeave:   animationLeave,
+		nodeInfo:         nodeInfo,
+		buttonReconnect:  buttonReconnect,
+		buttonDisconnect: buttonDisconnect,
+		list:             list,
 	}
 }
 
@@ -125,113 +145,138 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		p.reconnect()
 	}
 
-	return layout.Inset{
-		Top: unit.Dp(0), Bottom: unit.Dp(30),
-		Left: unit.Dp(30), Right: unit.Dp(30),
-	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				r := op.Record(gtx.Ops)
-				dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(22), currentNode.Name)
-							return label.Layout(gtx)
-						}),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							label := material.Label(th, unit.Sp(16), currentNode.Endpoint)
-							label.Color = theme.Current.TextMuteColor
-							return label.Layout(gtx)
-						}),
-					)
-				})
-				c := r.Stop()
+	if p.buttonDisconnect.Clicked() {
+		go func() {
+			walletapi.RPC_Client.RPC.Close()
+			walletapi.RPC_Client.WS.Close()
+		}()
+	}
 
-				paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
-					clip.UniformRRect(
-						image.Rectangle{Max: dims.Size},
-						gtx.Dp(15),
-					).Op(gtx.Ops))
+	var widgets []layout.Widget
 
-				c.Add(gtx.Ops)
-				return dims
-			}),
-			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				if p.nodeInfo.Err != nil {
-					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(18), lang.Translate("Error"))
-							lbl.Font.Weight = font.Bold
-							return lbl.Layout(gtx)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(16), p.nodeInfo.Err.Error())
-							return lbl.Layout(gtx)
-						}),
-						layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							p.buttonReconnect.Text = lang.Translate("Reconnect")
-							p.buttonReconnect.Style.Colors = theme.Current.ButtonPrimaryColors
-							return p.buttonReconnect.Layout(gtx, th)
-						}),
-					)
-				}
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		r := op.Record(gtx.Ops)
+		dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					label := material.Label(th, unit.Sp(22), currentNode.Name)
+					return label.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					label := material.Label(th, unit.Sp(16), currentNode.Endpoint)
+					label.Color = theme.Current.TextMuteColor
+					return label.Layout(gtx)
+				}),
+			)
+		})
+		c := r.Stop()
 
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(18), lang.Translate("Node Height / Stable Height"))
-						label.Color = theme.Current.TextMuteColor
-						return label.Layout(gtx)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						status := fmt.Sprintf("%d / %d", p.nodeInfo.Result.Height, p.nodeInfo.Result.StableHeight)
-						label := material.Label(th, unit.Sp(22), status)
-						return label.Layout(gtx)
-					}),
+		paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
+			clip.UniformRRect(
+				image.Rectangle{Max: dims.Size},
+				gtx.Dp(15),
+			).Op(gtx.Ops))
 
-					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
-						label.Color = theme.Current.TextMuteColor
-						return label.Layout(gtx)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						inc := p.nodeInfo.Result.Incoming_connections_count
-						out := p.nodeInfo.Result.Outgoing_connections_count
-						status := fmt.Sprintf("%d / %d", inc, out)
-						label := material.Label(th, unit.Sp(22), status)
-						return label.Layout(gtx)
-					}),
+		c.Add(gtx.Ops)
+		return dims
+	})
 
-					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
-						label.Color = theme.Current.TextMuteColor
-						return label.Layout(gtx)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						diff := p.nodeInfo.Result.Difficulty
-						status := utils.FormatHashRate(diff)
-						label := material.Label(th, unit.Sp(22), status)
-						return label.Layout(gtx)
-					}),
+	if p.nodeInfo.Err != nil {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(18), lang.Translate("Error"))
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(16), p.nodeInfo.Err.Error())
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonReconnect.Text = lang.Translate("Reconnect")
+					p.buttonReconnect.Style.Colors = theme.Current.ButtonPrimaryColors
+					return p.buttonReconnect.Layout(gtx, th)
+				}),
+			)
+		})
+	} else {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					label := material.Label(th, unit.Sp(18), lang.Translate("Node Height / Stable Height"))
+					label.Color = theme.Current.TextMuteColor
+					return label.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					status := fmt.Sprintf("%d / %d", p.nodeInfo.Result.Height, p.nodeInfo.Result.StableHeight)
+					label := material.Label(th, unit.Sp(22), status)
+					return label.Layout(gtx)
+				}),
 
-					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						label := material.Label(th, unit.Sp(18), lang.Translate("Version"))
-						label.Color = theme.Current.TextMuteColor
-						return label.Layout(gtx)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						version := p.nodeInfo.Result.Version
-						label := material.Label(th, unit.Sp(16), version)
-						return label.Layout(gtx)
-					}),
-				)
-			}),
-		)
+				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					label := material.Label(th, unit.Sp(18), lang.Translate("Peers (In/Out)"))
+					label.Color = theme.Current.TextMuteColor
+					return label.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					inc := p.nodeInfo.Result.Incoming_connections_count
+					out := p.nodeInfo.Result.Outgoing_connections_count
+					status := fmt.Sprintf("%d / %d", inc, out)
+					label := material.Label(th, unit.Sp(22), status)
+					return label.Layout(gtx)
+				}),
+
+				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					label := material.Label(th, unit.Sp(18), lang.Translate("Network Hashrate"))
+					label.Color = theme.Current.TextMuteColor
+					return label.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					diff := p.nodeInfo.Result.Difficulty
+					status := utils.FormatHashRate(diff)
+					label := material.Label(th, unit.Sp(22), status)
+					return label.Layout(gtx)
+				}),
+
+				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					label := material.Label(th, unit.Sp(18), lang.Translate("Version"))
+					label.Color = theme.Current.TextMuteColor
+					return label.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					version := p.nodeInfo.Result.Version
+					label := material.Label(th, unit.Sp(16), version)
+					return label.Layout(gtx)
+				}),
+
+				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonDisconnect.Text = lang.Translate("Disconnect")
+					p.buttonDisconnect.Style.Colors = theme.Current.ButtonPrimaryColors
+					return p.buttonDisconnect.Layout(gtx, th)
+				}),
+			)
+		})
+	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+	})
+
+	listStyle := material.List(th, p.list)
+	listStyle.AnchorStrategy = material.Overlay
+
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
+		return layout.Inset{
+			Top: unit.Dp(0), Bottom: unit.Dp(20),
+			Left: unit.Dp(30), Right: unit.Dp(30),
+		}.Layout(gtx, widgets[index])
 	})
 }
 

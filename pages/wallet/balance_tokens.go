@@ -653,21 +653,17 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					balance := uint64(0)
-					if walletapi.Connected && wallet != nil {
-						balance, _ = wallet.Memory.Get_Balance()
-					}
-
+					balance, _ := wallet.Memory.Get_Balance()
 					amount := utils.ShiftNumber{Number: balance, Decimals: 5}.Format()
+
+					if d.balanceEditor.Text() != amount {
+						d.balanceEditor.SetText(amount)
+					}
 
 					r := op.Record(gtx.Ops)
 					amountEditor := material.Editor(th, d.balanceEditor, "")
 					amountEditor.TextSize = unit.Sp(34)
 					amountEditor.Font.Weight = font.Bold
-
-					if amountEditor.Editor.Text() != amount {
-						amountEditor.Editor.SetText(amount)
-					}
 
 					dims := amountEditor.Layout(gtx)
 					c := r.Stop()
