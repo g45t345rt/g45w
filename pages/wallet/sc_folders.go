@@ -813,9 +813,7 @@ func NewFolderMenuSelect() *FolderMenuSelect {
 			for _, item := range items {
 				add := true
 				switch item.Key {
-				case "rename_folder":
-					add = page_instance.pageSCFolders.currentFolder != nil
-				case "delete_folder":
+				case "rename_folder", "delete_folder":
 					add = page_instance.pageSCFolders.currentFolder != nil
 				case "view_grid":
 					add = settings.App.FolderLayout == settings.FolderLayoutList

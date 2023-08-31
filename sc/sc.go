@@ -28,14 +28,11 @@ func CheckType(code string) SCType {
 	hashString := hex.EncodeToString(hashSum)
 
 	switch hashString {
-	case g45_sc.G45_NFT_PUBLIC_SHA256:
-	case g45_sc.G45_NFT_PRIVATE_SHA256:
+	case g45_sc.G45_NFT_PUBLIC_SHA256, g45_sc.G45_NFT_PRIVATE_SHA256:
 		return G45_NFT_TYPE
-	case g45_sc.G45_FAT_PUBLIC_SHA256:
-	case g45_sc.G45_FAT_PRIVATE_SHA256:
+	case g45_sc.G45_FAT_PUBLIC_SHA256, g45_sc.G45_FAT_PRIVATE_SHA256:
 		return G45_FAT_TYPE
-	case g45_sc.G45_AT_PUBLIC_SHA256:
-	case g45_sc.G45_AT_PRIVATE_SHA256:
+	case g45_sc.G45_AT_PUBLIC_SHA256, g45_sc.G45_AT_PRIVATE_SHA256:
 		return G45_AT_TYPE
 	case g45_sc.G45_C_SHA256:
 		return G45_C_TYPE

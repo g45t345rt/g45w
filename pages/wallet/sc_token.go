@@ -1,11 +1,14 @@
 package page_wallet
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"image"
+	"strconv"
 
 	"gioui.org/font"
+	"gioui.org/io/clipboard"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -15,6 +18,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -40,16 +44,18 @@ type PageSCToken struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonOpenMenu     *components.Button
-	tokenMenuSelect    *TokenMenuSelect
-	sendReceiveButtons *SendReceiveButtons
-	confirmRemoveToken *prefabs.Confirm
-	tabBars            *components.TabBars
-	txBar              *TxBar
-	getTransfersParams wallet_manager.GetTransfersParams
-	txItems            []*TxListItem
-	tokenInfo          *TokenInfoList
-	balanceContainer   *BalanceContainer
+	buttonOpenMenu      *components.Button
+	tokenMenuSelect     *TokenMenuSelect
+	sendReceiveButtons  *SendReceiveButtons
+	confirmRemoveToken  *prefabs.Confirm
+	tabBars             *components.TabBars
+	txBar               *TxBar
+	getTransfersParams  wallet_manager.GetTransfersParams
+	txItems             []*TxListItem
+	tokenInfo           *TokenInfoList
+	balanceContainer    *BalanceContainer
+	g45DisplayContainer *G45DisplayContainer
+	buttonCopySCID      *components.Button
 
 	token      *wallet_manager.Token
 	tokenImage *prefabs.ImageHoverClick
@@ -95,6 +101,7 @@ func NewPageSCToken() *PageSCToken {
 	txBar := NewTxBar()
 
 	balanceContainer := NewBalanceContainer()
+	g45DisplayContainer := NewG45DisplayContainer()
 
 	confirmRemoveToken := prefabs.NewConfirm(layout.Center)
 	app_instance.Router.AddLayout(router.KeyLayout{
@@ -108,19 +115,26 @@ func NewPageSCToken() *PageSCToken {
 		},
 	})
 
+	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
+	buttonCopySCID := components.NewButton(components.ButtonStyle{
+		Icon: copyIcon,
+	})
+
 	return &PageSCToken{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonOpenMenu:     buttonOpenMenu,
-		tokenMenuSelect:    NewTokenMenuSelect(),
-		tokenImage:         image,
-		scIdEditor:         scIdEditor,
-		sendReceiveButtons: sendReceiveButtons,
-		confirmRemoveToken: confirmRemoveToken,
-		tabBars:            tabBars,
-		txBar:              txBar,
-		balanceContainer:   balanceContainer,
+		buttonOpenMenu:      buttonOpenMenu,
+		tokenMenuSelect:     NewTokenMenuSelect(),
+		tokenImage:          image,
+		scIdEditor:          scIdEditor,
+		sendReceiveButtons:  sendReceiveButtons,
+		confirmRemoveToken:  confirmRemoveToken,
+		tabBars:             tabBars,
+		txBar:               txBar,
+		balanceContainer:    balanceContainer,
+		g45DisplayContainer: g45DisplayContainer,
+		buttonCopySCID:      buttonCopySCID,
 
 		list: list,
 	}
@@ -140,14 +154,33 @@ func (p *PageSCToken) Enter() {
 
 	page_instance.header.Title = func() string { return p.token.Name }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
-		scId := utils.ReduceTxId(p.token.SCID)
-		if p.token.Symbol.Valid {
-			scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
+		if p.buttonCopySCID.Clicked() {
+			clipboard.WriteOp{
+				Text: p.token.SCID,
+			}.Add(gtx.Ops)
+			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Smart Contract ID copied to clipboard"))
+			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
-		lbl := material.Label(th, unit.Sp(16), scId)
-		lbl.Color = theme.Current.TextMuteColor
-		return lbl.Layout(gtx)
+		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				scId := utils.ReduceTxId(p.token.SCID)
+				if p.token.Symbol.Valid {
+					scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
+				}
+
+				lbl := material.Label(th, unit.Sp(16), scId)
+				lbl.Color = theme.Current.TextMuteColor
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Max.X = gtx.Dp(18)
+				gtx.Constraints.Max.Y = gtx.Dp(18)
+				p.buttonCopySCID.Style.Colors = theme.Current.ModalButtonColors
+				return p.buttonCopySCID.Layout(gtx, th)
+			}),
+		)
 	}
 	page_instance.header.ButtonRight = p.buttonOpenMenu
 	p.scIdEditor.SetText(p.token.SCID)
@@ -181,6 +214,8 @@ func (p *PageSCToken) SetToken(token *wallet_manager.Token) {
 	p.token = token
 	p.token.RefreshImageOp()
 	p.balanceContainer.SetToken(p.token)
+	p.g45DisplayContainer.SetToken(p.token)
+	p.g45DisplayContainer.Load()
 	p.LoadTxs()
 }
 
@@ -351,6 +386,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							editor := material.Editor(th, p.scIdEditor, "")
+							editor.TextSize = unit.Sp(14)
 							return editor.Layout(gtx)
 						}),
 					)
@@ -368,6 +404,13 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			}),
 		)
 	})
+
+	switch p.token.StandardType {
+	case sc.G45_AT_TYPE, sc.G45_FAT_TYPE, sc.G45_NFT_TYPE:
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.g45DisplayContainer.Layout(gtx, th)
+		})
+	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return p.balanceContainer.Layout(gtx, th)
@@ -511,13 +554,9 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 					add = !isFav
 				case "remove_favorite":
 					add = isFav
-				case "g45_display_nft":
+				case "g45_display_nft", "g45_retrieve_nft":
 					add = standardType == sc.G45_NFT_TYPE
-				case "g45_retrieve_nft":
-					add = standardType == sc.G45_NFT_TYPE
-				case "g45_display_tokens":
-					add = standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE
-				case "g45_retrieve_tokens":
+				case "g45_display_tokens", "g45_retrieve_tokens":
 					add = standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE
 				}
 
@@ -678,4 +717,127 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 			return dims
 		}),
 	)
+}
+
+type G45DisplayContainer struct {
+	token        *wallet_manager.Token
+	ownerEditor  *widget.Editor
+	amountEditor *widget.Editor
+}
+
+func NewG45DisplayContainer() *G45DisplayContainer {
+	return &G45DisplayContainer{
+		ownerEditor:  new(widget.Editor),
+		amountEditor: new(widget.Editor),
+	}
+}
+
+func (d *G45DisplayContainer) SetToken(token *wallet_manager.Token) {
+	d.token = token
+}
+
+func (d *G45DisplayContainer) Load() error {
+	switch d.token.StandardType {
+	case sc.G45_NFT_TYPE:
+		var result rpc.GetSC_Result
+		err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+			SCID:       d.token.SCID,
+			Code:       false,
+			Variables:  false,
+			KeysString: []string{"owner"},
+		}, &result)
+		if err != nil {
+			return err
+		}
+
+		owner, err := utils.DecodeString(result.ValuesString[0])
+		if err != nil {
+			return err
+		}
+
+		if owner != "" {
+			d.ownerEditor.SetText(owner)
+		}
+	case sc.G45_AT_TYPE:
+	case sc.G45_FAT_TYPE:
+		wallet := wallet_manager.OpenedWallet
+		addr := wallet.Memory.GetAddress().String()
+		key := fmt.Sprintf("owner_%s", addr)
+
+		var result rpc.GetSC_Result
+		err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+			SCID:       d.token.SCID,
+			Code:       false,
+			Variables:  false,
+			KeysString: []string{key},
+		}, &result)
+		if err != nil {
+			return err
+		}
+
+		amountDisplayed, _ := strconv.ParseUint(result.ValuesString[0], 10, 64)
+		amount := utils.ShiftNumber{Number: amountDisplayed, Decimals: int(d.token.Decimals)}
+		d.amountEditor.SetText(amount.Format())
+	}
+
+	return nil
+}
+
+func (d *G45DisplayContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if d.token == nil { //|| d.amountDisplayed == 0 {
+		return layout.Dimensions{}
+	}
+
+	r := op.Record(gtx.Ops)
+	dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		if d.token.StandardType == sc.G45_NFT_TYPE {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Owner"))
+					lbl.Color = theme.Current.TextMuteColor
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					editor := material.Editor(th, d.ownerEditor, "")
+					editor.Font.Weight = font.Bold
+					editor.TextSize = unit.Sp(16)
+
+					if d.ownerEditor.Text() == "" {
+						d.ownerEditor.SetText(lang.Translate("unknown"))
+					}
+
+					return editor.Layout(gtx)
+				}),
+			)
+		}
+
+		if d.token.StandardType == sc.G45_AT_TYPE ||
+			d.token.StandardType == sc.G45_FAT_TYPE {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Amount Displayed"))
+					lbl.Color = theme.Current.TextMuteColor
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					editor := material.Editor(th, d.amountEditor, "")
+					editor.Font.Weight = font.Bold
+					editor.TextSize = unit.Sp(20)
+					return editor.Layout(gtx)
+				}),
+			)
+		}
+
+		return layout.Dimensions{}
+	})
+	c := r.Stop()
+
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
+		clip.UniformRRect(
+			image.Rectangle{Max: dims.Size},
+			gtx.Dp(15),
+		).Op(gtx.Ops))
+
+	c.Add(gtx.Ops)
+	return dims
 }
