@@ -168,7 +168,7 @@ func (p *PageServiceNames) submitForm() error {
 		return fmt.Errorf("name cannot be empty")
 	}
 
-	if len(name) < 5 {
+	if len(name) < 6 {
 		return fmt.Errorf("name must be at least 6 characters")
 	}
 

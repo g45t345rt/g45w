@@ -1,6 +1,8 @@
 package g45_sc
 
-import "github.com/g45t345rt/g45w/utils"
+import (
+	"github.com/g45t345rt/g45w/utils"
+)
 
 var G45_NFT_PRIVATE_SHA256 = "85ba16b77cbd4cfb3ba5690d74e849c2080905075bd87af29cbbb14f33bae2bd"
 var G45_NFT_PUBLIC_SHA256 = ""

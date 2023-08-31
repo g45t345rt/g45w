@@ -21,6 +21,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/utils"
 
 	"database/sql"
 
@@ -464,7 +465,12 @@ func (w *Wallet) BuildTransaction(transfers []rpc.Transfer, ringsize uint64, scA
 	for asset, amount := range assetAmounts {
 		balance, _ := w.Memory.Get_Balance_scid(asset)
 		if amount > balance {
-			err = fmt.Errorf("you can't send more than you have")
+			if asset.IsZero() {
+				err = fmt.Errorf("you don't have enough Dero")
+			} else {
+				err = fmt.Errorf("you don't have enough asset funds [%s]", utils.ReduceTxId(asset.String()))
+			}
+
 			return
 		}
 	}
@@ -607,6 +613,14 @@ func (w *Wallet) GetRandomAddress(scId crypto.Hash) (string, error) {
 	addresses, err := w.GetRandomAddresses(scId)
 	if err != nil {
 		return "", err
+	}
+
+	if len(addresses) < 10 {
+		// sample size too small
+		addresses, err = w.GetRandomAddresses(crypto.ZEROHASH)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	var addrList []string

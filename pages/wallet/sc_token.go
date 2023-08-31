@@ -14,14 +14,17 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
@@ -268,6 +271,39 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			successMsg = lang.Translate("Token removed from favorites.")
 		case "remove_token":
 			p.confirmRemoveToken.SetVisible(true)
+		case "g45_display_nft":
+			go func() {
+				scId := p.token.GetHash()
+				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+					open(build_tx_modal.TxPayload{
+						Transfers: []rpc.Transfer{
+							{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
+						},
+						Ringsize: 2,
+						SCArgs: rpc.Arguments{
+							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+							{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
+						},
+					})
+				})
+			}()
+		case "g45_retrieve_nft":
+			go func() {
+				scId := p.token.GetHash()
+				build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
+					Ringsize: 2,
+					SCArgs: rpc.Arguments{
+						{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+						{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+						{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveNFT"},
+					},
+				})
+			}()
+		case "g45_display_tokens":
+			// TODO
+		case "g45_retrieve_tokens":
+			// TODO
 		}
 
 		if err != nil {
@@ -395,6 +431,31 @@ type TokenMenuSelect struct {
 func NewTokenMenuSelect() *TokenMenuSelect {
 	var items []*prefabs.SelectListItem
 
+	// smart contract options
+	// g45_nft
+	showIcon, _ := widget.NewIcon(icons.ActionVisibility)
+	items = append(items, prefabs.NewSelectListItem("g45_display_nft", prefabs.ListItemMenuItem{
+		Icon:  showIcon,
+		Title: "Display NFT", //@lang.Translate("Display NFT")
+	}.Layout))
+
+	hideIcon, _ := widget.NewIcon(icons.ActionVisibilityOff)
+	items = append(items, prefabs.NewSelectListItem("g45_retrieve_nft", prefabs.ListItemMenuItem{
+		Icon:  hideIcon,
+		Title: "Retrieve NFT", //@lang.Translate("Retrieve NFT")
+	}.Layout))
+
+	// g45_fat, g45_at
+	items = append(items, prefabs.NewSelectListItem("g45_display_tokens", prefabs.ListItemMenuItem{
+		Icon:  showIcon,
+		Title: "Display Tokens", //@lang.Translate("Display Tokens")
+	}.Layout))
+
+	items = append(items, prefabs.NewSelectListItem("g45_retrieve_tokens", prefabs.ListItemMenuItem{
+		Icon:  hideIcon,
+		Title: "Retrieve Tokens", //@lang.Translate("Retrieve Tokens")
+	}.Layout))
+
 	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	items = append(items, prefabs.NewSelectListItem("refresh_cache", prefabs.ListItemMenuItem{
 		Icon:  refreshIcon,
@@ -434,10 +495,15 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 				add := true
 
 				token := page_instance.pageSCToken.token
-				isFav := false
 
+				isFav := false
 				if token != nil && token.IsFavorite.Valid {
 					isFav = token.IsFavorite.Bool
+				}
+
+				standardType := sc.UNKNOWN_TYPE
+				if token != nil {
+					standardType = token.StandardType
 				}
 
 				switch item.Key {
@@ -445,6 +511,14 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 					add = !isFav
 				case "remove_favorite":
 					add = isFav
+				case "g45_display_nft":
+					add = standardType == sc.G45_NFT_TYPE
+				case "g45_retrieve_nft":
+					add = standardType == sc.G45_NFT_TYPE
+				case "g45_display_tokens":
+					add = standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE
+				case "g45_retrieve_tokens":
+					add = standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE
 				}
 
 				if add {

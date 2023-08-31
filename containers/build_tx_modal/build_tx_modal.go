@@ -120,6 +120,24 @@ func LoadInstance() {
 	})
 }
 
+func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr string, open func(txPayload TxPayload))) {
+	wallet := wallet_manager.OpenedWallet
+	b.modal.SetVisible(true)
+	b.animationLoading.Reset().Start()
+	b.building = true
+
+	randomAddr, err := wallet.GetRandomAddress(scId)
+	if err != nil {
+		b.modal.SetVisible(false)
+		notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+		notification_modals.ErrorInstance.SetVisible(true, 0)
+	}
+
+	onLoad(randomAddr, func(txPayload TxPayload) {
+		b.Open(txPayload)
+	})
+}
+
 func (b *BuildTxModal) Open(txPayload TxPayload) {
 	wallet := wallet_manager.OpenedWallet
 	b.txSent = false
@@ -131,7 +149,6 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 	b.building = true
 
 	tx, _, _, err := wallet.BuildTransaction(txPayload.Transfers, txPayload.Ringsize, txPayload.SCArgs, false)
-	b.building = false
 	b.animationLoading.Pause()
 
 	if err != nil {
@@ -139,6 +156,7 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 		notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 		notification_modals.ErrorInstance.SetVisible(true, 0)
 	} else {
+		b.building = false
 		b.builtTx = tx
 		b.txFees = tx.Fees()
 	}
@@ -318,7 +336,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				)
 
-				if len(b.txPayload.Transfers) >= 1 {
+				if len(b.txPayload.Transfers) >= 1 && len(b.txPayload.SCArgs) == 0 {
 					childs = append(childs,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
