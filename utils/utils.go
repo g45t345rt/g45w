@@ -10,6 +10,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"gioui.org/f32"
@@ -156,6 +157,16 @@ type ShiftNumber struct {
 
 func (s ShiftNumber) Value() float64 {
 	return float64(s.Number) / math.Pow(10, float64(s.Decimals))
+}
+
+func (s *ShiftNumber) Parse(value string) error {
+	floatValue, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return err
+	}
+
+	s.Number = uint64(floatValue * math.Pow(10, float64(s.Decimals)))
+	return nil
 }
 
 func (s ShiftNumber) Format() string {

@@ -9,6 +9,7 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/io/clipboard"
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -26,6 +27,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -258,13 +260,13 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
-	selected, key := p.tokenMenuSelect.SelectModal.Selected()
+	selected, sKey := p.tokenMenuSelect.SelectModal.Selected()
 	if selected {
 		wallet := wallet_manager.OpenedWallet
 		var err error
 		var successMsg = ""
 
-		switch key {
+		switch sKey {
 		case "refresh_cache":
 			wallet.ResetBalanceResult(p.token.SCID)
 			successMsg = lang.Translate("Cache refreshed.")
@@ -326,10 +328,56 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 					},
 				})
 			}()
-		case "g45_display_tokens":
-			// TODO
-		case "g45_retrieve_tokens":
-			// TODO
+		case "g45_display_token":
+			go func() {
+				txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
+				for txt := range txtChan {
+					amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
+					err := amount.Parse(txt)
+					if err != nil {
+						return
+					}
+
+					scId := p.token.GetHash()
+					build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+						open(build_tx_modal.TxPayload{
+							Transfers: []rpc.Transfer{
+								{SCID: scId, Destination: randomAddr, Burn: amount.Number},
+							},
+							Ringsize: 2,
+							SCArgs: rpc.Arguments{
+								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+								{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
+							},
+						})
+					})
+				}
+			}()
+		case "g45_retrieve_token":
+			go func() {
+				txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
+				for txt := range txtChan {
+					amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
+					err := amount.Parse(txt)
+					if err != nil {
+						return
+					}
+
+					scId := p.token.GetHash()
+					build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+						open(build_tx_modal.TxPayload{
+							Ringsize: 2,
+							SCArgs: rpc.Arguments{
+								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+								{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
+								{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
+							},
+						})
+					})
+				}
+			}()
 		}
 
 		if err != nil {
@@ -480,12 +528,12 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 	}.Layout))
 
 	// g45_fat, g45_at
-	items = append(items, prefabs.NewSelectListItem("g45_display_tokens", prefabs.ListItemMenuItem{
+	items = append(items, prefabs.NewSelectListItem("g45_display_token", prefabs.ListItemMenuItem{
 		Icon:  showIcon,
 		Title: "Display Tokens", //@lang.Translate("Display Tokens")
 	}.Layout))
 
-	items = append(items, prefabs.NewSelectListItem("g45_retrieve_tokens", prefabs.ListItemMenuItem{
+	items = append(items, prefabs.NewSelectListItem("g45_retrieve_token", prefabs.ListItemMenuItem{
 		Icon:  hideIcon,
 		Title: "Retrieve Tokens", //@lang.Translate("Retrieve Tokens")
 	}.Layout))
@@ -547,7 +595,7 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 					add = isFav
 				case "g45_display_nft", "g45_retrieve_nft":
 					add = standardType == sc.G45_NFT_TYPE
-				case "g45_display_tokens", "g45_retrieve_tokens":
+				case "g45_display_token", "g45_retrieve_token":
 					add = standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE
 				}
 

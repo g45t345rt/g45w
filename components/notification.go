@@ -113,6 +113,7 @@ func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layou
 								n.textEditor.SetText(n.text)
 							}
 
+							gtx.Constraints.Max.Y = gtx.Dp(150)
 							return editor.Layout(gtx)
 						}),
 					)

@@ -17,7 +17,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/animation"
@@ -311,12 +310,13 @@ func (p *PageSendForm) prepareTx() error {
 		return fmt.Errorf(lang.Translate("Amount cannot be empty."))
 	}
 
-	amount, err := globals.ParseAmount(txtAmount.Value())
+	amount := &utils.ShiftNumber{Decimals: int(p.token.Decimals)}
+	err := amount.Parse(txtAmount.Value())
 	if err != nil {
 		return err
 	}
 
-	if amount == 0 {
+	if amount.Number == 0 {
 		return fmt.Errorf(lang.Translate("Amount must be greater than 0."))
 	}
 
@@ -403,12 +403,12 @@ func (p *PageSendForm) prepareTx() error {
 		{
 			SCID:        scId,
 			Destination: address.String(),
-			Amount:      amount,
+			Amount:      amount.Number,
 			Payload_RPC: arguments,
 		},
 	}
 
-	if scId.IsZero() && deroBalance == amount {
+	if scId.IsZero() && deroBalance == amount.Number {
 		// sender is trying to send entire Dero balance to another wallet
 		// let's calculate fees before and deduct
 
@@ -418,7 +418,7 @@ func (p *PageSendForm) prepareTx() error {
 			return err
 		}
 
-		transfers[0].Amount = amount - txFees
+		transfers[0].Amount = amount.Number - txFees
 	}
 
 	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{

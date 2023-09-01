@@ -249,10 +249,10 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 						)
 					}))
 			} else if b.builtTx != nil {
-				totalTransfer := uint64(0)
+				totalDeroTransfer := uint64(0)
 				for _, transfer := range b.txPayload.Transfers {
 					if transfer.SCID.IsZero() {
-						totalTransfer += transfer.Amount
+						totalDeroTransfer += transfer.Amount
 					}
 				}
 
@@ -299,7 +299,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 								return lbl.Layout(gtx)
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(totalTransfer)))
+								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(totalDeroTransfer)))
 								return lbl.Layout(gtx)
 							}),
 						)
@@ -402,7 +402,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 								return lbl.Layout(gtx)
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								total := globals.FormatMoney(totalTransfer + b.txFees)
+								total := globals.FormatMoney(totalDeroTransfer + b.txFees)
 								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", total))
 								return lbl.Layout(gtx)
 							}),
