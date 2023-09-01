@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -37,7 +38,6 @@ type PageSettings struct {
 	txtWalletName           *prefabs.TextField
 	txtWalletChangePassword *prefabs.TextField
 	buttonSave              *components.Button
-	modalWalletPassword     *prefabs.PasswordModal
 	buttonCleanWallet       *components.Button
 	buttonExportTxs         *components.Button
 
@@ -138,15 +138,6 @@ func NewPageSettings() *PageSettings {
 	buttonExportTxs.Label.Alignment = text.Middle
 	buttonExportTxs.Style.Font.Weight = font.Bold
 
-	modalWalletPassword := prefabs.NewPasswordModal()
-
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			modalWalletPassword.Layout(gtx, th)
-		},
-	})
-
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -166,7 +157,6 @@ func NewPageSettings() *PageSettings {
 		animationEnter:          animationEnter,
 		animationLeave:          animationLeave,
 		list:                    list,
-		modalWalletPassword:     modalWalletPassword,
 		txtWalletName:           txtWalletName,
 		txtWalletChangePassword: txtWalletChangePassword,
 		buttonSave:              buttonSave,
@@ -205,12 +195,12 @@ func (p *PageSettings) Leave() {
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if p.buttonDeleteWallet.Clicked() {
 		p.action = "delete_wallet"
-		p.modalWalletPassword.Modal.SetVisible(true)
+		password_modal.Instance.SetVisible(true)
 	}
 
 	if p.buttonSave.Clicked() {
 		p.action = "save_changes"
-		p.modalWalletPassword.Modal.SetVisible(true)
+		password_modal.Instance.SetVisible(true)
 	}
 
 	if p.buttonServiceNames.Clicked() {
@@ -220,28 +210,28 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	if p.buttonInfo.Clicked() {
 		p.action = "wallet_info"
-		p.modalWalletPassword.Modal.SetVisible(true)
+		password_modal.Instance.SetVisible(true)
 	}
 
 	if p.buttonCleanWallet.Clicked() {
 		p.action = "clean_wallet"
-		p.modalWalletPassword.Modal.SetVisible(true)
+		password_modal.Instance.SetVisible(true)
 	}
 
 	if p.buttonExportTxs.Clicked() {
 		p.action = "export_txs"
-		p.modalWalletPassword.Modal.SetVisible(true)
+		password_modal.Instance.SetVisible(true)
 	}
 
-	submitted, password := p.modalWalletPassword.Input.Submitted()
+	submitted, password := password_modal.Instance.Input.Submitted()
 	if submitted {
 		wallet := wallet_manager.OpenedWallet
 		validPassword := wallet.Memory.Check_Password(password)
 
 		if !validPassword {
-			p.modalWalletPassword.StartWrongPassAnimation()
+			password_modal.Instance.StartWrongPassAnimation()
 		} else {
-			p.modalWalletPassword.Modal.SetVisible(false)
+			password_modal.Instance.Modal.SetVisible(false)
 			err := p.submitForm(gtx, password)
 
 			if err != nil {

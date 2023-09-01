@@ -18,9 +18,9 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
-	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
@@ -38,12 +38,11 @@ type TxPayload struct {
 }
 
 type BuildTxModal struct {
-	modal               *components.Modal
-	buttonSend          *components.Button
-	modalWalletPassword *prefabs.PasswordModal
-	loadingIcon         *widget.Icon
-	animationLoading    *animation.Animation
-	buttonClose         *components.Button
+	modal            *components.Modal
+	buttonSend       *components.Button
+	loadingIcon      *widget.Icon
+	animationLoading *animation.Animation
+	buttonClose      *components.Button
 
 	building bool
 	builtTx  *transaction.Transaction
@@ -89,15 +88,6 @@ func LoadInstance() {
 	editorError.WrapPolicy = text.WrapGraphemes
 	editorError.ReadOnly = true
 
-	modalWalletPassword := prefabs.NewPasswordModal()
-
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 3,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			modalWalletPassword.Layout(gtx, th)
-		},
-	})
-
 	animationLoading := animation.NewAnimation(false,
 		gween.NewSequence(
 			gween.New(0, 1, 1, ease.Linear),
@@ -106,12 +96,11 @@ func LoadInstance() {
 	animationLoading.Sequence.SetLoop(-1)
 
 	Instance = &BuildTxModal{
-		modal:               modal,
-		buttonSend:          buttonSend,
-		modalWalletPassword: modalWalletPassword,
-		loadingIcon:         loadingIcon,
-		animationLoading:    animationLoading,
-		buttonClose:         buttonClose,
+		modal:            modal,
+		buttonSend:       buttonSend,
+		loadingIcon:      loadingIcon,
+		animationLoading: animationLoading,
+		buttonClose:      buttonClose,
 	}
 
 	app_instance.Router.AddLayout(router.KeyLayout{
@@ -198,26 +187,26 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 	wallet := wallet_manager.OpenedWallet
 
 	if b.buttonSend.Clicked() {
-		b.modalWalletPassword.Modal.SetVisible(true)
+		password_modal.Instance.SetVisible(true)
 	}
 
 	if b.buttonClose.Clicked() {
 		b.modal.SetVisible(false)
 	}
 
-	submitted, password := b.modalWalletPassword.Input.Submitted()
+	submitted, password := password_modal.Instance.Input.Submitted()
 	if submitted {
 		validPassword := wallet.Memory.Check_Password(password)
 
 		if !validPassword {
-			b.modalWalletPassword.StartWrongPassAnimation()
+			password_modal.Instance.StartWrongPassAnimation()
 		} else {
 			err := b.sendTx()
 			if err != nil {
 				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 			} else {
-				b.modalWalletPassword.Modal.SetVisible(false)
+				password_modal.Instance.SetVisible(false)
 			}
 		}
 	}

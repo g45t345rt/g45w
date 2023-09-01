@@ -19,10 +19,10 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
 	page_wallet "github.com/g45t345rt/g45w/pages/wallet"
-	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
@@ -42,7 +42,6 @@ type PageSelectWallet struct {
 	buttonWalletCreate *components.Button
 	walletList         *WalletList
 
-	modalWalletPassword        *prefabs.PasswordModal
 	modalCreateWalletSelection *CreateWalletSelectionModal
 
 	currentWallet *wallet_manager.WalletInfo
@@ -61,13 +60,11 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 	walletList := NewWalletList()
 
-	modalWalletPassword := prefabs.NewPasswordModal()
 	modalCreateWalletSelection := NewCreateWalletSelectionModal()
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 1,
 		Layout: func(gtx layout.Context, th *material.Theme) {
-			modalWalletPassword.Layout(gtx, th)
 			modalCreateWalletSelection.Layout(gtx, th)
 		},
 	})
@@ -93,7 +90,6 @@ func NewPageSelectWallet() *PageSelectWallet {
 		buttonWalletCreate: buttonWalletCreate,
 		walletList:         walletList,
 
-		modalWalletPassword:        modalWalletPassword,
 		modalCreateWalletSelection: modalCreateWalletSelection,
 	}
 }
@@ -170,7 +166,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 							for _, item := range p.walletList.items {
 								if item.Clickable.Clicked() {
 									p.currentWallet = item.wallet
-									p.modalWalletPassword.Modal.SetVisible(true)
+									password_modal.Instance.SetVisible(true)
 								}
 							}
 
@@ -193,22 +189,22 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	)
 
 	{
-		submitted, text := p.modalWalletPassword.Input.Submitted()
+		submitted, text := password_modal.Instance.Input.Submitted()
 		if submitted {
 			go func() {
-				p.modalWalletPassword.SetLoading(true)
+				password_modal.Instance.SetLoading(true)
 				err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
-				p.modalWalletPassword.SetLoading(false)
+				password_modal.Instance.SetLoading(false)
 				if err == nil {
 					wallet := wallet_manager.OpenedWallet
 					wallet.Memory.SetOnlineMode()
-					p.modalWalletPassword.Modal.SetVisible(false)
+					password_modal.Instance.SetVisible(false)
 					// important reset wallet pages to initial state
 					app_instance.Router.Pages[pages.PAGE_WALLET] = page_wallet.New()
 					app_instance.Router.SetCurrent(pages.PAGE_WALLET)
 				} else {
 					if err.Error() == "Invalid Password" {
-						p.modalWalletPassword.StartWrongPassAnimation()
+						password_modal.Instance.StartWrongPassAnimation()
 					} else {
 						//p.modalWalletPassword.Modal.SetVisible(false)
 						notification_modals.ErrorInstance.SetText("Error", err.Error())

@@ -58,14 +58,14 @@ func NewPageAppInfo() *PageAppInfo {
 	// it's used by the python script to generate language json dictionary
 	// we don't use lang.Translate directly here because it needs to be inside the Layout func or the value won't be updated after language change
 	infoItems := []*InfoListItem{
-		NewInfoListItem("App Directory", settings.AppDir),             //@lang.Translate("App Directory")
-		NewInfoListItem("Node Directory", settings.IntegratedNodeDir), //@lang.Translate("Node Directory")
-		NewInfoListItem("Wallets Directory", settings.WalletsDir),     //@lang.Translate("Wallets Directory")
-		NewInfoListItem("Cache Directory", settings.CacheDir),         //@lang.Translate("Cache Directory")
-		NewInfoListItem("Version", settings.Version),                  //@lang.Translate("Version")
-		NewInfoListItem("Git Version", settings.GitVersion),           //@lang.Translate("Git Version")
-		NewInfoListItem("Build Time", buildTime),                      //@lang.Translate("Build Time")
-		NewInfoListItem("Donation Address", settings.DonationAddress), //@lang.Translate("Donation Address")
+		NewInfoListItem("App Directory", settings.AppDir, text.WrapGraphemes),             //@lang.Translate("App Directory")
+		NewInfoListItem("Node Directory", settings.IntegratedNodeDir, text.WrapGraphemes), //@lang.Translate("Node Directory")
+		NewInfoListItem("Wallets Directory", settings.WalletsDir, text.WrapGraphemes),     //@lang.Translate("Wallets Directory")
+		NewInfoListItem("Cache Directory", settings.CacheDir, text.WrapGraphemes),         //@lang.Translate("Cache Directory")
+		NewInfoListItem("Version", settings.Version, text.WrapGraphemes),                  //@lang.Translate("Version")
+		NewInfoListItem("Git Version", settings.GitVersion, text.WrapGraphemes),           //@lang.Translate("Git Version")
+		NewInfoListItem("Build Time", buildTime, text.WrapGraphemes),                      //@lang.Translate("Build Time")
+		NewInfoListItem("Donation Address", settings.DonationAddress, text.WrapGraphemes), //@lang.Translate("Donation Address")
 	}
 
 	return &PageAppInfo{
@@ -141,9 +141,9 @@ type InfoListItem struct {
 	buttonCopy *components.Button
 }
 
-func NewInfoListItem(title string, value string) *InfoListItem {
+func NewInfoListItem(title string, value string, wrap text.WrapPolicy) *InfoListItem {
 	editor := new(widget.Editor)
-	editor.WrapPolicy = text.WrapGraphemes
+	editor.WrapPolicy = wrap
 	editor.ReadOnly = true
 	editor.SetText(value)
 

@@ -3,6 +3,7 @@ package page_wallet
 import (
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/text"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
@@ -59,9 +60,9 @@ func (p *PageWalletInfo) Enter() {
 	hexSeed := wallet.Memory.Get_Keys().Secret.Text(16)
 
 	infoItems := []*page_settings.InfoListItem{
-		page_settings.NewInfoListItem("Address", addr),     //@lang.Translate("Address")
-		page_settings.NewInfoListItem("Seed", seed),        //@lang.Translate("Seed")
-		page_settings.NewInfoListItem("Hex Seed", hexSeed), //@lang.Translate("Hex Seed")
+		page_settings.NewInfoListItem("Address", addr, text.WrapGraphemes),     //@lang.Translate("Address")
+		page_settings.NewInfoListItem("Seed", seed, text.WrapWords),            //@lang.Translate("Seed")
+		page_settings.NewInfoListItem("Hex Seed", hexSeed, text.WrapGraphemes), //@lang.Translate("Hex Seed")
 	}
 
 	p.infoItems = infoItems

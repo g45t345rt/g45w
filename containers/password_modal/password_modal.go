@@ -1,4 +1,4 @@
-package prefabs
+package password_modal
 
 import (
 	"gioui.org/f32"
@@ -9,8 +9,10 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -28,7 +30,9 @@ type PasswordModal struct {
 	Modal *components.Modal
 }
 
-func NewPasswordModal() *PasswordModal {
+var Instance *PasswordModal
+
+func LoadInstance() {
 	input := components.NewPasswordInput()
 	input.Border = widget.Border{}
 	input.Inset = layout.Inset{}
@@ -58,7 +62,7 @@ func NewPasswordModal() *PasswordModal {
 	)
 	animationLoading.Sequence.SetLoop(-1)
 
-	return &PasswordModal{
+	Instance = &PasswordModal{
 		Input:              input,
 		Modal:              modal,
 		animationWrongPass: animationWrongPass,
@@ -66,6 +70,13 @@ func NewPasswordModal() *PasswordModal {
 		iconLoading:        iconLoading,
 		animationLoading:   animationLoading,
 	}
+
+	app_instance.Router.AddLayout(router.KeyLayout{
+		DrawIndex: 3,
+		Layout: func(gtx layout.Context, th *material.Theme) {
+			Instance.Layout(gtx, th)
+		},
+	})
 }
 
 func (w *PasswordModal) SetLoading(loading bool) {
@@ -77,6 +88,10 @@ func (w *PasswordModal) SetLoading(loading bool) {
 	} else {
 		w.animationLoading.Pause()
 	}
+}
+
+func (w *PasswordModal) SetVisible(visible bool) {
+	w.Modal.SetVisible(visible)
 }
 
 func (w *PasswordModal) StartWrongPassAnimation() {
