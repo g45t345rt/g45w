@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gioui.org/font"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -22,6 +23,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -45,14 +47,12 @@ type PageSCFolders struct {
 	list               *widget.List
 	buttonOpenMenu     *components.Button
 	folderMenuSelect   *FolderMenuSelect
-	createFolderModal  *CreateFolderModal
 	buttonFolderGoBack *components.Button
 
-	currentFolder *wallet_manager.TokenFolder // nil is root
-	folderCount   int
-	tokenCount    int
-	folderPath    string
-	//viewLayout      string // "grid", "list"
+	currentFolder   *wallet_manager.TokenFolder // nil is root
+	folderCount     int
+	tokenCount      int
+	folderPath      string
 	gridColumnCount int
 }
 
@@ -81,22 +81,12 @@ func NewPageSCFolders() *PageSCFolders {
 		Icon: backIcon,
 	})
 
-	createFolderModal := NewCreateFolderModal()
-
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			createFolderModal.Layout(gtx, th)
-		},
-	})
-
 	page := &PageSCFolders{
 		animationEnter:     animationEnter,
 		animationLeave:     animationLeave,
 		list:               list,
 		buttonOpenMenu:     buttonOpenMenu,
 		folderMenuSelect:   NewFolderMenuSelect(),
-		createFolderModal:  createFolderModal,
 		buttonFolderGoBack: buttonFolderGoBack,
 	}
 
@@ -223,9 +213,9 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		p.folderMenuSelect.SelectModal.Modal.SetVisible(true)
 	}
 
-	selected, key := p.folderMenuSelect.SelectModal.Selected()
+	selected, sKey := p.folderMenuSelect.SelectModal.Selected()
 	if selected {
-		switch key {
+		switch sKey {
 		case "add_token":
 			page_instance.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
 			page_instance.header.AddHistory(PAGE_ADD_SC_FORM)
@@ -233,11 +223,53 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			page_instance.pageRouter.SetCurrent(PAGE_SCAN_COLLECTION)
 			page_instance.header.AddHistory(PAGE_SCAN_COLLECTION)
 		case "new_folder":
-			p.createFolderModal.setFolder(nil)
-			p.createFolderModal.modal.SetVisible(true)
+			wallet := wallet_manager.OpenedWallet
+			currentFolder := page_instance.pageSCFolders.currentFolder
+
+			go func() {
+				txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter folder name"), key.HintText)
+				for folderName := range txtChan {
+					tokenFolder := wallet_manager.TokenFolder{Name: folderName}
+					if currentFolder != nil {
+						parentId := sql.NullInt64{Int64: currentFolder.ID, Valid: true}
+						tokenFolder.ParentId = parentId
+					}
+
+					err := wallet.InsertFolderToken(tokenFolder)
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
+						page_instance.pageSCFolders.Load()
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New folder created."))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					}
+				}
+			}()
 		case "rename_folder":
-			p.createFolderModal.setFolder(p.currentFolder)
-			p.createFolderModal.modal.SetVisible(true)
+			go func() {
+				wallet := wallet_manager.OpenedWallet
+				currentFolder := page_instance.pageSCFolders.currentFolder
+
+				txtChan := prompt_modal.Instance.Open(currentFolder.Name, lang.Translate("Rename folder"), key.HintText)
+				for folderName := range txtChan {
+					err := wallet.UpdateFolderToken(wallet_manager.TokenFolder{
+						ID:       currentFolder.ID,
+						Name:     folderName,
+						ParentId: currentFolder.ParentId,
+					})
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
+						page_instance.pageSCFolders.Load()
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Folder renamed."))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					}
+
+					currentFolder.Name = folderName
+				}
+			}()
 		case "view_list":
 			p.SetLayout(settings.FolderLayoutList)
 		case "view_grid":
@@ -433,131 +465,6 @@ func (p *PageSCFolders) changeFolder(id sql.NullInt64) error {
 	}
 
 	return p.Load()
-}
-
-type CreateFolderModal struct {
-	folder        *wallet_manager.TokenFolder
-	modal         *components.Modal
-	txtFolderName *components.Input
-}
-
-func NewCreateFolderModal() *CreateFolderModal {
-	modal := components.NewModal(components.ModalStyle{
-		CloseOnOutsideClick: true,
-		CloseOnInsideClick:  false,
-		Direction:           layout.Center,
-		Rounded: components.Rounded{
-			SW: unit.Dp(10), SE: unit.Dp(10),
-			NW: unit.Dp(10), NE: unit.Dp(10),
-		},
-		Animation: components.NewModalAnimationScaleBounce(),
-	})
-
-	txtFolderName := components.NewInput()
-	txtFolderName.Border = widget.Border{}
-	txtFolderName.Inset = layout.Inset{}
-	txtFolderName.TextSize = unit.Sp(20)
-
-	return &CreateFolderModal{
-		modal:         modal,
-		txtFolderName: txtFolderName,
-	}
-}
-
-func (c *CreateFolderModal) addFolder(name string) error {
-	if name == "" {
-		return fmt.Errorf("name is empty")
-	}
-
-	wallet := wallet_manager.OpenedWallet
-
-	tokenFolder := wallet_manager.TokenFolder{Name: name}
-	currentFolder := page_instance.pageSCFolders.currentFolder
-	if currentFolder != nil {
-		parentId := sql.NullInt64{Int64: currentFolder.ID, Valid: true}
-		tokenFolder.ParentId = parentId
-	}
-
-	return wallet.InsertFolderToken(tokenFolder)
-}
-
-func (c *CreateFolderModal) renameFolder(name string) error {
-	if name == "" {
-		return fmt.Errorf("name is empty")
-	}
-
-	wallet := wallet_manager.OpenedWallet
-	err := wallet.UpdateFolderToken(wallet_manager.TokenFolder{
-		ID:       c.folder.ID,
-		Name:     name,
-		ParentId: c.folder.ParentId,
-	})
-	if err != nil {
-		return err
-	}
-
-	c.folder.Name = name
-	return nil
-}
-
-func (c *CreateFolderModal) setFolder(folder *wallet_manager.TokenFolder) {
-	c.folder = folder
-
-	if c.folder != nil {
-		name := c.folder.Name
-		c.txtFolderName.SetValue(name)
-		c.txtFolderName.Editor.SetCaret(len(name), len(name)) // move caret at the end
-	} else {
-		c.txtFolderName.SetValue("")
-	}
-}
-
-func (c *CreateFolderModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	for _, e := range c.txtFolderName.Editor.Events() {
-		e, ok := e.(widget.SubmitEvent)
-		if ok {
-			successMsg := ""
-			var err error
-
-			if c.folder == nil {
-				err = c.addFolder(e.Text)
-				successMsg = lang.Translate("New folder created.")
-			} else {
-				err = c.renameFolder(e.Text)
-				successMsg = lang.Translate("Folder renamed.")
-			}
-
-			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			} else {
-				c.txtFolderName.SetValue("")
-				c.modal.SetVisible(false)
-				page_instance.pageSCFolders.Load()
-				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
-				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			}
-		}
-	}
-
-	if c.modal.Visible {
-		if !c.txtFolderName.Editor.Focused() {
-			c.txtFolderName.Editor.Focus()
-		}
-	}
-
-	c.modal.Style.Colors = theme.Current.ModalColors
-	return c.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
-		return layout.Inset{
-			Top: unit.Dp(20), Bottom: unit.Dp(20),
-			Left: unit.Dp(20), Right: unit.Dp(20),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Min.X = gtx.Dp(200)
-			gtx.Constraints.Max.X = gtx.Dp(200)
-			c.txtFolderName.Colors = theme.Current.InputColors
-			return c.txtFolderName.Layout(gtx, th, lang.Translate("Enter folder name"))
-		})
-	})
 }
 
 type TokenFolderItem struct {

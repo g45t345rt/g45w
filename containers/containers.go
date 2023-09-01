@@ -8,6 +8,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/password_modal"
+	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 )
@@ -22,4 +23,5 @@ func Load() {
 	qrcode_scan_modal.LoadInstance()
 	confirm_modal.LoadInstance()
 	password_modal.LoadInstance()
+	prompt_modal.LoadInstance()
 }
