@@ -15,12 +15,12 @@ import (
 	"gioui.org/widget/material"
 	"gioui.org/x/camera"
 	"github.com/deroproject/derohe/globals"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/containers"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/lookup_table"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/pages"
 	page_node "github.com/g45t345rt/g45w/pages/node"
@@ -115,7 +115,12 @@ func runApp() error {
 		}
 
 		loadState.SetStatus(lang.Translate("Loading lookup table"), nil)
-		walletapi.Initialize_LookupTable(1, 1<<21)
+		//walletapi.Initialize_LookupTable(1, 1<<21)
+		err = lookup_table.Load()
+		if err != nil {
+			loadState.SetStatus("", err)
+			return
+		}
 
 		loadState.SetStatus(lang.Translate("Loading app data"), nil)
 		err = app_db.Load()
