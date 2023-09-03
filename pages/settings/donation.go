@@ -262,10 +262,18 @@ func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					return fmt.Errorf("wallet is not opened")
 				}
 
+				if p.txtAmount.Value() == "" {
+					return fmt.Errorf("amount is empty")
+				}
+
 				amount := utils.ShiftNumber{Decimals: 5}
 				err := amount.Parse(p.txtAmount.Value())
 				if err != nil {
 					return err
+				}
+
+				if amount.Number == 0 {
+					return fmt.Errorf("amount must be greater than 0")
 				}
 
 				ringsize := uint64(2)

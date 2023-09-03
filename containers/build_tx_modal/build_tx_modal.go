@@ -252,7 +252,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 				totalDeroTransfer := uint64(0)
 				for _, transfer := range b.txPayload.Transfers {
 					if transfer.SCID.IsZero() {
-						totalDeroTransfer += transfer.Amount
+						totalDeroTransfer += transfer.Amount + transfer.Burn
 					}
 				}
 
