@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
@@ -37,12 +38,7 @@ type PageTransaction struct {
 	senderDestinationEditor *widget.Editor
 	blockHashEditor         *widget.Editor
 	proofEditor             *widget.Editor
-	amountEditor            *widget.Editor
-	burnEditor              *widget.Editor
-	feesEditor              *widget.Editor
-	dateEditor              *widget.Editor
-	timeAgoEditor           *widget.Editor
-	blockHeightEditor       *widget.Editor
+	infoRows                []*prefabs.InfoRow
 
 	payloadArgInfoList []PayloadArgInfo
 
@@ -67,6 +63,11 @@ func NewPageTransaction() *PageTransaction {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	var infoRows []*prefabs.InfoRow
+	for i := 0; i < 6; i++ {
+		infoRows = append(infoRows, prefabs.NewInfoRow())
+	}
+
 	return &PageTransaction{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -76,12 +77,7 @@ func NewPageTransaction() *PageTransaction {
 		senderDestinationEditor: &widget.Editor{ReadOnly: true},
 		blockHashEditor:         &widget.Editor{ReadOnly: true},
 		proofEditor:             &widget.Editor{ReadOnly: true},
-		amountEditor:            &widget.Editor{ReadOnly: true},
-		burnEditor:              &widget.Editor{ReadOnly: true},
-		feesEditor:              &widget.Editor{ReadOnly: true},
-		dateEditor:              &widget.Editor{ReadOnly: true},
-		timeAgoEditor:           &widget.Editor{ReadOnly: true},
-		blockHeightEditor:       &widget.Editor{ReadOnly: true},
+		infoRows:                infoRows,
 
 		txTypeImg: txTypeImg,
 	}
@@ -97,12 +93,6 @@ func (p *PageTransaction) Clear() {
 	p.senderDestinationEditor.SetText("")
 	p.blockHashEditor.SetText("")
 	p.proofEditor.SetText("")
-	p.amountEditor.SetText("")
-	p.feesEditor.SetText("")
-	p.burnEditor.SetText("")
-	p.dateEditor.SetText("")
-	p.timeAgoEditor.SetText("")
-	p.blockHeightEditor.SetText("")
 }
 
 func (p *PageTransaction) Enter() {
@@ -128,19 +118,6 @@ func (p *PageTransaction) Enter() {
 
 	p.blockHashEditor.SetText(p.entry.BlockHash)
 	p.proofEditor.SetText(p.entry.Proof)
-
-	amount := globals.FormatMoney(p.entry.Amount)
-	p.amountEditor.SetText(amount)
-	fees := globals.FormatMoney(p.entry.Fees)
-	p.feesEditor.SetText(fees)
-	burn := globals.FormatMoney(p.entry.Burn)
-	p.burnEditor.SetText(burn)
-	date := p.entry.Time.Format("2006-01-02 15:04")
-	p.dateEditor.SetText(date)
-	timeAgo := lang.TimeAgo(p.entry.Time)
-	p.timeAgoEditor.SetText(timeAgo)
-	blockHeight := fmt.Sprint(p.entry.Height)
-	p.blockHeightEditor.SetText(blockHeight)
 
 	page_instance.header.Title = func() string { return lang.Translate("Transaction") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -264,12 +241,30 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			InfoRowLayout{Editor: p.amountEditor}.Layout(gtx, th, lang.Translate("Amount")),
-			InfoRowLayout{Editor: p.feesEditor}.Layout(gtx, th, lang.Translate("Fees")),
-			InfoRowLayout{Editor: p.burnEditor}.Layout(gtx, th, lang.Translate("Burn")),
-			InfoRowLayout{Editor: p.blockHeightEditor}.Layout(gtx, th, lang.Translate("Block Height")),
-			InfoRowLayout{Editor: p.dateEditor}.Layout(gtx, th, lang.Translate("Date")),
-			InfoRowLayout{Editor: p.timeAgoEditor}.Layout(gtx, th, lang.Translate("Time")),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				amount := globals.FormatMoney(p.entry.Amount)
+				return p.infoRows[0].Layout(gtx, th, lang.Translate("Amount"), amount)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				fees := globals.FormatMoney(p.entry.Fees)
+				return p.infoRows[1].Layout(gtx, th, lang.Translate("Fees"), fees)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				burn := globals.FormatMoney(p.entry.Burn)
+				return p.infoRows[2].Layout(gtx, th, lang.Translate("Burn"), burn)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				blockHeight := fmt.Sprint(p.entry.Height)
+				return p.infoRows[3].Layout(gtx, th, lang.Translate("Block Height"), blockHeight)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				date := p.entry.Time.Format("2006-01-02 15:04")
+				return p.infoRows[4].Layout(gtx, th, lang.Translate("Date"), date)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				timeAgo := lang.TimeAgo(p.entry.Time)
+				return p.infoRows[5].Layout(gtx, th, lang.Translate("Time"), timeAgo)
+			}),
 		)
 	})
 
@@ -377,25 +372,4 @@ func (p *PayloadArgInfo) Layout(gtx layout.Context, th *material.Theme) layout.D
 			return editor.Layout(gtx)
 		}),
 	)
-}
-
-type InfoRowLayout struct {
-	Editor *widget.Editor
-}
-
-func (i InfoRowLayout) Layout(gtx layout.Context, th *material.Theme, title string) layout.FlexChild {
-	return layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				lbl := material.Label(th, unit.Sp(16), title)
-				lbl.Font.Weight = font.Bold
-				lbl.Color = theme.Current.TextMuteColor
-				return lbl.Layout(gtx)
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				editor := material.Editor(th, i.Editor, "")
-				return editor.Layout(gtx)
-			}),
-		)
-	})
 }

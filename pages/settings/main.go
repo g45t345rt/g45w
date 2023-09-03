@@ -11,6 +11,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -33,6 +34,7 @@ type PageMain struct {
 	themeSelector     *prefabs.ThemeSelector
 	buttonInfo        *components.Button
 	buttonIpfsGateway *components.Button
+	buttonDonation    *components.Button
 }
 
 var _ router.Page = &PageMain{}
@@ -83,6 +85,22 @@ func NewPageFront() *PageMain {
 	buttonIpfsGateway.Label.Alignment = text.Middle
 	buttonIpfsGateway.Style.Font.Weight = font.Bold
 
+	donationIcon, _ := widget.NewIcon(app_icons.Donation)
+	buttonDonation := components.NewButton(components.ButtonStyle{
+		Icon:      donationIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+	})
+	buttonDonation.Label.Alignment = text.Middle
+	buttonDonation.Style.Font.Weight = font.Bold
+
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -95,6 +113,7 @@ func NewPageFront() *PageMain {
 		themeSelector:     themeSelector,
 		buttonInfo:        buttonInfo,
 		buttonIpfsGateway: buttonIpfsGateway,
+		buttonDonation:    buttonDonation,
 	}
 }
 
@@ -149,6 +168,11 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		page_instance.header.AddHistory(PAGE_IPFS_GATEWAYS)
 	}
 
+	if p.buttonDonation.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_DONATION)
+		page_instance.header.AddHistory(PAGE_DONATION)
+	}
+
 	if p.langSelector.Changed() {
 		settings.App.Language = p.langSelector.Value
 		err := settings.Save()
@@ -191,6 +215,11 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.themeSelector.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonDonation.Text = lang.Translate("Donate")
+			p.buttonDonation.Style.Colors = theme.Current.ButtonSecondaryColors
+			return p.buttonDonation.Layout(gtx, th)
 		},
 	}
 

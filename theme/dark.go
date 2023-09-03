@@ -108,7 +108,7 @@ var Dark = &Theme{
 
 	SwitchColors: SwitchColors{
 		Enabled:  whiteColor,
-		Disabled: blackColor,
-		Track:    color.NRGBA{A: 100},
+		Disabled: color.NRGBA{R: 60, G: 60, B: 60, A: 255},
+		Track:    color.NRGBA{R: 60, G: 60, B: 60, A: 255},
 	},
 }

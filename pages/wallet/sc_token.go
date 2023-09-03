@@ -614,55 +614,47 @@ func NewTokenMenuSelect() *TokenMenuSelect {
 }
 
 type TokenInfoList struct {
-	nameEditor         *widget.Editor
-	decimalsEditor     *widget.Editor
-	symbolEditor       *widget.Editor
-	maxSupplyEditor    *widget.Editor
-	standardTypeEditor *widget.Editor
+	token    *wallet_manager.Token
+	infoRows []*prefabs.InfoRow
 }
 
 func NewTokenInfoList(token *wallet_manager.Token) *TokenInfoList {
-	nameEditor := &widget.Editor{ReadOnly: true}
-	nameEditor.SetText(token.Name)
-
-	decimalsEditor := &widget.Editor{ReadOnly: true}
-	decimalsEditor.SetText(fmt.Sprint(token.Decimals))
-
-	symbolEditor := &widget.Editor{ReadOnly: true}
-	symbolEditor.SetText(fmt.Sprint(token.Symbol.String))
-
-	maxSupplyEditor := &widget.Editor{ReadOnly: true}
-	if token.MaxSupply.Valid {
-		maxSupply := utils.ShiftNumber{Number: uint64(token.MaxSupply.Int64), Decimals: int(token.Decimals)}
-		maxSupplyEditor.SetText(maxSupply.Format())
-	} else {
-		maxSupplyEditor.SetText("?")
+	var infoRows []*prefabs.InfoRow
+	for i := 0; i < 5; i++ {
+		infoRows = append(infoRows, prefabs.NewInfoRow())
 	}
 
-	standardTypeEditor := &widget.Editor{ReadOnly: true}
-	standardTypeEditor.SetText(fmt.Sprint(token.StandardType))
-
 	return &TokenInfoList{
-		decimalsEditor:     decimalsEditor,
-		nameEditor:         nameEditor,
-		symbolEditor:       symbolEditor,
-		maxSupplyEditor:    maxSupplyEditor,
-		standardTypeEditor: standardTypeEditor,
+		token:    token,
+		infoRows: infoRows,
 	}
 }
 
 func (t *TokenInfoList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	var flexChilds []layout.FlexChild
+	token := t.token
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return t.infoRows[0].Layout(gtx, th, lang.Translate("Name"), token.Name)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return t.infoRows[1].Layout(gtx, th, lang.Translate("Decimals"), fmt.Sprint(token.Decimals))
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return t.infoRows[2].Layout(gtx, th, lang.Translate("Symbol"), token.Symbol.String)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			txt := "?"
+			if token.MaxSupply.Valid {
+				maxSupply := utils.ShiftNumber{Number: uint64(token.MaxSupply.Int64), Decimals: int(token.Decimals)}
+				txt = maxSupply.Format()
+			}
 
-	flexChilds = append(flexChilds,
-		InfoRowLayout{Editor: t.nameEditor}.Layout(gtx, th, lang.Translate("Name")),
-		InfoRowLayout{Editor: t.decimalsEditor}.Layout(gtx, th, lang.Translate("Decimals")),
-		InfoRowLayout{Editor: t.symbolEditor}.Layout(gtx, th, lang.Translate("Symbol")),
-		InfoRowLayout{Editor: t.maxSupplyEditor}.Layout(gtx, th, lang.Translate("Max Supply")),
-		InfoRowLayout{Editor: t.standardTypeEditor}.Layout(gtx, th, lang.Translate("SC Standard")),
+			return t.infoRows[3].Layout(gtx, th, lang.Translate("Max Supply"), txt)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return t.infoRows[4].Layout(gtx, th, lang.Translate("SC Standard"), fmt.Sprint(token.StandardType))
+		}),
 	)
-
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx, flexChilds...)
 }
 
 type BalanceContainer struct {
