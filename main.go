@@ -87,6 +87,7 @@ func runApp() error {
 	globals.Arguments["--log-dir"] = nil
 	globals.Arguments["--help"] = false
 	globals.Arguments["--version"] = false
+	globals.InitNetwork() // this func assign mainnet/testnet config depending on globals.Arguments["--testnet"] value
 
 	var ops op.Ops
 	app_instance.Load()

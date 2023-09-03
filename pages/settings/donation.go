@@ -162,6 +162,8 @@ func (p *PageDonation) Enter() {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
+
+	p.Load()
 }
 
 func (p *PageDonation) Leave() {
@@ -181,10 +183,13 @@ type DonationResult struct {
 	TotalAnonymouslyDonated  uint64
 }
 
+var DONATION_SC = "cb02ab94fa3eb10a06397b80c158aecce84880491d4beb5b88e634ee4ae0b8f3"
+
 func (p *PageDonation) Load() error {
 	var result rpc.GetSC_Result
+
 	err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
-		SCID:      "",
+		SCID:      DONATION_SC,
 		Code:      false,
 		Variables: false,
 		KeysString: []string{
@@ -276,7 +281,7 @@ func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 						Ringsize: ringsize,
 						SCArgs: rpc.Arguments{
 							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-							{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash("")},
+							{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(DONATION_SC)},
 							{Name: "entrypoint", DataType: rpc.DataString, Value: "Donate"},
 						},
 					})
