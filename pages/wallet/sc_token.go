@@ -313,6 +313,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
 							{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
 						},
+						TokensInfo: []*wallet_manager.Token{p.token},
 					})
 				})
 			}()
@@ -350,6 +351,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
 								{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
 							},
+							TokensInfo: []*wallet_manager.Token{p.token},
 						})
 					})
 				}

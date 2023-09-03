@@ -35,6 +35,45 @@ type TxPayload struct {
 	Ringsize    uint64
 	SCArgs      rpc.Arguments
 	Description string
+	TokensInfo  []*wallet_manager.Token
+}
+
+func (t TxPayload) GetTokenInfo(scId crypto.Hash) *wallet_manager.Token {
+	for _, asset := range t.TokensInfo {
+		if crypto.HashHexToHash(asset.SCID) == scId {
+			return asset
+		}
+	}
+
+	return nil
+}
+
+func (t TxPayload) TotalDeroAmount() uint64 {
+	totalDero := uint64(0)
+	for _, transfer := range t.Transfers {
+		if transfer.SCID.IsZero() {
+			totalDero += transfer.Amount + transfer.Burn
+		}
+	}
+
+	return totalDero
+}
+
+func (t TxPayload) TotalTokensAmount() map[crypto.Hash]uint64 {
+	tokensAmount := make(map[crypto.Hash]uint64)
+
+	for _, transfer := range t.Transfers {
+		if !transfer.SCID.IsZero() {
+			_, ok := tokensAmount[transfer.SCID]
+			if !ok {
+				tokensAmount[transfer.SCID] = 0
+			}
+
+			tokensAmount[transfer.SCID] += transfer.Amount + transfer.Burn
+		}
+	}
+
+	return tokensAmount
 }
 
 type BuildTxModal struct {
@@ -249,12 +288,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 						)
 					}))
 			} else if b.builtTx != nil {
-				totalDeroTransfer := uint64(0)
-				for _, transfer := range b.txPayload.Transfers {
-					if transfer.SCID.IsZero() {
-						totalDeroTransfer += transfer.Amount + transfer.Burn
-					}
-				}
+				totalDero := b.txPayload.TotalDeroAmount()
 
 				childs = append(childs,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -299,10 +333,49 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 								return lbl.Layout(gtx)
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(totalDeroTransfer)))
+								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", globals.FormatMoney(totalDero)))
 								return lbl.Layout(gtx)
 							}),
 						)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						var flexChilds []layout.FlexChild
+
+						tokensAmount := b.txPayload.TotalTokensAmount()
+						for scId, amount := range tokensAmount {
+							amountString := fmt.Sprint(amount)
+							assetString := utils.ReduceTxId(scId.String())
+
+							token := b.txPayload.GetTokenInfo(scId)
+							if token != nil {
+								if token.Name != "" {
+									assetString += fmt.Sprintf(" (%s)", token.Name)
+								}
+
+								amountString = utils.ShiftNumber{Number: amount, Decimals: int(token.Decimals)}.Format()
+								if token.Symbol.Valid {
+									amountString += fmt.Sprintf(" %s", token.Symbol.String)
+								}
+							}
+
+							flexChilds = append(flexChilds, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+									layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+										lbl := material.Label(th, unit.Sp(14), assetString)
+										lbl.Color = theme.Current.TextMuteColor
+										lbl.Alignment = text.End
+										return lbl.Layout(gtx)
+									}),
+									layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										lbl := material.Label(th, unit.Sp(14), amountString)
+										return lbl.Layout(gtx)
+									}),
+								)
+							}))
+						}
+
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx, flexChilds...)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				)
@@ -402,7 +475,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 								return lbl.Layout(gtx)
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								total := globals.FormatMoney(totalDeroTransfer + b.txFees)
+								total := globals.FormatMoney(totalDero + b.txFees)
 								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", total))
 								return lbl.Layout(gtx)
 							}),

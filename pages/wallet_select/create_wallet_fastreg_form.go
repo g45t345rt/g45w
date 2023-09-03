@@ -118,7 +118,7 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		Inset:     layout.UniformInset(unit.Dp(10)),
 		Animation: components.NewButtonAnimationDefault(),
 	})
-	buttonStart.Style.Font.Weight = font.Bold
+	buttonStop.Style.Font.Weight = font.Bold
 
 	w := app_instance.Window
 

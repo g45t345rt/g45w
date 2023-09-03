@@ -449,26 +449,26 @@ func (w *Wallet) BuildTransaction(transfers []rpc.Transfer, ringsize uint64, scA
 
 	// get len of for Dero transfers - the fees are only applied to Dero asset statements and not other tokens
 	deroTransfers := 0
-	assetAmounts := make(map[crypto.Hash]uint64, 0)
+	assetsAmount := make(map[crypto.Hash]uint64, 0)
 	for _, transfer := range transfers {
-		_, ok := assetAmounts[transfer.SCID]
+		_, ok := assetsAmount[transfer.SCID]
 		if !ok {
-			assetAmounts[transfer.SCID] = 0
+			assetsAmount[transfer.SCID] = 0
 		}
 
-		assetAmounts[transfer.SCID] += transfer.Amount + transfer.Burn
+		assetsAmount[transfer.SCID] += transfer.Amount + transfer.Burn
 		if transfer.SCID.IsZero() {
 			deroTransfers++
 		}
 	}
 
-	for asset, amount := range assetAmounts {
+	for asset, amount := range assetsAmount {
 		balance, _ := w.Memory.Get_Balance_scid(asset)
 		if amount > balance {
 			if asset.IsZero() {
 				err = fmt.Errorf("you don't have enough Dero")
 			} else {
-				err = fmt.Errorf("you don't have enough asset funds [%s]", utils.ReduceTxId(asset.String()))
+				err = fmt.Errorf("you don't have enough asset funds of [%s]", utils.ReduceTxId(asset.String()))
 			}
 
 			return

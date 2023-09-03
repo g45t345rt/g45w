@@ -422,8 +422,9 @@ func (p *PageSendForm) prepareTx() error {
 	}
 
 	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
-		Transfers: transfers,
-		Ringsize:  ringsize,
+		Transfers:  transfers,
+		Ringsize:   ringsize,
+		TokensInfo: []*wallet_manager.Token{p.token},
 	})
 
 	return nil

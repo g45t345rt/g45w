@@ -149,6 +149,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 		Inset:     layout.UniformInset(unit.Dp(10)),
 		Animation: components.NewButtonAnimationDefault(),
 	})
+	buttonStart.Style.Font.Weight = font.Bold
 
 	stopIcon, _ := widget.NewIcon(icons.AVPause)
 	buttonStop := components.NewButton(components.ButtonStyle{
@@ -159,6 +160,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 		Inset:     layout.UniformInset(unit.Dp(10)),
 		Animation: components.NewButtonAnimationDefault(),
 	})
+	buttonStop.Style.Font.Weight = font.Bold
 
 	w := app_instance.Window
 	normalReg := registration.NewNormalReg()
