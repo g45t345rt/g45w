@@ -1,6 +1,6 @@
 replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230713210050-13aa5470dd0f
 
-replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230823193131-cf5ae4aad92e
+replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230904133952-efeff66801c5
 
 replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230826030749-686df1af5bb1
 
@@ -61,7 +61,7 @@ require (
 	github.com/cenkalti/hub v1.0.1 // indirect
 	github.com/cenkalti/rpc2 v0.0.0-20210604223624-c1acbc6ec984 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/creachadair/jrpc2 v0.36.0 // indirect
+	github.com/creachadair/jrpc2 v0.36.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/siphash v1.2.3 // indirect
 	github.com/deroproject/graviton v0.0.0-20220130070622-2c248a53b2e1 // indirect
