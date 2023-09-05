@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"math"
 	"math/rand"
@@ -44,22 +45,20 @@ type WalletInfo struct {
 }
 
 var Wallets map[string]*WalletInfo
+var WalletsErr map[string]error
 var OpenedWallet *Wallet
 
 func Load() error {
 	walletsDir := settings.WalletsDir
 	Wallets = make(map[string]*WalletInfo)
+	WalletsErr = make(map[string]error)
 
 	err := os.MkdirAll(walletsDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	return filepath.Walk(walletsDir, func(path string, info fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
+	filepath.Walk(walletsDir, func(path string, info fs.FileInfo, fileErr error) error {
 		if walletsDir == path {
 			return nil
 		}
@@ -67,23 +66,32 @@ func Load() error {
 		if info.IsDir() {
 			addr := info.Name()
 
-			path := filepath.Join(walletsDir, addr, "info.json")
-			data, err := os.ReadFile(path)
+			_, err := globals.ParseValidateAddress(addr)
 			if err != nil {
-				return err
+				return nil
+			}
+
+			fileInfo := filepath.Join(walletsDir, addr, "info.json")
+			data, err := os.ReadFile(fileInfo)
+			if err != nil {
+				WalletsErr[addr] = err
+				return nil
 			}
 
 			walletInfo := &WalletInfo{}
 			err = json.Unmarshal(data, walletInfo)
 			if err != nil {
-				return err
+				WalletsErr[addr] = err
+				return nil
 			}
 
-			Wallets[walletInfo.Addr] = walletInfo
+			Wallets[addr] = walletInfo
 		}
 
 		return nil
 	})
+
+	return nil
 }
 
 func CloseOpenedWallet() {
@@ -98,18 +106,53 @@ func CloseOpenedWallet() {
 	}
 }
 
+func GetWallet(addr string) (*WalletInfo, error) {
+	for _, walletInfo := range Wallets {
+		if walletInfo.Addr == addr {
+			return walletInfo, nil
+		}
+	}
+
+	return nil, fmt.Errorf("wallet [%s] not found", addr)
+}
+
 func OpenWallet(addr string, password string) error {
-	info, ok := Wallets[addr]
-	if !ok {
-		return fmt.Errorf("wallet [%s] does not exists", addr)
+	walletInfo, err := GetWallet(addr)
+	if err != nil {
+		return err
 	}
 
 	walletsDir := settings.WalletsDir
 	walletPath := filepath.Join(walletsDir, addr, "wallet.db")
 
+	bkCopied := false
+open_wallet:
 	memory, err := walletapi.Open_Encrypted_Wallet(walletPath, password)
 	if err != nil {
-		return err
+		if bkCopied {
+			return err
+		}
+
+		// maybe the wallet file is corrupt or does not exists
+		// we will try to use backup file and copy as last resort
+		walletBkPath := filepath.Join(walletsDir, addr, "wallet.db.bak")
+		bkFile, err := os.Open(walletBkPath)
+		if err != nil {
+			return err
+		}
+
+		walletFile, err := os.Create(walletPath)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(walletFile, bkFile)
+		if err != nil {
+			return err
+		}
+
+		bkCopied = true
+		goto open_wallet
 	}
 
 	memory.SetNetwork(globals.IsMainnet())
@@ -148,7 +191,7 @@ func OpenWallet(addr string, password string) error {
 	}
 
 	wallet := &Wallet{
-		Info:   info,
+		Info:   walletInfo,
 		Memory: memory,
 		DB:     db,
 	}
@@ -521,9 +564,13 @@ func (w *Wallet) CalculateTxFees(sizeInBytes uint64) (fees uint64) {
 
 func StoreRegistrationTx(addr string, tx *transaction.Transaction) error {
 	txHex := hex.EncodeToString(tx.Serialize())
-	wallet := Wallets[addr]
-	wallet.RegistrationTxHex = txHex
-	return saveWalletInfo(addr, wallet)
+	walletInfo, err := GetWallet(addr)
+	if err != nil {
+		return err
+	}
+
+	walletInfo.RegistrationTxHex = txHex
+	return saveWalletInfo(addr, walletInfo)
 }
 
 func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
@@ -563,8 +610,8 @@ func saveWalletInfo(addr string, walletInfo *WalletInfo) error {
 		return err
 	}
 
-	path = filepath.Join(walletsDir, addr, "info.json")
-	err = os.WriteFile(path, data, fs.ModePerm)
+	infoPath := filepath.Join(walletsDir, addr, "info.json")
+	err = os.WriteFile(infoPath, data, fs.ModePerm)
 	if err != nil {
 		return err
 	}

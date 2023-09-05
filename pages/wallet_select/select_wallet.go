@@ -18,6 +18,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -116,17 +117,22 @@ func (p *PageSelectWallet) Leave() {
 }
 
 func (p *PageSelectWallet) Load() {
-	wallets := wallet_manager.Wallets
 	items := make([]WalletListItem, 0)
-	for _, wallet := range wallets {
+	for _, walletInfo := range wallet_manager.Wallets {
 		items = append(items,
-			NewWalletListItem(wallet),
+			NewWalletListItem(walletInfo),
 		)
 	}
 
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].wallet.Timestamp < items[j].wallet.Timestamp
 	})
+
+	for addr, err := range wallet_manager.WalletsErr {
+		items = append(items,
+			NewWalletListItemErr(err, addr),
+		)
+	}
 
 	p.walletList.items = items
 }
@@ -165,8 +171,27 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 						} else {
 							for _, item := range p.walletList.items {
 								if item.Clickable.Clicked() {
-									p.currentWallet = item.wallet
-									password_modal.Instance.SetVisible(true)
+									if item.wallet != nil {
+										p.currentWallet = item.wallet
+										password_modal.Instance.SetVisible(true)
+									} else {
+										go func() {
+											yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+												Prompt: lang.Translate("Delete wallet?"),
+											})
+
+											for yes := range yesChan {
+												if yes {
+													err := wallet_manager.DeleteWallet(item.addr)
+													if err == nil {
+														notification_modals.ErrorInstance.SetText("Error", err.Error())
+														notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+														p.Load()
+													}
+												}
+											}
+										}()
+									}
 								}
 							}
 
@@ -369,6 +394,8 @@ type WalletListItem struct {
 	wallet    *wallet_manager.WalletInfo
 	Clickable *widget.Clickable
 	rounded   unit.Dp
+	err       error
+	addr      string
 }
 
 func NewWalletListItem(wallet *wallet_manager.WalletInfo) WalletListItem {
@@ -379,25 +406,54 @@ func NewWalletListItem(wallet *wallet_manager.WalletInfo) WalletListItem {
 	}
 }
 
+func NewWalletListItemErr(err error, addr string) WalletListItem {
+	return WalletListItem{
+		Clickable: &widget.Clickable{},
+		rounded:   unit.Dp(12),
+		err:       err,
+		addr:      addr,
+	}
+}
+
 func (item *WalletListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Alignment: layout.Start}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							name := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), item.wallet.Name)
-							lbl := material.Label(th, unit.Sp(18), name)
-							lbl.Font.Weight = font.Bold
-							return lbl.Layout(gtx)
-						}),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							addr := utils.ReduceAddr(item.wallet.Addr)
-							lbl := material.Label(th, unit.Sp(15), addr)
-							lbl.Color = theme.Current.TextMuteColor
-							return lbl.Layout(gtx)
-						}),
-					)
+					if item.err != nil {
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								addr := utils.ReduceAddr(item.addr)
+								lbl := material.Label(th, unit.Sp(18), addr)
+								lbl.Font.Weight = font.Bold
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								lbl := material.Label(th, unit.Sp(11), item.err.Error())
+								lbl.Color = theme.Current.TextMuteColor
+								return lbl.Layout(gtx)
+							}),
+						)
+					}
+
+					if item.wallet != nil {
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								name := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), item.wallet.Name)
+								lbl := material.Label(th, unit.Sp(18), name)
+								lbl.Font.Weight = font.Bold
+								return lbl.Layout(gtx)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								addr := utils.ReduceAddr(item.wallet.Addr)
+								lbl := material.Label(th, unit.Sp(15), addr)
+								lbl.Color = theme.Current.TextMuteColor
+								return lbl.Layout(gtx)
+							}),
+						)
+					}
+
+					return layout.Dimensions{}
 				}),
 			)
 		})
