@@ -11,6 +11,7 @@ go 1.19
 require (
 	gioui.org v0.2.0
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/chai2010/webp v1.1.1
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
 	github.com/gio-eui/ivgconv v0.0.0-20230728141110-3b7424472495
 	github.com/makiuchi-d/gozxing v0.1.1

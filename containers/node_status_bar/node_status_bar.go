@@ -99,7 +99,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 				status = fmt.Sprintf("%d / %d - %dP (%s)", walletHeight, daemonHeight, out, currentNode.Name)
 			} else {
-				status = fmt.Sprintf("%s (%s)", lang.Translate("Connection error"), currentNode.Name)
+				status = fmt.Sprintf("%s (%s)", lang.Translate("Disconnected"), currentNode.Name)
 			}
 		}
 	}

@@ -15,6 +15,7 @@ import (
 
 	"gioui.org/op/paint"
 	sq "github.com/Masterminds/squirrel"
+	_ "github.com/chai2010/webp" // support webp
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
@@ -154,7 +155,7 @@ func (token *Token) GetImageOp() (imgOp paint.ImageOp, err error) {
 			}
 		}
 
-		var img image.Image
+		var img image.Image // jpg, png, gif and webp by importing github.com/chai2010/webp
 		buffer := bytes.NewBuffer(imgData)
 		img, _, err = image.Decode(buffer)
 		if err != nil {
