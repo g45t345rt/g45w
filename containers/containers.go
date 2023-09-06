@@ -5,6 +5,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/password_modal"
@@ -24,4 +25,5 @@ func Load() {
 	confirm_modal.LoadInstance()
 	password_modal.LoadInstance()
 	prompt_modal.LoadInstance()
+	listselect_modal.LoadInstance()
 }

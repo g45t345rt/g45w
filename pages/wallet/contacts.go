@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -35,8 +36,7 @@ type PageContacts struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	contactMenuSelect *ContactMenuSelect
-	contactItems      []*ContactListItem
+	contactItems []*ContactListItem
 
 	list              *widget.List
 	buttonMenuContact *components.Button
@@ -62,15 +62,12 @@ func NewPageContacts() *PageContacts {
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 
-	contactMenuSelect := NewContactMenuSelect()
-
 	return &PageContacts{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
 		list:              list,
 		buttonMenuContact: buttonMenuContact,
-		contactMenuSelect: contactMenuSelect,
 	}
 }
 
@@ -135,98 +132,107 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	if p.buttonMenuContact.Clicked() {
-		p.contactMenuSelect.SelectModal.Modal.SetVisible(true)
-	}
+		go func() {
 
-	selected, key := p.contactMenuSelect.SelectModal.Selected()
-	if selected {
-		switch key {
-		case "add_contact":
-			page_instance.pageContactForm.ClearForm()
-			page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
-			page_instance.header.AddHistory(PAGE_CONTACT_FORM)
-			p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
-		case "export_contacts":
-			go func() {
-				exportContacts := func() error {
-					file, err := app_instance.Explorer.CreateFile("contacts.json")
-					if err != nil {
-						return err
-					}
+			addContactIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
+			downIcon, _ := widget.NewIcon(icons.FileFileDownload)
+			upIcon, _ := widget.NewIcon(icons.FileFileUpload)
 
-					wallet := wallet_manager.OpenedWallet
-					contacts, err := wallet.GetContacts(wallet_manager.GetContactsParams{})
-					if err != nil {
-						return err
-					}
+			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
+				listselect_modal.NewSelectListItem("add_contact",
+					listselect_modal.NewItemText(addContactIcon, lang.Translate("Add contact")).Layout,
+				),
+				listselect_modal.NewSelectListItem("import_contacts",
+					listselect_modal.NewItemText(downIcon, lang.Translate("Import contacts")).Layout,
+				),
+				listselect_modal.NewSelectListItem("export_contacts",
+					listselect_modal.NewItemText(upIcon, lang.Translate("Export contacts")).Layout,
+				),
+			})
 
-					data, err := json.MarshalIndent(contacts, "", " ")
-					if err != nil {
-						return err
-					}
-
-					_, err = file.Write(data)
-					if err != nil {
-						return err
-					}
-					defer file.Close()
-
-					return nil
-				}
-
-				err := exportContacts()
-				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, 0)
-				} else {
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts exported."))
-					notification_modals.SuccessInstance.SetVisible(true, 0)
-					p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
-				}
-			}()
-		case "import_contacts":
-			go func() {
-				importContacts := func() error {
-					file, err := app_instance.Explorer.ChooseFile(".json")
-					if err != nil {
-						return err
-					}
-
-					reader := utils.ReadCloser{ReadCloser: file}
-					data, err := reader.ReadAll()
-					if err != nil {
-						return err
-					}
-
-					var contacts []wallet_manager.Contact
-					err = json.Unmarshal(data, &contacts)
-					if err != nil {
-						return err
-					}
-
-					wallet := wallet_manager.OpenedWallet
-					for _, contact := range contacts {
-						err = wallet.StoreContact(contact)
+			for key := range keyChan {
+				switch key {
+				case "add_contact":
+					page_instance.pageContactForm.ClearForm()
+					page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
+					page_instance.header.AddHistory(PAGE_CONTACT_FORM)
+				case "export_contacts":
+					exportContacts := func() error {
+						file, err := app_instance.Explorer.CreateFile("contacts.json")
 						if err != nil {
 							return err
 						}
+
+						wallet := wallet_manager.OpenedWallet
+						contacts, err := wallet.GetContacts(wallet_manager.GetContactsParams{})
+						if err != nil {
+							return err
+						}
+
+						data, err := json.MarshalIndent(contacts, "", " ")
+						if err != nil {
+							return err
+						}
+
+						_, err = file.Write(data)
+						if err != nil {
+							return err
+						}
+						defer file.Close()
+
+						return nil
 					}
 
-					return nil
-				}
+					err := exportContacts()
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, 0)
+					} else {
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts exported."))
+						notification_modals.SuccessInstance.SetVisible(true, 0)
+					}
+				case "import_contacts":
+					importContacts := func() error {
+						file, err := app_instance.Explorer.ChooseFile(".json")
+						if err != nil {
+							return err
+						}
 
-				err := importContacts()
-				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, 0)
-				} else {
-					p.Load()
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts imported."))
-					notification_modals.SuccessInstance.SetVisible(true, 0)
-					p.contactMenuSelect.SelectModal.Modal.SetVisible(false)
+						reader := utils.ReadCloser{ReadCloser: file}
+						data, err := reader.ReadAll()
+						if err != nil {
+							return err
+						}
+
+						var contacts []wallet_manager.Contact
+						err = json.Unmarshal(data, &contacts)
+						if err != nil {
+							return err
+						}
+
+						wallet := wallet_manager.OpenedWallet
+						for _, contact := range contacts {
+							err = wallet.StoreContact(contact)
+							if err != nil {
+								return err
+							}
+						}
+
+						return nil
+					}
+
+					err := importContacts()
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, 0)
+					} else {
+						p.Load()
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts imported."))
+						notification_modals.SuccessInstance.SetVisible(true, 0)
+					}
 				}
-			}()
-		}
+			}
+		}()
 	}
 
 	widgets := []layout.ListElement{}
@@ -385,41 +391,4 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 
 		return dims
 	})
-}
-
-type ContactMenuSelect struct {
-	SelectModal *prefabs.SelectModal
-}
-
-func NewContactMenuSelect() *ContactMenuSelect {
-	var items []*prefabs.SelectListItem
-	addContactIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
-	items = append(items, prefabs.NewSelectListItem("add_contact", prefabs.ListItemMenuItem{
-		Icon:  addContactIcon,
-		Title: "Add contact", //@lang.Translate("Add contact")
-	}.Layout))
-
-	downIcon, _ := widget.NewIcon(icons.FileFileDownload)
-	items = append(items, prefabs.NewSelectListItem("import_contacts", prefabs.ListItemMenuItem{
-		Icon:  downIcon,
-		Title: "Import contacts", //@lang.Translate("Import contacts")
-	}.Layout))
-
-	upIcon, _ := widget.NewIcon(icons.FileFileUpload)
-	items = append(items, prefabs.NewSelectListItem("export_contacts", prefabs.ListItemMenuItem{
-		Icon:  upIcon,
-		Title: "Export contacts", //@lang.Translate("Export contacts")
-	}.Layout))
-
-	selectModal := prefabs.NewSelectModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			selectModal.Layout(gtx, th, items)
-		},
-	})
-
-	return &ContactMenuSelect{
-		SelectModal: selectModal,
-	}
 }

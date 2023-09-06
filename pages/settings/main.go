@@ -173,8 +173,8 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		page_instance.header.AddHistory(PAGE_DONATION)
 	}
 
-	if p.langSelector.Changed() {
-		settings.App.Language = p.langSelector.Value
+	if p.langSelector.Changed {
+		settings.App.Language = p.langSelector.Key
 		err := settings.Save()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -186,8 +186,8 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		}
 	}
 
-	if p.themeSelector.Changed() {
-		settings.App.Theme = p.themeSelector.Value
+	if p.themeSelector.Changed {
+		settings.App.Theme = p.themeSelector.Key
 		err := settings.Save()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())

@@ -12,20 +12,19 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/lang"
-	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type ThemeSelector struct {
-	ButtonSelect *components.Button
-	SelectModal  *SelectModal
+	buttonSelect *components.Button
+	items        []*listselect_modal.SelectListItem
 
-	changed bool
-	Value   string
+	Changed bool
+	Key     string
 }
 
 func NewThemeSelector(defaultThemeKey string) *ThemeSelector {
@@ -41,12 +40,12 @@ func NewThemeSelector(defaultThemeKey string) *ThemeSelector {
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
 
-	items := []*SelectListItem{}
+	items := []*listselect_modal.SelectListItem{}
 
 	for _, theme := range theme.Themes {
 		indicatorColor := theme.ThemeIndicatorColor
 		name := theme.Name
-		items = append(items, NewSelectListItem(theme.Key, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
+		items = append(items, listselect_modal.NewSelectListItem(theme.Key, func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					rect := image.Rectangle{Max: image.Pt(gtx.Dp(25), gtx.Dp(25))}
@@ -63,50 +62,36 @@ func NewThemeSelector(defaultThemeKey string) *ThemeSelector {
 		}))
 	}
 
-	selectModal := NewSelectModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			selectModal.Layout(gtx, th, items)
-		},
-	})
-
 	defaultTheme := lang.Translate(defaultThemeKey)
-	r := &ThemeSelector{
-		ButtonSelect: buttonSelect,
-		SelectModal:  selectModal,
-		Value:        defaultTheme,
+	return &ThemeSelector{
+		buttonSelect: buttonSelect,
+		items:        items,
+		Key:          defaultTheme,
 	}
-
-	return r
 }
 
-func (r *ThemeSelector) Changed() bool {
-	return r.changed
-}
+func (t *ThemeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	t.Changed = false
 
-func (r *ThemeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	r.changed = false
+	if t.buttonSelect.Clicked() {
+		go func() {
+			keyChan := listselect_modal.Instance.Open(t.items)
 
-	if r.ButtonSelect.Clicked() {
-		r.SelectModal.Modal.SetVisible(true)
+			for key := range keyChan {
+				t.Changed = true
+				t.Key = key
+			}
+		}()
 	}
 
-	selected, key := r.SelectModal.Selected()
-	if selected {
-		r.Value = key
-		r.changed = true
-		r.SelectModal.Modal.SetVisible(false)
-	}
-
-	value := r.Value
+	text := ""
 	for _, theme := range theme.Themes {
-		if theme.Key == r.Value {
-			value = lang.Translate(theme.Name)
+		if theme.Key == t.Key {
+			text = lang.Translate(theme.Name)
 		}
 	}
 
-	r.ButtonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Theme"), value)
-	r.ButtonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
-	return r.ButtonSelect.Layout(gtx, th)
+	t.buttonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Theme"), text)
+	t.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
+	return t.buttonSelect.Layout(gtx, th)
 }

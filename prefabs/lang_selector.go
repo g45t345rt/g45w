@@ -10,21 +10,20 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/lang"
-	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type LangSelector struct {
-	ButtonSelect *components.Button
-	SelectModal  *SelectModal
+	buttonSelect *components.Button
+	items        []*listselect_modal.SelectListItem
 
-	changed bool
-	Value   string
+	Key     string
+	Changed bool
 }
 
 func NewLangSelector(defaultLangKey string) *LangSelector {
@@ -40,7 +39,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 	buttonSelect.Label.Alignment = text.Middle
 	buttonSelect.Style.Font.Weight = font.Bold
 
-	items := []*SelectListItem{}
+	var items []*listselect_modal.SelectListItem
 
 	for _, language := range lang.Languages {
 		img, _ := assets.GetImage(language.ImgPath)
@@ -53,7 +52,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 		}
 
 		name := language.Name
-		items = append(items, NewSelectListItem(language.Key, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
+		items = append(items, listselect_modal.NewSelectListItem(language.Key, func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.X = gtx.Dp(45)
@@ -69,50 +68,33 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 		}))
 	}
 
-	selectModal := NewSelectModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			selectModal.Layout(gtx, th, items)
-		},
-	})
-
-	defaultLanguage := lang.Translate(defaultLangKey)
-	r := &LangSelector{
-		ButtonSelect: buttonSelect,
-		SelectModal:  selectModal,
-		Value:        defaultLanguage,
+	return &LangSelector{
+		buttonSelect: buttonSelect,
+		items:        items,
+		Key:          defaultLangKey,
 	}
-
-	return r
 }
 
-func (r *LangSelector) Changed() bool {
-	return r.changed
-}
-
-func (r *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	r.changed = false
-
-	if r.ButtonSelect.Clicked() {
-		r.SelectModal.Modal.SetVisible(true)
+func (l *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	l.Changed = false
+	if l.buttonSelect.Clicked() {
+		go func() {
+			keyChan := listselect_modal.Instance.Open(l.items)
+			for key := range keyChan {
+				l.Key = key
+				l.Changed = true
+			}
+		}()
 	}
 
-	selected, key := r.SelectModal.Selected()
-	if selected {
-		r.Value = key
-		r.changed = true
-		r.SelectModal.Modal.SetVisible(false)
-	}
-
-	value := r.Value
+	text := ""
 	for _, language := range lang.Languages {
-		if language.Key == r.Value {
-			value = lang.Translate(language.Name)
+		if language.Key == l.Key {
+			text = lang.Translate(language.Name)
 		}
 	}
 
-	r.ButtonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), value)
-	r.ButtonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
-	return r.ButtonSelect.Layout(gtx, th)
+	l.buttonSelect.Text = fmt.Sprintf("%s: %s", lang.Translate("Language"), text)
+	l.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
+	return l.buttonSelect.Layout(gtx, th)
 }

@@ -21,9 +21,9 @@ import (
 	"github.com/deroproject/derohe/transaction"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -209,9 +209,8 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	{
-		changed, value := p.ringSizeSelector.Changed()
-		if changed {
-			settings.App.SendRingSize = value
+		if p.ringSizeSelector.Changed {
+			settings.App.SendRingSize = p.ringSizeSelector.Size
 			settings.Save()
 		}
 	}
@@ -396,7 +395,7 @@ func (p *PageSendForm) prepareTx() error {
 	}
 
 	scId := p.token.GetHash()
-	ringsize := uint64(p.ringSizeSelector.Value)
+	ringsize := uint64(p.ringSizeSelector.Size)
 	deroBalance, _ := wallet.Memory.Get_Balance()
 
 	transfers := []rpc.Transfer{
@@ -513,41 +512,8 @@ func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.D
 	return dims
 }
 
-type AddrMenuSelect struct {
-	SelectModal *prefabs.SelectModal
-}
-
-func NewAddrMenuSelect() *AddrMenuSelect {
-	var items []*prefabs.SelectListItem
-
-	contactIcon, _ := widget.NewIcon(icons.SocialGroup)
-	items = append(items, prefabs.NewSelectListItem("contact_list", prefabs.ListItemMenuItem{
-		Icon:  contactIcon,
-		Title: "Contact list", //@lang.Translate("Contact list")
-	}.Layout))
-
-	scanIcon, _ := widget.NewIcon(app_icons.QRCodeScanner)
-	items = append(items, prefabs.NewSelectListItem("scan_qrcode", prefabs.ListItemMenuItem{
-		Icon:  scanIcon,
-		Title: "Scan QR Code", //@lang.Translate("Scan QR Code")
-	}.Layout))
-
-	selectModal := prefabs.NewSelectModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			selectModal.Layout(gtx, th, items)
-		},
-	})
-
-	return &AddrMenuSelect{
-		SelectModal: selectModal,
-	}
-}
-
 type WalletAddrInput struct {
 	txtWalletAddr       *components.Input
-	addrMenuSelect      *AddrMenuSelect
 	buttonAddrMenu      *components.Button
 	newContactClickable *widget.Clickable
 
@@ -555,7 +521,6 @@ type WalletAddrInput struct {
 }
 
 func NewWalletAddrInput() *WalletAddrInput {
-	addrMenuSelect := NewAddrMenuSelect()
 	txtWalletAddr := components.NewInput()
 
 	addrIcon, _ := widget.NewIcon(icons.SocialPeople)
@@ -571,7 +536,6 @@ func NewWalletAddrInput() *WalletAddrInput {
 
 	return &WalletAddrInput{
 		txtWalletAddr:       txtWalletAddr,
-		addrMenuSelect:      addrMenuSelect,
 		buttonAddrMenu:      buttonAddrMenu,
 		newContactClickable: new(widget.Clickable),
 	}
@@ -579,21 +543,29 @@ func NewWalletAddrInput() *WalletAddrInput {
 
 func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if p.buttonAddrMenu.Clicked() {
-		p.addrMenuSelect.SelectModal.Modal.SetVisible(true)
-	}
+		go func() {
+			contactIcon, _ := widget.NewIcon(icons.SocialGroup)
+			scanIcon, _ := widget.NewIcon(app_icons.QRCodeScanner)
 
-	{
-		selected, key := p.addrMenuSelect.SelectModal.Selected()
-		if selected {
-			switch key {
-			case "contact_list":
-				page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
-				page_instance.header.AddHistory(PAGE_CONTACTS)
-			case "scan_qrcode":
-				qrcode_scan_modal.Instance.Show()
+			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
+				listselect_modal.NewSelectListItem("contact_list",
+					listselect_modal.NewItemText(contactIcon, lang.Translate("Contact list")).Layout,
+				),
+				listselect_modal.NewSelectListItem("scan_qrcode",
+					listselect_modal.NewItemText(scanIcon, lang.Translate("Scan QR Code")).Layout,
+				),
+			})
+
+			for key := range keyChan {
+				switch key {
+				case "contact_list":
+					page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
+					page_instance.header.AddHistory(PAGE_CONTACTS)
+				case "scan_qrcode":
+					qrcode_scan_modal.Instance.Show()
+				}
 			}
-			p.addrMenuSelect.SelectModal.Modal.SetVisible(false)
-		}
+		}()
 	}
 
 	{

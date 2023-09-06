@@ -19,6 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -43,8 +44,6 @@ type PageSelectWallet struct {
 	buttonWalletCreate *components.Button
 	walletList         *WalletList
 
-	modalCreateWalletSelection *CreateWalletSelectionModal
-
 	currentWallet *wallet_manager.WalletInfo
 }
 
@@ -60,15 +59,6 @@ func NewPageSelectWallet() *PageSelectWallet {
 	))
 
 	walletList := NewWalletList()
-
-	modalCreateWalletSelection := NewCreateWalletSelectionModal()
-
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			modalCreateWalletSelection.Layout(gtx, th)
-		},
-	})
 
 	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
 	buttonWalletCreate := components.NewButton(components.ButtonStyle{
@@ -90,8 +80,6 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 		buttonWalletCreate: buttonWalletCreate,
 		walletList:         walletList,
-
-		modalCreateWalletSelection: modalCreateWalletSelection,
 	}
 }
 
@@ -201,7 +189,35 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 					layout.Rigid(layout.Spacer{Height: unit.Dp(30)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						if p.buttonWalletCreate.Clicked() {
-							p.modalCreateWalletSelection.modal.SetVisible(true)
+							go func() {
+								fastIcon, _ := widget.NewIcon(icons.ImageFlashOn)
+								newIcon, _ := widget.NewIcon(icons.ContentAddCircle)
+								diskIcon, _ := widget.NewIcon(icons.FileFolder)
+								seedIcon, _ := widget.NewIcon(icons.EditorShortText)
+
+								keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
+									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_FASTREG_FORM,
+										listselect_modal.NewItemText(fastIcon, lang.Translate("Fast registration")).Layout,
+									),
+									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_FORM,
+										listselect_modal.NewItemText(newIcon, lang.Translate("Create new wallet")).Layout,
+									),
+									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_DISK_FORM,
+										listselect_modal.NewItemText(diskIcon, lang.Translate("Recover from Disk")).Layout,
+									),
+									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_SEED_FORM,
+										listselect_modal.NewItemText(seedIcon, lang.Translate("Recover from Seed")).Layout,
+									),
+									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_HEXSEED_FORM,
+										listselect_modal.NewItemText(seedIcon, lang.Translate("Recover from Hex Seed")).Layout,
+									),
+								})
+
+								for key := range keyChan {
+									page_instance.pageRouter.SetCurrent(key)
+									page_instance.header.AddHistory(key)
+								}
+							}()
 						}
 
 						p.buttonWalletCreate.Text = lang.Translate("NEW WALLET")
@@ -241,117 +257,6 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	return layout.Dimensions{Size: gtx.Constraints.Max}
-}
-
-type CreateWalletSelectionModal struct {
-	modal *components.Modal
-	list  *widget.List
-	items []*CreateWalletListItem
-}
-
-func NewCreateWalletSelectionModal() *CreateWalletSelectionModal {
-	modal := components.NewModal(components.ModalStyle{
-		CloseOnOutsideClick: true,
-		CloseOnInsideClick:  false,
-		Direction:           layout.S,
-		Rounded:             components.UniformRounded(unit.Dp(10)),
-		Inset:               layout.UniformInset(25),
-		Animation:           components.NewModalAnimationUp(),
-	})
-
-	list := new(widget.List)
-	list.Axis = layout.Vertical
-
-	fastIcon, _ := widget.NewIcon(icons.ImageFlashOn)
-	newIcon, _ := widget.NewIcon(icons.ContentAddCircle)
-	diskIcon, _ := widget.NewIcon(icons.FileFolder)
-	seedIcon, _ := widget.NewIcon(icons.EditorShortText)
-
-	items := []*CreateWalletListItem{
-		NewCreateWalletListItem("Fast registration", fastIcon, PAGE_CREATE_WALLET_FASTREG_FORM),     //@lang.Translate("Fast registration")
-		NewCreateWalletListItem("Create new wallet", newIcon, PAGE_CREATE_WALLET_FORM),              //@lang.Translate("Create new wallet")
-		NewCreateWalletListItem("Recover from Disk", diskIcon, PAGE_CREATE_WALLET_DISK_FORM),        //@lang.Translate("Recover from Disk")
-		NewCreateWalletListItem("Recover from Seed", seedIcon, PAGE_CREATE_WALLET_SEED_FORM),        //@lang.Translate("Recover from Seed")
-		NewCreateWalletListItem("Recover from Hex Seed", seedIcon, PAGE_CREATE_WALLET_HEXSEED_FORM), //@lang.Translate("Recover from Hex Seed")
-	}
-
-	return &CreateWalletSelectionModal{
-		modal: modal,
-		list:  list,
-		items: items,
-	}
-}
-
-func (c *CreateWalletSelectionModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	c.modal.Style.Colors = theme.Current.ModalColors
-	return c.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
-		return layout.Inset{
-			Top: unit.Dp(10), Bottom: unit.Dp(10),
-			Left: unit.Dp(10), Right: unit.Dp(0),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			listStyle := material.List(th, c.list)
-
-			return listStyle.Layout(gtx, len(c.items), func(gtx layout.Context, index int) layout.Dimensions {
-				if c.items[index].clickable.Clicked() {
-					c.modal.SetVisible(false)
-
-					tag := c.items[index].routerTag
-					page_instance.pageRouter.SetCurrent(tag)
-					page_instance.header.AddHistory(tag)
-
-					op.InvalidateOp{}.Add(gtx.Ops) // make sure to invalidate if we are closing modal and changing page
-				}
-
-				return c.items[index].Layout(gtx, th)
-			})
-		})
-	})
-}
-
-type CreateWalletListItem struct {
-	text      string
-	routerTag string
-	icon      *widget.Icon
-	clickable *widget.Clickable
-}
-
-func NewCreateWalletListItem(text string, icon *widget.Icon, routerTag string) *CreateWalletListItem {
-	return &CreateWalletListItem{
-		text:      text,
-		icon:      icon,
-		routerTag: routerTag,
-		clickable: new(widget.Clickable),
-	}
-}
-
-func (c *CreateWalletListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	dims := c.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return c.icon.Layout(gtx, th.Fg)
-				}),
-				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(20), lang.Translate(c.text))
-					return lbl.Layout(gtx)
-				}),
-			)
-		})
-	})
-
-	if c.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-
-		paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
-			clip.UniformRRect(
-				image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
-				gtx.Dp(15),
-			).Op(gtx.Ops),
-		)
-	}
-
-	return dims
 }
 
 type WalletList struct {

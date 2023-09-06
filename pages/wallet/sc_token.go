@@ -21,11 +21,11 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -48,7 +48,6 @@ type PageSCToken struct {
 	animationLeave *animation.Animation
 
 	buttonOpenMenu      *components.Button
-	tokenMenuSelect     *TokenMenuSelect
 	sendReceiveButtons  *SendReceiveButtons
 	tabBars             *components.TabBars
 	txBar               *TxBar
@@ -115,7 +114,6 @@ func NewPageSCToken() *PageSCToken {
 		animationLeave: animationLeave,
 
 		buttonOpenMenu:      buttonOpenMenu,
-		tokenMenuSelect:     NewTokenMenuSelect(),
 		tokenImage:          image,
 		scIdEditor:          scIdEditor,
 		sendReceiveButtons:  sendReceiveButtons,
@@ -229,7 +227,193 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 	}
 
 	if p.buttonOpenMenu.Clickable.Clicked() {
-		p.tokenMenuSelect.SelectModal.Modal.SetVisible(true)
+		go func() {
+			showIcon, _ := widget.NewIcon(icons.ActionVisibility)
+			hideIcon, _ := widget.NewIcon(icons.ActionVisibilityOff)
+			refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+			addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
+			delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
+			editIcon, _ := widget.NewIcon(icons.ActionInput)
+			deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
+
+			var items []*listselect_modal.SelectListItem
+			token := page_instance.pageSCToken.token
+
+			isFav := false
+			if token != nil && token.IsFavorite.Valid {
+				isFav = token.IsFavorite.Bool
+			}
+
+			standardType := sc.UNKNOWN_TYPE
+			if token != nil {
+				standardType = token.StandardType
+			}
+
+			if standardType == sc.G45_NFT_TYPE {
+				items = append(items, listselect_modal.NewSelectListItem("g45_display_nft",
+					listselect_modal.NewItemText(showIcon, lang.Translate("Display NFT")).Layout,
+				))
+
+				items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_nft",
+					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve NFT")).Layout,
+				))
+			}
+
+			if standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE {
+				items = append(items, listselect_modal.NewSelectListItem("g45_display_token",
+					listselect_modal.NewItemText(showIcon, lang.Translate("Display Tokens")).Layout,
+				))
+
+				items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_token",
+					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve Tokens")).Layout,
+				))
+			}
+
+			items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
+				listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
+			))
+
+			if !isFav {
+				items = append(items, listselect_modal.NewSelectListItem("add_favorite",
+					listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
+				))
+			}
+
+			if isFav {
+				items = append(items, listselect_modal.NewSelectListItem("remove_favorite",
+					listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from favorites")).Layout,
+				))
+			}
+
+			items = append(items, listselect_modal.NewSelectListItem("edit_token",
+				listselect_modal.NewItemText(editIcon, lang.Translate("Edit token")).Layout,
+			))
+
+			items = append(items, listselect_modal.NewSelectListItem("remove_token",
+				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove token")).Layout,
+			))
+
+			keyChan := listselect_modal.Instance.Open(items)
+
+			for sKey := range keyChan {
+				wallet := wallet_manager.OpenedWallet
+				var err error
+				var successMsg = ""
+
+				switch sKey {
+				case "refresh_cache":
+					wallet.ResetBalanceResult(p.token.SCID)
+					successMsg = lang.Translate("Cache refreshed.")
+				case "add_favorite":
+					p.token.IsFavorite = sql.NullBool{Bool: true, Valid: true}
+					err = wallet.UpdateToken(*p.token)
+					successMsg = lang.Translate("Token added to favorites.")
+				case "remove_favorite":
+					p.token.IsFavorite = sql.NullBool{Bool: false, Valid: true}
+					err = wallet.UpdateToken(*p.token)
+					successMsg = lang.Translate("Token removed from favorites.")
+				case "remove_token":
+					yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+					for yes := range yesChan {
+						if yes {
+							wallet := wallet_manager.OpenedWallet
+							err := wallet.DelToken(p.token.ID)
+
+							if err != nil {
+								notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+								notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+							} else {
+								page_instance.header.GoBack()
+								notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
+								notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+							}
+						}
+					}
+				case "g45_display_nft":
+					scId := p.token.GetHash()
+					build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+						open(build_tx_modal.TxPayload{
+							Transfers: []rpc.Transfer{
+								{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
+							},
+							Ringsize: 2,
+							SCArgs: rpc.Arguments{
+								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+								{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
+							},
+							TokensInfo: []*wallet_manager.Token{p.token},
+						})
+					})
+				case "g45_retrieve_nft":
+					scId := p.token.GetHash()
+					build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
+						Ringsize: 2,
+						SCArgs: rpc.Arguments{
+							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+							{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveNFT"},
+						},
+					})
+				case "g45_display_token":
+					txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
+					for txt := range txtChan {
+						amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
+						err := amount.Parse(txt)
+						if err != nil {
+							return
+						}
+
+						scId := p.token.GetHash()
+						build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+							open(build_tx_modal.TxPayload{
+								Transfers: []rpc.Transfer{
+									{SCID: scId, Destination: randomAddr, Burn: amount.Number},
+								},
+								Ringsize: 2,
+								SCArgs: rpc.Arguments{
+									{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+									{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+									{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
+								},
+								TokensInfo: []*wallet_manager.Token{p.token},
+							})
+						})
+					}
+				case "g45_retrieve_token":
+					txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
+					for txt := range txtChan {
+						amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
+						err := amount.Parse(txt)
+						if err != nil {
+							return
+						}
+
+						scId := p.token.GetHash()
+						build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+							open(build_tx_modal.TxPayload{
+								Ringsize: 2,
+								SCArgs: rpc.Arguments{
+									{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+									{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+									{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
+									{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
+								},
+							})
+						})
+					}
+				}
+
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else if successMsg != "" {
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				}
+			}
+		}()
 	}
 
 	if p.tokenImage.Clickable.Clicked() {
@@ -257,138 +441,6 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			}
 
 			p.LoadTxs()
-		}
-	}
-
-	selected, sKey := p.tokenMenuSelect.SelectModal.Selected()
-	if selected {
-		wallet := wallet_manager.OpenedWallet
-		var err error
-		var successMsg = ""
-
-		switch sKey {
-		case "refresh_cache":
-			wallet.ResetBalanceResult(p.token.SCID)
-			successMsg = lang.Translate("Cache refreshed.")
-		case "add_favorite":
-			p.token.IsFavorite = sql.NullBool{Bool: true, Valid: true}
-			err = wallet.UpdateToken(*p.token)
-			successMsg = lang.Translate("Token added to favorites.")
-		case "remove_favorite":
-			p.token.IsFavorite = sql.NullBool{Bool: false, Valid: true}
-			err = wallet.UpdateToken(*p.token)
-			successMsg = lang.Translate("Token removed from favorites.")
-		case "remove_token":
-			go func() {
-				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
-
-				for yes := range yesChan {
-					if yes {
-						wallet := wallet_manager.OpenedWallet
-						err := wallet.DelToken(p.token.ID)
-
-						if err != nil {
-							notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-							notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						} else {
-							page_instance.header.GoBack()
-							notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
-							notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-							p.tokenMenuSelect.SelectModal.Modal.SetVisible(false)
-						}
-					}
-				}
-			}()
-		case "g45_display_nft":
-			go func() {
-				scId := p.token.GetHash()
-				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-					open(build_tx_modal.TxPayload{
-						Transfers: []rpc.Transfer{
-							{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
-						},
-						Ringsize: 2,
-						SCArgs: rpc.Arguments{
-							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-							{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
-						},
-						TokensInfo: []*wallet_manager.Token{p.token},
-					})
-				})
-			}()
-		case "g45_retrieve_nft":
-			go func() {
-				scId := p.token.GetHash()
-				build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
-					Ringsize: 2,
-					SCArgs: rpc.Arguments{
-						{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-						{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-						{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveNFT"},
-					},
-				})
-			}()
-		case "g45_display_token":
-			go func() {
-				txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
-				for txt := range txtChan {
-					amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
-					err := amount.Parse(txt)
-					if err != nil {
-						return
-					}
-
-					scId := p.token.GetHash()
-					build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-						open(build_tx_modal.TxPayload{
-							Transfers: []rpc.Transfer{
-								{SCID: scId, Destination: randomAddr, Burn: amount.Number},
-							},
-							Ringsize: 2,
-							SCArgs: rpc.Arguments{
-								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-								{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
-							},
-							TokensInfo: []*wallet_manager.Token{p.token},
-						})
-					})
-				}
-			}()
-		case "g45_retrieve_token":
-			go func() {
-				txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
-				for txt := range txtChan {
-					amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
-					err := amount.Parse(txt)
-					if err != nil {
-						return
-					}
-
-					scId := p.token.GetHash()
-					build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-						open(build_tx_modal.TxPayload{
-							Ringsize: 2,
-							SCArgs: rpc.Arguments{
-								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-								{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
-								{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
-							},
-						})
-					})
-				}
-			}()
-		}
-
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else if successMsg != "" {
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-			p.tokenMenuSelect.SelectModal.Modal.SetVisible(false)
 		}
 	}
 
@@ -506,113 +558,6 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
-}
-
-type TokenMenuSelect struct {
-	SelectModal *prefabs.SelectModal
-}
-
-func NewTokenMenuSelect() *TokenMenuSelect {
-	var items []*prefabs.SelectListItem
-
-	// smart contract options
-	// g45_nft
-	showIcon, _ := widget.NewIcon(icons.ActionVisibility)
-	items = append(items, prefabs.NewSelectListItem("g45_display_nft", prefabs.ListItemMenuItem{
-		Icon:  showIcon,
-		Title: "Display NFT", //@lang.Translate("Display NFT")
-	}.Layout))
-
-	hideIcon, _ := widget.NewIcon(icons.ActionVisibilityOff)
-	items = append(items, prefabs.NewSelectListItem("g45_retrieve_nft", prefabs.ListItemMenuItem{
-		Icon:  hideIcon,
-		Title: "Retrieve NFT", //@lang.Translate("Retrieve NFT")
-	}.Layout))
-
-	// g45_fat, g45_at
-	items = append(items, prefabs.NewSelectListItem("g45_display_token", prefabs.ListItemMenuItem{
-		Icon:  showIcon,
-		Title: "Display Tokens", //@lang.Translate("Display Tokens")
-	}.Layout))
-
-	items = append(items, prefabs.NewSelectListItem("g45_retrieve_token", prefabs.ListItemMenuItem{
-		Icon:  hideIcon,
-		Title: "Retrieve Tokens", //@lang.Translate("Retrieve Tokens")
-	}.Layout))
-
-	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-	items = append(items, prefabs.NewSelectListItem("refresh_cache", prefabs.ListItemMenuItem{
-		Icon:  refreshIcon,
-		Title: "Refresh cache", //@lang.Translate("Refresh cache")
-	}.Layout))
-
-	addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
-	items = append(items, prefabs.NewSelectListItem("add_favorite", prefabs.ListItemMenuItem{
-		Icon:  addFavIcon,
-		Title: "Add to favorites", //@lang.Translate("Add to favorites")
-	}.Layout))
-
-	delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
-	items = append(items, prefabs.NewSelectListItem("remove_favorite", prefabs.ListItemMenuItem{
-		Icon:  delFavIcon,
-		Title: "Remove from favorites", //@lang.Translate("Remove from favorites")
-	}.Layout))
-
-	editIcon, _ := widget.NewIcon(icons.ActionInput)
-	items = append(items, prefabs.NewSelectListItem("edit_token", prefabs.ListItemMenuItem{
-		Icon:  editIcon,
-		Title: "Edit token", //@lang.Translate("Edit token")
-	}.Layout))
-
-	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
-	items = append(items, prefabs.NewSelectListItem("remove_token", prefabs.ListItemMenuItem{
-		Icon:  deleteIcon,
-		Title: "Remove token", //@lang.Translate("Remove token")
-	}.Layout))
-
-	selectModal := prefabs.NewSelectModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			var filteredItems []*prefabs.SelectListItem
-			for _, item := range items {
-				add := true
-
-				token := page_instance.pageSCToken.token
-
-				isFav := false
-				if token != nil && token.IsFavorite.Valid {
-					isFav = token.IsFavorite.Bool
-				}
-
-				standardType := sc.UNKNOWN_TYPE
-				if token != nil {
-					standardType = token.StandardType
-				}
-
-				switch item.Key {
-				case "add_favorite":
-					add = !isFav
-				case "remove_favorite":
-					add = isFav
-				case "g45_display_nft", "g45_retrieve_nft":
-					add = standardType == sc.G45_NFT_TYPE
-				case "g45_display_token", "g45_retrieve_token":
-					add = standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE
-				}
-
-				if add {
-					filteredItems = append(filteredItems, item)
-				}
-			}
-
-			selectModal.Layout(gtx, th, filteredItems)
-		},
-	})
-
-	return &TokenMenuSelect{
-		SelectModal: selectModal,
-	}
 }
 
 type TokenInfoList struct {

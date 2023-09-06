@@ -11,20 +11,19 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/lang"
-	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type RingSizeSelector struct {
 	buttonSelect *components.Button
-	selectModal  *SelectModal
+	items        []*listselect_modal.SelectListItem
 
-	changed bool
-	Value   int
+	Size    int
+	Changed bool
 }
 
 func NewRingSizeSelector(defaultSize int) *RingSizeSelector {
@@ -41,53 +40,42 @@ func NewRingSizeSelector(defaultSize int) *RingSizeSelector {
 	buttonSelect.Style.Font.Weight = font.Bold
 
 	sizes := []string{"2", "4", "8", "16", "32", "64", "128"}
-	items := []*SelectListItem{}
+	items := []*listselect_modal.SelectListItem{}
 
-	for _, size := range sizes {
-		items = append(items, NewSelectListItem(size, func(gtx layout.Context, index int, th *material.Theme) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(20), sizes[index])
+	for i, size := range sizes {
+		idx := i
+		items = append(items, listselect_modal.NewSelectListItem(size, func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(20), sizes[idx])
 			return lbl.Layout(gtx)
 		}))
 	}
 
-	selectModal := NewSelectModal()
-	app_instance.Router.AddLayout(router.KeyLayout{
-		DrawIndex: 1,
-		Layout: func(gtx layout.Context, th *material.Theme) {
-			selectModal.Layout(gtx, th, items)
-		},
-	})
-
 	r := &RingSizeSelector{
 		buttonSelect: buttonSelect,
-		selectModal:  selectModal,
-		Value:        defaultSize,
+		Size:         defaultSize,
+		items:        items,
 	}
 
 	return r
 }
 
-func (r *RingSizeSelector) Changed() (bool, int) {
-	return r.changed, r.Value
-}
-
 func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	r.changed = false
+	r.Changed = false
 
 	if r.buttonSelect.Clicked() {
-		r.selectModal.Modal.SetVisible(true)
-	}
+		go func() {
+			keyChan := listselect_modal.Instance.Open(r.items)
 
-	selected, key := r.selectModal.Selected()
-	if selected {
-		v, _ := strconv.Atoi(key)
-		r.Value = v
-		r.changed = true
-		r.selectModal.Modal.SetVisible(false)
+			for key := range keyChan {
+				size, _ := strconv.Atoi(key)
+				r.Size = size
+				r.Changed = true
+			}
+		}()
 	}
 
 	text := lang.Translate("Ring size: {}")
-	text = strings.Replace(text, "{}", fmt.Sprint(r.Value), -1)
+	text = strings.Replace(text, "{}", fmt.Sprint(r.Size), -1)
 	r.buttonSelect.Text = text
 	r.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 	return r.buttonSelect.Layout(gtx, th)
