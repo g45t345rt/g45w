@@ -27,8 +27,14 @@ This change should remove a painful/unsafe step of connecting your wallet direct
 - Address book to manage contacts.
 - Support as much language as possible (11 and counting...).
 - App color schemes (dark, light, blue).
-- DApps interaction with XSWD protocol by Slixe (TODO).
-- Expose daemon/wallet API (disabled by default/TODO).
+
+## TODO
+
+- App store release (iOS app store & Google play store).
+- DApps interaction with XSWD protocol by Slixe.
+- Expose daemon/wallet API for integrated node.
+- Draggable list items (for ordering items).
+- Integrate DeroDex Swap directly by Pieswap.
 
 ## Demo
 
@@ -150,7 +156,7 @@ If you notice any errors, pls update the values in `/assets/lang` folder and cre
 
 `jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`,  
 `Lutamm`, `VastoLorde`, `rexBGcoxx`, `Kray0005`, `Apollo`, `Coose`, `Cypherpunk`, `o1o7`
-`keyper`, `Zalamender`
+`keyper`, `Zalamender`, `ArcaneSphere`
 
 ## License
 
