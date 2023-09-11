@@ -35,67 +35,7 @@ type Wallet struct {
 	DB     *sql.DB
 }
 
-/*
-type WalletInfo struct {
-	Name              string `json:"name"`
-	Addr              string `json:"addr"`
-	RegistrationTxHex string `json:"registration_tx_hex"`
-	//Data      []byte `json:"data"`
-	Timestamp int64 `json:"timestamp"`
-	//ListOrder int   `json:"order"` // save item list ordering
-}*/
-
-// var Wallets map[string]*WalletInfo
-// var WalletsErr map[string]error
 var OpenedWallet *Wallet
-
-/*
-func Load() error {
-	walletsDir := settings.WalletsDir
-	Wallets = make(map[string]*WalletInfo)
-	WalletsErr = make(map[string]error)
-
-	err := os.MkdirAll(walletsDir, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	filepath.Walk(walletsDir, func(path string, info fs.FileInfo, fileErr error) error {
-		if walletsDir == path {
-			return nil
-		}
-
-		if info.IsDir() {
-			addr := info.Name()
-
-			_, err := globals.ParseValidateAddress(addr)
-			if err != nil {
-				return nil
-			}
-
-			fileInfo := filepath.Join(walletsDir, addr, "info.json")
-			data, err := os.ReadFile(fileInfo)
-			if err != nil {
-				WalletsErr[addr] = err
-				return nil
-			}
-
-			walletInfo := &WalletInfo{}
-			err = json.Unmarshal(data, walletInfo)
-			if err != nil {
-				WalletsErr[addr] = err
-				return nil
-			}
-
-			Wallets[addr] = walletInfo
-		}
-
-		return nil
-	})
-
-	return nil
-}
-*/
 
 func CloseOpenedWallet() {
 	if OpenedWallet != nil {
@@ -108,17 +48,6 @@ func CloseOpenedWallet() {
 		OpenedWallet = nil
 	}
 }
-
-/*
-func GetWallet(addr string) (*WalletInfo, error) {
-	for _, walletInfo := range Wallets {
-		if walletInfo.Addr == addr {
-			return walletInfo, nil
-		}
-	}
-
-	return nil, fmt.Errorf("wallet [%s] not found", addr)
-}*/
 
 func OpenWallet(addr string, password string) error {
 	walletInfo, err := app_db.GetWalletInfo(addr)

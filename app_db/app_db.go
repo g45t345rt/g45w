@@ -2,6 +2,7 @@ package app_db
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -48,6 +49,11 @@ func Load() error {
 	err = initDatabaseWallets()
 	if err != nil {
 		return err
+	}
+
+	err = delWalletInfoIfNoFolder()
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	if firstLoad {

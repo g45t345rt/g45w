@@ -61,6 +61,31 @@ func initDatabaseWallets() error {
 	return nil
 }
 
+func delWalletInfoIfNoFolder() error {
+	wallets, err := GetWallets()
+	if err != nil {
+		return err
+	}
+
+	walletsDir := settings.WalletsDir
+	for _, info := range wallets {
+		walletPath := filepath.Join(walletsDir, info.Addr)
+		_, err := os.Stat(walletPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				err = DelWalletInfo(info.Addr)
+				if err != nil {
+					return err
+				}
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
+
 type JsonWalletInfo struct {
 	Name              string `json:"name"`
 	Addr              string `json:"addr"`

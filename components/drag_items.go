@@ -144,7 +144,6 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 		x := float32(0)
 		offset := f32.Affine2D{}.Offset(f32.Pt(x, l.dragPosY))
 		trans := op.Affine(offset).Push(gtx.Ops)
-		fmt.Println(l.dragItem)
 		l.dragItem.W(gtx)
 		trans.Pop()
 		pointer.CursorGrabbing.Add(gtx.Ops)
