@@ -7,9 +7,9 @@ import (
 )
 
 var Dark = &Theme{
-	Key:                 "dark",
-	Name:                "Dark", //@lang.Translate("Dark")
-	ThemeIndicatorColor: color.NRGBA{A: 255},
+	Key:            "dark",
+	Name:           "Dark", //@lang.Translate("Dark")
+	IndicatorColor: color.NRGBA{A: 255},
 
 	TextColor:            whiteColor,
 	TextMuteColor:        color.NRGBA{R: 255, G: 255, B: 255, A: 50},

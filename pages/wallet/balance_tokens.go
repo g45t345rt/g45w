@@ -56,6 +56,8 @@ type PageBalanceTokens struct {
 	txBar              *TxBar
 	txItems            []*TxListItem
 	getTransfersParams wallet_manager.GetTransfersParams
+	tokenDragItems     *components.DragItems
+	tokenList          *widget.List
 
 	list *widget.List
 }
@@ -105,6 +107,9 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	tabBars := components.NewTabBars(defaultTabKey, tabBarsItems)
 
 	txBar := NewTxBar()
+	tokenDragItems := components.NewDragItems()
+	tokenList := new(widget.List)
+	tokenList.Axis = layout.Vertical
 
 	return &PageBalanceTokens{
 		displayBalance: NewDisplayBalance(),
@@ -118,6 +123,8 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		buttonCopyAddr: buttonCopyAddr,
 		tabBars:        tabBars,
 		txBar:          txBar,
+		tokenDragItems: tokenDragItems,
+		tokenList:      tokenList,
 	}
 }
 
@@ -402,17 +409,39 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			})
 		}
 
-		for i := range p.tokenItems {
-			idx := i
-			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-				return layout.Inset{
-					Top: unit.Dp(0), Bottom: unit.Dp(15),
-					Right: unit.Dp(30), Left: unit.Dp(30),
-				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return p.tokenItems[idx].Layout(gtx, th)
+		/*
+			for i := range p.tokenItems {
+				idx := i
+				widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+					return layout.Inset{
+						Top: unit.Dp(0), Bottom: unit.Dp(15),
+						Right: unit.Dp(30), Left: unit.Dp(30),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return p.tokenItems[idx].Layout(gtx, th)
+					})
+				})
+			}*/
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return p.tokenDragItems.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+				return p.tokenList.List.Layout(gtx, len(p.tokenItems), func(gtx layout.Context, index int) layout.Dimensions {
+					p.tokenDragItems.LayoutItem(gtx, index, func(gtx layout.Context) layout.Dimensions {
+						return layout.Inset{
+							Top: unit.Dp(0), Bottom: unit.Dp(15),
+							Right: unit.Dp(30), Left: unit.Dp(30),
+						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return p.tokenItems[index].Layout(gtx, th)
+						})
+					})
+
+					return layout.Inset{
+						Top: unit.Dp(0), Bottom: unit.Dp(15),
+						Right: unit.Dp(30), Left: unit.Dp(30),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return p.tokenItems[index].Layout(gtx, th)
+					})
 				})
 			})
-		}
+		})
 	}
 
 	if p.tabBars.Key == "txs" {
@@ -786,6 +815,10 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									lbl := material.Label(th, unit.Sp(18), item.token.Name)
+									if len(item.token.Name) > 20 {
+										lbl.TextSize = unit.Sp(16)
+									}
+
 									lbl.Font.Weight = font.Bold
 									return lbl.Layout(gtx)
 								}),

@@ -15,7 +15,7 @@ import (
 
 	"gioui.org/op/paint"
 	sq "github.com/Masterminds/squirrel"
-	_ "github.com/chai2010/webp" // support webp
+
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
@@ -602,7 +602,7 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 			direction = "DESC"
 		}
 
-		query = query.OrderBy(params.OrderBy, direction)
+		query = query.OrderBy(fmt.Sprintf("%s %s", params.OrderBy, direction))
 	}
 
 	rows, err := query.RunWith(w.DB).Query()

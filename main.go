@@ -30,12 +30,13 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/g45t345rt/g45w/wallet_manager"
 
 	// add android permissions
 	_ "gioui.org/app/permission/camera"
 	_ "gioui.org/app/permission/networkstate"
 	_ "gioui.org/app/permission/storage"
+	// support webp image decode
+	//_ "github.com/chai2010/webp"
 )
 
 func loadFontCollection() ([]font.FontFace, error) {
@@ -130,12 +131,13 @@ func runApp() error {
 			return
 		}
 
-		loadState.SetStatus(lang.Translate("Loading wallets"), nil)
-		err = wallet_manager.Load()
-		if err != nil {
-			loadState.SetStatus("", err)
-			return
-		}
+		/*
+			loadState.SetStatus(lang.Translate("Loading wallets"), nil)
+			err = wallet_manager.Load()
+			if err != nil {
+				loadState.SetStatus("", err)
+				return
+			}*/
 
 		node_manager.Load() // don't check for error (e.g if current node connected successfully) and continue loading the app
 

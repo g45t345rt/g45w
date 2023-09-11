@@ -7,9 +7,9 @@ import (
 )
 
 var Blue = &Theme{
-	Key:                 "blue",
-	Name:                "Blue", //@lang.Translate("Blue")
-	ThemeIndicatorColor: color.NRGBA{B: 150, A: 255},
+	Key:            "blue",
+	Name:           "Blue", //@lang.Translate("Blue")
+	IndicatorColor: color.NRGBA{B: 150, A: 255},
 
 	TextColor:            whiteColor,
 	TextMuteColor:        color.NRGBA{R: 255, G: 255, B: 255, A: 150},

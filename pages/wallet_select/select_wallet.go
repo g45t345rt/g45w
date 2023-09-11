@@ -3,7 +3,6 @@ package page_wallet_select
 import (
 	"fmt"
 	"image"
-	"sort"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -16,9 +15,9 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/password_modal"
@@ -42,9 +41,11 @@ type PageSelectWallet struct {
 	animationLeave *animation.Animation
 
 	buttonWalletCreate *components.Button
-	walletList         *WalletList
+	walletList         *widget.List
+	walletItemsDrag    *components.DragItems
+	items              []walletItem
 
-	currentWallet *wallet_manager.WalletInfo
+	currentWallet app_db.WalletInfo
 }
 
 var _ router.Page = &PageSelectWallet{}
@@ -58,7 +59,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 		gween.New(0, -1, .25, ease.Linear),
 	))
 
-	walletList := NewWalletList()
+	//walletList := NewWalletList()
 
 	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
 	buttonWalletCreate := components.NewButton(components.ButtonStyle{
@@ -72,6 +73,10 @@ func NewPageSelectWallet() *PageSelectWallet {
 	buttonWalletCreate.Label.Alignment = text.Middle
 	buttonWalletCreate.Style.Font.Weight = font.Bold
 
+	walletList := new(widget.List)
+	walletList.Axis = layout.Vertical
+	walletItemsDrag := components.NewDragItems()
+
 	return &PageSelectWallet{
 		clickable: new(widget.Clickable),
 
@@ -80,6 +85,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 		buttonWalletCreate: buttonWalletCreate,
 		walletList:         walletList,
+		walletItemsDrag:    walletItemsDrag,
 	}
 }
 
@@ -104,25 +110,21 @@ func (p *PageSelectWallet) Leave() {
 	p.animationLeave.Start()
 }
 
-func (p *PageSelectWallet) Load() {
-	items := make([]WalletListItem, 0)
-	for _, walletInfo := range wallet_manager.Wallets {
-		items = append(items,
-			NewWalletListItem(walletInfo),
-		)
+func (p *PageSelectWallet) Load() error {
+	p.items = make([]walletItem, 0)
+	wallets, err := app_db.GetWallets()
+	if err != nil {
+		return err
 	}
 
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].wallet.Timestamp < items[j].wallet.Timestamp
-	})
-
-	for addr, err := range wallet_manager.WalletsErr {
-		items = append(items,
-			NewWalletListItemErr(err, addr),
-		)
+	for _, walletInfo := range wallets {
+		p.items = append(p.items, walletItem{
+			clickable:  new(widget.Clickable),
+			walletInfo: walletInfo,
+		})
 	}
 
-	p.walletList.items = items
+	return nil
 }
 
 func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -145,6 +147,31 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 		}
 	}
 
+	{
+		moved, cIndex, nIndex := p.walletItemsDrag.ItemMoved()
+		if moved {
+			go func() {
+				updateIndex := func() error {
+					walletInfo := p.items[cIndex].walletInfo
+					walletInfo.OrderNumber = nIndex
+					err := app_db.UpdateWalletInfo(walletInfo)
+					if err != nil {
+						return err
+					}
+
+					return p.Load()
+				}
+
+				err := updateIndex()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText("Error", err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				}
+				app_instance.Window.Invalidate()
+			}()
+		}
+	}
+
 	layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
@@ -153,37 +180,48 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						if len(p.walletList.items) == 0 {
+						if len(p.items) == 0 {
 							labelNoWallet := material.Label(th, unit.Sp(16), lang.Translate("You didn't add a wallet yet.\nClick 'New Wallet' button to continue."))
 							return labelNoWallet.Layout(gtx)
 						} else {
-							for _, item := range p.walletList.items {
-								if item.Clickable.Clicked() {
-									if item.wallet != nil {
-										p.currentWallet = item.wallet
-										password_modal.Instance.SetVisible(true)
-									} else {
-										go func() {
-											yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
-												Prompt: lang.Translate("Delete wallet?"),
+							paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
+								clip.UniformRRect(image.Rectangle{Max: gtx.Constraints.Max}, gtx.Dp(10)).Op(gtx.Ops),
+							)
+
+							listStyle := material.List(th, p.walletList)
+							listStyle.AnchorStrategy = material.Overlay
+							listStyle.Indicator.MinorWidth = unit.Dp(10)
+							listStyle.Indicator.CornerRadius = unit.Dp(5)
+							listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
+
+							return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+								return p.walletItemsDrag.Layout(gtx, &p.walletList.Position, func(gtx layout.Context) layout.Dimensions {
+									return listStyle.Layout(gtx, len(p.items), func(gtx layout.Context, index int) layout.Dimensions {
+										item := p.items[index]
+
+										if item.clickable.Clicked() {
+											p.currentWallet = item.walletInfo
+											password_modal.Instance.SetVisible(true)
+										}
+
+										r := op.Record(gtx.Ops)
+										dims := item.Layout(gtx, th, false)
+										c := r.Stop()
+
+										p.walletItemsDrag.LayoutItem(gtx, index, func(gtx layout.Context) layout.Dimensions {
+											defer clip.UniformRRect(image.Rectangle{Max: dims.Size}, 12).Push(gtx.Ops).Pop()
+											return item.Layout(gtx, th, true)
+										})
+
+										return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+											return layout.Inset{Bottom: unit.Dp(5)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+												c.Add(gtx.Ops)
+												return dims
 											})
-
-											for yes := range yesChan {
-												if yes {
-													err := wallet_manager.DeleteWallet(item.addr)
-													if err == nil {
-														notification_modals.ErrorInstance.SetText("Error", err.Error())
-														notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-														p.Load()
-													}
-												}
-											}
-										}()
-									}
-								}
-							}
-
-							return p.walletList.Layout(gtx, th)
+										})
+									})
+								})
+							})
 						}
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(30)}.Layout),
@@ -259,120 +297,42 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	return layout.Dimensions{Size: gtx.Constraints.Max}
 }
 
-type WalletList struct {
-	list  *widget.List
-	items []WalletListItem
+type walletItem struct {
+	clickable  *widget.Clickable
+	walletInfo app_db.WalletInfo
 }
 
-func NewWalletList() *WalletList {
-	list := new(widget.List)
-	list.Axis = layout.Vertical
-
-	return &WalletList{
-		list:  list,
-		items: []WalletListItem{},
-	}
-}
-
-func (w *WalletList) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
-		clip.UniformRRect(
-			image.Rectangle{Max: gtx.Constraints.Max},
-			gtx.Dp(unit.Dp(10)),
-		).Op(gtx.Ops),
-	)
-
-	return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		listStyle := material.List(th, w.list)
-		listStyle.AnchorStrategy = material.Overlay
-		listStyle.Indicator.MinorWidth = unit.Dp(10)
-		listStyle.Indicator.CornerRadius = unit.Dp(5)
-		listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
-
-		return listStyle.Layout(gtx, len(w.items), func(gtx layout.Context, i int) layout.Dimensions {
-			return w.items[i].Layout(gtx, th)
-		})
+func (item *walletItem) Layout(gtx layout.Context, th *material.Theme, fill bool) layout.Dimensions {
+	r := op.Record(gtx.Ops)
+	dims := layout.UniformInset(unit.Dp(12)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Alignment: layout.Start}.Layout(gtx,
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						name := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), item.walletInfo.Name)
+						lbl := material.Label(th, unit.Sp(18), name)
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						addr := utils.ReduceAddr(item.walletInfo.Addr)
+						lbl := material.Label(th, unit.Sp(15), addr)
+						lbl.Color = theme.Current.TextMuteColor
+						return lbl.Layout(gtx)
+					}),
+				)
+			}),
+		)
 	})
-}
+	c := r.Stop()
 
-type WalletListItem struct {
-	wallet    *wallet_manager.WalletInfo
-	Clickable *widget.Clickable
-	rounded   unit.Dp
-	err       error
-	addr      string
-}
-
-func NewWalletListItem(wallet *wallet_manager.WalletInfo) WalletListItem {
-	return WalletListItem{
-		wallet:    wallet,
-		Clickable: &widget.Clickable{},
-		rounded:   unit.Dp(12),
+	if item.clickable.Hovered() || fill {
+		pointer.CursorPointer.Add(gtx.Ops)
+		paint.FillShape(gtx.Ops, theme.Current.ListItemTagBgColor,
+			clip.UniformRRect(image.Rectangle{Max: dims.Size}, gtx.Dp(12)).Op(gtx.Ops),
+		)
 	}
-}
 
-func NewWalletListItemErr(err error, addr string) WalletListItem {
-	return WalletListItem{
-		Clickable: &widget.Clickable{},
-		rounded:   unit.Dp(12),
-		err:       err,
-		addr:      addr,
-	}
-}
-
-func (item *WalletListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	return item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Alignment: layout.Start}.Layout(gtx,
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					if item.err != nil {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								addr := utils.ReduceAddr(item.addr)
-								lbl := material.Label(th, unit.Sp(18), addr)
-								lbl.Font.Weight = font.Bold
-								return lbl.Layout(gtx)
-							}),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(11), item.err.Error())
-								lbl.Color = theme.Current.TextMuteColor
-								return lbl.Layout(gtx)
-							}),
-						)
-					}
-
-					if item.wallet != nil {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								name := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), item.wallet.Name)
-								lbl := material.Label(th, unit.Sp(18), name)
-								lbl.Font.Weight = font.Bold
-								return lbl.Layout(gtx)
-							}),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								addr := utils.ReduceAddr(item.wallet.Addr)
-								lbl := material.Label(th, unit.Sp(15), addr)
-								lbl.Color = theme.Current.TextMuteColor
-								return lbl.Layout(gtx)
-							}),
-						)
-					}
-
-					return layout.Dimensions{}
-				}),
-			)
-		})
-
-		if item.Clickable.Hovered() {
-			pointer.CursorPointer.Add(gtx.Ops)
-			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
-				clip.UniformRRect(
-					image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
-					gtx.Dp(item.rounded),
-				).Op(gtx.Ops),
-			)
-		}
-
-		return dims
-	})
+	c.Add(gtx.Ops)
+	return dims
 }

@@ -9,9 +9,9 @@ import (
 )
 
 type Theme struct {
-	Key                 string
-	Name                string
-	ThemeIndicatorColor color.NRGBA
+	Key            string
+	Name           string
+	IndicatorColor color.NRGBA
 
 	TextColor            color.NRGBA
 	TextMuteColor        color.NRGBA
@@ -71,6 +71,7 @@ type Theme struct {
 	ListScrollBarBgColor color.NRGBA
 	ListItemTagBgColor   color.NRGBA
 	ListItemTagTextColor color.NRGBA
+	//ListItemsColors      components.ListItemsColors
 
 	// Switch
 	SwitchColors SwitchColors

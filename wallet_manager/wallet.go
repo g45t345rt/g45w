@@ -3,7 +3,6 @@ package wallet_manager
 import (
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -20,6 +19,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
+	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
@@ -30,24 +30,26 @@ import (
 )
 
 type Wallet struct {
-	Info   *WalletInfo
+	Info   app_db.WalletInfo
 	Memory *walletapi.Wallet_Disk
 	DB     *sql.DB
 }
 
+/*
 type WalletInfo struct {
 	Name              string `json:"name"`
 	Addr              string `json:"addr"`
 	RegistrationTxHex string `json:"registration_tx_hex"`
 	//Data      []byte `json:"data"`
 	Timestamp int64 `json:"timestamp"`
-	ListOrder int   `json:"order"` // save item list ordering
-}
+	//ListOrder int   `json:"order"` // save item list ordering
+}*/
 
-var Wallets map[string]*WalletInfo
-var WalletsErr map[string]error
+// var Wallets map[string]*WalletInfo
+// var WalletsErr map[string]error
 var OpenedWallet *Wallet
 
+/*
 func Load() error {
 	walletsDir := settings.WalletsDir
 	Wallets = make(map[string]*WalletInfo)
@@ -93,6 +95,7 @@ func Load() error {
 
 	return nil
 }
+*/
 
 func CloseOpenedWallet() {
 	if OpenedWallet != nil {
@@ -106,6 +109,7 @@ func CloseOpenedWallet() {
 	}
 }
 
+/*
 func GetWallet(addr string) (*WalletInfo, error) {
 	for _, walletInfo := range Wallets {
 		if walletInfo.Addr == addr {
@@ -114,10 +118,10 @@ func GetWallet(addr string) (*WalletInfo, error) {
 	}
 
 	return nil, fmt.Errorf("wallet [%s] not found", addr)
-}
+}*/
 
 func OpenWallet(addr string, password string) error {
-	walletInfo, err := GetWallet(addr)
+	walletInfo, err := app_db.GetWalletInfo(addr)
 	if err != nil {
 		return err
 	}
@@ -201,14 +205,18 @@ open_wallet:
 }
 
 func DeleteWallet(addr string) error {
-	walletsDir := settings.WalletsDir
-	path := filepath.Join(walletsDir, addr)
-	err := os.RemoveAll(path)
+	err := app_db.DelWalletInfo(addr)
 	if err != nil {
 		return err
 	}
 
-	delete(Wallets, addr)
+	walletsDir := settings.WalletsDir
+	path := filepath.Join(walletsDir, addr)
+	err = os.RemoveAll(path)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -269,12 +277,7 @@ func CreateRandomWallet(name string, password string) error {
 
 func (w *Wallet) Rename(newName string) error {
 	w.Info.Name = newName
-	return saveWalletInfo(w.Info.Addr, w.Info)
-}
-
-func (w *Wallet) OrderList(newOrder int) error {
-	w.Info.ListOrder = newOrder
-	return saveWalletInfo(w.Info.Addr, w.Info)
+	return app_db.UpdateWalletInfo(w.Info)
 }
 
 func (w *Wallet) ResetBalanceResult(scId string) {
@@ -564,26 +567,27 @@ func (w *Wallet) CalculateTxFees(sizeInBytes uint64) (fees uint64) {
 
 func StoreRegistrationTx(addr string, tx *transaction.Transaction) error {
 	txHex := hex.EncodeToString(tx.Serialize())
-	walletInfo, err := GetWallet(addr)
+	walletInfo, err := app_db.GetWalletInfo(addr)
 	if err != nil {
 		return err
 	}
 
 	walletInfo.RegistrationTxHex = txHex
-	return saveWalletInfo(addr, walletInfo)
+	return app_db.UpdateWalletInfo(walletInfo)
 }
 
 func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
 	wallet.SetNetwork(globals.IsMainnet())
 
 	addr := wallet.GetAddress().String()
-	walletInfo := &WalletInfo{
+	walletInfo := app_db.WalletInfo{
 		Addr:      addr,
 		Name:      name,
 		Timestamp: time.Now().Unix(),
 	}
 
-	err := saveWalletInfo(addr, walletInfo)
+	//err := saveWalletInfo(addr, walletInfo)
+	err := app_db.UpdateWalletInfo(walletInfo)
 	if err != nil {
 		return err
 	}
@@ -596,6 +600,7 @@ func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
 	return nil
 }
 
+/*
 func saveWalletInfo(addr string, walletInfo *WalletInfo) error {
 	data, err := json.Marshal(walletInfo)
 	if err != nil {
@@ -618,7 +623,7 @@ func saveWalletInfo(addr string, walletInfo *WalletInfo) error {
 
 	Wallets[addr] = walletInfo
 	return nil
-}
+}*/
 
 func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 	walletData := wallet.Get_Encrypted_Wallet()

@@ -43,7 +43,7 @@ func NewThemeSelector(defaultThemeKey string) *ThemeSelector {
 	items := []*listselect_modal.SelectListItem{}
 
 	for _, theme := range theme.Themes {
-		indicatorColor := theme.ThemeIndicatorColor
+		indicatorColor := theme.IndicatorColor
 		name := theme.Name
 		items = append(items, listselect_modal.NewSelectListItem(theme.Key, func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,

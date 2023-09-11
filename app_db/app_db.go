@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/settings"
 )
 
@@ -29,8 +30,25 @@ func Load() error {
 		return err
 	}
 
-	initDatabaseNodes()
-	initDatabaseIPFSGateways()
+	err = schema_version.Init(DB)
+	if err != nil {
+		return err
+	}
+
+	err = initDatabaseNodes()
+	if err != nil {
+		return err
+	}
+
+	err = initDatabaseIPFSGateways()
+	if err != nil {
+		return err
+	}
+
+	err = initDatabaseWallets()
+	if err != nil {
+		return err
+	}
 
 	if firstLoad {
 		err = ResetNodeConnections()
