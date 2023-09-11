@@ -361,7 +361,7 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Wallet cleaned"))
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 	case "delete_wallet":
-		err := wallet_manager.DeleteWallet(wallet.Info.Addr)
+		err := wallet.Delete()
 		if err != nil {
 			return err
 		}

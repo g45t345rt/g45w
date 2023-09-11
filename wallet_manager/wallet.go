@@ -133,15 +133,24 @@ open_wallet:
 	return nil
 }
 
-func DeleteWallet(addr string) error {
-	err := app_db.DelWalletInfo(addr)
+func (w *Wallet) Delete() error {
+	err := w.DB.Close()
 	if err != nil {
 		return err
 	}
 
+	return DeleteWallet(w.Info.Addr)
+}
+
+func DeleteWallet(addr string) error {
 	walletsDir := settings.WalletsDir
 	path := filepath.Join(walletsDir, addr)
-	err = os.RemoveAll(path)
+	err := os.RemoveAll(path)
+	if err != nil {
+		return err
+	}
+
+	err = app_db.DelWalletInfo(addr)
 	if err != nil {
 		return err
 	}
