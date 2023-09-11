@@ -101,7 +101,7 @@ var Dark = &Theme{
 
 	ListTextColor:        whiteColor,
 	ListBgColor:          color.NRGBA{R: 15, G: 15, B: 15, A: 255},
-	ListItemHoverBgColor: color.NRGBA{A: 100},
+	ListItemHoverBgColor: color.NRGBA{R: 25, G: 25, B: 25, A: 255},
 	ListScrollBarBgColor: whiteColor,
 	ListItemTagBgColor:   blackColor,
 	ListItemTagTextColor: whiteColor,

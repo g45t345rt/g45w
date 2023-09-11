@@ -21,7 +21,7 @@ type WalletInfo struct {
 	OrderNumber       int
 }
 
-var orderer = order_column.Orderer{
+var walletOrderer = order_column.Orderer{
 	TableName:  "wallets",
 	ColumnName: "order_number",
 }
@@ -128,7 +128,7 @@ func migrateJsonWalletsInfo() error {
 				Name:              walletInfo.Name,
 				RegistrationTxHex: walletInfo.RegistrationTxHex,
 				Timestamp:         walletInfo.Timestamp,
-				OrderNumber:       -1, // -1 will get the last order number
+				// OrderNumber will be automatically set to last
 			})
 			if err != nil {
 				return err
@@ -193,14 +193,12 @@ func InsertWalletInfo(walletInfo WalletInfo) error {
 		return err
 	}
 
-	if walletInfo.OrderNumber == -1 {
-		walletInfo.OrderNumber, err = orderer.GetNewOrderNumber(tx)
-		if err != nil {
-			return err
-		}
+	walletInfo.OrderNumber, err = walletOrderer.GetNewOrderNumber(tx)
+	if err != nil {
+		return err
 	}
 
-	err = orderer.Insert(tx, walletInfo.OrderNumber)
+	err = walletOrderer.Insert(tx, walletInfo.OrderNumber)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -229,7 +227,7 @@ func UpdateWalletInfo(walletInfo WalletInfo) error {
 		return err
 	}
 
-	err = orderer.Update(tx, currentWalletInfo.OrderNumber, walletInfo.OrderNumber)
+	err = walletOrderer.Update(tx, currentWalletInfo.OrderNumber, walletInfo.OrderNumber)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -261,7 +259,7 @@ func DelWalletInfo(addr string) error {
 		return err
 	}
 
-	err = orderer.Delete(tx, walletInfo.OrderNumber)
+	err = walletOrderer.Delete(tx, walletInfo.OrderNumber)
 	if err != nil {
 		tx.Rollback()
 		return err

@@ -102,14 +102,16 @@ func NewSelectListItem(key string, element ThemeWidget) *SelectListItem {
 	}
 }
 
-func (c *SelectListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	dims := c.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+func (item *SelectListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	r := op.Record(gtx.Ops)
+	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return c.element(gtx, th)
+			return item.element(gtx, th)
 		})
 	})
+	c := r.Stop()
 
-	if c.clickable.Hovered() {
+	if item.clickable.Hovered() {
 		pointer.CursorPointer.Add(gtx.Ops)
 
 		paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
@@ -120,6 +122,7 @@ func (c *SelectListItem) Layout(gtx layout.Context, th *material.Theme) layout.D
 		)
 	}
 
+	c.Add(gtx.Ops)
 	return dims
 }
 

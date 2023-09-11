@@ -146,28 +146,12 @@ func (p *PageIPFSGateways) Enter() {
 		p.animationLeave.Reset()
 	}
 
-	p.LoadGateways()
+	p.gatewayList.Load()
 }
 
 func (p *PageIPFSGateways) Leave() {
 	p.animationEnter.Reset()
 	p.animationLeave.Start()
-}
-
-func (p *PageIPFSGateways) LoadGateways() error {
-	items := make([]GatewayListItem, 0)
-
-	gateways, err := app_db.GetIPFSGateways(app_db.GetIPFSGatewaysParams{})
-	if err != nil {
-		return err
-	}
-
-	for _, gateway := range gateways {
-		items = append(items, NewGatewayListItem(gateway))
-	}
-
-	p.gatewayList.items = items
-	return nil
 }
 
 func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -205,7 +189,7 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			p.LoadGateways()
+			p.gatewayList.Load()
 			notification_modals.SuccessInstance.SetText("Success", lang.Translate("List reset to default."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
@@ -245,8 +229,9 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 }
 
 type GatewayList struct {
-	items []GatewayListItem
-	list  *widget.List
+	items     []GatewayListItem
+	list      *widget.List
+	dragItems *components.DragItems
 }
 
 func NewGatewayList() *GatewayList {
@@ -254,12 +239,54 @@ func NewGatewayList() *GatewayList {
 	list.Axis = layout.Vertical
 
 	return &GatewayList{
-		list:  list,
-		items: make([]GatewayListItem, 0),
+		list:      list,
+		items:     make([]GatewayListItem, 0),
+		dragItems: components.NewDragItems(),
 	}
 }
 
+func (l *GatewayList) Load() error {
+	items := make([]GatewayListItem, 0)
+
+	gateways, err := app_db.GetIPFSGateways(app_db.GetIPFSGatewaysParams{})
+	if err != nil {
+		return err
+	}
+
+	for _, gateway := range gateways {
+		items = append(items, NewGatewayListItem(gateway))
+	}
+
+	l.items = items
+	return nil
+}
+
 func (l *GatewayList) Layout(gtx layout.Context, th *material.Theme, emptyText string) layout.Dimensions {
+	{
+		moved, cIndex, nIndex := l.dragItems.ItemMoved()
+		if moved {
+			go func() {
+				updateIndex := func() error {
+					gateway := l.items[cIndex].gateway
+					gateway.OrderNumber = nIndex
+					err := app_db.UpdateIPFSGateway(gateway)
+					if err != nil {
+						return err
+					}
+
+					return l.Load()
+				}
+
+				err := updateIndex()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText("Error", err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				}
+				app_instance.Window.Invalidate()
+			}()
+		}
+	}
+
 	r := op.Record(gtx.Ops)
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		if len(l.items) == 0 {
@@ -272,8 +299,14 @@ func (l *GatewayList) Layout(gtx layout.Context, th *material.Theme, emptyText s
 			listStyle.Indicator.CornerRadius = unit.Dp(5)
 			listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
 
-			return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
-				return l.items[i].Layout(gtx, th)
+			return l.dragItems.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+				return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, index int) layout.Dimensions {
+					l.dragItems.LayoutItem(gtx, index, func(gtx layout.Context) layout.Dimensions {
+						return l.items[index].Layout(gtx, th, true)
+					})
+
+					return l.items[index].Layout(gtx, th, false)
+				})
 			})
 		}
 	})
@@ -308,8 +341,10 @@ func NewGatewayListItem(gateway app_db.IPFSGateway) GatewayListItem {
 	}
 }
 
-func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme, fill bool) layout.Dimensions {
 	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+
+		r := op.Record(gtx.Ops)
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			if item.gateway.Active {
 				layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -338,8 +373,9 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				}),
 			)
 		})
+		c := r.Stop()
 
-		if item.clickable.Hovered() {
+		if item.clickable.Hovered() || fill {
 			pointer.CursorPointer.Add(gtx.Ops)
 			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 				clip.UniformRRect(
@@ -355,6 +391,7 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme) layo
 			page_instance.header.AddHistory(PAGE_EDIT_IPFS_GATEWAY)
 		}
 
+		c.Add(gtx.Ops)
 		return dims
 	})
 }

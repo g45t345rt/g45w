@@ -389,6 +389,7 @@ func NewNodeListItem(conn app_db.NodeConnection) NodeListItem {
 
 func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		r := op.Record(gtx.Ops)
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Alignment: layout.Start}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -411,6 +412,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 				}),
 			)
 		})
+		c := r.Stop()
 
 		if item.clickable.Hovered() {
 			pointer.CursorPointer.Add(gtx.Ops)
@@ -432,6 +434,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 			item.listItemSelect.Toggle()
 		}
 
+		c.Add(gtx.Ops)
 		return dims
 	})
 }

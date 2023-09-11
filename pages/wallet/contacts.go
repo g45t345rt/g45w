@@ -326,8 +326,9 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		Top: unit.Dp(0), Bottom: unit.Dp(10),
 		Right: unit.Dp(30), Left: unit.Dp(30),
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		m := op.Record(gtx.Ops)
+		r := op.Record(gtx.Ops)
 		dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			r := op.Record(gtx.Ops)
 			dims := layout.Inset{
 				Top: unit.Dp(10), Bottom: unit.Dp(10),
 				Left: unit.Dp(15), Right: unit.Dp(15),
@@ -353,6 +354,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 					}),
 				)
 			})
+			c := r.Stop()
 
 			if item.clickable.Hovered() {
 				pointer.CursorPointer.Add(gtx.Ops)
@@ -376,9 +378,10 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				return item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
 			})
 
+			c.Add(gtx.Ops)
 			return dims
 		})
-		c := m.Stop()
+		c := r.Stop()
 
 		paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
 			clip.RRect{

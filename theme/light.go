@@ -101,7 +101,7 @@ var Light = &Theme{
 
 	ListTextColor:        blackColor,
 	ListBgColor:          whiteColor,
-	ListItemHoverBgColor: color.NRGBA{A: 100},
+	ListItemHoverBgColor: color.NRGBA{R: 225, G: 225, B: 225, A: 255},
 	ListScrollBarBgColor: blackColor,
 	ListItemTagBgColor:   color.NRGBA{R: 225, G: 225, B: 225, A: 255},
 	ListItemTagTextColor: blackColor,

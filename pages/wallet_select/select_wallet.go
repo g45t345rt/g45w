@@ -42,7 +42,7 @@ type PageSelectWallet struct {
 
 	buttonWalletCreate *components.Button
 	walletList         *widget.List
-	walletItemsDrag    *components.DragItems
+	dragItems          *components.DragItems
 	items              []walletItem
 
 	currentWallet app_db.WalletInfo
@@ -75,7 +75,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 	walletList := new(widget.List)
 	walletList.Axis = layout.Vertical
-	walletItemsDrag := components.NewDragItems()
+	dragItems := components.NewDragItems()
 
 	return &PageSelectWallet{
 		clickable: new(widget.Clickable),
@@ -85,7 +85,7 @@ func NewPageSelectWallet() *PageSelectWallet {
 
 		buttonWalletCreate: buttonWalletCreate,
 		walletList:         walletList,
-		walletItemsDrag:    walletItemsDrag,
+		dragItems:          dragItems,
 	}
 }
 
@@ -148,7 +148,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	{
-		moved, cIndex, nIndex := p.walletItemsDrag.ItemMoved()
+		moved, cIndex, nIndex := p.dragItems.ItemMoved()
 		if moved {
 			go func() {
 				updateIndex := func() error {
@@ -195,7 +195,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 							listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
 
 							return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-								return p.walletItemsDrag.Layout(gtx, &p.walletList.Position, func(gtx layout.Context) layout.Dimensions {
+								return p.dragItems.Layout(gtx, &p.walletList.Position, func(gtx layout.Context) layout.Dimensions {
 									return listStyle.Layout(gtx, len(p.items), func(gtx layout.Context, index int) layout.Dimensions {
 										item := p.items[index]
 
@@ -208,7 +208,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 										dims := item.Layout(gtx, th, false)
 										c := r.Stop()
 
-										p.walletItemsDrag.LayoutItem(gtx, index, func(gtx layout.Context) layout.Dimensions {
+										p.dragItems.LayoutItem(gtx, index, func(gtx layout.Context) layout.Dimensions {
 											defer clip.UniformRRect(image.Rectangle{Max: dims.Size}, 12).Push(gtx.Ops).Pop()
 											return item.Layout(gtx, th, true)
 										})
@@ -328,7 +328,7 @@ func (item *walletItem) Layout(gtx layout.Context, th *material.Theme, fill bool
 
 	if item.clickable.Hovered() || fill {
 		pointer.CursorPointer.Add(gtx.Ops)
-		paint.FillShape(gtx.Ops, theme.Current.ListItemTagBgColor,
+		paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 			clip.UniformRRect(image.Rectangle{Max: dims.Size}, gtx.Dp(12)).Op(gtx.Ops),
 		)
 	}
