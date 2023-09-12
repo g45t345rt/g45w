@@ -227,7 +227,7 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(14), lang.Translate("The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam."))
+		lbl := material.Label(th, unit.Sp(14), lang.Translate("The Dero blockchain is an account based model and requires a one time POW registration proccess to avoid spam."))
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	})

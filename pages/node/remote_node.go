@@ -206,12 +206,12 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(18), lang.Translate("Node Height / Stable Height"))
+					label := material.Label(th, unit.Sp(18), lang.Translate("Stable Height / Node Height"))
 					label.Color = theme.Current.TextMuteColor
 					return label.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					status := fmt.Sprintf("%d / %d", p.nodeInfo.Result.Height, p.nodeInfo.Result.StableHeight)
+					status := fmt.Sprintf("%d / %d", p.nodeInfo.Result.StableHeight, p.nodeInfo.Result.Height)
 					label := material.Label(th, unit.Sp(22), status)
 					return label.Layout(gtx)
 				}),

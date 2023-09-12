@@ -23,6 +23,7 @@ import (
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
+	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
@@ -430,10 +431,10 @@ func (p *PageSendForm) prepareTx() error {
 }
 
 type TokenContainer struct {
-	nameEditor *widget.Editor
-	scIdEditor *widget.Editor
-	tokenImage *components.Image
-	token      *wallet_manager.Token
+	nameEditor       *widget.Editor
+	scIdEditor       *widget.Editor
+	tokenImagerHover *prefabs.ImageHoverClick
+	token            *wallet_manager.Token
 }
 
 func NewTokenContainer() *TokenContainer {
@@ -445,15 +446,12 @@ func NewTokenContainer() *TokenContainer {
 	scIdEditor.ReadOnly = true
 	scIdEditor.SingleLine = true
 
-	tokenImage := &components.Image{
-		Fit:     components.Cover,
-		Rounded: components.UniformRounded(unit.Dp(10)),
-	}
+	tokenImagerHover := prefabs.NewImageHoverClick()
 
 	return &TokenContainer{
-		scIdEditor: scIdEditor,
-		nameEditor: nameEditor,
-		tokenImage: tokenImage,
+		scIdEditor:       scIdEditor,
+		nameEditor:       nameEditor,
+		tokenImagerHover: tokenImagerHover,
 	}
 }
 
@@ -477,10 +475,15 @@ func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.D
 			Alignment: layout.Middle,
 		}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				t.tokenImage.Src = t.token.LoadImageOp()
+				t.tokenImagerHover.Image.Src = t.token.LoadImageOp()
+
+				if t.tokenImagerHover.Clickable.Clicked() {
+					image_modal.Instance.Open(t.token.Name, t.tokenImagerHover.Image.Src)
+				}
+
 				gtx.Constraints.Max.X = gtx.Dp(50)
 				gtx.Constraints.Max.Y = gtx.Dp(50)
-				return t.tokenImage.Layout(gtx)
+				return t.tokenImagerHover.Layout(gtx)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {

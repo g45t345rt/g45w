@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	"image"
+	"time"
 
 	"gioui.org/f32"
 	"gioui.org/gesture"
@@ -21,13 +22,15 @@ type dragItem struct {
 type DragItems struct {
 	items []dragItem
 
-	dragItem  dragItem
-	dragIndex int
-	drag      gesture.Drag
-	dragEvent *pointer.Event
-	startPosY float32
-	dragPosY  float32
-	itemMoved bool
+	dragItem       dragItem
+	dragIndex      int
+	drag           gesture.Drag
+	dragEvent      *pointer.Event
+	startPosY      float32
+	dragPosY       float32
+	itemMoved      bool
+	holdBeforeDrag *time.Time
+	canStartDrag   bool
 
 	lastIndex int
 	newIndex  int
@@ -52,10 +55,6 @@ func (l *DragItems) LayoutItem(gtx layout.Context, index int, w layout.Widget) {
 	l.items = append(l.items, dragItem{index, w, dims})
 }
 
-func (l *DragItems) OnDragOut() {
-
-}
-
 func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout.Widget) layout.Dimensions {
 	l.items = make([]dragItem, 0)
 	m := op.Record(gtx.Ops)
@@ -69,12 +68,26 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 		itemOffset = scroll.First
 	}
 
+	if l.holdBeforeDrag != nil {
+		if l.holdBeforeDrag.Add(1 * time.Second).Before(gtx.Now) {
+			l.holdBeforeDrag = nil
+			l.canStartDrag = true
+		}
+		op.InvalidateOp{}.Add(gtx.Ops)
+	}
+
 	l.itemMoved = false
 	for _, e := range l.drag.Events(gtx.Metric, gtx.Queue, gesture.Both) {
 		switch e.Type {
 		case pointer.Drag:
-			l.dragEvent = &e
+			if l.canStartDrag {
+				l.dragEvent = &e
+			}
 		case pointer.Press:
+			l.dragEvent = nil
+			l.canStartDrag = false
+			l.holdBeforeDrag = &gtx.Now
+
 			l.startPosY = e.Position.Y
 			l.dragIndex = -1
 			minY := 0 - scrollOffset
@@ -90,6 +103,7 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 				minY += item.Dims.Size.Y
 			}
 		case pointer.Release | pointer.Cancel:
+			l.holdBeforeDrag = nil
 			if l.dragEvent != nil && l.dragIndex > -1 {
 				itemPosY := float32(0) - float32(scrollOffset)
 				for i, item := range l.items {
@@ -97,7 +111,7 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 					if itemPosY > l.dragPosY {
 						if l.dragIndex != i {
 							l.itemMoved = true
-							l.lastIndex = l.dragItem.Index //l.dragIndex + itemOffset
+							l.lastIndex = l.dragItem.Index
 							l.newIndex = i + itemOffset
 							fmt.Println(l.lastIndex, "->", l.newIndex)
 						}

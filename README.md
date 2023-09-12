@@ -27,13 +27,13 @@ This change should remove a painful/unsafe step of connecting your wallet direct
 - Address book to manage contacts.
 - Support as much language as possible (11 and counting...).
 - App color schemes (dark, light, blue).
+- Draggable list items (for ordering items).
 
 ## TODO
 
-- App store release (iOS app store & Google play store).
+- App release (iOS app store & Google play store).
 - DApps interaction with XSWD protocol by Slixe.
 - Expose daemon/wallet API for integrated node.
-- Draggable list items (for ordering items).
 - Integrate DeroDex Swap directly by Pieswap.
 
 ## Demo

@@ -134,7 +134,7 @@ func (p *PageServiceNames) Layout(gtx layout.Context, th *material.Theme) layout
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(16), lang.Translate("On Dero, you can have multiple usernames for your wallet. You can use them instead your Dero address for receiving payments."))
+		lbl := material.Label(th, unit.Sp(16), lang.Translate("On Dero, you can have multiple usernames for your wallet. You can use them instead of your Dero address for receiving payments."))
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	})

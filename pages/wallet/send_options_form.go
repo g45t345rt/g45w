@@ -1,18 +1,22 @@
 package page_wallet
 
 import (
+	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageSendOptionsForm struct {
@@ -21,6 +25,7 @@ type PageSendOptionsForm struct {
 	txtComment     *prefabs.TextField
 	txtDescription *prefabs.TextField
 	txtDstPort     *prefabs.TextField
+	buttonContinue *components.Button
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -50,6 +55,18 @@ func NewPageSendOptionsForm() *PageSendOptionsForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	arrowIcon, _ := widget.NewIcon(icons.NavigationChevronRight)
+	buttonContinue := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      arrowIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonContinue.Label.Alignment = text.Middle
+	buttonContinue.Style.Font.Weight = font.Bold
+
 	return &PageSendOptionsForm{
 		txtComment:     txtComment,
 		txtDstPort:     txtDstPort,
@@ -57,6 +74,7 @@ func NewPageSendOptionsForm() *PageSendOptionsForm {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		list:           list,
+		buttonContinue: buttonContinue,
 	}
 }
 
@@ -99,6 +117,10 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 		}
 	}
 
+	if p.buttonContinue.Clicked() {
+		page_instance.header.GoBack()
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -120,6 +142,11 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtDescription.Input.EditorMinY = gtx.Dp(75)
 			return p.txtDescription.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonContinue.Style.Colors = theme.Current.ButtonPrimaryColors
+			p.buttonContinue.Text = lang.Translate("CONTINUE")
+			return p.buttonContinue.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)

@@ -23,7 +23,9 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -793,20 +795,25 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 	}
 
 	m := op.Record(gtx.Ops)
-	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Inset{
-			Top: unit.Dp(13), Bottom: unit.Dp(13),
-			Left: unit.Dp(15), Right: unit.Dp(15),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					item.imageHover.Image.Src = item.token.LoadImageOp()
-					gtx.Constraints.Max.X = gtx.Dp(50)
-					gtx.Constraints.Max.Y = gtx.Dp(50)
-					return item.imageHover.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+
+	dims := layout.Inset{
+		Top: unit.Dp(13), Bottom: unit.Dp(13),
+		Left: unit.Dp(15), Right: unit.Dp(15),
+	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if item.imageHover.Clickable.Clicked() {
+					image_modal.Instance.Open(item.token.Name, item.imageHover.Image.Src)
+				}
+
+				item.imageHover.Image.Src = item.token.LoadImageOp()
+				gtx.Constraints.Max.X = gtx.Dp(50)
+				gtx.Constraints.Max.Y = gtx.Dp(50)
+				return item.imageHover.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{
 						Axis:      layout.Horizontal,
 						Alignment: layout.Middle,
@@ -835,9 +842,9 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 							)
 						}),
 					)
-				}),
-			)
-		})
+				})
+			}),
+		)
 	})
 	c := m.Stop()
 
@@ -944,15 +951,17 @@ func NewTxBar() *TxBar {
 		Animation: components.NewButtonAnimationDefault(),
 	})
 
+	filterIcon, _ := widget.NewIcon(app_icons.Filter)
 	buttonFilter := components.NewButton(components.ButtonStyle{
-		TextSize: unit.Sp(16),
+		//TextSize: unit.Sp(16),
+		Icon: filterIcon,
 		Inset: layout.Inset{
-			Top: unit.Dp(5), Bottom: unit.Dp(5),
+			Top: unit.Dp(8), Bottom: unit.Dp(8),
 			Left: unit.Dp(8), Right: unit.Dp(8),
 		},
 		Border: widget.Border{
 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-			Width:        unit.Dp(2),
+			Width:        unit.Dp(1),
 			CornerRadius: unit.Dp(5),
 		},
 		Rounded:   components.UniformRounded(5),
@@ -1048,7 +1057,8 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 					)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					t.buttonFilter.Text = lang.Translate("Filter")
+					//t.buttonFilter.Text = lang.Translate("Filter")
+					gtx.Constraints.Max = image.Pt(gtx.Dp(30), gtx.Dp(30))
 					t.buttonFilter.Style.Colors = theme.Current.ButtonSecondaryColors
 					return t.buttonFilter.Layout(gtx, th)
 				}),

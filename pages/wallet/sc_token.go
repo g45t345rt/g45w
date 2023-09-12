@@ -233,7 +233,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 			addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
 			delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
-			editIcon, _ := widget.NewIcon(icons.ActionInput)
+			//editIcon, _ := widget.NewIcon(icons.ActionInput)
 			deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 
 			var items []*listselect_modal.SelectListItem
@@ -285,9 +285,11 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 				))
 			}
 
-			items = append(items, listselect_modal.NewSelectListItem("edit_token",
-				listselect_modal.NewItemText(editIcon, lang.Translate("Edit token")).Layout,
-			))
+			/*
+				items = append(items, listselect_modal.NewSelectListItem("edit_token",
+					listselect_modal.NewItemText(editIcon, lang.Translate("Edit token")).Layout,
+				))
+			*/
 
 			items = append(items, listselect_modal.NewSelectListItem("remove_token",
 				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove token")).Layout,
