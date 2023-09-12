@@ -34,14 +34,14 @@ func initDatabaseWallets() error {
 
 	if version == 0 {
 		_, err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS wallets (
-			addr VARCHAR PRIMARY KEY,
-			name VARCHAR NOT NULL,
-			registration_tx_hex VARCHAR NOT NULL,
-			timestamp BIGINT NOT NULL,
-			order_number INT NOT NULL
-		);
-	`)
+			CREATE TABLE IF NOT EXISTS wallets (
+				addr VARCHAR PRIMARY KEY,
+				name VARCHAR NOT NULL,
+				registration_tx_hex VARCHAR NOT NULL,
+				timestamp BIGINT NOT NULL,
+				order_number INT NOT NULL
+			);
+		`)
 		if err != nil {
 			return err
 		}

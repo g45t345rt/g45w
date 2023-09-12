@@ -256,10 +256,14 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		err = app_db.UpdateNodeConnection(app_db.NodeConnection{
-			Name:     txtName.Text(),
-			Endpoint: txtEndpoint.Text(),
-		})
+		node := app_db.NodeConnection{
+			ID:          p.nodeConn.ID,
+			Name:        txtName.Text(),
+			Endpoint:    txtEndpoint.Text(),
+			OrderNumber: p.nodeConn.OrderNumber,
+		}
+
+		err = app_db.UpdateNodeConnection(node)
 		if err != nil {
 			setError(err)
 			return

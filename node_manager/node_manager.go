@@ -17,12 +17,12 @@ func Load() error {
 		if endpoint == integratedNodeConn.Endpoint {
 			nodeConn = &integratedNodeConn
 		} else {
-			conn, err := app_db.GetNodeConnection(endpoint)
+			conn, err := app_db.GetNodeConnectionByEndpoint(endpoint)
 			if err != nil {
 				return err
 			}
 
-			nodeConn = conn
+			nodeConn = &conn
 			if nodeConn == nil {
 				nodeConn = &app_db.NodeConnection{
 					Name:     "",

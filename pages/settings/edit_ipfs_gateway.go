@@ -277,12 +277,12 @@ func (p *PageEditIPFSGateway) submitForm(gtx layout.Context) {
 			return
 		}
 
-		endpoint := txtEndpoint.Text()
 		gateway := app_db.IPFSGateway{
-			ID:       p.gateway.ID,
-			Name:     txtName.Text(),
-			Endpoint: endpoint,
-			Active:   p.switchActive.Value,
+			ID:          p.gateway.ID,
+			Name:        txtName.Text(),
+			Endpoint:    txtEndpoint.Text(),
+			Active:      p.switchActive.Value,
+			OrderNumber: p.gateway.OrderNumber,
 		}
 
 		err := gateway.TestFetch()

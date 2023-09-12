@@ -231,6 +231,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		lbl := material.Label(th, unit.Sp(16), lang.Translate("The Dero blockchain is an account base model and requires a one time POW registration proccess to avoid spam."))
+		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	})
 
@@ -242,6 +243,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				lbl := material.Label(th, unit.Sp(13), lang.Translate("By default, the worker count is set to the recommended value for your device. More workers is faster but takes more cpu resources."))
+				lbl.Color = theme.Current.TextMuteColor
 				return lbl.Layout(gtx)
 			}),
 		)

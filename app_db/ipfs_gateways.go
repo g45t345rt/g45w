@@ -23,7 +23,7 @@ type IPFSGateway struct {
 	OrderNumber  int
 }
 
-var gatewaysOrderer = order_column.Orderer{
+var gatewayOrderer = order_column.Orderer{
 	TableName:  "ipfs_gateways",
 	ColumnName: "order_number",
 }
@@ -44,14 +44,14 @@ func initDatabaseIPFSGateways() error {
 
 	if version == 0 {
 		_, err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS ipfs_gateways (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			endpoint VARCHAR,
-			name VARCHAR,
-			fetch_headers VARCHAR,
-			active BOOL
-		);
-	`)
+			CREATE TABLE IF NOT EXISTS ipfs_gateways (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				endpoint VARCHAR,
+				name VARCHAR,
+				fetch_headers VARCHAR,
+				active BOOL
+			);
+		`)
 		if err != nil {
 			return err
 		}
@@ -60,6 +60,11 @@ func initDatabaseIPFSGateways() error {
 		ALTER TABLE ipfs_gateways
 		ADD COLUMN order_number INT NOT NULL DEFAULT 0;
 		`)
+		if err != nil {
+			return err
+		}
+
+		err = ReOrderIPFSGateways(DB)
 		if err != nil {
 			return err
 		}
@@ -86,11 +91,11 @@ func ResetIPFSGateways() error {
 		return err
 	}
 
-	for _, gateway := range TRUSTED_IPFS_GATEWAYS {
+	for i, gateway := range TRUSTED_IPFS_GATEWAYS {
 		_, err = tx.Exec(`
-			INSERT INTO ipfs_gateways (endpoint, name, active)
-			VALUES (?,?,?);
-		`, gateway.Endpoint, gateway.Name, true)
+			INSERT INTO ipfs_gateways (endpoint, name, active, order_number)
+			VALUES (?,?,?,?);
+		`, gateway.Endpoint, gateway.Name, true, i)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -194,7 +199,7 @@ func InsertIPFSGateway(gateway IPFSGateway) error {
 		return err
 	}
 
-	gateway.OrderNumber, err = gatewaysOrderer.GetNewOrderNumber(tx)
+	gateway.OrderNumber, err = gatewayOrderer.GetNewOrderNumber(tx)
 	if err != nil {
 		return err
 	}
@@ -240,7 +245,7 @@ func UpdateIPFSGateway(gateway IPFSGateway) error {
 		return err
 	}
 
-	err = gatewaysOrderer.Update(tx, currentGateway.OrderNumber, gateway.OrderNumber)
+	err = gatewayOrderer.Update(tx, currentGateway.OrderNumber, gateway.OrderNumber)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -270,7 +275,7 @@ func DelIPFSGateway(id int64) error {
 		return err
 	}
 
-	err = gatewaysOrderer.Delete(tx, gateway.OrderNumber)
+	err = gatewayOrderer.Delete(tx, gateway.OrderNumber)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -319,4 +324,30 @@ func (i IPFSGateway) TestFetch() error {
 	}
 
 	return nil
+}
+
+func ReOrderIPFSGateways(db *sql.DB) error {
+	gateways, err := GetIPFSGateways(GetIPFSGatewaysParams{})
+	if err != nil {
+		return err
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	for i, node := range gateways {
+		_, err = tx.Exec(`
+				UPDATE ipfs_gateways
+				SET order_number = ?
+				WHERE id = ?;
+			`, i, node.ID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

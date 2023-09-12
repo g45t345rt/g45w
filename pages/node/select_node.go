@@ -112,7 +112,7 @@ func (p *PageSelectNode) Enter() {
 		p.animationEnter.Start()
 	}
 
-	p.LoadRemoteNodes()
+	p.nodeList.Load()
 }
 
 func (p *PageSelectNode) Leave() {
@@ -122,24 +122,6 @@ func (p *PageSelectNode) Leave() {
 	} else {
 		p.isActive = false
 	}
-}
-
-func (p *PageSelectNode) LoadRemoteNodes() error {
-	items := make([]NodeListItem, 0)
-
-	nodeConnections, err := app_db.GetNodeConnections()
-	if err != nil {
-		return err
-	}
-
-	for _, nodeConn := range nodeConnections {
-		items = append(items,
-			NewNodeListItem(nodeConn),
-		)
-	}
-
-	p.nodeList.items = items
-	return nil
 }
 
 func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -226,7 +208,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		} else {
-			p.LoadRemoteNodes()
+			p.nodeList.Load()
 			node_manager.CurrentNode = nil // deselect node
 			notification_modals.SuccessInstance.SetText("Success", lang.Translate("List reset to default."))
 			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -299,6 +281,8 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 type NodeList struct {
 	items []NodeListItem
 	list  *widget.List
+
+	dragItems *components.DragItems
 }
 
 func NewNodeList() *NodeList {
@@ -306,12 +290,56 @@ func NewNodeList() *NodeList {
 	list.Axis = layout.Vertical
 
 	return &NodeList{
-		list:  list,
-		items: make([]NodeListItem, 0),
+		list:      list,
+		items:     make([]NodeListItem, 0),
+		dragItems: components.NewDragItems(),
 	}
 }
 
+func (l *NodeList) Load() error {
+	items := make([]NodeListItem, 0)
+
+	nodeConnections, err := app_db.GetNodeConnections()
+	if err != nil {
+		return err
+	}
+
+	for _, nodeConn := range nodeConnections {
+		items = append(items,
+			NewNodeListItem(nodeConn),
+		)
+	}
+
+	l.items = items
+	return nil
+}
+
 func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText string) layout.Dimensions {
+	{
+		moved, cIndex, nIndex := l.dragItems.ItemMoved()
+		if moved {
+			go func() {
+				updateIndex := func() error {
+					node := l.items[cIndex].conn
+					node.OrderNumber = nIndex
+					err := app_db.UpdateNodeConnection(node)
+					if err != nil {
+						return err
+					}
+
+					return l.Load()
+				}
+
+				err := updateIndex()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText("Error", err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				}
+				app_instance.Window.Invalidate()
+			}()
+		}
+	}
+
 	r := op.Record(gtx.Ops)
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		if len(l.items) == 0 {
@@ -324,8 +352,14 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText stri
 			listStyle.Indicator.CornerRadius = unit.Dp(5)
 			listStyle.Indicator.Color = theme.Current.ListScrollBarBgColor
 
-			return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, i int) layout.Dimensions {
-				return l.items[i].Layout(gtx, th)
+			return l.dragItems.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
+				return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, index int) layout.Dimensions {
+					l.dragItems.LayoutItem(gtx, index, func(gtx layout.Context) layout.Dimensions {
+						return l.items[index].Layout(gtx, th, true)
+					})
+
+					return l.items[index].Layout(gtx, th, false)
+				})
 			})
 		}
 	})
@@ -387,7 +421,7 @@ func NewNodeListItem(conn app_db.NodeConnection) NodeListItem {
 	}
 }
 
-func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme, fill bool) layout.Dimensions {
 	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		r := op.Record(gtx.Ops)
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -414,7 +448,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme) layout.
 		})
 		c := r.Stop()
 
-		if item.clickable.Hovered() {
+		if item.clickable.Hovered() || fill {
 			pointer.CursorPointer.Add(gtx.Ops)
 			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
 				clip.UniformRRect(
