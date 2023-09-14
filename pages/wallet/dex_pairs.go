@@ -5,6 +5,7 @@ import (
 	"image"
 	"strings"
 
+	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -14,6 +15,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
@@ -33,6 +35,8 @@ type PageDEXPairs struct {
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
+	tlvUSDT        uint64 // total locked value in USDT
+	swapCount      uint64
 
 	list  *widget.List
 	items []*DexPairItem
@@ -103,6 +107,9 @@ func (p *PageDEXPairs) Load() error {
 		return err
 	}
 
+	p.tlvUSDT = 0
+	p.swapCount = 0
+	deroUSDT_rate := float64(0)
 	for key, value := range result.VariableStringKeys {
 		k := strings.Split(key, ":")
 		prefix := k[0]
@@ -139,7 +146,26 @@ func (p *PageDEXPairs) Load() error {
 				return err
 			}
 
+			if pair.Symbol == "DERO:DUSDT" {
+				deroUSDT_rate = float64(pair.Liquidity2) / float64(pair.Liquidity1+1)
+			}
+
+			p.swapCount += pair.SwapCount
 			p.items = append(p.items, NewDexPairItem(pair, token1, token2))
+		}
+	}
+
+	for _, item := range p.items {
+		if item.pair.Asset1 == crypto.ZEROHASH.String() { // DERO
+			p.tlvUSDT += uint64(deroUSDT_rate * float64(item.pair.Liquidity1))
+			deroRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
+			p.tlvUSDT += uint64(deroUSDT_rate * (float64(item.pair.Liquidity2) / deroRate))
+		} else if item.pair.Asset1 == "f93b8d7fbbbf4e8f8a1e91b7ce21ac5d2b6aecc4de88cde8e929bce5f1746fbd" { // DUSDT
+			p.tlvUSDT += item.pair.Liquidity1
+			usdtRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
+			p.tlvUSDT += uint64(usdtRate * float64(item.pair.Liquidity2))
+		} else {
+			// skip
 		}
 	}
 
@@ -169,9 +195,20 @@ func (p *PageDEXPairs) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(20), "TLV: 307182.20 USDT")
-		lbl.Color = theme.Current.TextMuteColor
-		return lbl.Layout(gtx)
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				amount := utils.ShiftNumber{Number: p.tlvUSDT, Decimals: 6}
+				lbl := material.Label(th, unit.Sp(20), fmt.Sprintf("TLV: %s USDT", amount.Format()))
+				lbl.Color = theme.Current.TextMuteColor
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(14), fmt.Sprintf("%d swaps", p.swapCount))
+				lbl.Color = theme.Current.TextMuteColor
+				return lbl.Layout(gtx)
+			}),
+		)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -307,5 +344,38 @@ func (item *DexPairItem) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	c.Add(gtx.Ops)
+
+	layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		r := op.Record(gtx.Ops)
+		lblDims := layout.Inset{
+			Left: unit.Dp(8), Right: unit.Dp(8),
+			Bottom: unit.Dp(5), Top: unit.Dp(5),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			rate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
+			rateAmount := utils.ShiftNumber{Decimals: int(item.token1.Decimals)}
+			rateAmount.Parse(fmt.Sprint(rate))
+			amount := utils.ShiftNumber{Number: rateAmount.Number, Decimals: int(item.token2.Decimals)}
+			lbl := material.Label(th, unit.Sp(18), amount.Format())
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
+		})
+		c := r.Stop()
+
+		x := float32(gtx.Dp(5))
+		y := float32(dims.Size.Y/2 - lblDims.Size.Y/2)
+		offset := f32.Affine2D{}.Offset(f32.Pt(x, y))
+		defer op.Affine(offset).Push(gtx.Ops).Pop()
+
+		paint.FillShape(gtx.Ops, theme.Current.ListItemTagBgColor,
+			clip.RRect{
+				Rect: image.Rectangle{Max: lblDims.Size},
+				NW:   gtx.Dp(5), NE: gtx.Dp(5),
+				SE: gtx.Dp(5), SW: gtx.Dp(5),
+			}.Op(gtx.Ops))
+
+		c.Add(gtx.Ops)
+		return lblDims
+	})
+
 	return dims
 }

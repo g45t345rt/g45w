@@ -47,9 +47,11 @@ type PageDEXSwap struct {
 	infoRows       []*prefabs.InfoRow
 	buttonOpenMenu *components.Button
 
-	pair   dex_sc.Pair
-	token1 *wallet_manager.Token
-	token2 *wallet_manager.Token
+	pair        dex_sc.Pair
+	token1      *wallet_manager.Token
+	tokenImage1 *components.Image
+	token2      *wallet_manager.Token
+	tokenImage2 *components.Image
 
 	slip         float64
 	amountString string
@@ -121,6 +123,15 @@ func NewPageDEXSwap() *PageDEXSwap {
 	txtAmount2.Input.FontWeight = font.Bold
 	txtAmount2.Editor().ReadOnly = true
 
+	tokenImage1 := &components.Image{
+		Fit:     components.Cover,
+		Rounded: components.UniformRounded(unit.Dp(10)),
+	}
+	tokenImage2 := &components.Image{
+		Fit:     components.Cover,
+		Rounded: components.UniformRounded(unit.Dp(10)),
+	}
+
 	return &PageDEXSwap{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -131,6 +142,8 @@ func NewPageDEXSwap() *PageDEXSwap {
 		txtAmount2:     txtAmount2,
 		buttonSwap:     buttonSwap,
 		buttonSwitch:   buttonSwitch,
+		tokenImage1:    tokenImage1,
+		tokenImage2:    tokenImage2,
 	}
 }
 
@@ -298,7 +311,16 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			txt = strings.Replace(txt, "{}", p.token1.Symbol.String, -1)
 		}
 
-		return p.txtAmount1.Layout(gtx, th, txt, "")
+		dims := p.txtAmount1.Layout(gtx, th, txt, "")
+
+		layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			trans := f32.Affine2D{}.Offset(f32.Pt(float32(gtx.Dp(-10)), float32(gtx.Dp(39))))
+			defer op.Affine(trans).Push(gtx.Ops).Pop()
+			gtx.Constraints.Max = image.Pt(gtx.Dp(35), gtx.Dp(35))
+			p.tokenImage1.Src = p.token1.LoadImageOp()
+			return p.tokenImage1.Layout(gtx)
+		})
+		return dims
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -322,7 +344,17 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 					}
 
 					txt = strings.Replace(txt, "{}", txt, -1)
-					return p.txtAmount2.Layout(gtx, th, txt, "")
+					dims := p.txtAmount2.Layout(gtx, th, txt, "")
+
+					layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						trans := f32.Affine2D{}.Offset(f32.Pt(float32(gtx.Dp(-10)), float32(gtx.Dp(39))))
+						defer op.Affine(trans).Push(gtx.Ops).Pop()
+						gtx.Constraints.Max = image.Pt(gtx.Dp(35), gtx.Dp(35))
+						p.tokenImage2.Src = p.token2.LoadImageOp()
+						return p.tokenImage2.Layout(gtx)
+					})
+
+					return dims
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
