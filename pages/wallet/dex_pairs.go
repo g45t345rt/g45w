@@ -19,6 +19,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
@@ -28,6 +29,7 @@ import (
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageDEXPairs struct {
@@ -37,6 +39,9 @@ type PageDEXPairs struct {
 	animationLeave *animation.Animation
 	tlvUSDT        uint64 // total locked value in USDT
 	swapCount      uint64
+	buttonRefresh  *components.Button
+	loaded         bool
+	loading        bool
 
 	list  *widget.List
 	items []*DexPairItem
@@ -56,10 +61,17 @@ func NewPageDEXPairs() *PageDEXPairs {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	buttonRefresh := components.NewButton(components.ButtonStyle{
+		Icon:      refreshIcon,
+		Animation: components.NewButtonAnimationScale(.98),
+	})
+
 	return &PageDEXPairs{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		list:           list,
+		buttonRefresh:  buttonRefresh,
 	}
 }
 
@@ -79,9 +91,9 @@ func (p *PageDEXPairs) Enter() {
 	}
 
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.ButtonRight = p.buttonRefresh
 
-	p.Load()
+	go p.Load()
 }
 
 func (p *PageDEXPairs) Leave() {
@@ -90,6 +102,11 @@ func (p *PageDEXPairs) Leave() {
 }
 
 func (p *PageDEXPairs) Load() error {
+	if p.loaded || p.loading {
+		return nil
+	}
+
+	p.loading = true
 	p.items = make([]*DexPairItem, 0)
 	// Keystore
 	// 8088b0089725de1d323276a0daa1f25cfab9c0b68ccb9318cbf6bf83f5a127c1
@@ -152,6 +169,7 @@ func (p *PageDEXPairs) Load() error {
 
 			p.swapCount += pair.SwapCount
 			p.items = append(p.items, NewDexPairItem(pair, token1, token2))
+			app_instance.Window.Invalidate()
 		}
 	}
 
@@ -164,11 +182,12 @@ func (p *PageDEXPairs) Load() error {
 			p.tlvUSDT += item.pair.Liquidity1
 			usdtRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
 			p.tlvUSDT += uint64(usdtRate * float64(item.pair.Liquidity2))
-		} else {
-			// skip
 		}
 	}
 
+	p.loading = false
+	p.loaded = true
+	app_instance.Window.Invalidate()
 	return err
 }
 
@@ -190,6 +209,11 @@ func (p *PageDEXPairs) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			p.isActive = false
 			op.InvalidateOp{}.Add(gtx.Ops)
 		}
+	}
+
+	if p.buttonRefresh.Clicked() {
+		p.loaded = false
+		go p.Load()
 	}
 
 	widgets := []layout.Widget{}
