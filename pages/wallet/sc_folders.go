@@ -69,9 +69,9 @@ func NewPageSCFolders() *PageSCFolders {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	addIcon, _ := widget.NewIcon(icons.NavigationMenu)
+	navIcon, _ := widget.NewIcon(icons.NavigationMenu)
 	buttonOpenMenu := components.NewButton(components.ButtonStyle{
-		Icon:      addIcon,
+		Icon:      navIcon,
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 

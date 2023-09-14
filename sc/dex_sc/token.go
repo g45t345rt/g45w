@@ -14,7 +14,7 @@ var DEX_SC_SHA256 = "51f330aeb991da9c845b77daf45304acf6e07a0e87125b8c0b8884dadbb
 // DgOHM: 92136ec02ca1e0db8e1767f7d5d221c7951263790fe4ee6616c4dd6c011e65ba
 // DDAI: 	93707e89ba07f9aafc862ae07df1bfa70f488d5157d37439b85498fb79b6d1e6
 
-type SC struct {
+type Token struct {
 	SCID           string
 	Name           string
 	Decimals       uint64
@@ -30,44 +30,44 @@ type SC struct {
 	BridgeFee      uint64
 }
 
-func (asset *SC) Parse(scId string, values map[string]interface{}) (err error) {
-	asset.SCID = scId
+func (token *Token) Parse(scId string, values map[string]interface{}) (err error) {
+	token.SCID = scId
 
-	asset.Name, err = utils.DecodeString(values["name"].(string))
+	token.Name, err = utils.DecodeString(values["name"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
-	asset.Decimals = uint64(values["decimals"].(float64))
+	token.Decimals = uint64(values["decimals"].(float64))
 
-	asset.ImageUrl, err = utils.DecodeString(values["image_url"].(string))
+	token.ImageUrl, err = utils.DecodeString(values["image_url"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
-	asset.Symbol, err = utils.DecodeString(values["symbol"].(string))
+	token.Symbol, err = utils.DecodeString(values["symbol"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
-	asset.TotalSupply = uint64(values["totalsupply"].(float64))
+	token.TotalSupply = uint64(values["totalsupply"].(float64))
 
-	asset.NativeSymbol, err = utils.DecodeString(values["native_symbol"].(string))
+	token.NativeSymbol, err = utils.DecodeString(values["native_symbol"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
-	asset.NativeDecimals = uint64(values["native_decimals"].(float64))
-	asset.Quorum = uint64(values["quorum"].(float64))
-	asset.NumTrustees = uint64(values["numTrustees"].(float64))
+	token.NativeDecimals = uint64(values["native_decimals"].(float64))
+	token.Quorum = uint64(values["quorum"].(float64))
+	token.NumTrustees = uint64(values["numTrustees"].(float64))
 
-	asset.Version, err = utils.DecodeString(values["version"].(string))
+	token.Version, err = utils.DecodeString(values["version"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
-	asset.BridgeOpen = values["bridgeOpen"].(float64) != 0
-	asset.BridgeFee = uint64(values["bridgeFee"].(float64))
+	token.BridgeOpen = values["bridgeOpen"].(float64) != 0
+	token.BridgeFee = uint64(values["bridgeFee"].(float64))
 
-	return nil
+	return
 }

@@ -54,6 +54,7 @@ type PageBalanceTokens struct {
 	buttonSettings     *components.Button
 	buttonRegister     *components.Button
 	buttonCopyAddr     *components.Button
+	buttonDexSwap      *components.Button
 	tabBars            *components.TabBars
 	txBar              *TxBar
 	txItems            []*TxListItem
@@ -96,6 +97,22 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	buttonRegister.Label.Alignment = text.Middle
 	buttonRegister.Style.Font.Weight = font.Bold
 
+	swapIcon, _ := widget.NewIcon(app_icons.Swap)
+	buttonDexSwap := components.NewButton(components.ButtonStyle{
+		Icon:      swapIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+	})
+	buttonDexSwap.Label.Alignment = text.Middle
+	buttonDexSwap.Style.Font.Weight = font.Bold
+
 	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
 	buttonCopyAddr := components.NewButton(components.ButtonStyle{
 		Icon: copyIcon,
@@ -123,6 +140,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		buttonSettings: buttonSettings,
 		buttonRegister: buttonRegister,
 		buttonCopyAddr: buttonCopyAddr,
+		buttonDexSwap:  buttonDexSwap,
 		tabBars:        tabBars,
 		txBar:          txBar,
 		tokenDragItems: tokenDragItems,
@@ -262,6 +280,11 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
 	}
 
+	if p.buttonDexSwap.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_DEX_PAIRS)
+		page_instance.header.AddHistory(PAGE_DEX_PAIRS)
+	}
+
 	widgets := []layout.Widget{}
 	wallet := wallet_manager.OpenedWallet
 
@@ -333,9 +356,20 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Left: unit.Dp(30), Right: unit.Dp(30),
-			Top: unit.Dp(0), Bottom: unit.Dp(30),
+			Top: unit.Dp(0), Bottom: unit.Dp(20),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return p.displayBalance.Layout(gtx, th)
+		})
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Inset{
+			Left: unit.Dp(30), Right: unit.Dp(30),
+			Top: unit.Dp(0), Bottom: unit.Dp(30),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			p.buttonDexSwap.Style.Colors = theme.Current.ButtonSecondaryColors
+			p.buttonDexSwap.Text = lang.Translate("DEX Swap")
+			return p.buttonDexSwap.Layout(gtx, th)
 		})
 	})
 

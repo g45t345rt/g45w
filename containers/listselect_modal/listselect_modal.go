@@ -139,14 +139,21 @@ func NewItemText(icon *widget.Icon, text string) *ItemText {
 }
 
 func (item *ItemText) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return item.icon.Layout(gtx, th.Fg)
-		}),
-		layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(20), item.text)
-			return lbl.Layout(gtx)
-		}),
-	)
+	var childs []layout.FlexChild
+
+	if item.icon != nil {
+		childs = append(childs,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return item.icon.Layout(gtx, th.Fg)
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+		)
+	}
+
+	childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		lbl := material.Label(th, unit.Sp(20), item.text)
+		return lbl.Layout(gtx)
+	}))
+
+	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, childs...)
 }

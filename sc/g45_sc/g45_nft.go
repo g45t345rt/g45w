@@ -24,28 +24,28 @@ func (asset *G45_NFT) Parse(scId string, values map[string]interface{}) (err err
 
 	asset.Collection, err = utils.DecodeString(values["collection"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.MetadataFormat, err = utils.DecodeString(values["metadataFormat"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.Metadata, err = utils.DecodeString(values["metadata"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.Owner, err = utils.DecodeString(values["owner"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.Minter, err = utils.DecodeAddress(values["minter"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
-	return nil
+	return
 }

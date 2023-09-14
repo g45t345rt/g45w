@@ -41,6 +41,7 @@ type Page struct {
 	pageSCFolders       *PageSCFolders
 	pageContacts        *PageContacts
 	pageTransaction     *PageTransaction
+	pageDexSwap         *PageDEXSwap
 
 	pageRouter *router.Router
 }
@@ -66,6 +67,8 @@ var (
 	PAGE_TRANSACTION       = "page_transaction"
 	PAGE_SCAN_COLLECTION   = "page_scan_collection"
 	PAGE_SERVICE_NAMES     = "page_service_names"
+	PAGE_DEX_PAIRS         = "page_dex_pairs"
+	PAGE_DEX_SWAP          = "page_dex_swap"
 )
 
 func New() *Page {
@@ -123,6 +126,12 @@ func New() *Page {
 	pageServiceNames := NewPageServiceNames()
 	pageRouter.Add(PAGE_SERVICE_NAMES, pageServiceNames)
 
+	pageDEXPairs := NewPageDEXPairs()
+	pageRouter.Add(PAGE_DEX_PAIRS, pageDEXPairs)
+
+	pageDEXSwap := NewPageDEXSwap()
+	pageRouter.Add(PAGE_DEX_SWAP, pageDEXSwap)
+
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
@@ -139,6 +148,7 @@ func New() *Page {
 		pageSCFolders:       pageSCFolders,
 		pageContacts:        pageContacts,
 		pageTransaction:     pageTransaction,
+		pageDexSwap:         pageDEXSwap,
 
 		pageRouter: pageRouter,
 	}

@@ -31,29 +31,29 @@ func (collection *G45_C) Parse(scId string, values map[string]interface{}) (err 
 
 	collection.MetadataFormat, err = utils.DecodeString(values["metadataFormat"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	collection.Metadata, err = utils.DecodeString(values["metadata"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	collection.Timestamp = uint64(values["timestamp"].(float64))
 
 	collection.Owner, err = utils.DecodeAddress(values["owner"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	collection.OriginalOwner, err = utils.DecodeAddress(values["originalOwner"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	assetKey, err := regexp.Compile(`assets_(.+)`)
 	if err != nil {
-		return err
+		return
 	}
 
 	collection.Assets = make(map[string]uint64)
@@ -77,5 +77,5 @@ func (collection *G45_C) Parse(scId string, values map[string]interface{}) (err 
 	}
 
 	collection.AssetCount = uint64(len(collection.Assets))
-	return nil
+	return
 }

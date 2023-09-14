@@ -241,7 +241,7 @@ func (token *Token) Parse(scId string, scResult rpc.GetSC_Result) error {
 		token.Metadata = sql.NullString{String: nft.Metadata, Valid: true}
 		token.CreatedTimestamp = sql.NullInt64{Int64: int64(nft.Timestamp), Valid: true}
 	case sc.DEX_SC_TYPE:
-		dex := dex_sc.SC{}
+		dex := dex_sc.Token{}
 		err := dex.Parse(scId, scResult.VariableStringKeys)
 		if err != nil {
 			return err
@@ -252,11 +252,8 @@ func (token *Token) Parse(scId string, scResult rpc.GetSC_Result) error {
 		token.ImageUrl = sql.NullString{String: dex.ImageUrl, Valid: true}
 		token.Symbol = sql.NullString{String: dex.Symbol, Valid: true}
 	case sc.UNKNOWN_TYPE:
-		unknown := unknown_sc.SC{}
-		err := unknown.Parse(scId, scResult.VariableStringKeys)
-		if err != nil {
-			return err
-		}
+		unknown := unknown_sc.Token{}
+		unknown.Parse(scId, scResult.VariableStringKeys)
 
 		token.Name = unknown.Name
 		token.Decimals = int64(unknown.Decimals)
@@ -289,6 +286,26 @@ func GetSC(scId string) (result rpc.GetSC_Result, cached bool, err error) {
 	}
 
 	err = caching.Store(relCachePath, cacheFileName, result)
+	return
+}
+
+func GetTokenBySCID(scId string) (token *Token, err error) {
+	if scId == crypto.ZEROHASH.String() {
+		token = DeroToken()
+	} else {
+		var result rpc.GetSC_Result
+		result, _, err = GetSC(scId)
+		if err != nil {
+			return
+		}
+
+		token = &Token{}
+		err = token.Parse(scId, result)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
 

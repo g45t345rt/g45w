@@ -30,7 +30,7 @@ func (asset *G45_FAT) Parse(scId string, values map[string]interface{}) (err err
 	asset.Timestamp = uint64(values["timestamp"].(float64))
 	asset.Collection, err = utils.DecodeString(values["collection"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.FrozenMetadata = values["frozenMetadata"].(float64) != 0
@@ -38,12 +38,12 @@ func (asset *G45_FAT) Parse(scId string, values map[string]interface{}) (err err
 
 	asset.MetadataFormat, err = utils.DecodeString(values["metadataFormat"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.Metadata, err = utils.DecodeString(values["metadata"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.MaxSupply = uint64(values["maxSupply"].(float64))
@@ -52,12 +52,12 @@ func (asset *G45_FAT) Parse(scId string, values map[string]interface{}) (err err
 
 	asset.Minter, err = utils.DecodeAddress(values["minter"].(string))
 	if err != nil {
-		return err
+		return
 	}
 
 	ownerKey, err := regexp.Compile(`owner_(.+)`)
 	if err != nil {
-		return err
+		return
 	}
 
 	asset.Owners = make(map[string]uint64)
@@ -68,5 +68,5 @@ func (asset *G45_FAT) Parse(scId string, values map[string]interface{}) (err err
 		}
 	}
 
-	return nil
+	return
 }
