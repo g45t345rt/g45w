@@ -86,6 +86,7 @@ type BuildTxModal struct {
 	building bool
 	builtTx  *transaction.Transaction
 	txFees   uint64
+	gasFees  uint64
 	txSent   bool
 
 	txPayload TxPayload
@@ -176,7 +177,7 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 	b.animationLoading.Reset().Start()
 	b.building = true
 
-	tx, _, _, err := wallet.BuildTransaction(txPayload.Transfers, txPayload.Ringsize, txPayload.SCArgs, false)
+	tx, _, gasFees, err := wallet.BuildTransaction(txPayload.Transfers, txPayload.Ringsize, txPayload.SCArgs, false)
 	b.animationLoading.Pause()
 
 	if err != nil {
@@ -186,6 +187,7 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 	} else {
 		b.building = false
 		b.builtTx = tx
+		b.gasFees = gasFees
 		b.txFees = tx.Fees()
 	}
 }
@@ -464,6 +466,24 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 						}),
 						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 					)
+
+					childs = append(childs,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), lang.Translate("Gas fees"))
+									lbl.Color = theme.Current.TextMuteColor
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									fees := globals.FormatMoney(b.gasFees)
+									lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", fees))
+									return lbl.Layout(gtx)
+								}),
+							)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+					)
 				}
 
 				childs = append(childs,
@@ -475,7 +495,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 								return lbl.Layout(gtx)
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								total := globals.FormatMoney(totalDero + b.txFees)
+								total := globals.FormatMoney(totalDero + b.txFees + b.gasFees)
 								lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s DERO", total))
 								return lbl.Layout(gtx)
 							}),
