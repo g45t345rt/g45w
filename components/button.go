@@ -240,49 +240,67 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			style.Border.Color = colors.BorderColor
 			dims := style.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return style.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					if style.Icon != nil && btn.Text == "" {
-						if btn.Flex {
-							return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-								return style.Icon.Layout(gtx, textColor)
-							})
-						} else {
-							return style.Icon.Layout(gtx, textColor)
+					var iconWidget layout.Widget
+					if style.Icon != nil {
+						iconWidget = func(gtx layout.Context) layout.Dimensions {
+							icon := style.Icon
+
+							if style.LoadingIcon != nil && btn.Loading {
+								icon = style.LoadingIcon
+							}
+
+							var dims layout.Dimensions
+							r := op.Record(gtx.Ops)
+							if btn.Flex {
+								dims = layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+									return style.Icon.Layout(gtx, textColor)
+								})
+							} else {
+								dims = icon.Layout(gtx, textColor)
+							}
+							c := r.Stop()
+
+							{
+								gtx.Constraints.Min = dims.Size
+
+								if animationLoading != nil {
+									state := animationLoading.Update(gtx)
+									if state.Active {
+										defer transformLoading(gtx, state.Value).Push(gtx.Ops).Pop()
+									}
+								}
+							}
+
+							c.Add(gtx.Ops)
+							return dims
 						}
 					}
 
-					return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							if style.LoadingIcon != nil && btn.Loading {
-								r := op.Record(gtx.Ops)
-								dims := style.LoadingIcon.Layout(gtx, textColor)
-								c := r.Stop()
+					if btn.Text != "" {
+						var childs []layout.FlexChild
 
-								{
-									gtx.Constraints.Min = dims.Size
+						if iconWidget != nil {
+							childs = append(childs,
+								layout.Rigid(iconWidget),
+								layout.Rigid(layout.Spacer{Width: style.IconGap}.Layout),
+							)
+						}
 
-									if animationLoading != nil {
-										state := animationLoading.Update(gtx)
-										if state.Active {
-											defer transformLoading(gtx, state.Value).Push(gtx.Ops).Pop()
-										}
-									}
-								}
+						childs = append(childs,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								paint.ColorOp{Color: textColor}.Add(gtx.Ops)
+								return btn.Label.Layout(gtx, th.Shaper, style.Font,
+									style.TextSize, btn.Text, op.CallOp{})
+							}),
+						)
 
-								c.Add(gtx.Ops)
-								return dims
-							} else if style.Icon != nil {
-								return style.Icon.Layout(gtx, textColor)
-							} else {
-								return layout.Dimensions{}
-							}
-						}),
-						layout.Rigid(layout.Spacer{Width: style.IconGap}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							paint.ColorOp{Color: textColor}.Add(gtx.Ops)
-							return btn.Label.Layout(gtx, th.Shaper, style.Font,
-								style.TextSize, btn.Text, op.CallOp{})
-						}),
-					)
+						return layout.Flex{
+							Axis:      layout.Horizontal,
+							Alignment: layout.Middle,
+						}.Layout(gtx, childs...)
+					} else {
+						return iconWidget(gtx)
+					}
 				})
 			})
 			m := c.Stop()

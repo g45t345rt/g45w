@@ -28,13 +28,13 @@ This change should remove a painful/unsafe step of connecting your wallet direct
 - Support as much language as possible (11 and counting...).
 - App color schemes (dark, light, blue).
 - Draggable list items (for ordering items).
+- Interact with Dero DEX directly - view pairs, swap, add/rem liquidity (DEX created by Pieswap).
 
 ## TODO
 
 - App release (iOS app store & Google play store).
 - DApps interaction with XSWD protocol by Slixe.
 - Expose daemon/wallet API for integrated node.
-- Integrate DeroDex Swap directly by Pieswap.
 
 ## Demo
 

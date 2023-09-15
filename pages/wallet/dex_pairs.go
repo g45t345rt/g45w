@@ -3,6 +3,7 @@ package page_wallet
 import (
 	"fmt"
 	"image"
+	"sort"
 	"strings"
 
 	"gioui.org/f32"
@@ -106,6 +107,7 @@ func (p *PageDEXPairs) Load() error {
 		return nil
 	}
 
+	p.buttonRefresh.SetLoading(true)
 	p.loading = true
 	p.items = make([]*DexPairItem, 0)
 	// Keystore
@@ -185,6 +187,11 @@ func (p *PageDEXPairs) Load() error {
 		}
 	}
 
+	sort.Slice(p.items, func(i, j int) bool {
+		return p.items[i].pair.Liquidity1 > p.items[j].pair.Liquidity1
+	})
+
+	p.buttonRefresh.SetLoading(false)
 	p.loading = false
 	p.loaded = true
 	app_instance.Window.Invalidate()
@@ -243,9 +250,7 @@ func (p *PageDEXPairs) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					item := p.items[idx]
 					if item.clickable.Clicked() {
-						page_instance.pageDexSwap.pair = item.pair
-						page_instance.pageDexSwap.token1 = item.token1
-						page_instance.pageDexSwap.token2 = item.token2
+						page_instance.pageDexSwap.SetPair(item.pair, item.token1, item.token2)
 						page_instance.pageRouter.SetCurrent(PAGE_DEX_SWAP)
 						page_instance.header.AddHistory(PAGE_DEX_SWAP)
 					}

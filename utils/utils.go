@@ -21,6 +21,7 @@ import (
 	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/holiman/uint256"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -275,4 +276,15 @@ func IsErrLeafNotFound(err error) bool {
 	}
 
 	return false
+}
+
+func MultDiv(a uint64, b uint64, c uint64) uint64 {
+	A := uint256.NewInt(a)
+	B := uint256.NewInt(b)
+	C := uint256.NewInt(c)
+
+	A = A.Mul(A, B)
+	C = A.Div(A, C)
+
+	return C.Uint64()
 }

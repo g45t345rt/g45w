@@ -1,6 +1,8 @@
 package dex_sc
 
-import "github.com/g45t345rt/g45w/utils"
+import (
+	"github.com/g45t345rt/g45w/utils"
+)
 
 type Pair struct {
 	SCID              string
@@ -16,6 +18,50 @@ type Pair struct {
 	AddCount          uint64 // liquidity add count
 	RemoveCount       uint64
 	SwapCount         uint64
+}
+
+func (pair *Pair) CalcShare(asset string, share uint64) (value uint64) {
+	switch asset {
+	case pair.Asset1:
+		value = utils.MultDiv(pair.Liquidity1, share, pair.SharesOutstanding)
+	case pair.Asset2:
+		value = utils.MultDiv(pair.Liquidity2, share, pair.SharesOutstanding)
+	}
+	return
+}
+
+func (pair *Pair) CalcOwnership(share uint64) float32 {
+	if pair.SharesOutstanding == 0 {
+		return 0
+	}
+
+	return float32(share) / float32(pair.SharesOutstanding) * 100.0
+}
+
+func (pair *Pair) CalcSwap(asset string, amt uint64) (receive uint64, fee uint64, slip float64) {
+	if amt == 0 {
+		return
+	}
+
+	switch asset {
+	case pair.Asset1:
+		receiveAmt := float64(amt) * float64(pair.Liquidity2) / float64(pair.Liquidity1+amt)
+		receiveAmtMinusFee := receiveAmt * float64(10000-pair.Fee) / float64(10000)
+		receive = uint64(receiveAmtMinusFee)
+		fee = uint64(receiveAmt) - uint64(receiveAmtMinusFee)
+		if pair.Liquidity1 != 0 {
+			slip = 100.0 - (1.0 / (1.0 + float64(amt)/float64(pair.Liquidity1)) * 100.0)
+		}
+	case pair.Asset2:
+		receiveAmt := float64(amt) * float64(pair.Liquidity1) / float64(pair.Liquidity2+amt)
+		receiveAmtMinusFee := receiveAmt * float64(10000-pair.Fee) / float64(10000)
+		receive = uint64(receiveAmtMinusFee)
+		fee = uint64(receiveAmt) - uint64(receiveAmtMinusFee)
+		if pair.Liquidity2 != 0 {
+			slip = 100.0 - (1.0 / (1.0 + float64(amt)/float64(pair.Liquidity2)) * 100.0)
+		}
+	}
+	return
 }
 
 func (pair *Pair) Parse(scId string, values map[string]interface{}) (err error) {
