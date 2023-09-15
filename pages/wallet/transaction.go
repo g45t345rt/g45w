@@ -63,11 +63,6 @@ func NewPageTransaction() *PageTransaction {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	var infoRows []*prefabs.InfoRow
-	for i := 0; i < 6; i++ {
-		infoRows = append(infoRows, prefabs.NewInfoRow())
-	}
-
 	return &PageTransaction{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -77,7 +72,7 @@ func NewPageTransaction() *PageTransaction {
 		senderDestinationEditor: &widget.Editor{ReadOnly: true},
 		blockHashEditor:         &widget.Editor{ReadOnly: true},
 		proofEditor:             &widget.Editor{ReadOnly: true},
-		infoRows:                infoRows,
+		infoRows:                prefabs.NewInfoRows(6),
 
 		txTypeImg: txTypeImg,
 	}

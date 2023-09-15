@@ -580,14 +580,9 @@ type TokenInfoList struct {
 }
 
 func NewTokenInfoList(token *wallet_manager.Token) *TokenInfoList {
-	var infoRows []*prefabs.InfoRow
-	for i := 0; i < 5; i++ {
-		infoRows = append(infoRows, prefabs.NewInfoRow())
-	}
-
 	return &TokenInfoList{
 		token:    token,
-		infoRows: infoRows,
+		infoRows: prefabs.NewInfoRows(5),
 	}
 }
 

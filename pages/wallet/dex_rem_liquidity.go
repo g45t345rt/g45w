@@ -78,18 +78,13 @@ func NewPageDEXRemLiquidity() *PageDEXRemLiquidity {
 	buttonRemove.Label.Alignment = text.Middle
 	buttonRemove.Style.Font.Weight = font.Bold
 
-	var infoRows []*prefabs.InfoRow
-	for i := 0; i < 2; i++ {
-		infoRows = append(infoRows, prefabs.NewInfoRow())
-	}
-
 	return &PageDEXRemLiquidity{
 		animationEnter:     animationEnter,
 		animationLeave:     animationLeave,
 		list:               list,
 		txtPercent:         txtPercent,
 		buttonRemove:       buttonRemove,
-		infoRows:           infoRows,
+		infoRows:           prefabs.NewInfoRows(2),
 		liquidityContainer: NewLiquidityContainer(),
 	}
 }

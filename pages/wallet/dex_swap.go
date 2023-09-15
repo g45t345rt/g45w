@@ -88,11 +88,6 @@ func NewPageDEXSwap() *PageDEXSwap {
 	buttonSwap.Label.Alignment = text.Middle
 	buttonSwap.Style.Font.Weight = font.Bold
 
-	var infoRows []*prefabs.InfoRow
-	for i := 0; i < 7; i++ {
-		infoRows = append(infoRows, prefabs.NewInfoRow())
-	}
-
 	pairTokenInputContainer := NewPairTokenInputContainer()
 	pairTokenInputContainer.txtAmount2.Editor().ReadOnly = true
 
@@ -100,7 +95,7 @@ func NewPageDEXSwap() *PageDEXSwap {
 		animationEnter:          animationEnter,
 		animationLeave:          animationLeave,
 		list:                    list,
-		infoRows:                infoRows,
+		infoRows:                prefabs.NewInfoRows(7),
 		buttonOpenMenu:          buttonOpenMenu,
 		buttonSwap:              buttonSwap,
 		pairTokenInputContainer: pairTokenInputContainer,

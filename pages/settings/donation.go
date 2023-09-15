@@ -127,11 +127,6 @@ func NewPageDonation() *PageDonation {
 	txtAmount.Input.TextSize = unit.Sp(20)
 	txtAmount.Input.FontWeight = font.Bold
 
-	var infoRows []*prefabs.InfoRow
-	for i := 0; i < 9; i++ {
-		infoRows = append(infoRows, prefabs.NewInfoRow())
-	}
-
 	return &PageDonation{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -142,7 +137,7 @@ func NewPageDonation() *PageDonation {
 		buttonAmount2:     buttonAmount2,
 		buttonAmount3:     buttonAmount3,
 		anonymousDonation: new(widget.Bool),
-		infoRows:          infoRows,
+		infoRows:          prefabs.NewInfoRows(9),
 
 		list: list,
 	}
