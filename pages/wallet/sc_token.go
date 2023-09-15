@@ -21,6 +21,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -235,6 +236,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
 			//editIcon, _ := widget.NewIcon(icons.ActionInput)
 			deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
+			ethereumIcon, _ := widget.NewIcon(app_icons.Ethereum)
 
 			var items []*listselect_modal.SelectListItem
 			token := page_instance.pageSCToken.token
@@ -261,11 +263,17 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 			if standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE {
 				items = append(items, listselect_modal.NewSelectListItem("g45_display_token",
-					listselect_modal.NewItemText(showIcon, lang.Translate("Display Tokens")).Layout,
+					listselect_modal.NewItemText(showIcon, lang.Translate("Display tokens")).Layout,
 				))
 
 				items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_token",
-					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve Tokens")).Layout,
+					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve tokens")).Layout,
+				))
+			}
+
+			if standardType == sc.DEX_SC_TYPE {
+				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge",
+					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge back")).Layout,
 				))
 			}
 
@@ -405,6 +413,10 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 							})
 						})
 					}
+				case "dex_sc_bridge":
+					page_instance.pageDEXSCBridge.SetToken(p.token)
+					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE)
+					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE)
 				}
 
 				if err != nil {

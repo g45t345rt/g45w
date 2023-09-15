@@ -19,6 +19,14 @@ func NewInfoRow() *InfoRow {
 	}
 }
 
+func NewInfoRows(count int) []*InfoRow {
+	var infoRows []*InfoRow
+	for i := 0; i < count; i++ {
+		infoRows = append(infoRows, NewInfoRow())
+	}
+	return infoRows
+}
+
 func (i *InfoRow) Layout(gtx layout.Context, th *material.Theme, title string, value string) layout.Dimensions {
 	if i.Editor.Text() != value {
 		i.Editor.SetText(value)
