@@ -16,15 +16,14 @@ type Pair struct {
 	Liquidity2        uint64
 	SharesOutstanding uint64
 	AddCount          uint64 // liquidity add count
-	RemoveCount       uint64
+	RemoveCount       uint64 // liquidity remove count
 	SwapCount         uint64
 }
 
-func (pair *Pair) CalcShare(asset string, share uint64) (value uint64) {
-	switch asset {
-	case pair.Asset1:
+func (pair *Pair) CalcShare(share uint64, reverse bool) (value uint64) {
+	if reverse {
 		value = utils.MultDiv(pair.Liquidity1, share, pair.SharesOutstanding)
-	case pair.Asset2:
+	} else {
 		value = utils.MultDiv(pair.Liquidity2, share, pair.SharesOutstanding)
 	}
 	return
@@ -38,21 +37,12 @@ func (pair *Pair) CalcOwnership(share uint64) float32 {
 	return float32(share) / float32(pair.SharesOutstanding) * 100.0
 }
 
-func (pair *Pair) CalcSwap(asset string, amt uint64) (receive uint64, fee uint64, slip float64) {
+func (pair *Pair) CalcSwap(amt uint64, reverse bool) (receive uint64, fee uint64, slip float64) {
 	if amt == 0 {
 		return
 	}
 
-	switch asset {
-	case pair.Asset1:
-		receiveAmt := float64(amt) * float64(pair.Liquidity2) / float64(pair.Liquidity1+amt)
-		receiveAmtMinusFee := receiveAmt * float64(10000-pair.Fee) / float64(10000)
-		receive = uint64(receiveAmtMinusFee)
-		fee = uint64(receiveAmt) - uint64(receiveAmtMinusFee)
-		if pair.Liquidity1 != 0 {
-			slip = 100.0 - (1.0 / (1.0 + float64(amt)/float64(pair.Liquidity1)) * 100.0)
-		}
-	case pair.Asset2:
+	if reverse {
 		receiveAmt := float64(amt) * float64(pair.Liquidity1) / float64(pair.Liquidity2+amt)
 		receiveAmtMinusFee := receiveAmt * float64(10000-pair.Fee) / float64(10000)
 		receive = uint64(receiveAmtMinusFee)
@@ -60,7 +50,16 @@ func (pair *Pair) CalcSwap(asset string, amt uint64) (receive uint64, fee uint64
 		if pair.Liquidity2 != 0 {
 			slip = 100.0 - (1.0 / (1.0 + float64(amt)/float64(pair.Liquidity2)) * 100.0)
 		}
+	} else {
+		receiveAmt := float64(amt) * float64(pair.Liquidity2) / float64(pair.Liquidity1+amt)
+		receiveAmtMinusFee := receiveAmt * float64(10000-pair.Fee) / float64(10000)
+		receive = uint64(receiveAmtMinusFee)
+		fee = uint64(receiveAmt) - uint64(receiveAmtMinusFee)
+		if pair.Liquidity1 != 0 {
+			slip = 100.0 - (1.0 / (1.0 + float64(amt)/float64(pair.Liquidity1)) * 100.0)
+		}
 	}
+
 	return
 }
 

@@ -198,13 +198,13 @@ func (p *PageDEXRemLiquidity) Layout(gtx layout.Context, th *material.Theme) lay
 
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				share := p.pair.CalcShare(p.pair.Asset1, p.share)
+				share := p.pair.CalcShare(p.share, false)
 				share = uint64(float64(share) * percent / 100.0)
 				amount := utils.ShiftNumber{Number: share, Decimals: int(p.token1.Decimals)}
 				return p.infoRows[0].Layout(gtx, th, p.token1.Symbol.String, amount.Format())
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				share := p.pair.CalcShare(p.pair.Asset2, p.share)
+				share := p.pair.CalcShare(p.share, true)
 				share = uint64(float64(share) * percent / 100.0)
 				amount := utils.ShiftNumber{Number: share, Decimals: int(p.token2.Decimals)}
 				return p.infoRows[1].Layout(gtx, th, p.token2.Symbol.String, amount.Format())

@@ -20,6 +20,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/sc/dex_sc"
 	"github.com/g45t345rt/g45w/theme"
@@ -39,8 +40,10 @@ type PageDEXAddLiquidity struct {
 	buttonAdd               *components.Button
 	liquidityContainer      *LiquidityContainer
 	pairTokenInputContainer *PairTokenInputContainer
+	infoRows                []*prefabs.InfoRow
 
-	pair dex_sc.Pair
+	pair   dex_sc.Pair
+	amount string
 
 	list *widget.List
 }
@@ -80,6 +83,7 @@ func NewPageDEXAddLiquidity() *PageDEXAddLiquidity {
 		pairTokenInputContainer: pairTokenInputContainer,
 		buttonAdd:               buttonAdd,
 		liquidityContainer:      NewLiquidityContainer(),
+		infoRows:                prefabs.NewInfoRows(1),
 	}
 }
 
@@ -127,6 +131,20 @@ func (p *PageDEXAddLiquidity) Leave() {
 func (p *PageDEXAddLiquidity) submitForm() error {
 	token1 := p.pairTokenInputContainer.token1
 	token2 := p.pairTokenInputContainer.token2
+	txtAmount1 := p.pairTokenInputContainer.txtAmount1
+	txtAmount2 := p.pairTokenInputContainer.txtAmount1
+
+	amount1 := utils.ShiftNumber{Decimals: int(token1.Decimals)}
+	err := amount1.Parse(txtAmount1.Value())
+	if err != nil {
+		return err
+	}
+
+	amount2 := utils.ShiftNumber{Decimals: int(token2.Decimals)}
+	err = amount2.Parse(txtAmount2.Value())
+	if err != nil {
+		return err
+	}
 
 	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string, open func(txPayload build_tx_modal.TxPayload)) {
 		open(build_tx_modal.TxPayload{
@@ -136,8 +154,8 @@ func (p *PageDEXAddLiquidity) submitForm() error {
 				{Name: "entrypoint", DataType: rpc.DataString, Value: "AddLiquidity"},
 			},
 			Transfers: []rpc.Transfer{
-				rpc.Transfer{SCID: token1.GetHash(), Burn: 0, Destination: addr},
-				rpc.Transfer{SCID: token2.GetHash(), Burn: 0, Destination: addr},
+				rpc.Transfer{SCID: token1.GetHash(), Burn: amount1.Number, Destination: addr},
+				rpc.Transfer{SCID: token2.GetHash(), Burn: amount2.Number, Destination: addr},
 			},
 			Ringsize:   2,
 			TokensInfo: []*wallet_manager.Token{token1, token2},
@@ -185,6 +203,12 @@ func (p *PageDEXAddLiquidity) Layout(gtx layout.Context, th *material.Theme) lay
 			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		})
+
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("You have to enter the amount for both token and determine the rate."))
+			lbl.Color = theme.Current.TextMuteColor
+			return lbl.Layout(gtx)
+		})
 	} else {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return p.liquidityContainer.Layout(gtx, th)
@@ -192,8 +216,57 @@ func (p *PageDEXAddLiquidity) Layout(gtx layout.Context, th *material.Theme) lay
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		if p.pair.SharesOutstanding > 0 {
+			txtAmount1 := p.pairTokenInputContainer.txtAmount1
+			if txtAmount1.Value() != p.amount {
+				p.amount = txtAmount1.Value()
+				token1 := p.pairTokenInputContainer.token1
+				amount1 := utils.ShiftNumber{Decimals: int(token1.Decimals)}
+				amount1.Parse(p.amount)
+
+				token2 := p.pairTokenInputContainer.token2
+				txtAmount2 := p.pairTokenInputContainer.txtAmount2
+				var value uint64
+				if p.pairTokenInputContainer.reversed {
+					value = utils.MultDiv(amount1.Number, p.pair.Liquidity1, p.pair.Liquidity2)
+				} else {
+					value = utils.MultDiv(amount1.Number, p.pair.Liquidity2, p.pair.Liquidity1)
+				}
+
+				amount2 := utils.ShiftNumber{Number: value, Decimals: int(token2.Decimals)}
+				txtAmount2.SetValue(amount2.Format())
+			}
+		}
+
 		return p.pairTokenInputContainer.Layout(gtx, th, lang.Translate("SEND {}"), lang.Translate("SEND {}"))
 	})
+
+	if p.pair.SharesOutstanding == 0 {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			token1 := p.pairTokenInputContainer.token1
+			token2 := p.pairTokenInputContainer.token2
+
+			liquidity1 := p.pairTokenInputContainer.txtAmount1.Value()
+			amount1 := utils.ShiftNumber{Decimals: int(token1.Decimals)}
+			amount1.Parse(liquidity1)
+
+			one := utils.ShiftNumber{Decimals: int(token1.Decimals)}
+			one.Parse("1")
+
+			liquidity2 := p.pairTokenInputContainer.txtAmount2.Value()
+			amount2 := utils.ShiftNumber{Decimals: int(token2.Decimals)}
+			amount2.Parse(liquidity2)
+
+			rate := uint64(0)
+			if amount1.Number > 0 {
+				rate = uint64(float64(one.Number) * float64(amount2.Number) / float64(amount1.Number))
+			}
+
+			rateAmount := utils.ShiftNumber{Number: rate, Decimals: int(token2.Decimals)}
+
+			return p.infoRows[0].Layout(gtx, th, lang.Translate("Rate"), fmt.Sprintf("1 %s = %s %s", token1.Symbol.String, rateAmount.Format(), token2.Symbol.String))
+		})
+	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		p.buttonAdd.Style.Colors = theme.Current.ButtonPrimaryColors
@@ -253,7 +326,7 @@ func (p *LiquidityContainer) Layout(gtx layout.Context, th *material.Theme) layo
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						share := p.pair.CalcShare(p.pair.Asset1, p.share)
+						share := p.pair.CalcShare(p.share, false)
 						amount := utils.ShiftNumber{Number: share, Decimals: int(p.token1.Decimals)}
 						lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s %s", amount.Format(), p.token1.Symbol.String))
 						lbl.Color = theme.Current.TextMuteColor
@@ -261,7 +334,7 @@ func (p *LiquidityContainer) Layout(gtx layout.Context, th *material.Theme) layo
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						share := p.pair.CalcShare(p.pair.Asset2, p.share)
+						share := p.pair.CalcShare(p.share, true)
 						amount := utils.ShiftNumber{Number: share, Decimals: int(p.token2.Decimals)}
 						lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("%s %s", amount.Format(), p.token2.Symbol.String))
 						lbl.Color = theme.Current.TextMuteColor
@@ -270,7 +343,7 @@ func (p *LiquidityContainer) Layout(gtx layout.Context, th *material.Theme) layo
 					layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						value := p.pair.CalcOwnership(p.share)
-						lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("Ownership: %.3f", value))
+						lbl := material.Label(th, unit.Sp(16), fmt.Sprintf("Ownership: %.3f%%", value))
 						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
 					}),

@@ -241,7 +241,7 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		amount1 := utils.ShiftNumber{Decimals: int(token1.Decimals)}
 		amount1.Parse(p.amountString)
 
-		receive, fee, slip := p.pair.CalcSwap(token1.SCID, amount1.Number)
+		receive, fee, slip := p.pair.CalcSwap(amount1.Number, p.pairTokenInputContainer.reversed)
 		p.slip = slip
 		p.fee = fee
 
@@ -297,9 +297,9 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 					return p.infoRows[3].Layout(gtx, th, title, amount.Format())
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					amount1 := utils.ShiftNumber{Decimals: int(token1.Decimals)}
-					amount1.Parse("1")
-					amt, fee, _ := p.pair.CalcSwap(token1.SCID, amount1.Number)
+					one := utils.ShiftNumber{Decimals: int(token1.Decimals)}
+					one.Parse("1")
+					amt, fee, _ := p.pair.CalcSwap(one.Number, p.pairTokenInputContainer.reversed)
 					amount2 := utils.ShiftNumber{Number: amt + fee, Decimals: int(token2.Decimals)}
 					txt := fmt.Sprintf("1 %s = %s %s", token1.Symbol.String, amount2.Format(), token2.Symbol.String)
 					return p.infoRows[4].Layout(gtx, th, lang.Translate("Rate"), txt)
@@ -346,6 +346,8 @@ type PairTokenInputContainer struct {
 	txtAmount1   *prefabs.TextField
 	txtAmount2   *prefabs.TextField
 	buttonSwitch *components.Button
+
+	reversed bool
 }
 
 func NewPairTokenInputContainer() *PairTokenInputContainer {
@@ -392,6 +394,7 @@ func NewPairTokenInputContainer() *PairTokenInputContainer {
 }
 
 func (p *PairTokenInputContainer) SetTokens(token1 *wallet_manager.Token, token2 *wallet_manager.Token) {
+	p.reversed = false
 	p.token1 = token1
 	p.token2 = token2
 	p.txtAmount1.SetValue("0")
@@ -405,6 +408,7 @@ func (p *PairTokenInputContainer) Layout(gtx layout.Context, th *material.Theme,
 		p.token2 = token1
 		p.txtAmount1.SetValue("0")
 		p.txtAmount2.SetValue("0")
+		p.reversed = !p.reversed
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

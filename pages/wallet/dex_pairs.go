@@ -107,94 +107,102 @@ func (p *PageDEXPairs) Load() error {
 		return nil
 	}
 
-	p.buttonRefresh.SetLoading(true)
-	p.loading = true
-	p.items = make([]*DexPairItem, 0)
-	// Keystore
-	// 8088b0089725de1d323276a0daa1f25cfab9c0b68ccb9318cbf6bf83f5a127c1
-
-	// dex.swap.registry
-	// a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce
-
-	var result rpc.GetSC_Result
-	err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
-		SCID:      "a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce",
-		Code:      false,
-		Variables: true,
-	}, &result)
-	if err != nil {
-		return err
-	}
-
 	p.tlvUSDT = 0
 	p.swapCount = 0
-	deroUSDT_rate := float64(0)
-	for key, value := range result.VariableStringKeys {
-		k := strings.Split(key, ":")
-		prefix := k[0]
+	p.buttonRefresh.SetLoading(true)
+	p.loading = true
 
-		if prefix == "p" {
-			//symbol1 := k[1]
-			//symbol2 := k[2]
+	err := func() error {
+		p.items = make([]*DexPairItem, 0)
+		// Keystore
+		// 8088b0089725de1d323276a0daa1f25cfab9c0b68ccb9318cbf6bf83f5a127c1
 
-			scId := value.(string)
+		// dex.swap.registry
+		// a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce
 
-			var result rpc.GetSC_Result
-			err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
-				SCID:      scId,
-				Code:      false,
-				Variables: true,
-			}, &result)
-			if err != nil {
-				continue
-			}
-
-			pair := dex_sc.Pair{}
-			err = pair.Parse(scId, result.VariableStringKeys)
-			if err != nil {
-				continue
-			}
-
-			token1, err := wallet_manager.GetTokenBySCID(pair.Asset1)
-			if err != nil {
-				return err
-			}
-
-			token2, err := wallet_manager.GetTokenBySCID(pair.Asset2)
-			if err != nil {
-				return err
-			}
-
-			if pair.Symbol == "DERO:DUSDT" {
-				deroUSDT_rate = float64(pair.Liquidity2) / float64(pair.Liquidity1+1)
-			}
-
-			p.swapCount += pair.SwapCount
-			p.items = append(p.items, NewDexPairItem(pair, token1, token2))
-			app_instance.Window.Invalidate()
+		var result rpc.GetSC_Result
+		err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
+			SCID:      "a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce",
+			Code:      false,
+			Variables: true,
+		}, &result)
+		if err != nil {
+			return err
 		}
-	}
 
-	for _, item := range p.items {
-		if item.pair.Asset1 == crypto.ZEROHASH.String() { // DERO
-			p.tlvUSDT += uint64(deroUSDT_rate * float64(item.pair.Liquidity1))
-			deroRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
-			p.tlvUSDT += uint64(deroUSDT_rate * (float64(item.pair.Liquidity2) / deroRate))
-		} else if item.pair.Asset1 == "f93b8d7fbbbf4e8f8a1e91b7ce21ac5d2b6aecc4de88cde8e929bce5f1746fbd" { // DUSDT
-			p.tlvUSDT += item.pair.Liquidity1
-			usdtRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
-			p.tlvUSDT += uint64(usdtRate * float64(item.pair.Liquidity2))
+		p.tlvUSDT = 0
+		p.swapCount = 0
+		deroUSDT_rate := float64(0)
+		for key, value := range result.VariableStringKeys {
+			k := strings.Split(key, ":")
+			prefix := k[0]
+
+			if prefix == "p" {
+				//symbol1 := k[1]
+				//symbol2 := k[2]
+
+				scId := value.(string)
+
+				var result rpc.GetSC_Result
+				err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
+					SCID:      scId,
+					Code:      false,
+					Variables: true,
+				}, &result)
+				if err != nil {
+					continue
+				}
+
+				pair := dex_sc.Pair{}
+				err = pair.Parse(scId, result.VariableStringKeys)
+				if err != nil {
+					continue
+				}
+
+				token1, err := wallet_manager.GetTokenBySCID(pair.Asset1)
+				if err != nil {
+					return err
+				}
+
+				token2, err := wallet_manager.GetTokenBySCID(pair.Asset2)
+				if err != nil {
+					return err
+				}
+
+				if pair.Symbol == "DERO:DUSDT" {
+					deroUSDT_rate = float64(pair.Liquidity2) / float64(pair.Liquidity1+1)
+				}
+
+				p.swapCount += pair.SwapCount
+				p.items = append(p.items, NewDexPairItem(pair, token1, token2))
+				app_instance.Window.Invalidate()
+			}
 		}
-	}
 
-	sort.Slice(p.items, func(i, j int) bool {
-		return p.items[i].pair.Liquidity1 > p.items[j].pair.Liquidity1
-	})
+		for _, item := range p.items {
+			if item.pair.Asset1 == crypto.ZEROHASH.String() { // DERO
+				p.tlvUSDT += uint64(deroUSDT_rate * float64(item.pair.Liquidity1))
+				deroRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+100000)
+				p.tlvUSDT += uint64(deroUSDT_rate * (float64(item.pair.Liquidity2) / deroRate))
+			} else if item.pair.Asset1 == "f93b8d7fbbbf4e8f8a1e91b7ce21ac5d2b6aecc4de88cde8e929bce5f1746fbd" { // DUSDT
+				p.tlvUSDT += item.pair.Liquidity1
+				usdtRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1000000)
+				p.tlvUSDT += uint64(usdtRate * float64(item.pair.Liquidity2))
+			}
+		}
+
+		sort.Slice(p.items, func(i, j int) bool {
+			return p.items[i].pair.Liquidity1 > p.items[j].pair.Liquidity1
+		})
+
+		return nil
+	}()
 
 	p.buttonRefresh.SetLoading(false)
 	p.loading = false
 	p.loaded = true
 	app_instance.Window.Invalidate()
+
 	return err
 }
 

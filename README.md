@@ -23,7 +23,7 @@ This change should remove a painful/unsafe step of connecting your wallet direct
 - Multiple wallet management.
 - Manage Dero tokens and NFTs (folder-like structure).
 - Easily send payments and receive with QR code.
-- Fast registration implemented by pieswap.
+- Fast registration implemented by Pieswap.
 - Address book to manage contacts.
 - Support as much language as possible (11 and counting...).
 - App color schemes (dark, light, blue).
