@@ -146,7 +146,7 @@ func (p *PageSCToken) Enter() {
 			clipboard.WriteOp{
 				Text: p.token.SCID,
 			}.Add(gtx.Ops)
-			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Smart Contract ID copied to clipboard"))
+			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
 			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 
@@ -273,7 +273,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 			if standardType == sc.DEX_SC_TYPE {
 				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge",
-					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge back")).Layout,
+					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge out")).Layout,
 				))
 			}
 

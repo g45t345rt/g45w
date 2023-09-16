@@ -16,8 +16,10 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
@@ -137,6 +139,25 @@ func (p *PageDEXSwap) SetPair(pair dex_sc.Pair, token1 *wallet_manager.Token, to
 	page_instance.pageDEXRemLiquidity.pair = pair
 }
 
+func (p *PageDEXSwap) Load() error {
+	var result rpc.GetSC_Result
+	err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
+		SCID:      p.pair.SCID,
+		Code:      false,
+		Variables: true,
+	}, &result)
+	if err != nil {
+		return err
+	}
+
+	err = p.pair.Parse(p.pair.SCID, result.VariableStringKeys)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *PageDEXSwap) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
@@ -200,22 +221,41 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 	if p.buttonOpenMenu.Clicked() {
 		go func() {
+
+			copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
+			refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+			addIcon, _ := widget.NewIcon(icons.ContentAddBox)
+			removeIcon, _ := widget.NewIcon(icons.ContentClear)
+
 			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
+				listselect_modal.NewSelectListItem("refresh_data",
+					listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh Data")).Layout,
+				),
 				listselect_modal.NewSelectListItem("add_liquidity",
-					listselect_modal.NewItemText(nil, lang.Translate("Add Liquidity")).Layout,
+					listselect_modal.NewItemText(addIcon, lang.Translate("Add Liquidity")).Layout,
 				),
 				listselect_modal.NewSelectListItem("rem_liquidity",
-					listselect_modal.NewItemText(nil, lang.Translate("Remove Liquidity")).Layout,
+					listselect_modal.NewItemText(removeIcon, lang.Translate("Remove Liquidity")).Layout,
+				),
+				listselect_modal.NewSelectListItem("copy_scid",
+					listselect_modal.NewItemText(copyIcon, lang.Translate("Copy Pair SCID")).Layout,
 				),
 			})
 			for key := range keyChan {
 				switch key {
+				case "refresh_data":
+					p.Load()
+					app_instance.Window.Invalidate()
 				case "add_liquidity":
 					page_instance.pageRouter.SetCurrent(PAGE_DEX_ADD_LIQUIDITY)
 					page_instance.header.AddHistory(PAGE_DEX_ADD_LIQUIDITY)
 				case "rem_liquidity":
 					page_instance.pageRouter.SetCurrent(PAGE_DEX_REM_LIQUIDITY)
 					page_instance.header.AddHistory(PAGE_DEX_REM_LIQUIDITY)
+				case "copy_scid":
+					app_instance.Window.WriteClipboard(p.pair.SCID)
+					notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
+					notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 				}
 			}
 		}()

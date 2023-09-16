@@ -62,7 +62,7 @@ func NewPageDEXAddLiquidity() *PageDEXAddLiquidity {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	addIcon, _ := widget.NewIcon(icons.ContentAdd)
+	addIcon, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonAdd := components.NewButton(components.ButtonStyle{
 		Rounded:   components.UniformRounded(unit.Dp(5)),
 		Icon:      addIcon,

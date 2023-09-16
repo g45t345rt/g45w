@@ -107,7 +107,7 @@ func (p *PageDEXSCBridge) Enter() {
 
 	page_instance.header.Title = func() string { return p.token.Name }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(14), lang.Translate("Bridge back to Eth"))
+		lbl := material.Label(th, unit.Sp(14), lang.Translate("Bridge to Eth"))
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
@@ -233,7 +233,7 @@ func (p *PageDEXSCBridge) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		p.buttonBridge.Style.Colors = theme.Current.ButtonPrimaryColors
-		p.buttonBridge.Text = lang.Translate("BRIDGE BACK")
+		p.buttonBridge.Text = lang.Translate("BRIDGE OUT")
 		return p.buttonBridge.Layout(gtx, th)
 	})
 

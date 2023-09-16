@@ -155,5 +155,8 @@ func (item *ItemText) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		return lbl.Layout(gtx)
 	}))
 
-	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, childs...)
+	return layout.Flex{
+		Axis:      layout.Horizontal,
+		Alignment: layout.Middle,
+	}.Layout(gtx, childs...)
 }
