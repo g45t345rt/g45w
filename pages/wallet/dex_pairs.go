@@ -182,11 +182,11 @@ func (p *PageDEXPairs) Load() error {
 		for _, item := range p.items {
 			if item.pair.Asset1 == crypto.ZEROHASH.String() { // DERO
 				p.tlvUSDT += uint64(deroUSDT_rate * float64(item.pair.Liquidity1))
-				deroRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+100000)
+				deroRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
 				p.tlvUSDT += uint64(deroUSDT_rate * (float64(item.pair.Liquidity2) / deroRate))
 			} else if item.pair.Asset1 == "f93b8d7fbbbf4e8f8a1e91b7ce21ac5d2b6aecc4de88cde8e929bce5f1746fbd" { // DUSDT
 				p.tlvUSDT += item.pair.Liquidity1
-				usdtRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1000000)
+				usdtRate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
 				p.tlvUSDT += uint64(usdtRate * float64(item.pair.Liquidity2))
 			}
 		}
@@ -388,10 +388,10 @@ func (item *DexPairItem) Layout(gtx layout.Context, th *material.Theme) layout.D
 			Left: unit.Dp(8), Right: unit.Dp(8),
 			Bottom: unit.Dp(5), Top: unit.Dp(5),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			rate := float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+1)
-			rateAmount := utils.ShiftNumber{Decimals: int(item.token1.Decimals)}
-			rateAmount.Parse(fmt.Sprint(rate))
-			amount := utils.ShiftNumber{Number: rateAmount.Number, Decimals: int(item.token2.Decimals)}
+			one := utils.ShiftNumber{Decimals: int(item.token1.Decimals)}
+			one.Parse("1")
+			rate := uint64(float64(one.Number) * float64(item.pair.Liquidity2) / float64(item.pair.Liquidity1+one.Number))
+			amount := utils.ShiftNumber{Number: rate, Decimals: int(item.token2.Decimals)}
 			lbl := material.Label(th, unit.Sp(18), amount.Format())
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)

@@ -132,7 +132,7 @@ func (p *PageDEXAddLiquidity) submitForm() error {
 	token1 := p.pairTokenInputContainer.token1
 	token2 := p.pairTokenInputContainer.token2
 	txtAmount1 := p.pairTokenInputContainer.txtAmount1
-	txtAmount2 := p.pairTokenInputContainer.txtAmount1
+	txtAmount2 := p.pairTokenInputContainer.txtAmount2
 
 	amount1 := utils.ShiftNumber{Decimals: int(token1.Decimals)}
 	err := amount1.Parse(txtAmount1.Value())

@@ -22,9 +22,9 @@ type Pair struct {
 
 func (pair *Pair) CalcShare(share uint64, reverse bool) (value uint64) {
 	if reverse {
-		value = utils.MultDiv(pair.Liquidity1, share, pair.SharesOutstanding)
-	} else {
 		value = utils.MultDiv(pair.Liquidity2, share, pair.SharesOutstanding)
+	} else {
+		value = utils.MultDiv(pair.Liquidity1, share, pair.SharesOutstanding)
 	}
 	return
 }

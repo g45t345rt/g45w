@@ -2,6 +2,7 @@ package page_wallet
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"gioui.org/font"
@@ -43,7 +44,6 @@ type PageDEXRemLiquidity struct {
 	pair   dex_sc.Pair
 	token1 *wallet_manager.Token
 	token2 *wallet_manager.Token
-	share  uint64
 
 	list *widget.List
 }
@@ -129,11 +129,12 @@ func (p *PageDEXRemLiquidity) submitForm() error {
 		return fmt.Errorf("amount must be > 0.0 and <= 100.0")
 	}
 
-	if p.share <= 0 {
+	share := p.liquidityContainer.share
+	if share <= 0 {
 		return fmt.Errorf("you don't have any liquidity")
 	}
 
-	remShares := uint64(float64(p.share) * percent / 100.0)
+	remShares := uint64(float64(share) * percent / 100.0)
 	pairSCID := crypto.HashHexToHash(p.pair.SCID)
 	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string, open func(txPayload build_tx_modal.TxPayload)) {
 		open(build_tx_modal.TxPayload{
@@ -198,14 +199,14 @@ func (p *PageDEXRemLiquidity) Layout(gtx layout.Context, th *material.Theme) lay
 
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				share := p.pair.CalcShare(p.share, false)
-				share = uint64(float64(share) * percent / 100.0)
+				share := p.pair.CalcShare(p.liquidityContainer.share, false)
+				share = uint64(float64(share) * math.Min(100, percent) / 100.0)
 				amount := utils.ShiftNumber{Number: share, Decimals: int(p.token1.Decimals)}
 				return p.infoRows[0].Layout(gtx, th, p.token1.Symbol.String, amount.Format())
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				share := p.pair.CalcShare(p.share, true)
-				share = uint64(float64(share) * percent / 100.0)
+				share := p.pair.CalcShare(p.liquidityContainer.share, true)
+				share = uint64(float64(share) * math.Min(100, percent) / 100.0)
 				amount := utils.ShiftNumber{Number: share, Decimals: int(p.token2.Decimals)}
 				return p.infoRows[1].Layout(gtx, th, p.token2.Symbol.String, amount.Format())
 			}),
