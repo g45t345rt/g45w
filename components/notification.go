@@ -74,13 +74,14 @@ func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
 
 		if closeAfter > 0 {
 			n.timer = time.AfterFunc(closeAfter, func() {
-				n.SetVisible(false, 0)
+				n.Modal.SetVisible(false)
 				n.window.Invalidate()
 			})
 		}
 	}
 
 	n.Modal.SetVisible(visible)
+	n.window.Invalidate()
 }
 
 func (n *NotificationModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

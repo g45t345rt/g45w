@@ -265,9 +265,8 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 		notification_modals.InfoInstance.SetVisible(false, 0)
 
 		if err != nil {
-			notification_modals.InfoInstance.SetVisible(false, 0)
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modals.ErrorInstance.SetVisible(true, 0)
 		} else {
 			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 			page_instance.header.AddHistory(PAGE_REMOTE_NODE)
