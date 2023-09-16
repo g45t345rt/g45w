@@ -126,7 +126,9 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 	if t.keyboardClick.Clicked() {
 		// on mobile if the keyboard popups and the input lose focus it will automatically close the keyboard
 		// so we have to manually force keyboard request to avoid this issue
-		key.SoftKeyboardOp{Show: true}.Add(gtx.Ops)
+		if !t.Editor.ReadOnly {
+			key.SoftKeyboardOp{Show: true}.Add(gtx.Ops)
+		}
 	}
 
 	return t.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

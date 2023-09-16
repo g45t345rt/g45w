@@ -114,6 +114,10 @@ func (p *PageDEXPairs) Load() error {
 
 	err := func() error {
 		p.items = make([]*DexPairItem, 0)
+		p.tlvUSDT = 0
+		p.swapCount = 0
+		deroUSDT_rate := float64(0)
+
 		// Keystore
 		// 8088b0089725de1d323276a0daa1f25cfab9c0b68ccb9318cbf6bf83f5a127c1
 
@@ -130,52 +134,51 @@ func (p *PageDEXPairs) Load() error {
 			return err
 		}
 
-		p.tlvUSDT = 0
-		p.swapCount = 0
-		deroUSDT_rate := float64(0)
 		for key, value := range result.VariableStringKeys {
 			k := strings.Split(key, ":")
-			prefix := k[0]
 
-			if prefix == "p" {
-				//symbol1 := k[1]
-				//symbol2 := k[2]
+			if len(k) > 0 {
+				prefix := k[0]
+				if prefix == "p" {
+					//symbol1 := k[1]
+					//symbol2 := k[2]
 
-				scId := value.(string)
+					scId := value.(string)
 
-				var result rpc.GetSC_Result
-				err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
-					SCID:      scId,
-					Code:      false,
-					Variables: true,
-				}, &result)
-				if err != nil {
-					continue
+					var result rpc.GetSC_Result
+					err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
+						SCID:      scId,
+						Code:      false,
+						Variables: true,
+					}, &result)
+					if err != nil {
+						return err
+					}
+
+					pair := dex_sc.Pair{}
+					err = pair.Parse(scId, result.VariableStringKeys)
+					if err != nil {
+						return err
+					}
+
+					token1, err := wallet_manager.GetTokenBySCID(pair.Asset1)
+					if err != nil {
+						return err
+					}
+
+					token2, err := wallet_manager.GetTokenBySCID(pair.Asset2)
+					if err != nil {
+						return err
+					}
+
+					if pair.Symbol == "DERO:DUSDT" {
+						deroUSDT_rate = float64(pair.Liquidity2) / float64(pair.Liquidity1+1)
+					}
+
+					p.swapCount += pair.SwapCount
+					p.items = append(p.items, NewDexPairItem(pair, token1, token2))
+					app_instance.Window.Invalidate()
 				}
-
-				pair := dex_sc.Pair{}
-				err = pair.Parse(scId, result.VariableStringKeys)
-				if err != nil {
-					continue
-				}
-
-				token1, err := wallet_manager.GetTokenBySCID(pair.Asset1)
-				if err != nil {
-					return err
-				}
-
-				token2, err := wallet_manager.GetTokenBySCID(pair.Asset2)
-				if err != nil {
-					return err
-				}
-
-				if pair.Symbol == "DERO:DUSDT" {
-					deroUSDT_rate = float64(pair.Liquidity2) / float64(pair.Liquidity1+1)
-				}
-
-				p.swapCount += pair.SwapCount
-				p.items = append(p.items, NewDexPairItem(pair, token1, token2))
-				app_instance.Window.Invalidate()
 			}
 		}
 
@@ -251,11 +254,15 @@ func (p *PageDEXPairs) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		childs := []layout.FlexChild{}
+		var childs []layout.FlexChild
 		for i := range p.items {
 			idx := i
 			childs = append(childs,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					if idx >= len(p.items) { // important check -> p.items[idx] can be null if reloading items asynchronously
+						return layout.Dimensions{}
+					}
+
 					item := p.items[idx]
 					if item.clickable.Clicked() {
 						page_instance.pageDexSwap.SetPair(item.pair, item.token1, item.token2)
