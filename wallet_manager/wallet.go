@@ -164,7 +164,7 @@ func CreateWalletFromPath(name string, password string, path string) error {
 		return err
 	}
 
-	return saveWallet(wallet.Wallet_Memory, name)
+	return createWallet(wallet.Wallet_Memory, name)
 }
 
 func CreateWalletFromData(name string, password string, data []byte) error {
@@ -173,7 +173,7 @@ func CreateWalletFromData(name string, password string, data []byte) error {
 		return err
 	}
 
-	return saveWallet(walletMemory, name)
+	return createWallet(walletMemory, name)
 }
 
 func CreateWalletFromSeed(name string, password string, seed string) error {
@@ -182,7 +182,7 @@ func CreateWalletFromSeed(name string, password string, seed string) error {
 		return err
 	}
 
-	return saveWallet(wallet, name)
+	return createWallet(wallet, name)
 }
 
 func CreateWalletFromHexSeed(name string, password, hexSeed string) error {
@@ -201,7 +201,7 @@ func CreateWalletFromHexSeed(name string, password, hexSeed string) error {
 		return err
 	}
 
-	return saveWallet(wallet, name)
+	return createWallet(wallet, name)
 }
 
 func CreateRandomWallet(name string, password string) error {
@@ -210,7 +210,7 @@ func CreateRandomWallet(name string, password string) error {
 		return err
 	}
 
-	return saveWallet(wallet, name)
+	return createWallet(wallet, name)
 }
 
 func (w *Wallet) Rename(newName string) error {
@@ -514,18 +514,18 @@ func StoreRegistrationTx(addr string, tx *transaction.Transaction) error {
 	return app_db.UpdateWalletInfo(walletInfo)
 }
 
-func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
+func createWallet(wallet *walletapi.Wallet_Memory, name string) error {
 	wallet.SetNetwork(globals.IsMainnet())
 
 	addr := wallet.GetAddress().String()
 	walletInfo := app_db.WalletInfo{
-		Addr:      addr,
-		Name:      name,
-		Timestamp: time.Now().Unix(),
+		Addr:        addr,
+		Name:        name,
+		Timestamp:   time.Now().Unix(),
+		OrderNumber: -1,
 	}
 
-	//err := saveWalletInfo(addr, walletInfo)
-	err := app_db.UpdateWalletInfo(walletInfo)
+	err := app_db.InsertWalletInfo(walletInfo)
 	if err != nil {
 		return err
 	}
@@ -537,31 +537,6 @@ func saveWallet(wallet *walletapi.Wallet_Memory, name string) error {
 
 	return nil
 }
-
-/*
-func saveWalletInfo(addr string, walletInfo *WalletInfo) error {
-	data, err := json.Marshal(walletInfo)
-	if err != nil {
-		return err
-	}
-
-	walletsDir := settings.WalletsDir
-
-	path := filepath.Join(walletsDir, addr)
-	err = os.MkdirAll(path, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	infoPath := filepath.Join(walletsDir, addr, "info.json")
-	err = os.WriteFile(infoPath, data, fs.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	Wallets[addr] = walletInfo
-	return nil
-}*/
 
 func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 	walletData := wallet.Get_Encrypted_Wallet()
