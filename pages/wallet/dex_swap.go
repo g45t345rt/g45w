@@ -221,11 +221,18 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 	if p.buttonOpenMenu.Clicked() {
 		go func() {
-
 			copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
 			refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 			addIcon, _ := widget.NewIcon(icons.ContentAddBox)
 			removeIcon, _ := widget.NewIcon(icons.ContentClear)
+
+			token1 := p.pairTokenInputContainer.token1
+			token2 := p.pairTokenInputContainer.token2
+
+			txt := lang.Translate("Copy {} SCID")
+			txt1 := strings.Replace(txt, "{}", lang.Translate("Pair"), -1)
+			txt2 := strings.Replace(txt, "{}", token1.Symbol.String, -1)
+			txt3 := strings.Replace(txt, "{}", token2.Symbol.String, -1)
 
 			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
 				listselect_modal.NewSelectListItem("refresh_data",
@@ -238,13 +245,28 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 					listselect_modal.NewItemText(removeIcon, lang.Translate("Remove Liquidity")).Layout,
 				),
 				listselect_modal.NewSelectListItem("copy_scid",
-					listselect_modal.NewItemText(copyIcon, lang.Translate("Copy Pair SCID")).Layout,
+					listselect_modal.NewItemText(copyIcon, txt1).Layout,
+				),
+				listselect_modal.NewSelectListItem("copy_token1_scid",
+					listselect_modal.NewItemText(copyIcon, txt2).Layout,
+				),
+				listselect_modal.NewSelectListItem("copy_token2_scid",
+					listselect_modal.NewItemText(copyIcon, txt3).Layout,
 				),
 			})
 			for key := range keyChan {
 				switch key {
 				case "refresh_data":
-					p.Load()
+					err := p.Load()
+
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Data reloaded."))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					}
+
 					app_instance.Window.Invalidate()
 				case "add_liquidity":
 					page_instance.pageRouter.SetCurrent(PAGE_DEX_ADD_LIQUIDITY)
@@ -254,6 +276,14 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 					page_instance.header.AddHistory(PAGE_DEX_REM_LIQUIDITY)
 				case "copy_scid":
 					app_instance.Window.WriteClipboard(p.pair.SCID)
+					notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
+					notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				case "copy_token1_scid":
+					app_instance.Window.WriteClipboard(token1.SCID)
+					notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
+					notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				case "copy_token2_scid":
+					app_instance.Window.WriteClipboard(token2.SCID)
 					notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
 					notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 				}
@@ -397,7 +427,6 @@ func NewPairTokenInputContainer() *PairTokenInputContainer {
 	txtAmount2 := prefabs.NewNumberTextField()
 	txtAmount2.Input.TextSize = unit.Sp(18)
 	txtAmount2.Input.FontWeight = font.Bold
-	//txtAmount2.Editor().ReadOnly = true
 
 	tokenImage1 := &components.Image{
 		Fit:     components.Cover,
