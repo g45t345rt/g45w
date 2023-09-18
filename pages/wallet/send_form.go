@@ -516,7 +516,7 @@ func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.D
 }
 
 type WalletAddrInput struct {
-	txtWalletAddr       *components.Input
+	txtWalletAddr       *prefabs.Input
 	buttonAddrMenu      *components.Button
 	newContactClickable *widget.Clickable
 
@@ -524,7 +524,7 @@ type WalletAddrInput struct {
 }
 
 func NewWalletAddrInput() *WalletAddrInput {
-	txtWalletAddr := components.NewInput()
+	txtWalletAddr := prefabs.NewInput()
 
 	addrIcon, _ := widget.NewIcon(icons.SocialPeople)
 	buttonAddrMenu := components.NewButton(components.ButtonStyle{

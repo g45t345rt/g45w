@@ -6,16 +6,15 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/theme"
 )
 
 type TextField struct {
-	Input *components.Input
+	Input *Input
 }
 
 func NewTextField() *TextField {
-	input := components.NewInput()
+	input := NewInput()
 
 	return &TextField{
 		Input: input,
@@ -23,14 +22,14 @@ func NewTextField() *TextField {
 }
 
 func NewNumberTextField() *TextField {
-	input := components.NewNumberInput()
+	input := NewNumberInput()
 	return &TextField{
 		Input: input,
 	}
 }
 
 func NewPasswordTextField() *TextField {
-	input := components.NewPasswordInput()
+	input := NewPasswordInput()
 
 	return &TextField{
 		Input: input,

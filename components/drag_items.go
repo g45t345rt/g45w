@@ -32,9 +32,9 @@ type DragItems struct {
 	startPosY          float32
 	dragPosY           float32
 	itemMoved          bool
-	holdBeforeDrag     *time.Time
 	canStartDrag       bool
 	holdStartAnimation *animation.Animation
+	holdPress          *HoldPress
 
 	lastIndex int
 	newIndex  int
@@ -48,6 +48,7 @@ func NewDragItems() *DragItems {
 
 	return &DragItems{
 		holdStartAnimation: holdStartAnimation,
+		holdPress:          NewHoldPress(500 * time.Millisecond),
 	}
 }
 
@@ -69,7 +70,9 @@ func (l *DragItems) LayoutItem(gtx layout.Context, index int, w layout.Widget) {
 func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout.Widget) layout.Dimensions {
 	l.items = make([]dragItem, 0)
 	m := op.Record(gtx.Ops)
-	dims := w(gtx)
+	dims := l.holdPress.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return w(gtx)
+	})
 	c := m.Stop()
 
 	scrollOffset := 0
@@ -79,13 +82,9 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 		itemOffset = scroll.First
 	}
 
-	if l.holdBeforeDrag != nil {
-		if l.holdBeforeDrag.Add(500 * time.Millisecond).Before(gtx.Now) {
-			l.holdBeforeDrag = nil
-			l.canStartDrag = true
-			l.holdStartAnimation.Reset().Start()
-		}
-		op.InvalidateOp{}.Add(gtx.Ops)
+	if l.holdPress.Triggered {
+		l.canStartDrag = true
+		l.holdStartAnimation.Reset().Start()
 	}
 
 	l.itemMoved = false
@@ -94,13 +93,10 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 		case pointer.Drag:
 			if l.canStartDrag {
 				l.dragEvent = &e
-			} else if l.startPosY != e.Position.Y {
-				l.holdBeforeDrag = nil
 			}
 		case pointer.Press:
 			l.dragEvent = nil
 			l.canStartDrag = false
-			l.holdBeforeDrag = &gtx.Now
 
 			l.startPosY = e.Position.Y
 			l.dragIndex = -1
@@ -118,7 +114,6 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 				minY += item.Dims.Size.Y
 			}
 		case pointer.Release, pointer.Cancel:
-			l.holdBeforeDrag = nil
 			l.canStartDrag = false
 
 			if l.dragEvent != nil && l.dragIndex > -1 {

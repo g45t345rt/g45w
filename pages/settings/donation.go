@@ -122,7 +122,7 @@ func NewPageDonation() *PageDonation {
 	buttonDonate.Label.Alignment = text.Middle
 	buttonDonate.Style.Font.Weight = font.Bold
 
-	txtAmount := prefabs.NewTextField()
+	txtAmount := prefabs.NewNumberTextField()
 	txtAmount.Input.Editor.InputHint = key.HintNumeric
 	txtAmount.Input.TextSize = unit.Sp(20)
 	txtAmount.Input.FontWeight = font.Bold

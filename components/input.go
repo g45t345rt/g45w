@@ -36,6 +36,9 @@ type Input struct {
 	submitted     bool
 	submitText    string
 	activeSubmit  bool
+
+	setValue bool
+	newValue string
 }
 
 func NewInput() *Input {
@@ -95,8 +98,15 @@ func (t *Input) Value() string {
 	return t.Editor.Text()
 }
 
+/*
 func (t *Input) SetValue(text string) {
 	t.Editor.SetText(text)
+}
+*/
+
+func (t *Input) SetValue(text string) {
+	t.setValue = true
+	t.newValue = text
 }
 
 func (t *Input) Submitted() (bool, string) {
@@ -114,11 +124,19 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 		for _, e := range t.Editor.Events() {
 			e, ok := e.(widget.SubmitEvent)
 			if ok {
-				t.SetValue("")
+				t.Editor.SetText("")
 				t.submitText = e.Text
 				t.submitted = true
 			}
 		}
+	}
+
+	// always use SetText in layout or you can sometime get nil with shaper text
+	if t.setValue {
+		t.setValue = false
+		t.Editor.SetText(t.newValue)
+		t.Editor.SetCaret(len(t.newValue), len(t.newValue))
+		t.newValue = ""
 	}
 
 	gtx.Constraints.Min.Y = t.EditorMinY
@@ -135,7 +153,7 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 		return t.keyboardClick.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			t.Border.Color = t.Colors.BorderColor
 			return t.Border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				macro := op.Record(gtx.Ops)
+				r := op.Record(gtx.Ops)
 				dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					editorStyle := material.Editor(th, t.Editor, hint)
 					editorStyle.Color = t.Colors.TextColor
@@ -147,17 +165,16 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 					editorStyle.Font.Weight = t.FontWeight
 					return editorStyle.Layout(gtx)
 				})
-				call := macro.Stop()
+				c := r.Stop()
 
 				paint.FillShape(gtx.Ops, t.Colors.BackgroundColor, clip.UniformRRect(
 					image.Rectangle{Max: dims.Size},
 					int(t.Border.CornerRadius),
 				).Op(gtx.Ops))
 
-				call.Add(gtx.Ops)
+				c.Add(gtx.Ops)
 				return dims
 			})
-
 		})
 	})
 }

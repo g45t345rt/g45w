@@ -318,7 +318,8 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 	}
 
 	if item.buttonSelect.Clicked() {
-		page_instance.pageSendForm.walletAddrInput.txtWalletAddr.SetValue(item.contact.Addr)
+		txtWalletAddr := page_instance.pageSendForm.walletAddrInput.txtWalletAddr
+		txtWalletAddr.SetValue(item.contact.Addr)
 		page_instance.header.GoBack()
 	}
 
