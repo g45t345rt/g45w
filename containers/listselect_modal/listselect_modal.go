@@ -78,7 +78,7 @@ func (l *ListSelectModal) Layout(gtx layout.Context, th *material.Theme) layout.
 				if l.items[index].clickable.Clicked() {
 					l.keyChan <- l.items[index].Key
 					l.Modal.SetVisible(false)
-					close(l.keyChan)
+					//close(l.keyChan) don't close channel it panics if spamming click
 					op.InvalidateOp{}.Add(gtx.Ops)
 				}
 

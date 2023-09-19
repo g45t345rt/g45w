@@ -3,6 +3,7 @@ package qrcode_scan_modal
 import (
 	"errors"
 	"math"
+	"time"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -33,6 +34,7 @@ type CameraQRScanModal struct {
 	err               error
 	send              bool
 	cameraOrientation int
+	closing           bool
 
 	Modal *components.Modal
 }
@@ -143,7 +145,8 @@ func (w *CameraQRScanModal) scan() {
 	go func() {
 		for imageResult := range camera.GetFeed() {
 			if imageResult.Err != nil {
-				continue
+				w.err = imageResult.Err
+				break
 			}
 
 			img := imageResult.Image
@@ -156,7 +159,6 @@ func (w *CameraQRScanModal) scan() {
 			if err == nil {
 				w.scanned = true
 				w.value = result.String()
-				w.scanning = false
 				camera.CloseFeed()
 				app_instance.Window.Invalidate()
 				break
@@ -164,18 +166,35 @@ func (w *CameraQRScanModal) scan() {
 
 			app_instance.Window.Invalidate()
 		}
+
+		w.scanning = false
 	}()
 }
 
-func (w *CameraQRScanModal) Show() {
-	go w.scan()
+func (w *CameraQRScanModal) Open() {
+	w.scan()
 	w.Modal.SetVisible(true)
+}
+
+func (w *CameraQRScanModal) close() {
+	if w.closing {
+		return
+	}
+
+	// make sure you don't call closefeed multiple times by spamming button - it crash otherwise
+	w.closing = true
+	camera.CloseFeed()
+	w.Modal.SetVisible(false)
+	app_instance.Window.Invalidate()
+
+	time.AfterFunc(1*time.Second, func() {
+		w.closing = false
+	})
 }
 
 func (w *CameraQRScanModal) layout(gtx layout.Context, th *material.Theme) {
 	if w.buttonCancel.Clicked() {
-		go camera.CloseFeed()
-		w.Modal.SetVisible(false)
+		go w.close()
 	}
 
 	if w.buttonRetry.Clicked() {

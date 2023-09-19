@@ -565,7 +565,7 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 					page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
 					page_instance.header.AddHistory(PAGE_CONTACTS)
 				case "scan_qrcode":
-					qrcode_scan_modal.Instance.Show()
+					qrcode_scan_modal.Instance.Open()
 				}
 			}
 		}()
