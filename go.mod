@@ -12,7 +12,7 @@ require (
 	gioui.org v0.2.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
-	github.com/ethereum/go-ethereum v1.13.0
+	github.com/ethereum/go-ethereum v1.13.1
 	github.com/gio-eui/ivgconv v0.0.0-20230728141110-3b7424472495
 	github.com/holiman/uint256 v1.2.3
 	github.com/makiuchi-d/gozxing v0.1.1

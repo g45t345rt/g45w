@@ -44,7 +44,8 @@ type Page struct {
 	pageDexSwap         *PageDEXSwap
 	pageDEXAddLiquidity *PageDEXAddLiquidity
 	pageDEXRemLiquidity *PageDEXRemLiquidity
-	pageDEXSCBridge     *PageDEXSCBridge
+	pageDEXSCBridgeOut  *PageDEXSCBridgeOut
+	pageDEXSCBridgeIn   *PageDEXSCBridgeIn
 
 	pageRouter *router.Router
 }
@@ -74,7 +75,8 @@ var (
 	PAGE_DEX_SWAP          = "page_dex_swap"
 	PAGE_DEX_ADD_LIQUIDITY = "page_dex_add_liquidity"
 	PAGE_DEX_REM_LIQUIDITY = "page_dex_rem_liquidity"
-	PAGE_DEX_SC_BRIDGE     = "page_dex_sc_bridge"
+	PAGE_DEX_SC_BRIDGE_OUT = "page_dex_sc_bridge_out"
+	PAGE_DEX_SC_BRIDGE_IN  = "page_dex_sc_bridge_in"
 )
 
 func New() *Page {
@@ -144,8 +146,11 @@ func New() *Page {
 	pageDEXRemLiquidity := NewPageDEXRemLiquidity()
 	pageRouter.Add(PAGE_DEX_REM_LIQUIDITY, pageDEXRemLiquidity)
 
-	pageDEXSCBridge := NewPageDEXSCBridge()
-	pageRouter.Add(PAGE_DEX_SC_BRIDGE, pageDEXSCBridge)
+	pageDEXSCBridgeOut := NewPageDEXSCBridgeOut()
+	pageRouter.Add(PAGE_DEX_SC_BRIDGE_OUT, pageDEXSCBridgeOut)
+
+	pageDEXSCBridgeIn := NewPageDEXSCBridgeIn()
+	pageRouter.Add(PAGE_DEX_SC_BRIDGE_IN, pageDEXSCBridgeIn)
 
 	header := prefabs.NewHeader(pageRouter)
 
@@ -166,7 +171,8 @@ func New() *Page {
 		pageDexSwap:         pageDEXSwap,
 		pageDEXAddLiquidity: pageDEXAddLiquidity,
 		pageDEXRemLiquidity: pageDEXRemLiquidity,
-		pageDEXSCBridge:     pageDEXSCBridge,
+		pageDEXSCBridgeOut:  pageDEXSCBridgeOut,
+		pageDEXSCBridgeIn:   pageDEXSCBridgeIn,
 
 		pageRouter: pageRouter,
 	}

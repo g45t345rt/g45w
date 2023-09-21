@@ -1,0 +1,24 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild ./src/index.js --bundle --loader:.js=jsx --loader:.woff=dataurl --loader:.woff2=dataurl --jsx-factory=h --sourcemap --outfile=./dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@metamask/detect-provider": "^2.0.0",
+    "ethers": "^6.7.1",
+    "goober": "^2.1.13",
+    "js-base64": "^3.7.5",
+    "material-icons": "^1.13.11",
+    "preact": "^10.17.1",
+    "reset-css": "^5.0.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.3"
+  }
+}

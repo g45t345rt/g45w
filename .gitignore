@@ -1,3 +1,4 @@
 build
 __debug_bin.exe
 *.syso
+node_modules

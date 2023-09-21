@@ -263,33 +263,37 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 			if standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE {
 				items = append(items, listselect_modal.NewSelectListItem("g45_display_token",
-					listselect_modal.NewItemText(showIcon, lang.Translate("Display tokens")).Layout,
+					listselect_modal.NewItemText(showIcon, lang.Translate("Display Tokens")).Layout,
 				))
 
 				items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_token",
-					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve tokens")).Layout,
+					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve Tokens")).Layout,
 				))
 			}
 
 			if standardType == sc.DEX_SC_TYPE {
-				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge",
-					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge out")).Layout,
+				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_in",
+					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge In")).Layout,
+				))
+
+				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_out",
+					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge Out")).Layout,
 				))
 			}
 
 			items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
-				listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
+				listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh Cache")).Layout,
 			))
 
 			if !isFav {
 				items = append(items, listselect_modal.NewSelectListItem("add_favorite",
-					listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
+					listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to Favorites")).Layout,
 				))
 			}
 
 			if isFav {
 				items = append(items, listselect_modal.NewSelectListItem("remove_favorite",
-					listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from favorites")).Layout,
+					listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from Favorites")).Layout,
 				))
 			}
 
@@ -300,7 +304,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			*/
 
 			items = append(items, listselect_modal.NewSelectListItem("remove_token",
-				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove token")).Layout,
+				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove Token")).Layout,
 			))
 
 			keyChan := listselect_modal.Instance.Open(items)
@@ -413,10 +417,14 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 							})
 						})
 					}
-				case "dex_sc_bridge":
-					page_instance.pageDEXSCBridge.SetToken(p.token)
-					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE)
-					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE)
+				case "dex_sc_bridge_in":
+					page_instance.pageDEXSCBridgeIn.SetToken(p.token)
+					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_IN)
+					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_IN)
+				case "dex_sc_bridge_out":
+					page_instance.pageDEXSCBridgeOut.SetToken(p.token)
+					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_OUT)
+					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_OUT)
 				}
 
 				if err != nil {
