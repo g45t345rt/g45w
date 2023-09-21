@@ -13,6 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/browser"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
@@ -142,11 +143,17 @@ func (p *PageDEXSCBridgeIn) submitForm() error {
 	addr := wallet.Memory.GetAddress()
 
 	symbol := strings.Replace(p.token.Symbol.String, "D", "", 1)
-	return bridge_metamask.Open(bridge_metamask.BridgeInData{
+
+	url, err := bridge_metamask.Link(bridge_metamask.BridgeInData{
 		WalletAddress: addr.String(),
 		Symbol:        symbol,
 		Amount:        amount,
 	})
+	if err != nil {
+		return err
+	}
+
+	return browser.OpenUrl(url)
 }
 
 func (p *PageDEXSCBridgeIn) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

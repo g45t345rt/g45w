@@ -2,12 +2,13 @@ import { glob, keyframes, styled } from "goober"
 
 glob`
   @font-face {
-    font-family: GoNotoKurrent;
-    src: url(./fonts/GoNotoKurrent-Regular.ttf) format('truetype');
+    font-family: Roboto;
+    src: url(./fonts/Roboto-Regular.ttf) format('truetype');
+    font-display: fallback;
   }
 
   html, body {
-    font-family: GoNotoKurrent;
+    font-family: Roboto;
 
     /* thanks to https://www.magicpattern.design/tools/css-backgrounds */
     background-color: #1a1a1a;

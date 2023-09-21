@@ -10,6 +10,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -287,4 +288,13 @@ func MultDiv(a uint64, b uint64, c uint64) uint64 {
 	C = A.Div(A, C)
 
 	return C.Uint64()
+}
+
+func IsMobile() bool {
+	switch runtime.GOOS {
+	case "android", "ios":
+		return true
+	default:
+		return false
+	}
 }

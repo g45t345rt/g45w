@@ -101,7 +101,9 @@ func runApp() error {
 	loadState := NewLoadState(window)
 
 	// start bridge metamask server
-	go bridge_metamask.StartServer()
+	go func() {
+		bridge_metamask.StartServer()
+	}()
 
 	go func() {
 		loadState.logoSplash.animation.Start()

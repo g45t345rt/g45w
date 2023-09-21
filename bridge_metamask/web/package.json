@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild ./src/index.js --bundle --loader:.js=jsx --loader:.woff=dataurl --loader:.woff2=dataurl --jsx-factory=h --sourcemap --outfile=./dist/index.js",
+    "build": "esbuild ./src/index.js --bundle --loader:.js=jsx --loader:.woff=dataurl --loader:.woff2=dataurl --jsx-factory=h --sourcemap --minify --outfile=./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

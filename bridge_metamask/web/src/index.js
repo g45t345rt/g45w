@@ -46,29 +46,42 @@ const App = () => {
 
   // Initialize provider and querystring data
   useEffect(async () => {
-    const provider = await detectEthProvider()
-    if (!provider) {
-      setErr("Metamask is not available or multiple wallets installed?")
-      return
-    }
+    const isBridgeDataValid = (bridgeData) => {
+      if (!bridgeData) return false
+      if (!bridgeData.walletAddress || !bridgeData.symbol || !bridgeData.amount) return false
 
-    setProvider(new ethers.BrowserProvider(window.ethereum))
+      return true
+    }
 
     try {
       const queryString = (new URL(location)).searchParams
       const base64Data = base64.decode(queryString.get("data"))
       const queryData = JSON.parse(base64Data)
+
+      if (!isBridgeDataValid(queryData)) {
+        throw ""
+      }
+
       setBridgeData(queryData)
     } catch (err) {
-      setErr(err)
+      setErr(new Error("Missing or invalid bridge data. Close and request a new instance from the application."))
       return
     }
 
+    const provider = await detectEthProvider()
+    if (!provider) {
+      setErr(new Error("Metamask is not available or multiple wallets installed?"))
+      return
+    }
+
+    setProvider(new ethers.BrowserProvider(window.ethereum))
     setLoaded(true)
   }, [])
 
   // Handle chainId
   useEffect(async () => {
+    if (!loaded) return
+
     const chainId = await window.ethereum.request({ method: "eth_chainId" })
     setChainId(chainId)
 
@@ -77,10 +90,12 @@ const App = () => {
     }
 
     window.ethereum.on("chainChanged", handleChainChanged)
-  }, [])
+  }, [loaded])
 
   // Handle accounts
   useEffect(async () => {
+    if (!loaded) return
+
     try {
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" })
       setAccount(accounts[0])
@@ -95,7 +110,7 @@ const App = () => {
     }
 
     window.ethereum.on("accountsChanged", handleAccountsChanged)
-  }, [])
+  }, [loaded])
 
   // Handle bridge fee
   useEffect(async () => {
@@ -147,13 +162,6 @@ const App = () => {
     setBridging(false)
   }, [provider, bridgeFee, bridgeData])
 
-  const isBridgeDataValid = useCallback((bridgeData) => {
-    if (!bridgeData) return false
-    if (!bridgeData.walletAddress || !bridgeData.symbol || !bridgeData.amount) return false
-
-    return true
-  }, [])
-
   return <div>
     <Box>
       <MetaMaskLogoWrap>
@@ -174,12 +182,6 @@ const App = () => {
         }
 
         if (!loaded) return
-
-        if (!isBridgeDataValid(bridgeData)) {
-          return <ErrDiv>
-            Missing important bridge data. Close and request a new instance from the application.
-          </ErrDiv>
-        }
 
         if (!account) {
           return <WarningDiv>
