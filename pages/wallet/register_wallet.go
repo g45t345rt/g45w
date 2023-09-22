@@ -162,12 +162,29 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 	})
 	buttonStop.Style.Font.Weight = font.Bold
 
-	w := app_instance.Window
 	normalReg := registration.NewNormalReg()
 	normalReg.OnFound = func(tx *transaction.Transaction) {
-		wallet := wallet_manager.OpenedWallet
-		wallet_manager.StoreRegistrationTx(wallet.Info.Addr, tx)
-		w.Invalidate()
+		err := func() error {
+			wallet := wallet_manager.OpenedWallet
+			err := wallet_manager.StoreRegistrationTx(wallet.Memory.GetAddress().String(), tx)
+			if err != nil {
+				return err
+			}
+
+			err = wallet.RefreshInfo()
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}()
+
+		if err != nil {
+			notification_modals.ErrorInstance.SetText("Error", err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else {
+			app_instance.Window.Invalidate()
+		}
 	}
 
 	page := &RegisterWalletForm{
@@ -197,7 +214,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 				page.probabilityText = fmt.Sprintf("Probability: %.2f%%", probability*100)
 				page.progressBarValue = probability
 
-				w.Invalidate()
+				app_instance.Window.Invalidate()
 			} else {
 				page.cpuUsageText = ""
 				page.probabilityText = ""

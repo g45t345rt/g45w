@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 
@@ -12,7 +13,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
@@ -30,7 +30,9 @@ type PageTransaction struct {
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
-	entry          *rpc.Entry
+
+	entry    rpc.Entry
+	decimals int
 
 	txTypeImg components.Image
 
@@ -38,9 +40,10 @@ type PageTransaction struct {
 	senderDestinationEditor *widget.Editor
 	blockHashEditor         *widget.Editor
 	proofEditor             *widget.Editor
+	scDataEditor            *widget.Editor
 	infoRows                []*prefabs.InfoRow
 
-	payloadArgInfoList []PayloadArgInfo
+	payloadList []*RPCArgInfo
 
 	list *widget.List
 }
@@ -72,6 +75,7 @@ func NewPageTransaction() *PageTransaction {
 		senderDestinationEditor: &widget.Editor{ReadOnly: true},
 		blockHashEditor:         &widget.Editor{ReadOnly: true},
 		proofEditor:             &widget.Editor{ReadOnly: true},
+		scDataEditor:            &widget.Editor{ReadOnly: true},
 		infoRows:                prefabs.NewInfoRows(6),
 
 		txTypeImg: txTypeImg,
@@ -83,7 +87,7 @@ func (p *PageTransaction) IsActive() bool {
 }
 
 func (p *PageTransaction) Clear() {
-	p.payloadArgInfoList = make([]PayloadArgInfo, 0)
+	p.payloadList = make([]*RPCArgInfo, 0)
 	p.txIdEditor.SetText("")
 	p.senderDestinationEditor.SetText("")
 	p.blockHashEditor.SetText("")
@@ -95,8 +99,11 @@ func (p *PageTransaction) Enter() {
 	p.txIdEditor.SetText(p.entry.TXID)
 
 	for _, arg := range p.entry.Payload_RPC {
-		p.payloadArgInfoList = append(p.payloadArgInfoList, *NewPayloadArgLayout(arg))
+		p.payloadList = append(p.payloadList, NewRPCArgInfo(arg))
 	}
+
+	scData, _ := json.MarshalIndent(p.entry.SCDATA, "", "  ")
+	p.scDataEditor.SetText(string(scData))
 
 	if p.entry.Incoming {
 		sender := p.entry.Sender
@@ -137,6 +144,11 @@ func (p *PageTransaction) Enter() {
 func (p *PageTransaction) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
+}
+
+func (p *PageTransaction) SetEntry(e rpc.Entry, decimals int) {
+	p.entry = e
+	p.decimals = decimals
 }
 
 func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -237,16 +249,16 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				amount := globals.FormatMoney(p.entry.Amount)
-				return p.infoRows[0].Layout(gtx, th, lang.Translate("Amount"), amount)
+				amount := utils.ShiftNumber{Number: p.entry.Amount, Decimals: p.decimals}
+				return p.infoRows[0].Layout(gtx, th, lang.Translate("Amount"), amount.Format())
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				fees := globals.FormatMoney(p.entry.Fees)
-				return p.infoRows[1].Layout(gtx, th, lang.Translate("Fees"), fees)
+				fees := utils.ShiftNumber{Number: p.entry.Fees, Decimals: p.decimals}
+				return p.infoRows[1].Layout(gtx, th, lang.Translate("Fees"), fees.Format())
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				burn := globals.FormatMoney(p.entry.Burn)
-				return p.infoRows[2].Layout(gtx, th, lang.Translate("Burn"), burn)
+				burn := utils.ShiftNumber{Number: p.entry.Amount, Decimals: p.decimals}
+				return p.infoRows[2].Layout(gtx, th, lang.Translate("Burn"), burn.Format())
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				blockHeight := fmt.Sprint(p.entry.Height)
@@ -297,10 +309,46 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 		})
 	}
 
-	for i := range p.payloadArgInfoList {
+	for i := range p.payloadList {
 		idx := i
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			return p.payloadArgInfoList[idx].Layout(gtx, th)
+			return p.payloadList[idx].Layout(gtx, th)
+		})
+	}
+
+	if len(p.entry.SCDATA) > 0 {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			var childs []layout.FlexChild
+
+			childs = append(childs,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(16), "SC DATA")
+					lbl.Color = theme.Current.TextMuteColor
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					r := op.Record(gtx.Ops)
+					dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						editor := material.Editor(th, p.scDataEditor, "")
+						editor.TextSize = unit.Sp(12)
+						return editor.Layout(gtx)
+					})
+					c := r.Stop()
+
+					paint.FillShape(gtx.Ops, theme.Current.BgColor, clip.RRect{
+						Rect: image.Rectangle{Max: dims.Size},
+						NW:   gtx.Dp(10), NE: gtx.Dp(10),
+						SE: gtx.Dp(10), SW: gtx.Dp(10),
+					}.Op(gtx.Ops))
+
+					c.Add(gtx.Ops)
+					return dims
+				}),
+			)
+
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
 		})
 	}
 
@@ -319,23 +367,23 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 	})
 }
 
-type PayloadArgInfo struct {
+type RPCArgInfo struct {
 	arg    rpc.Argument
 	editor *widget.Editor
 }
 
-func NewPayloadArgLayout(arg rpc.Argument) *PayloadArgInfo {
+func NewRPCArgInfo(arg rpc.Argument) *RPCArgInfo {
 	editor := new(widget.Editor)
 	editor.ReadOnly = true
 	editor.SetText(fmt.Sprint(arg.Value))
 
-	return &PayloadArgInfo{
+	return &RPCArgInfo{
 		editor: editor,
 		arg:    arg,
 	}
 }
 
-func (p *PayloadArgInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (p *RPCArgInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	var name string
 	switch p.arg.Name {
 	case "D":
@@ -352,6 +400,8 @@ func (p *PayloadArgInfo) Layout(gtx layout.Context, th *material.Theme) layout.D
 		name = lang.Translate("Replyback Address")
 	case "N":
 		name = lang.Translate("Needs Replyback Address")
+	default:
+		name = p.arg.Name
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

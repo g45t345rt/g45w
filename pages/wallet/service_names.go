@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"database/sql"
 	"fmt"
 
 	"gioui.org/font"
@@ -35,10 +36,14 @@ type PageServiceNames struct {
 	buttonRegister *components.Button
 	txtName        *prefabs.TextField
 
+	entries []rpc.Entry
+
 	list *widget.List
 }
 
 var _ router.Page = &PageServiceNames{}
+
+var SERVICE_NAME_SCID = crypto.HashHexToHash("0000000000000000000000000000000000000000000000000000000000000001")
 
 func NewPageServiceNames() *PageServiceNames {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -74,6 +79,7 @@ func NewPageServiceNames() *PageServiceNames {
 		list:           list,
 		buttonRegister: buttonRegister,
 		txtName:        txtName,
+		entries:        make([]rpc.Entry, 0),
 	}
 }
 
@@ -94,6 +100,17 @@ func (p *PageServiceNames) Enter() {
 	}
 
 	page_instance.header.Subtitle = nil
+	p.Load()
+}
+
+func (p *PageServiceNames) Load() {
+	p.entries = make([]rpc.Entry, 0)
+	wallet := wallet_manager.OpenedWallet
+
+	p.entries = wallet.GetTransfers(crypto.ZEROHASH.String(), wallet_manager.GetTransfersParams{
+		SC_ID:         sql.NullString{String: SERVICE_NAME_SCID.String(), Valid: true},
+		SC_Entrypoint: sql.NullString{String: "Register", Valid: true},
+	})
 }
 
 func (p *PageServiceNames) Leave() {
@@ -149,6 +166,56 @@ func (p *PageServiceNames) Layout(gtx layout.Context, th *material.Theme) layout
 		return p.buttonRegister.Layout(gtx, th)
 	})
 
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return prefabs.Divider(gtx, unit.Dp(5))
+	})
+
+	if len(p.entries) > 0 {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			var childs []layout.FlexChild
+
+			for i := range p.entries {
+				idx := i
+				childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					entry := p.entries[idx]
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							name := ""
+							for _, arg := range entry.SCDATA {
+								if arg.Name == "name" {
+									value, ok := arg.Value.(string)
+									if ok {
+										name = value
+									}
+								}
+							}
+
+							lbl := material.Label(th, unit.Sp(16), name)
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(16), entry.Time.Format("2006-01-02"))
+							lbl.Color = theme.Current.TextMuteColor
+							return lbl.Layout(gtx)
+						}),
+					)
+				}))
+			}
+
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
+		})
+	} else {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(16), lang.Translate("No registered names or the wallet is not synced properly. Try cleaning the wallet in settings page."))
+			lbl.Color = theme.Current.TextMuteColor
+			return lbl.Layout(gtx)
+		})
+	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
+	})
+
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
@@ -183,13 +250,11 @@ func (p *PageServiceNames) submitForm() error {
 		return fmt.Errorf("name already taken by [%s]", utils.ReduceAddr(addr))
 	}
 
-	serviceNameSCID := crypto.HashHexToHash("0000000000000000000000000000000000000000000000000000000000000001")
-
 	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
 		Ringsize: 2,
 		SCArgs: rpc.Arguments{
 			{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-			{Name: rpc.SCID, DataType: rpc.DataHash, Value: serviceNameSCID},
+			{Name: rpc.SCID, DataType: rpc.DataHash, Value: SERVICE_NAME_SCID},
 			{Name: "entrypoint", DataType: rpc.DataString, Value: "Register"},
 			{Name: "name", DataType: rpc.DataString, Value: name},
 		},

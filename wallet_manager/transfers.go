@@ -20,6 +20,8 @@ type GetTransfersParams struct {
 	AmountGreaterOrEqualThan sql.NullInt64
 	TXID                     sql.NullString
 	BlockHash                sql.NullString
+	SC_ID                    sql.NullString
+	SC_Entrypoint            sql.NullString
 	Offset                   sql.NullInt64
 	Limit                    sql.NullInt64
 }
@@ -65,6 +67,32 @@ func filterEntries(allEntries []rpc.Entry, start, end int, params GetTransfersPa
 
 		if params.BlockHash.Valid {
 			add = e.BlockHash == params.BlockHash.String
+		}
+
+		if params.SC_ID.Valid {
+			add = false
+			for _, arg := range e.SCDATA {
+				if arg.Name == "SC_ID" {
+					hash, ok := arg.Value.(crypto.Hash)
+					if ok && hash.String() == params.SC_ID.String {
+						add = true
+						break
+					}
+				}
+			}
+		}
+
+		if add && params.SC_Entrypoint.Valid {
+			add = false
+			for _, arg := range e.SCDATA {
+				if arg.Name == "entrypoint" {
+					entrypoint, ok := arg.Value.(string)
+					if ok && entrypoint == params.SC_Entrypoint.String {
+						add = true
+						break
+					}
+				}
+			}
 		}
 
 		if add {

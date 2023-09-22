@@ -72,7 +72,7 @@ func (p *PageReceiveForm) Enter() {
 	}
 	page_instance.pageBalanceTokens.ResetWalletHeader()
 
-	addr := wallet_manager.OpenedWallet.Info.Addr
+	addr := wallet_manager.OpenedWallet.Memory.GetAddress().String()
 	imgBytes, _ := qrcode.Encode(addr, qrcode.Medium, 256)
 	img, _, _ := image.Decode(bytes.NewBuffer(imgBytes))
 

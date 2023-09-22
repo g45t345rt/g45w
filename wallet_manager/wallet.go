@@ -142,6 +142,17 @@ func (w *Wallet) Delete() error {
 	return DeleteWallet(w.Info.Addr)
 }
 
+func (w *Wallet) RefreshInfo() error {
+	addr := w.Memory.GetAddress()
+	walletInfo, err := app_db.GetWalletInfo(addr.String())
+	if err != nil {
+		return err
+	}
+
+	w.Info = walletInfo
+	return nil
+}
+
 func DeleteWallet(addr string) error {
 	walletsDir := settings.WalletsDir
 	path := filepath.Join(walletsDir, addr)
@@ -214,8 +225,13 @@ func CreateRandomWallet(name string, password string) error {
 }
 
 func (w *Wallet) Rename(newName string) error {
+	err := app_db.UpdateWalletInfo(w.Info)
+	if err != nil {
+		return err
+	}
+
 	w.Info.Name = newName
-	return app_db.UpdateWalletInfo(w.Info)
+	return nil
 }
 
 func (w *Wallet) ResetBalanceResult(scId string) {

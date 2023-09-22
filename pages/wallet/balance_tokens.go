@@ -210,17 +210,17 @@ func (p *PageBalanceTokens) LoadTxs() {
 }
 
 func (p *PageBalanceTokens) ResetWalletHeader() {
-	openedWallet := wallet_manager.OpenedWallet
+	wallet := wallet_manager.OpenedWallet
 	page_instance.header.Title = func() string {
-		return fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), openedWallet.Info.Name)
+		return fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), wallet.Info.Name)
 	}
 
 	page_instance.header.ButtonRight = nil
+	addr := wallet.Memory.GetAddress().String()
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
-		walletAddr := openedWallet.Info.Addr
 		if p.buttonCopyAddr.Clicked() {
 			clipboard.WriteOp{
-				Text: walletAddr,
+				Text: addr,
 			}.Add(gtx.Ops)
 			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Addr copied to clipboard"))
 			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -228,7 +228,7 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				walletAddr := utils.ReduceAddr(walletAddr)
+				walletAddr := utils.ReduceAddr(addr)
 				label := material.Label(th, unit.Sp(16), walletAddr)
 				label.Color = theme.Current.TextMuteColor
 				return label.Layout(gtx)
@@ -1132,7 +1132,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if item.clickable.Clicked() {
-		page_instance.pageTransaction.entry = &item.entry
+		page_instance.pageTransaction.SetEntry(item.entry, item.decimals)
 		page_instance.pageRouter.SetCurrent(PAGE_TRANSACTION)
 		page_instance.header.AddHistory(PAGE_TRANSACTION)
 	}
