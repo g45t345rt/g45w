@@ -263,37 +263,37 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 			if standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE {
 				items = append(items, listselect_modal.NewSelectListItem("g45_display_token",
-					listselect_modal.NewItemText(showIcon, lang.Translate("Display Tokens")).Layout,
+					listselect_modal.NewItemText(showIcon, lang.Translate("Display tokens")).Layout,
 				))
 
 				items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_token",
-					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve Tokens")).Layout,
+					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve tokens")).Layout,
 				))
 			}
 
 			if standardType == sc.DEX_SC_TYPE {
 				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_in",
-					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge In")).Layout,
+					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge in")).Layout,
 				))
 
 				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_out",
-					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge Out")).Layout,
+					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge out")).Layout,
 				))
 			}
 
 			items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
-				listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh Cache")).Layout,
+				listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
 			))
 
 			if !isFav {
 				items = append(items, listselect_modal.NewSelectListItem("add_favorite",
-					listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to Favorites")).Layout,
+					listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
 				))
 			}
 
 			if isFav {
 				items = append(items, listselect_modal.NewSelectListItem("remove_favorite",
-					listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from Favorites")).Layout,
+					listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from favorites")).Layout,
 				))
 			}
 
@@ -304,7 +304,7 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			*/
 
 			items = append(items, listselect_modal.NewSelectListItem("remove_token",
-				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove Token")).Layout,
+				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove token")).Layout,
 			))
 
 			keyChan := listselect_modal.Instance.Open(items)

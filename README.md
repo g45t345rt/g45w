@@ -28,11 +28,16 @@ This change should remove a painful/unsafe step of connecting your wallet direct
 - Support as much language as possible (11 and counting...).
 - App color schemes (dark, light, blue).
 - Draggable list items (for ordering items).
-- Interact with Dero DEX directly - view pairs, swap, add/rem liquidity (DEX created by Pieswap).
+- Interact with Dero DEX directly (DEX created by Pieswap).
+  - View pair list.
+  - Swap form.
+  - Add and remove liquidity form.
+  - Bridge to Eth (with ringsize).
+  - Bridge from Eth through Metamask Extensions and Mobile :D
 
 ## TODO
 
-- App release (iOS app store & Google play store).
+- App release (iOS app store, Google play store & F-Droid).
 - DApps interaction with XSWD protocol by Slixe.
 - Expose daemon/wallet API for integrated node.
 
@@ -156,7 +161,8 @@ If you notice any errors, pls update the values in `/assets/lang` folder and cre
 
 `jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`,  
 `Lutamm`, `VastoLorde`, `rexBGcoxx`, `Kray0005`, `Apollo`, `Coose`, `Cypherpunk`, `o1o7`
-`keyper`, `Zalamender`, `ArcaneSphere`
+`keyper`, `Zalamender`, `ArcaneSphere`, `proprivacy`, `Wind_W#369`, `Ulmo`, `AltCtrl`, `Cats`
+`derionner`
 
 ## License
 

@@ -236,13 +236,13 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
 				listselect_modal.NewSelectListItem("refresh_data",
-					listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh Data")).Layout,
+					listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh data")).Layout,
 				),
 				listselect_modal.NewSelectListItem("add_liquidity",
-					listselect_modal.NewItemText(addIcon, lang.Translate("Add Liquidity")).Layout,
+					listselect_modal.NewItemText(addIcon, lang.Translate("Add liquidity")).Layout,
 				),
 				listselect_modal.NewSelectListItem("rem_liquidity",
-					listselect_modal.NewItemText(removeIcon, lang.Translate("Remove Liquidity")).Layout,
+					listselect_modal.NewItemText(removeIcon, lang.Translate("Remove liquidity")).Layout,
 				),
 				listselect_modal.NewSelectListItem("copy_scid",
 					listselect_modal.NewItemText(copyIcon, txt1).Layout,

@@ -241,13 +241,13 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 										listselect_modal.NewItemText(newIcon, lang.Translate("Create new wallet")).Layout,
 									),
 									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_DISK_FORM,
-										listselect_modal.NewItemText(diskIcon, lang.Translate("Recover from Disk")).Layout,
+										listselect_modal.NewItemText(diskIcon, lang.Translate("Recover from disk")).Layout,
 									),
 									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_SEED_FORM,
-										listselect_modal.NewItemText(seedIcon, lang.Translate("Recover from Seed")).Layout,
+										listselect_modal.NewItemText(seedIcon, lang.Translate("Recover from seed")).Layout,
 									),
 									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_HEXSEED_FORM,
-										listselect_modal.NewItemText(seedIcon, lang.Translate("Recover from Hex Seed")).Layout,
+										listselect_modal.NewItemText(seedIcon, lang.Translate("Recover from hex seed")).Layout,
 									),
 								})
 
