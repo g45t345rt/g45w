@@ -713,7 +713,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 			return lbl.Layout(gtx)
 		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		//layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

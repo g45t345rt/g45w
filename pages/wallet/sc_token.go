@@ -60,7 +60,6 @@ type PageSCToken struct {
 	buttonCopySCID      *components.Button
 
 	token      *wallet_manager.Token
-	tokenImage *prefabs.ImageHoverClick
 	scIdEditor *widget.Editor
 
 	list *widget.List
@@ -85,8 +84,6 @@ func NewPageSCToken() *PageSCToken {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-
-	image := prefabs.NewImageHoverClick()
 
 	scIdEditor := new(widget.Editor)
 	scIdEditor.WrapPolicy = text.WrapGraphemes
@@ -115,7 +112,6 @@ func NewPageSCToken() *PageSCToken {
 		animationLeave: animationLeave,
 
 		buttonOpenMenu:      buttonOpenMenu,
-		tokenImage:          image,
 		scIdEditor:          scIdEditor,
 		sendReceiveButtons:  sendReceiveButtons,
 		tabBars:             tabBars,
@@ -439,10 +435,6 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}()
 	}
 
-	if p.tokenImage.Clickable.Clicked() {
-		image_modal.Instance.Open(p.token.Name, p.tokenImage.Image.Src)
-	}
-
 	{
 		changed, tab := p.txBar.Changed()
 		if changed {
@@ -483,43 +475,6 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
-
-	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				r := op.Record(gtx.Ops)
-				dims := layout.UniformInset(unit.Dp(15)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{
-						Axis:      layout.Horizontal,
-						Alignment: layout.Middle,
-					}.Layout(gtx,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							p.tokenImage.Image.Src = p.token.LoadImageOp()
-							gtx.Constraints.Max.X = gtx.Dp(50)
-							gtx.Constraints.Max.Y = gtx.Dp(50)
-							return p.tokenImage.Layout(gtx)
-						}),
-						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							editor := material.Editor(th, p.scIdEditor, "")
-							editor.TextSize = unit.Sp(14)
-							return editor.Layout(gtx)
-						}),
-					)
-				})
-				c := r.Stop()
-
-				paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
-					clip.UniformRRect(
-						image.Rectangle{Max: dims.Size},
-						gtx.Dp(15),
-					).Op(gtx.Ops))
-
-				c.Add(gtx.Ops)
-				return dims
-			}),
-		)
-	})
 
 	switch p.token.StandardType {
 	case sc.G45_AT_TYPE, sc.G45_FAT_TYPE, sc.G45_NFT_TYPE:
@@ -626,6 +581,7 @@ type BalanceContainer struct {
 	token             *wallet_manager.Token
 	balanceEditor     *widget.Editor
 	buttonHideBalance *ButtonHideBalance
+	tokenImage        *prefabs.ImageHoverClick
 }
 
 func NewBalanceContainer() *BalanceContainer {
@@ -637,6 +593,7 @@ func NewBalanceContainer() *BalanceContainer {
 	return &BalanceContainer{
 		buttonHideBalance: buttonHideBalance,
 		balanceEditor:     balanceEditor,
+		tokenImage:        prefabs.NewImageHoverClick(),
 	}
 }
 
@@ -645,6 +602,10 @@ func (b *BalanceContainer) SetToken(token *wallet_manager.Token) {
 }
 
 func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if b.tokenImage.Clickable.Clicked() {
+		image_modal.Instance.Open(b.token.Name, b.tokenImage.Image.Src)
+	}
+
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			r := op.Record(gtx.Ops)
@@ -658,37 +619,56 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 							Axis: layout.Vertical,
 						}.Layout(gtx,
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
+								txt := utils.ReduceTxId(b.token.SCID)
+								if b.token.Symbol.String != "" {
+									txt += fmt.Sprintf(" (%s)", b.token.Symbol.String)
+								}
+
+								lbl := material.Label(th, unit.Sp(14), txt)
 								lbl.Color = theme.Current.TextMuteColor
 								return lbl.Layout(gtx)
 							}),
-							layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+							//layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								wallet := wallet_manager.OpenedWallet
-								balance, _ := wallet.Memory.Get_Balance_scid(b.token.GetHash())
-								amount := utils.ShiftNumber{Number: balance, Decimals: int(b.token.Decimals)}.Format()
+								return layout.Flex{
+									Axis:      layout.Horizontal,
+									Alignment: layout.Middle,
+								}.Layout(gtx,
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										b.tokenImage.Image.Src = b.token.LoadImageOp()
+										gtx.Constraints.Max.X = gtx.Dp(35)
+										gtx.Constraints.Max.Y = gtx.Dp(35)
+										return b.tokenImage.Layout(gtx)
+									}),
+									layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+									layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+										wallet := wallet_manager.OpenedWallet
+										balance, _ := wallet.Memory.Get_Balance_scid(b.token.GetHash())
+										amount := utils.ShiftNumber{Number: balance, Decimals: int(b.token.Decimals)}.Format()
 
-								if b.balanceEditor.Text() != amount {
-									b.balanceEditor.SetText(amount)
-								}
+										if b.balanceEditor.Text() != amount {
+											b.balanceEditor.SetText(amount)
+										}
 
-								r := op.Record(gtx.Ops)
-								balanceEditor := material.Editor(th, b.balanceEditor, "")
-								balanceEditor.TextSize = unit.Sp(34)
-								balanceEditor.Font.Weight = font.Bold
+										r := op.Record(gtx.Ops)
+										balanceEditor := material.Editor(th, b.balanceEditor, "")
+										balanceEditor.TextSize = unit.Sp(34)
+										balanceEditor.Font.Weight = font.Bold
 
-								dims := balanceEditor.Layout(gtx)
-								c := r.Stop()
+										dims := balanceEditor.Layout(gtx)
+										c := r.Stop()
 
-								if settings.App.HideBalance {
-									paint.FillShape(gtx.Ops, theme.Current.HideBalanceBgColor, clip.Rect{
-										Max: dims.Size,
-									}.Op())
-								} else {
-									c.Add(gtx.Ops)
-								}
+										if settings.App.HideBalance {
+											paint.FillShape(gtx.Ops, theme.Current.HideBalanceBgColor, clip.Rect{
+												Max: dims.Size,
+											}.Op())
+										} else {
+											c.Add(gtx.Ops)
+										}
 
-								return dims
+										return dims
+									}),
+								)
 							}),
 						)
 					}),

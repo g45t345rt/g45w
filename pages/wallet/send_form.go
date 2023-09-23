@@ -48,7 +48,6 @@ type PageSendForm struct {
 	buttonOptions    *components.Button
 	buttonSetMax     *components.Button
 	balanceContainer *BalanceContainer
-	tokenContainer   *TokenContainer
 	walletAddrInput  *WalletAddrInput
 
 	token *wallet_manager.Token
@@ -119,7 +118,6 @@ func NewPageSendForm() *PageSendForm {
 	buttonSetMax.Style.Font.Weight = font.Bold
 
 	balanceContainer := NewBalanceContainer()
-	tokenContainer := NewTokenContainer()
 	walletAddrInput := NewWalletAddrInput()
 
 	return &PageSendForm{
@@ -132,7 +130,6 @@ func NewPageSendForm() *PageSendForm {
 		buttonOptions:    buttonOptions,
 		buttonSetMax:     buttonSetMax,
 		balanceContainer: balanceContainer,
-		tokenContainer:   tokenContainer,
 		walletAddrInput:  walletAddrInput,
 	}
 }
@@ -158,7 +155,6 @@ func (p *PageSendForm) Leave() {
 func (p *PageSendForm) SetToken(token *wallet_manager.Token) {
 	p.token = token
 	p.balanceContainer.SetToken(p.token)
-	p.tokenContainer.SetToken(p.token)
 }
 
 func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -218,9 +214,6 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.tokenContainer.Layout(gtx, th)
-		},
-		func(gtx layout.Context) layout.Dimensions {
 			return p.balanceContainer.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -272,11 +265,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	listStyle.AnchorStrategy = material.Overlay
 
 	if p.txtAmount.Input.Clickable.Clicked() {
-		p.list.ScrollTo(2)
+		p.list.ScrollTo(1)
 	}
 
 	if p.walletAddrInput.txtWalletAddr.Clickable.Clicked() {
-		p.list.ScrollTo(3)
+		p.list.ScrollTo(2)
 	}
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {

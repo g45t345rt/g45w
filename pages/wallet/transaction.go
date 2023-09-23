@@ -483,12 +483,12 @@ func NewTxTransfers() *TxTransfers {
 func (t *TxTransfers) Load(entry wallet_manager.Entry) {
 	wallet := wallet_manager.OpenedWallet
 
+	t.items = make([]*TxTransferItem, 0)
 	if entry.TXID != "" {
 		entries := wallet.GetEntries(nil, wallet_manager.GetEntriesParams{
 			TXID: sql.NullString{String: entry.TXID, Valid: true},
 		})
 
-		t.items = make([]*TxTransferItem, 0)
 		for _, entry := range entries {
 			t.items = append(t.items, NewTxTransferItem(entry))
 		}
