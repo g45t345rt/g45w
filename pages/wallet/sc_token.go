@@ -52,7 +52,7 @@ type PageSCToken struct {
 	sendReceiveButtons  *SendReceiveButtons
 	tabBars             *components.TabBars
 	txBar               *TxBar
-	getTransfersParams  wallet_manager.GetTransfersParams
+	getEntriesParams    wallet_manager.GetEntriesParams
 	txItems             []*TxListItem
 	tokenInfo           *TokenInfoList
 	balanceContainer    *BalanceContainer
@@ -186,7 +186,8 @@ func (p *PageSCToken) Leave() {
 
 func (p *PageSCToken) LoadTxs() {
 	wallet := wallet_manager.OpenedWallet
-	entries := wallet.GetTransfers(p.token.SCID, p.getTransfersParams)
+	hash := p.token.GetHash()
+	entries := wallet.GetEntries(&hash, p.getEntriesParams)
 
 	txItems := []*TxListItem{}
 
@@ -447,17 +448,17 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		if changed {
 			switch tab {
 			case "all":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{}
+				p.getEntriesParams = wallet_manager.GetEntriesParams{}
 			case "in":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{
+				p.getEntriesParams = wallet_manager.GetEntriesParams{
 					In: sql.NullBool{Bool: true, Valid: true},
 				}
 			case "out":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{
+				p.getEntriesParams = wallet_manager.GetEntriesParams{
 					Out: sql.NullBool{Bool: true, Valid: true},
 				}
 			case "coinbase":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{
+				p.getEntriesParams = wallet_manager.GetEntriesParams{
 					Coinbase: sql.NullBool{Bool: true, Valid: true},
 				}
 			}

@@ -36,7 +36,7 @@ type PageServiceNames struct {
 	buttonRegister *components.Button
 	txtName        *prefabs.TextField
 
-	entries []rpc.Entry
+	entries []wallet_manager.Entry
 
 	list *widget.List
 }
@@ -79,7 +79,7 @@ func NewPageServiceNames() *PageServiceNames {
 		list:           list,
 		buttonRegister: buttonRegister,
 		txtName:        txtName,
-		entries:        make([]rpc.Entry, 0),
+		entries:        make([]wallet_manager.Entry, 0),
 	}
 }
 
@@ -104,12 +104,14 @@ func (p *PageServiceNames) Enter() {
 }
 
 func (p *PageServiceNames) Load() {
-	p.entries = make([]rpc.Entry, 0)
+	p.entries = make([]wallet_manager.Entry, 0)
 	wallet := wallet_manager.OpenedWallet
 
-	p.entries = wallet.GetTransfers(crypto.ZEROHASH.String(), wallet_manager.GetTransfersParams{
-		SC_ID:         sql.NullString{String: SERVICE_NAME_SCID.String(), Valid: true},
-		SC_Entrypoint: sql.NullString{String: "Register", Valid: true},
+	p.entries = wallet.GetEntries(&crypto.ZEROHASH, wallet_manager.GetEntriesParams{
+		SC_CALL: &wallet_manager.SCCallParams{
+			SCID:       sql.NullString{String: SERVICE_NAME_SCID.String(), Valid: true},
+			Entrypoint: sql.NullString{String: "Register", Valid: true},
+		},
 	})
 }
 

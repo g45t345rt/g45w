@@ -2,7 +2,7 @@ package wallet_manager
 
 import (
 	"database/sql"
-	"runtime"
+	"math"
 	"sort"
 	"sync"
 
@@ -10,7 +10,17 @@ import (
 	"github.com/deroproject/derohe/rpc"
 )
 
-type GetTransfersParams struct {
+type Entry struct {
+	rpc.Entry
+	SCID crypto.Hash
+}
+
+type SCCallParams struct {
+	SCID       sql.NullString
+	Entrypoint sql.NullString
+}
+
+type GetEntriesParams struct {
 	In                       sql.NullBool
 	Out                      sql.NullBool
 	Coinbase                 sql.NullBool
@@ -20,13 +30,12 @@ type GetTransfersParams struct {
 	AmountGreaterOrEqualThan sql.NullInt64
 	TXID                     sql.NullString
 	BlockHash                sql.NullString
-	SC_ID                    sql.NullString
-	SC_Entrypoint            sql.NullString
+	SC_CALL                  *SCCallParams
 	Offset                   sql.NullInt64
 	Limit                    sql.NullInt64
 }
 
-func filterEntries(allEntries []rpc.Entry, start, end int, params GetTransfersParams, entryChan chan<- rpc.Entry, wg *sync.WaitGroup) {
+func filterEntries(allEntries []rpc.Entry, start, end int, entrySCID crypto.Hash, params GetEntriesParams, entryChan chan<- Entry, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := start; i < end; i++ {
@@ -69,25 +78,19 @@ func filterEntries(allEntries []rpc.Entry, start, end int, params GetTransfersPa
 			add = e.BlockHash == params.BlockHash.String
 		}
 
-		if params.SC_ID.Valid {
+		if params.SC_CALL != nil {
 			add = false
 			for _, arg := range e.SCDATA {
-				if arg.Name == "SC_ID" {
-					hash, ok := arg.Value.(crypto.Hash)
-					if ok && hash.String() == params.SC_ID.String {
+				if params.SC_CALL.SCID.Valid && arg.Name == "SC_ID" {
+					scId, ok := arg.Value.(string)
+					if ok && scId == params.SC_CALL.SCID.String {
 						add = true
-						break
 					}
 				}
-			}
-		}
 
-		if add && params.SC_Entrypoint.Valid {
-			add = false
-			for _, arg := range e.SCDATA {
-				if arg.Name == "entrypoint" {
+				if params.SC_CALL.Entrypoint.Valid && arg.Name == "entrypoint" {
 					entrypoint, ok := arg.Value.(string)
-					if ok && entrypoint == params.SC_Entrypoint.String {
+					if ok && entrypoint == params.SC_CALL.Entrypoint.String {
 						add = true
 						break
 					}
@@ -96,74 +99,70 @@ func filterEntries(allEntries []rpc.Entry, start, end int, params GetTransfersPa
 		}
 
 		if add {
-			entryChan <- e
+			entry := Entry{Entry: e, SCID: entrySCID}
+			entryChan <- entry
 		}
 	}
 }
 
-func (w *Wallet) GetTransfers(scId string, params GetTransfersParams) []rpc.Entry {
+func (w *Wallet) GetEntries(SCID *crypto.Hash, params GetEntriesParams) []Entry {
 	w.Memory.Lock()
 	defer w.Memory.Unlock()
 
 	account := w.Memory.GetAccount()
-	allEntries := account.EntriesNative[crypto.HashHexToHash(scId)]
-	totalEntries := len(allEntries)
-	if allEntries == nil || totalEntries < 1 {
-		return allEntries
-	}
-
-	workers := runtime.NumCPU()
 	var wg sync.WaitGroup
-	entryChan := make(chan rpc.Entry)
+	entryChan := make(chan Entry)
 
-	chunkSize := totalEntries / workers
-	if chunkSize < 50 {
-		chunkSize = totalEntries
-		workers = 1
-	}
-
-	var entries []rpc.Entry
+	var filteredEntries []Entry
 	done := make(chan bool)
 	go func() {
 		for e := range entryChan {
-			entries = append(entries, e)
+			filteredEntries = append(filteredEntries, e)
 		}
 
 		done <- true
 	}()
 
-	for i := 0; i < workers; i++ {
-		start := i * chunkSize
-		end := (i + 1) * chunkSize
-		if i == workers-1 {
-			end = totalEntries
+	workSize := 100
+	for entrySCID, entries := range account.EntriesNative {
+		if SCID != nil && entrySCID != *SCID {
+			continue
 		}
 
-		wg.Add(1)
-		go filterEntries(allEntries, start, end, params, entryChan, &wg)
+		workers := int(math.Max(1, float64(len(entries)/workSize)))
+		for i := 0; i < workers; i++ {
+			start := i * workSize
+			end := (i + 1) * workSize
+			if i == workers-1 {
+				end = len(entries)
+			}
+
+			wg.Add(1)
+			go filterEntries(entries, start, end, entrySCID, params, entryChan, &wg)
+		}
 	}
 
 	wg.Wait()
 	close(entryChan)
 	<-done
 
-	sort.Slice(entries, func(a, b int) bool {
-		return entries[a].Time.Unix() > entries[b].Time.Unix()
+	sort.Slice(filteredEntries, func(a, b int) bool {
+		return filteredEntries[a].Time.Unix() > filteredEntries[b].Time.Unix()
 	})
 
 	if params.Offset.Valid {
 		offset := params.Offset.Int64
-		if len(entries) > int(offset) {
-			entries = entries[offset:]
+		if len(filteredEntries) > int(offset) {
+			filteredEntries = filteredEntries[offset:]
 		}
 	}
 
 	if params.Limit.Valid {
 		limit := params.Limit.Int64
-		if len(entries) > int(limit) {
-			entries = entries[:limit]
+		if len(filteredEntries) > int(limit) {
+			filteredEntries = filteredEntries[:limit]
 		}
 	}
 
-	return entries
+	return filteredEntries
 }

@@ -1,9 +1,11 @@
 package page_wallet
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"image"
+	"strings"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -21,6 +23,7 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
+	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 )
@@ -31,8 +34,7 @@ type PageTransaction struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	entry    rpc.Entry
-	decimals int
+	entry wallet_manager.Entry
 
 	txTypeImg components.Image
 
@@ -42,6 +44,7 @@ type PageTransaction struct {
 	proofEditor             *widget.Editor
 	scDataEditor            *widget.Editor
 	infoRows                []*prefabs.InfoRow
+	txTransfers             *TxTransfers
 
 	payloadList []*RPCArgInfo
 
@@ -76,7 +79,8 @@ func NewPageTransaction() *PageTransaction {
 		blockHashEditor:         &widget.Editor{ReadOnly: true},
 		proofEditor:             &widget.Editor{ReadOnly: true},
 		scDataEditor:            &widget.Editor{ReadOnly: true},
-		infoRows:                prefabs.NewInfoRows(6),
+		infoRows:                prefabs.NewInfoRows(3),
+		txTransfers:             NewTxTransfers(),
 
 		txTypeImg: txTypeImg,
 	}
@@ -146,9 +150,9 @@ func (p *PageTransaction) Leave() {
 	p.animationEnter.Reset()
 }
 
-func (p *PageTransaction) SetEntry(e rpc.Entry, decimals int) {
+func (p *PageTransaction) SetEntry(e wallet_manager.Entry) {
 	p.entry = e
-	p.decimals = decimals
+	p.txTransfers.Load(e)
 }
 
 func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -249,30 +253,22 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				amount := utils.ShiftNumber{Number: p.entry.Amount, Decimals: p.decimals}
-				return p.infoRows[0].Layout(gtx, th, lang.Translate("Amount"), amount.Format())
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				fees := utils.ShiftNumber{Number: p.entry.Fees, Decimals: p.decimals}
-				return p.infoRows[1].Layout(gtx, th, lang.Translate("Fees"), fees.Format())
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				burn := utils.ShiftNumber{Number: p.entry.Amount, Decimals: p.decimals}
-				return p.infoRows[2].Layout(gtx, th, lang.Translate("Burn"), burn.Format())
-			}),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				blockHeight := fmt.Sprint(p.entry.Height)
-				return p.infoRows[3].Layout(gtx, th, lang.Translate("Block Height"), blockHeight)
+				return p.infoRows[0].Layout(gtx, th, lang.Translate("Block Height"), blockHeight)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				date := p.entry.Time.Format("2006-01-02 15:04")
-				return p.infoRows[4].Layout(gtx, th, lang.Translate("Date"), date)
+				return p.infoRows[1].Layout(gtx, th, lang.Translate("Date"), date)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				timeAgo := lang.TimeAgo(p.entry.Time)
-				return p.infoRows[5].Layout(gtx, th, lang.Translate("Time"), timeAgo)
+				return p.infoRows[2].Layout(gtx, th, lang.Translate("Time"), timeAgo)
 			}),
 		)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return p.txTransfers.Layout(gtx, th)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -415,6 +411,116 @@ func (p *RPCArgInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			editor := material.Editor(th, p.editor, "")
 			return editor.Layout(gtx)
+		}),
+	)
+}
+
+type TxTransferItem struct {
+	entry    wallet_manager.Entry
+	token    *wallet_manager.Token
+	infoRows []*prefabs.InfoRow
+}
+
+func NewTxTransferItem(entry wallet_manager.Entry) *TxTransferItem {
+	token, _ := wallet_manager.GetTokenBySCID(entry.SCID.String())
+	if token == nil {
+		token = &wallet_manager.Token{
+			Decimals: 0,
+			SCID:     entry.SCID.String(),
+		}
+	}
+
+	return &TxTransferItem{
+		token:    token,
+		entry:    entry,
+		infoRows: prefabs.NewInfoRows(5),
+	}
+}
+
+func (t *TxTransferItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			txt := utils.ReduceTxId(t.token.SCID)
+			symbol := t.token.Symbol.String
+			if symbol != "" {
+				txt += fmt.Sprintf(" (%s)", symbol)
+			}
+
+			return t.infoRows[0].Layout(gtx, th, lang.Translate("SCID"), txt)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			amount := utils.ShiftNumber{Number: t.entry.Amount, Decimals: int(t.token.Decimals)}
+			return t.infoRows[1].Layout(gtx, th, lang.Translate("Amount"), amount.Format())
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			fees := utils.ShiftNumber{Number: t.entry.Fees, Decimals: int(t.token.Decimals)}
+			return t.infoRows[2].Layout(gtx, th, lang.Translate("Fees"), fees.Format())
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			burn := utils.ShiftNumber{Number: t.entry.Amount, Decimals: int(t.token.Decimals)}
+			return t.infoRows[3].Layout(gtx, th, lang.Translate("Burn"), burn.Format())
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			txt := utils.ReduceAddr(t.entry.Destination)
+			if txt == "" {
+				txt = "?"
+			}
+			return t.infoRows[4].Layout(gtx, th, lang.Translate("Destination"), txt)
+		}),
+	)
+}
+
+type TxTransfers struct {
+	items []*TxTransferItem
+}
+
+func NewTxTransfers() *TxTransfers {
+	return &TxTransfers{
+		items: make([]*TxTransferItem, 0),
+	}
+}
+
+func (t *TxTransfers) Load(entry wallet_manager.Entry) {
+	wallet := wallet_manager.OpenedWallet
+
+	if entry.TXID != "" {
+		entries := wallet.GetEntries(nil, wallet_manager.GetEntriesParams{
+			TXID: sql.NullString{String: entry.TXID, Valid: true},
+		})
+
+		t.items = make([]*TxTransferItem, 0)
+		for _, entry := range entries {
+			t.items = append(t.items, NewTxTransferItem(entry))
+		}
+	} else {
+		// from coinbase
+		t.items = append(t.items, NewTxTransferItem(entry))
+	}
+}
+
+func (t *TxTransfers) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			txt := lang.Translate("Transfers ({})")
+			txt = strings.Replace(txt, "{}", fmt.Sprint(len(t.items)), -1)
+			lbl := material.Label(th, unit.Sp(16), txt)
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
+		}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			var childs []layout.FlexChild
+			for i := range t.items {
+				idx := i
+				childs = append(childs,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return t.items[idx].Layout(gtx, th)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+				)
+			}
+
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
 		}),
 	)
 }

@@ -20,7 +20,6 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	crypto "github.com/deroproject/derohe/cryptography/crypto"
-	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
@@ -47,20 +46,20 @@ type PageBalanceTokens struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	alertBox           *AlertBox
-	displayBalance     *DisplayBalance
-	tokenBar           *TokenBar
-	tokenItems         []*TokenListItem
-	buttonSettings     *components.Button
-	buttonRegister     *components.Button
-	buttonCopyAddr     *components.Button
-	buttonDexSwap      *components.Button
-	tabBars            *components.TabBars
-	txBar              *TxBar
-	txItems            []*TxListItem
-	getTransfersParams wallet_manager.GetTransfersParams
-	tokenDragItems     *components.DragItems
-	tokenList          *widget.List
+	alertBox         *AlertBox
+	displayBalance   *DisplayBalance
+	tokenBar         *TokenBar
+	tokenItems       []*TokenListItem
+	buttonSettings   *components.Button
+	buttonRegister   *components.Button
+	buttonCopyAddr   *components.Button
+	buttonDexSwap    *components.Button
+	tabBars          *components.TabBars
+	txBar            *TxBar
+	txItems          []*TxListItem
+	getEntriesParams wallet_manager.GetEntriesParams
+	tokenDragItems   *components.DragItems
+	tokenList        *widget.List
 
 	list *widget.List
 }
@@ -197,7 +196,7 @@ func (p *PageBalanceTokens) LoadTokens() error {
 
 func (p *PageBalanceTokens) LoadTxs() {
 	wallet := wallet_manager.OpenedWallet
-	entries := wallet.GetTransfers(crypto.ZEROHASH.String(), p.getTransfersParams)
+	entries := wallet.GetEntries(&crypto.ZEROHASH, p.getEntriesParams)
 
 	txItems := []*TxListItem{}
 
@@ -395,17 +394,17 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		if changed {
 			switch tab {
 			case "all":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{}
+				p.getEntriesParams = wallet_manager.GetEntriesParams{}
 			case "in":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{
+				p.getEntriesParams = wallet_manager.GetEntriesParams{
 					In: sql.NullBool{Bool: true, Valid: true},
 				}
 			case "out":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{
+				p.getEntriesParams = wallet_manager.GetEntriesParams{
 					Out: sql.NullBool{Bool: true, Valid: true},
 				}
 			case "coinbase":
-				p.getTransfersParams = wallet_manager.GetTransfersParams{
+				p.getEntriesParams = wallet_manager.GetEntriesParams{
 					Coinbase: sql.NullBool{Bool: true, Valid: true},
 				}
 			}
@@ -1109,13 +1108,13 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 }
 
 type TxListItem struct {
-	entry     rpc.Entry
+	entry     wallet_manager.Entry
 	clickable *widget.Clickable
 	image     *components.Image
 	decimals  int
 }
 
-func NewTxListItem(entry rpc.Entry, decimals int) *TxListItem {
+func NewTxListItem(entry wallet_manager.Entry, decimals int) *TxListItem {
 	return &TxListItem{
 		entry: entry,
 		image: &components.Image{
@@ -1132,7 +1131,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 
 	if item.clickable.Clicked() {
-		page_instance.pageTransaction.SetEntry(item.entry, item.decimals)
+		page_instance.pageTransaction.SetEntry(item.entry)
 		page_instance.pageRouter.SetCurrent(PAGE_TRANSACTION)
 		page_instance.header.AddHistory(PAGE_TRANSACTION)
 	}
