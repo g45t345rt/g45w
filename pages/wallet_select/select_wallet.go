@@ -228,15 +228,15 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						if p.buttonWalletCreate.Clicked() {
 							go func() {
-								fastIcon, _ := widget.NewIcon(icons.ImageFlashOn)
+								// fastIcon, _ := widget.NewIcon(icons.ImageFlashOn)
 								newIcon, _ := widget.NewIcon(icons.ContentAddCircle)
 								diskIcon, _ := widget.NewIcon(icons.FileFolder)
 								seedIcon, _ := widget.NewIcon(icons.EditorShortText)
 
 								keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
-									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_FASTREG_FORM,
-										listselect_modal.NewItemText(fastIcon, lang.Translate("Fast registration")).Layout,
-									),
+									// listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_FASTREG_FORM,
+									// 	listselect_modal.NewItemText(fastIcon, lang.Translate("Fast registration")).Layout,
+									// ),
 									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_FORM,
 										listselect_modal.NewItemText(newIcon, lang.Translate("Create new wallet")).Layout,
 									),
