@@ -11,7 +11,6 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
-	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
@@ -30,11 +29,9 @@ type PageMain struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	langSelector      *prefabs.LangSelector
-	themeSelector     *prefabs.ThemeSelector
-	buttonInfo        *components.Button
-	buttonIpfsGateway *components.Button
-	buttonDonation    *components.Button
+	langSelector  *prefabs.LangSelector
+	themeSelector *prefabs.ThemeSelector
+	buttonInfo    *components.Button
 }
 
 var _ router.Page = &PageMain{}
@@ -69,38 +66,6 @@ func NewPageFront() *PageMain {
 	buttonInfo.Label.Alignment = text.Middle
 	buttonInfo.Style.Font.Weight = font.Bold
 
-	gatewayIcon, _ := widget.NewIcon(icons.HardwareDeviceHub)
-	buttonIpfsGateway := components.NewButton(components.ButtonStyle{
-		Icon:      gatewayIcon,
-		TextSize:  unit.Sp(16),
-		IconGap:   unit.Dp(10),
-		Inset:     layout.UniformInset(unit.Dp(10)),
-		Animation: components.NewButtonAnimationDefault(),
-		Border: widget.Border{
-			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-			Width:        unit.Dp(2),
-			CornerRadius: unit.Dp(5),
-		},
-	})
-	buttonIpfsGateway.Label.Alignment = text.Middle
-	buttonIpfsGateway.Style.Font.Weight = font.Bold
-
-	donationIcon, _ := widget.NewIcon(app_icons.Donation)
-	buttonDonation := components.NewButton(components.ButtonStyle{
-		Icon:      donationIcon,
-		TextSize:  unit.Sp(16),
-		IconGap:   unit.Dp(10),
-		Inset:     layout.UniformInset(unit.Dp(10)),
-		Animation: components.NewButtonAnimationDefault(),
-		Border: widget.Border{
-			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-			Width:        unit.Dp(2),
-			CornerRadius: unit.Dp(5),
-		},
-	})
-	buttonDonation.Label.Alignment = text.Middle
-	buttonDonation.Style.Font.Weight = font.Bold
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -109,11 +74,9 @@ func NewPageFront() *PageMain {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		langSelector:      langSelector,
-		themeSelector:     themeSelector,
-		buttonInfo:        buttonInfo,
-		buttonIpfsGateway: buttonIpfsGateway,
-		buttonDonation:    buttonDonation,
+		langSelector:  langSelector,
+		themeSelector: themeSelector,
+		buttonInfo:    buttonInfo,
 	}
 }
 
@@ -163,16 +126,6 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		page_instance.header.AddHistory(PAGE_APP_INFO)
 	}
 
-	if p.buttonIpfsGateway.Clicked() {
-		page_instance.pageRouter.SetCurrent(PAGE_IPFS_GATEWAYS)
-		page_instance.header.AddHistory(PAGE_IPFS_GATEWAYS)
-	}
-
-	// if p.buttonDonation.Clicked() {
-	// 	page_instance.pageRouter.SetCurrent(PAGE_DONATION)
-	// 	page_instance.header.AddHistory(PAGE_DONATION)
-	// }
-
 	if p.langSelector.Changed {
 		settings.App.Language = p.langSelector.Key
 		err := settings.Save()
@@ -205,22 +158,13 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			p.buttonInfo.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonInfo.Layout(gtx, th)
 		},
-		// func(gtx layout.Context) layout.Dimensions {
-		// 	p.buttonIpfsGateway.Text = lang.Translate("IPFS Gateways")
-		// 	p.buttonIpfsGateway.Style.Colors = theme.Current.ButtonSecondaryColors
-		// 	return p.buttonIpfsGateway.Layout(gtx, th)
-		// },
+
 		func(gtx layout.Context) layout.Dimensions {
 			return p.langSelector.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.themeSelector.Layout(gtx, th)
 		},
-		// func(gtx layout.Context) layout.Dimensions {
-		// 	p.buttonDonation.Text = lang.Translate("Donate")
-		// 	p.buttonDonation.Style.Colors = theme.Current.ButtonSecondaryColors
-		// 	return p.buttonDonation.Layout(gtx, th)
-		// },
 	}
 
 	listStyle := material.List(th, p.list)
