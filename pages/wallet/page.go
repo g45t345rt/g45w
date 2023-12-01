@@ -41,11 +41,6 @@ type Page struct {
 	pageSCFolders       *PageSCFolders
 	pageContacts        *PageContacts
 	pageTransaction     *PageTransaction
-	// pageDexSwap         *PageDEXSwap
-	// pageDEXAddLiquidity *PageDEXAddLiquidity
-	// pageDEXRemLiquidity *PageDEXRemLiquidity
-	// pageDEXSCBridgeOut  *PageDEXSCBridgeOut
-	// pageDEXSCBridgeIn   *PageDEXSCBridgeIn
 
 	pageRouter *router.Router
 }
