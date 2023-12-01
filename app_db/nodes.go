@@ -24,7 +24,7 @@ var INTEGRATED_NODE_CONNECTION = NodeConnection{
 }
 
 var TRUSTED_NODE_CONNECTIONS = []NodeConnection{
-	{Endpoint: "wss://node.deronfts.com/ws", Name: "DeroNFTs"},
+	{Endpoint: "ws://127.0.0.1:10102/ws", Name: "Local"},
 	{Endpoint: "wss://dero-node.mysrv.cloud/ws", Name: "MySrvCloud"},
 	{Endpoint: "ws://derostats.io:10102/ws", Name: "DeroStats"},
 	{Endpoint: "ws://node.derofoundation.org:11012/ws", Name: "Foundation"},
