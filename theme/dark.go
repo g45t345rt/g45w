@@ -15,15 +15,15 @@ var Dark = &Theme{
 	TextMuteColor:        color.NRGBA{R: 255, G: 255, B: 255, A: 50},
 	DividerColor:         color.NRGBA{R: 255, G: 255, B: 255, A: 25},
 	BgColor:              blackColor,
-	BgGradientStartColor: color.NRGBA{R: 30, G: 30, B: 30, A: 255},
-	BgGradientEndColor:   color.NRGBA{R: 15, G: 15, B: 15, A: 255},
+	BgGradientStartColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+	BgGradientEndColor:   color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 	HideBalanceBgColor:   color.NRGBA{A: 255},
 
 	HeaderBackButtonColors: components.ButtonColors{
 		TextColor:      color.NRGBA{R: 255, G: 255, B: 255, A: 100},
 		HoverTextColor: &whiteColor,
 	},
-	HeaderTopBgColor: color.NRGBA{R: 30, G: 30, B: 30, A: 255},
+	HeaderTopBgColor: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 
 	BottomBarBgColor:         blackColor,
 	BottomBarWalletBgColor:   whiteColor,
