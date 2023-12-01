@@ -17,11 +17,11 @@ def find_lang_translate():
     lang_pattern = r'lang\.Translate\("((?:[^"\\]|\\.)*)"\)'
 
     go_files = 0
-    for root, dirs, files in os.walk("."):
+    for home, dirs, files in os.walk("."):
         for file_name in files:
             if file_name.endswith(".go"):
                 go_files += 1
-                file_path = os.path.join(root, file_name)
+                file_path = os.path.join(home, file_name)
                 with open(file_path, "r", encoding="utf-8") as file:
                     file_content = file.read()
                     matches = re.findall(lang_pattern, file_content)

@@ -413,7 +413,7 @@ func (w *Wallet) GetTokenFolder(id int64) (*TokenFolder, error) {
 
 func (w *Wallet) GetTokenFolderPath(id sql.NullInt64) (string, error) {
 	if !id.Valid {
-		return "root", nil
+		return "home", nil
 	}
 
 	query := sq.Select("*").From("token_folders").Where(sq.Eq{"id": id})

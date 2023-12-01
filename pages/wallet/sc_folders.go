@@ -48,7 +48,7 @@ type PageSCFolders struct {
 	buttonOpenMenu     *components.Button
 	buttonFolderGoBack *components.Button
 
-	currentFolder   *wallet_manager.TokenFolder // nil is root
+	currentFolder   *wallet_manager.TokenFolder // nil is home
 	folderCount     int
 	tokenCount      int
 	folderPath      string
@@ -101,7 +101,7 @@ func (p *PageSCFolders) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Tokens") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
-		folderName := "root"
+		folderName := "home"
 		if p.currentFolder != nil {
 			folderName = p.currentFolder.Name
 		}
@@ -491,7 +491,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 func (p *PageSCFolders) deleteCurrentFolder() error {
 	if p.currentFolder == nil {
-		return fmt.Errorf("can't delete root folder")
+		return fmt.Errorf("can't delete home folder")
 	}
 
 	wallet := wallet_manager.OpenedWallet
