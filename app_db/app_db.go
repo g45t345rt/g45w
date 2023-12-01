@@ -41,11 +41,6 @@ func Load() error {
 		return err
 	}
 
-	err = initDatabaseIPFSGateways()
-	if err != nil {
-		return err
-	}
-
 	err = initDatabaseWallets()
 	if err != nil {
 		return err
@@ -62,10 +57,6 @@ func Load() error {
 			return err
 		}
 
-		err = ResetIPFSGateways()
-		if err != nil {
-			return err
-		}
 	}
 
 	return err
