@@ -29,9 +29,9 @@ func NewLogoSplash() *LogoSplash {
 	animtation := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(0, 1, 1, ease.InBack),
 	))
-	animtation.Sequence.SetLoop(-1)
+	animtation.Sequence.SetLoop(0)
 
-	src, _ := assets.GetImage("dero_polygon.png")
+	src, _ := assets.GetImage("round-bw.png")
 
 	image := &components.Image{
 		Src: paint.NewImageOp(src),
