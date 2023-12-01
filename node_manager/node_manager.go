@@ -46,10 +46,10 @@ func Connect(nodeConn app_db.NodeConnection, save bool) error {
 	integratedEndpoint := app_db.INTEGRATED_NODE_CONNECTION.Endpoint
 	endpoint := nodeConn.Endpoint
 	if nodeConn.Endpoint == integratedEndpoint {
-		err := integrated_node.Start()
-		if err != nil {
-			return err
-		}
+		// err := integrated_node.Start()
+		// if err != nil {
+		// 	return err
+		// }
 
 		endpoint = "ws://127.0.0.1:10102/ws"
 	}

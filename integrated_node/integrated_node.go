@@ -1,17 +1,11 @@
 package integrated_node
 
 import (
-	"fmt"
-	"io"
 	"net"
-	"os"
-	"runtime"
 	"time"
 
-	"github.com/deroproject/derohe/block"
 	"github.com/deroproject/derohe/blockchain"
 	derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
-	"github.com/deroproject/derohe/config"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/metrics"
 	"github.com/deroproject/derohe/p2p"
@@ -34,73 +28,73 @@ func isTcpPortInUse(addr string) bool {
 	return false
 }
 
-func Start() error {
-	if Running {
-		return nil
-	}
+// func Start() error {
+// 	if Running {
+// 		return nil
+// 	}
 
-	rpcPort := config.Mainnet.RPC_Default_Port
-	rpcAddr := fmt.Sprintf("127.0.0.1:%d", rpcPort)
-	if isTcpPortInUse(rpcAddr) {
-		return fmt.Errorf("rpc port (%d) already in use", rpcPort)
-	}
+// 	rpcPort := config.Mainnet.RPC_Default_Port
+// 	rpcAddr := fmt.Sprintf("127.0.0.1:%d", rpcPort)
+// 	if isTcpPortInUse(rpcAddr) {
+// 		return fmt.Errorf("rpc port (%d) already in use", rpcPort)
+// 	}
 
-	nodeDir := settings.IntegratedNodeDir
+// 	nodeDir := settings.IntegratedNodeDir
 
-	runtime.MemProfileRate = 0
+// 	runtime.MemProfileRate = 0
 
-	globals.Arguments["--timeisinsync"] = false
-	globals.Arguments["--p2p-bind"] = nil
-	globals.Arguments["--add-exclusive-node"] = make([]string, 0)
-	globals.Arguments["--node-tag"] = nil
-	globals.Arguments["--clog-level"] = nil
-	globals.Arguments["--sync-node"] = false
-	globals.Arguments["--data-dir"] = nodeDir
-	globals.Arguments["--add-priority-node"] = make([]string, 0)
-	globals.Arguments["--rpc-bind"] = nil
-	globals.Arguments["--integrator-address"] = nil
-	globals.Arguments["--fastsync"] = true
-	globals.Arguments["--socks-proxy"] = nil
-	globals.Arguments["--min-peers"] = nil
-	globals.Arguments["--max-peers"] = nil
-	globals.Arguments["--getwork-bind"] = nil
-	globals.Arguments["--prune-history"] = nil
+// 	globals.Arguments["--timeisinsync"] = false
+// 	globals.Arguments["--p2p-bind"] = nil
+// 	globals.Arguments["--add-exclusive-node"] = make([]string, 0)
+// 	globals.Arguments["--node-tag"] = nil
+// 	globals.Arguments["--clog-level"] = nil
+// 	globals.Arguments["--sync-node"] = false
+// 	globals.Arguments["--data-dir"] = nodeDir
+// 	globals.Arguments["--add-priority-node"] = make([]string, 0)
+// 	globals.Arguments["--rpc-bind"] = nil
+// 	globals.Arguments["--integrator-address"] = nil
+// 	globals.Arguments["--fastsync"] = true
+// 	globals.Arguments["--socks-proxy"] = nil
+// 	globals.Arguments["--min-peers"] = nil
+// 	globals.Arguments["--max-peers"] = nil
+// 	globals.Arguments["--getwork-bind"] = nil
+// 	globals.Arguments["--prune-history"] = nil
 
-	globals.InitializeLog(os.Stdout, io.Discard)
-	globals.Initialize()
+// 	globals.InitializeLog(os.Stdout, io.Discard)
+// 	globals.Initialize()
 
-	params := make(map[string]interface{})
+// 	params := make(map[string]interface{})
 
-	chain, err := blockchain.Blockchain_Start(params)
-	if err != nil {
-		return err
-	}
+// 	chain, err := blockchain.Blockchain_Start(params)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	Chain = chain
-	params["chain"] = chain
+// 	Chain = chain
+// 	params["chain"] = chain
 
-	err = p2p.P2P_Init(params)
-	if err != nil {
-		return err
-	}
+// 	err = p2p.P2P_Init(params)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	chain.P2P_Block_Relayer = func(cbl *block.Complete_Block, peerid uint64) {
-		p2p.Broadcast_Block(cbl, peerid)
-	}
+// 	chain.P2P_Block_Relayer = func(cbl *block.Complete_Block, peerid uint64) {
+// 		p2p.Broadcast_Block(cbl, peerid)
+// 	}
 
-	chain.P2P_MiniBlock_Relayer = func(mbl block.MiniBlock, peerid uint64) {
-		p2p.Broadcast_MiniBlock(mbl, peerid)
-	}
+// 	chain.P2P_MiniBlock_Relayer = func(mbl block.MiniBlock, peerid uint64) {
+// 		p2p.Broadcast_MiniBlock(mbl, peerid)
+// 	}
 
-	RPCServer, err = derodrpc.RPCServer_Start(params)
-	if err != nil {
-		return err
-	}
+// 	RPCServer, err = derodrpc.RPCServer_Start(params)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	globals.Cron.Start()
-	Running = true
-	return nil
-}
+// 	globals.Cron.Start()
+// 	Running = true
+// 	return nil
+// }
 
 func Stop() {
 	RPCServer.RPCServer_Stop()
