@@ -206,7 +206,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					label := material.Label(th, unit.Sp(18), lang.Translate("Stable Height / Node Height"))
+					label := material.Label(th, unit.Sp(18), lang.Translate("Best P2P Height / TOP Height"))
 					label.Color = theme.Current.TextMuteColor
 					return label.Layout(gtx)
 				}),
