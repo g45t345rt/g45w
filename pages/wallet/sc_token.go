@@ -414,14 +414,14 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 							})
 						})
 					}
-				case "dex_sc_bridge_in":
-					page_instance.pageDEXSCBridgeIn.SetToken(p.token)
-					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_IN)
-					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_IN)
-				case "dex_sc_bridge_out":
-					page_instance.pageDEXSCBridgeOut.SetToken(p.token)
-					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_OUT)
-					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_OUT)
+					// case "dex_sc_bridge_in":
+					// 	page_instance.pageDEXSCBridgeIn.SetToken(p.token)
+					// 	page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_IN)
+					// 	page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_IN)
+					// case "dex_sc_bridge_out":
+					// 	page_instance.pageDEXSCBridgeOut.SetToken(p.token)
+					// 	page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_OUT)
+					// 	page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_OUT)
 				}
 
 				if err != nil {

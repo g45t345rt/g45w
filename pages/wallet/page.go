@@ -41,11 +41,11 @@ type Page struct {
 	pageSCFolders       *PageSCFolders
 	pageContacts        *PageContacts
 	pageTransaction     *PageTransaction
-	pageDexSwap         *PageDEXSwap
-	pageDEXAddLiquidity *PageDEXAddLiquidity
-	pageDEXRemLiquidity *PageDEXRemLiquidity
-	pageDEXSCBridgeOut  *PageDEXSCBridgeOut
-	pageDEXSCBridgeIn   *PageDEXSCBridgeIn
+	// pageDexSwap         *PageDEXSwap
+	// pageDEXAddLiquidity *PageDEXAddLiquidity
+	// pageDEXRemLiquidity *PageDEXRemLiquidity
+	// pageDEXSCBridgeOut  *PageDEXSCBridgeOut
+	// pageDEXSCBridgeIn   *PageDEXSCBridgeIn
 
 	pageRouter *router.Router
 }
@@ -134,23 +134,23 @@ func New() *Page {
 	pageServiceNames := NewPageServiceNames()
 	pageRouter.Add(PAGE_SERVICE_NAMES, pageServiceNames)
 
-	pageDEXPairs := NewPageDEXPairs()
-	pageRouter.Add(PAGE_DEX_PAIRS, pageDEXPairs)
+	// pageDEXPairs := NewPageDEXPairs()
+	// pageRouter.Add(PAGE_DEX_PAIRS, pageDEXPairs)
 
-	pageDEXSwap := NewPageDEXSwap()
-	pageRouter.Add(PAGE_DEX_SWAP, pageDEXSwap)
+	// pageDEXSwap := NewPageDEXSwap()
+	// pageRouter.Add(PAGE_DEX_SWAP, pageDEXSwap)
 
-	pageDEXAddLiquidity := NewPageDEXAddLiquidity()
-	pageRouter.Add(PAGE_DEX_ADD_LIQUIDITY, pageDEXAddLiquidity)
+	// pageDEXAddLiquidity := NewPageDEXAddLiquidity()
+	// pageRouter.Add(PAGE_DEX_ADD_LIQUIDITY, pageDEXAddLiquidity)
 
-	pageDEXRemLiquidity := NewPageDEXRemLiquidity()
-	pageRouter.Add(PAGE_DEX_REM_LIQUIDITY, pageDEXRemLiquidity)
+	// pageDEXRemLiquidity := NewPageDEXRemLiquidity()
+	// pageRouter.Add(PAGE_DEX_REM_LIQUIDITY, pageDEXRemLiquidity)
 
-	pageDEXSCBridgeOut := NewPageDEXSCBridgeOut()
-	pageRouter.Add(PAGE_DEX_SC_BRIDGE_OUT, pageDEXSCBridgeOut)
+	// pageDEXSCBridgeOut := NewPageDEXSCBridgeOut()
+	// pageRouter.Add(PAGE_DEX_SC_BRIDGE_OUT, pageDEXSCBridgeOut)
 
-	pageDEXSCBridgeIn := NewPageDEXSCBridgeIn()
-	pageRouter.Add(PAGE_DEX_SC_BRIDGE_IN, pageDEXSCBridgeIn)
+	// pageDEXSCBridgeIn := NewPageDEXSCBridgeIn()
+	// pageRouter.Add(PAGE_DEX_SC_BRIDGE_IN, pageDEXSCBridgeIn)
 
 	header := prefabs.NewHeader(pageRouter)
 
@@ -168,11 +168,11 @@ func New() *Page {
 		pageSCFolders:       pageSCFolders,
 		pageContacts:        pageContacts,
 		pageTransaction:     pageTransaction,
-		pageDexSwap:         pageDEXSwap,
-		pageDEXAddLiquidity: pageDEXAddLiquidity,
-		pageDEXRemLiquidity: pageDEXRemLiquidity,
-		pageDEXSCBridgeOut:  pageDEXSCBridgeOut,
-		pageDEXSCBridgeIn:   pageDEXSCBridgeIn,
+		// pageDexSwap:         pageDEXSwap,
+		// pageDEXAddLiquidity: pageDEXAddLiquidity,
+		// pageDEXRemLiquidity: pageDEXRemLiquidity,
+		// pageDEXSCBridgeOut:  pageDEXSCBridgeOut,
+		// pageDEXSCBridgeIn:   pageDEXSCBridgeIn,
 
 		pageRouter: pageRouter,
 	}
