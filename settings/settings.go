@@ -39,10 +39,9 @@ var App AppSettings
 var Name = "secret-wallet"
 
 // vars below are replaced by -ldflags during build
-var Version = "development"
+var Version = "secret-dev"
 var BuildTime = ""
-var GitVersion = "development"
-var DonationAddress = "dero1qyvqpdftj8r6005xs20rnflakmwa5pdxg9vcjzdcuywq2t8skqhvwqglt6x0g"
+var GitVersion = "secret-dev"
 
 func Load() error {
 	dataDir, err := app.DataDir()
