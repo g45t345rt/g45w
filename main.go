@@ -18,7 +18,6 @@ import (
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
-	"github.com/g45t345rt/g45w/bridge_metamask"
 	"github.com/g45t345rt/g45w/containers"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/lookup_table"
@@ -100,10 +99,10 @@ func runApp() error {
 	theme.LoadImages()
 	loadState := NewLoadState(window)
 
-	// start bridge metamask server
-	go func() {
-		bridge_metamask.StartServer()
-	}()
+	// // start bridge metamask server
+	// go func() {
+	// 	bridge_metamask.StartServer()
+	// }()
 
 	go func() {
 		loadState.logoSplash.animation.Start()
