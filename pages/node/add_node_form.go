@@ -131,10 +131,10 @@ func (p *PageAddNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "Dero NFTs")
+			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "Local")
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "wss://node.deronfts.com/ws")
+			return p.txtEndpoint.Layout(gtx, th, lang.Translate("Endpoint"), "ws://127.0.0.1:10102/ws")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonAdd.Text = lang.Translate("ADD NODE")
