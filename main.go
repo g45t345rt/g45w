@@ -42,29 +42,29 @@ import (
 func loadFontCollection() ([]font.FontFace, error) {
 	// universal fonts from https://github.com/satbyy/go-noto-universal
 
-	goNotoKurrentRegularTTF, err := assets.GetFont("GoNotoKurrent-Regular.ttf")
+	RobotoRegularTTF, err := assets.GetFont("Roboto-Regular.ttf")
 	if err != nil {
 		return nil, err
 	}
 
-	goNotoKurrentRegular, err := opentype.Parse(goNotoKurrentRegularTTF)
+	RobotoRegular, err := opentype.Parse(RobotoRegularTTF)
 	if err != nil {
 		return nil, err
 	}
 
-	goNotoKurrentBoldTTF, err := assets.GetFont("GoNotoKurrent-Bold.ttf")
+	RobotoBoldTTF, err := assets.GetFont("Roboto-Bold.ttf")
 	if err != nil {
 		return nil, err
 	}
 
-	goNotoKurrentBold, err := opentype.Parse(goNotoKurrentBoldTTF)
+	RobotoBold, err := opentype.Parse(RobotoBoldTTF)
 	if err != nil {
 		return nil, err
 	}
 
 	fontCollection := []font.FontFace{}
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: goNotoKurrentRegular})
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: goNotoKurrentBold})
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: RobotoRegular})
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: RobotoBold})
 	return fontCollection, nil
 }
 
