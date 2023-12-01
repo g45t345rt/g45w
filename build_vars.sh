@@ -1,6 +1,6 @@
 VERSION="0.8.0"
 VERSION_INCREMENT=1
-NAME=G45W
+NAME=secret-wallet
 
 FLAGS="-X github.com/g45t345rt/g45w/settings.Version=v$VERSION"
 FLAGS="$FLAGS -X github.com/g45t345rt/g45w/settings.BuildTime=$(date +%s)"

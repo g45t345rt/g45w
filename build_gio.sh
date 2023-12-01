@@ -12,7 +12,7 @@ GOOS=$1
 GOARCH=$2
 MIN_SDK=0
 #CGO_CFLAGS=""
-OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
+OUTPUT="./build/secret_wallet_${GOOS}_${GOARCH}"
 
 source ./build_vars.sh
 

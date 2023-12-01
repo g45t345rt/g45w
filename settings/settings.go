@@ -36,13 +36,13 @@ var (
 )
 
 var App AppSettings
-var Name = "G45W"
+var Name = "secret-wallet"
 
 // vars below are replaced by -ldflags during build
 var Version = "development"
 var BuildTime = ""
 var GitVersion = "development"
-var DonationAddress = "dero1qyhunyuk24g9qsjtcr4r0c7rgjquuernqcfnx76kq0jvn4ns98tf2qgj5dq70"
+var DonationAddress = "dero1qyvqpdftj8r6005xs20rnflakmwa5pdxg9vcjzdcuywq2t8skqhvwqglt6x0g"
 
 func Load() error {
 	dataDir, err := app.DataDir()
@@ -50,7 +50,7 @@ func Load() error {
 		return err
 	}
 
-	appDir := filepath.Join(dataDir, "g45w")
+	appDir := filepath.Join(dataDir, "secret-wallet")
 	_, err = os.Stat(appDir)
 	if err != nil {
 		if os.IsNotExist(err) {

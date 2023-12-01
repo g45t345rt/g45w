@@ -8,7 +8,7 @@ fi
 
 GOOS=$1
 GOARCH=$2
-OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
+OUTPUT="./build/secret_wallet_${GOOS}_${GOARCH}"
 
 source ./build_vars.sh
 

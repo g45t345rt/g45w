@@ -43,7 +43,7 @@ This change should remove a painful/unsafe step of connecting your wallet direct
 
 ## Demo
 
-![Wallet app demo](https://github.com/g45t345rt/g45w/blob/master/g45w_demo.gif)
+![Wallet app demo](https://github.com/g45t345rt/g45w/blob/master/secret_wallet_demo.gif)
 
 ## Releases
 
@@ -59,7 +59,7 @@ If you have Git installed, clone the repository.
 git clone https://github.com/g45t345rt/g45w.git
 ```
 
-Download and install GO.  
+Download and install GO.
 <https://go.dev/doc/install>
 
 Install latest version of GioUI build tool.
@@ -68,7 +68,7 @@ Install latest version of GioUI build tool.
 go install gioui.org/cmd/gogio@latest
 ```
 
-Check Github workflows for more build information.  
+Check Github workflows for more build information.
 <https://github.com/g45t345rt/g45w/tree/master/.github/workflows>
 
 ### Android
@@ -89,7 +89,7 @@ If your phone is connected and developer mode is on, install the APK directly wi
 
 ### IOS
 
-Xcode is required!  
+Xcode is required!
 
 Build the app.
 
@@ -129,7 +129,7 @@ Build the app.
 
 ### MacOS
 
-Xcode is required!  
+Xcode is required!
 Build the app.
 
 ``` bash
@@ -138,28 +138,28 @@ Build the app.
 
 ### Outputs
 
-`/build/g45w_windows_amd64.exe`  
-`/build/g45w_linux_amd64`  
-`/build/g45w_macos_amd64.app`  
-`/build/g45w_ios_arm64.app`  
-`/build/g45w_android_arm64.apk`  
-`/build/g45w_android_arm.apk`  
+`/build/secret_wallet_windows_amd64.exe`
+`/build/secret_wallet_linux_amd64`
+`/build/secret_wallet_macos_amd64.app`
+`/build/secret_wallet_ios_arm64.app`
+`/build/secret_wallet_android_arm64.apk`
+`/build/secret_wallet_android_arm.apk`
 
 ## Contributors
 
-List of contributors. Thank you all!  
-If your alias is not here pls let me know.  
+List of contributors. Thank you all!
+If your alias is not here pls let me know.
 
 ### Translation
 
-Most translations were done with ChatGPT and are far from being accurate.  
-If you notice any errors, pls update the values in `/assets/lang` folder and create a pull request.  
+Most translations were done with ChatGPT and are far from being accurate.
+If you notice any errors, pls update the values in `/assets/lang` folder and create a pull request.
 
 `jvx`
 
 ### Testing
 
-`jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`,  
+`jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`,
 `Lutamm`, `VastoLorde`, `rexBGcoxx`, `Kray0005`, `Apollo`, `Coose`, `Cypherpunk`, `o1o7`
 `keyper`, `Zalamender`, `ArcaneSphere`, `proprivacy`, `Wind_W#369`, `Ulmo`, `AltCtrl`, `Cats`
 `derionner`
@@ -168,5 +168,5 @@ If you notice any errors, pls update the values in `/assets/lang` folder and cre
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
-The MIT License (MIT)  
+The MIT License (MIT)
 Copyright (c) 2023 g45t345rt
