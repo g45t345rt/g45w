@@ -36,7 +36,7 @@ var (
 	PAGE_IPFS_GATEWAYS     = "page_ipfs_gateways"
 	PAGE_ADD_IPFS_GATEWAY  = "page_add_ipfs_gateway"
 	PAGE_EDIT_IPFS_GATEWAY = "page_edit_ipfs_gateway"
-	PAGE_DONATION          = "page_donation"
+	// PAGE_DONATION          = "page_donation"
 )
 
 var page_instance *Page
@@ -69,8 +69,8 @@ func New() *Page {
 	pageEditIPFSGateway := NewPageEditIPFSGateway()
 	pageRouter.Add(PAGE_EDIT_IPFS_GATEWAY, pageEditIPFSGateway)
 
-	pageDonation := NewPageDonation()
-	pageRouter.Add(PAGE_DONATION, pageDonation)
+	// pageDonation := NewPageDonation()
+	// pageRouter.Add(PAGE_DONATION, pageDonation)
 
 	header := prefabs.NewHeader(pageRouter)
 

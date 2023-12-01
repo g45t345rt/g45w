@@ -168,10 +168,10 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		page_instance.header.AddHistory(PAGE_IPFS_GATEWAYS)
 	}
 
-	if p.buttonDonation.Clicked() {
-		page_instance.pageRouter.SetCurrent(PAGE_DONATION)
-		page_instance.header.AddHistory(PAGE_DONATION)
-	}
+	// if p.buttonDonation.Clicked() {
+	// 	page_instance.pageRouter.SetCurrent(PAGE_DONATION)
+	// 	page_instance.header.AddHistory(PAGE_DONATION)
+	// }
 
 	if p.langSelector.Changed {
 		settings.App.Language = p.langSelector.Key
@@ -205,22 +205,22 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			p.buttonInfo.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonInfo.Layout(gtx, th)
 		},
-		func(gtx layout.Context) layout.Dimensions {
-			p.buttonIpfsGateway.Text = lang.Translate("IPFS Gateways")
-			p.buttonIpfsGateway.Style.Colors = theme.Current.ButtonSecondaryColors
-			return p.buttonIpfsGateway.Layout(gtx, th)
-		},
+		// func(gtx layout.Context) layout.Dimensions {
+		// 	p.buttonIpfsGateway.Text = lang.Translate("IPFS Gateways")
+		// 	p.buttonIpfsGateway.Style.Colors = theme.Current.ButtonSecondaryColors
+		// 	return p.buttonIpfsGateway.Layout(gtx, th)
+		// },
 		func(gtx layout.Context) layout.Dimensions {
 			return p.langSelector.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.themeSelector.Layout(gtx, th)
 		},
-		func(gtx layout.Context) layout.Dimensions {
-			p.buttonDonation.Text = lang.Translate("Donate")
-			p.buttonDonation.Style.Colors = theme.Current.ButtonSecondaryColors
-			return p.buttonDonation.Layout(gtx, th)
-		},
+		// func(gtx layout.Context) layout.Dimensions {
+		// 	p.buttonDonation.Text = lang.Translate("Donate")
+		// 	p.buttonDonation.Style.Colors = theme.Current.ButtonSecondaryColors
+		// 	return p.buttonDonation.Layout(gtx, th)
+		// },
 	}
 
 	listStyle := material.List(th, p.list)
