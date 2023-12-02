@@ -108,48 +108,56 @@ func Get(key string) *Theme {
 }
 
 func LoadImages() {
+	// black
 	imgArrowUpArcBlack, _ := assets.GetImage("arrow_up_arc.png")
 	opImgArrowUpArcBlack := paint.NewImageOp(imgArrowUpArcBlack)
-	imgArrowUpArcWhite, _ := assets.GetImage("arrow_up_arc_white.png")
-	opImgArrowUpArcWhite := paint.NewImageOp(imgArrowUpArcWhite)
-
-	Light.ArrowUpArcImage = opImgArrowUpArcBlack
-	Dark.ArrowUpArcImage = opImgArrowUpArcWhite
-	Blue.ArrowUpArcImage = opImgArrowUpArcWhite
 
 	imgArrowDownArcBlack, _ := assets.GetImage("arrow_down_arc.png")
 	opImgArrowDownArcBlack := paint.NewImageOp(imgArrowDownArcBlack)
-	imgArrowDownArcWhite, _ := assets.GetImage("arrow_down_arc_white.png")
-	opImgArrowDownArcWhite := paint.NewImageOp(imgArrowDownArcWhite)
-
-	Light.ArrowDownArcImage = opImgArrowDownArcBlack
-	Dark.ArrowDownArcImage = opImgArrowDownArcWhite
-	Blue.ArrowDownArcImage = opImgArrowDownArcWhite
 
 	imgCoinbaseBlack, _ := assets.GetImage("coinbase.png")
 	opImgCoinbaseBlack := paint.NewImageOp(imgCoinbaseBlack)
-	imgCoinbaseWhite, _ := assets.GetImage("coinbase_white.png")
-	opImgCoinbaseWhite := paint.NewImageOp(imgCoinbaseWhite)
-
-	Light.CoinbaseImage = opImgCoinbaseBlack
-	Dark.CoinbaseImage = opImgCoinbaseWhite
-	Blue.CoinbaseImage = opImgCoinbaseWhite
 
 	imgTokenBlack, _ := assets.GetImage("token.png")
 	opImgTokenBlack := paint.NewImageOp(imgTokenBlack)
-	imgTokenWhite, _ := assets.GetImage("token_white.png")
-	opImgTokenWhite := paint.NewImageOp(imgTokenWhite)
 
 	imgManageFilesBlack, _ := assets.GetImage("manage_files.png")
 	opImgManageFilesBlack := paint.NewImageOp(imgManageFilesBlack)
+
+	// white
+	imgArrowUpArcWhite, _ := assets.GetImage("arrow_up_arc_white.png")
+	opImgArrowUpArcWhite := paint.NewImageOp(imgArrowUpArcWhite)
+
+	imgArrowDownArcWhite, _ := assets.GetImage("arrow_down_arc_white.png")
+	opImgArrowDownArcWhite := paint.NewImageOp(imgArrowDownArcWhite)
+
+	imgCoinbaseWhite, _ := assets.GetImage("coinbase_white.png")
+	opImgCoinbaseWhite := paint.NewImageOp(imgCoinbaseWhite)
+
+	imgTokenWhite, _ := assets.GetImage("token_white.png")
+	opImgTokenWhite := paint.NewImageOp(imgTokenWhite)
+
 	imgManageFilesWhite, _ := assets.GetImage("manage_files_white.png")
 	opImgManageFilesWhite := paint.NewImageOp(imgManageFilesWhite)
 
+	// light theme
+	Light.ArrowUpArcImage = opImgArrowUpArcBlack
+	Light.ArrowDownArcImage = opImgArrowDownArcBlack
+	Light.CoinbaseImage = opImgCoinbaseBlack
 	Light.ManageFilesImage = opImgManageFilesBlack
-	Dark.ManageFilesImage = opImgManageFilesWhite
-	Blue.ManageFilesImage = opImgManageFilesWhite
-
 	Light.TokenImage = opImgTokenBlack
+
+	// dark theme
+	Dark.ArrowUpArcImage = opImgArrowUpArcWhite
+	Dark.ArrowDownArcImage = opImgArrowDownArcWhite
+	Dark.CoinbaseImage = opImgCoinbaseWhite
+	Dark.ManageFilesImage = opImgManageFilesWhite
 	Dark.TokenImage = opImgTokenWhite
+
+	//blue
+	Blue.ArrowUpArcImage = opImgArrowUpArcWhite
+	Blue.ArrowDownArcImage = opImgArrowDownArcWhite
+	Blue.CoinbaseImage = opImgCoinbaseWhite
+	Blue.ManageFilesImage = opImgManageFilesWhite
 	Blue.TokenImage = opImgTokenWhite
 }
