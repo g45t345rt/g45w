@@ -14,18 +14,18 @@ type Lang struct {
 
 // don't use map[string] the ordering is not guaranteed
 var Languages = []Lang{
-	{Key: "en", Name: "English", ImgPath: "lang/en.png"},               //@lang.Translate("English")
-	{Key: "fr", Name: "French", ImgPath: "lang/fr.png"},                //@lang.Translate("French")
-	{Key: "es", Name: "Spanish", ImgPath: "lang/es.png"},               //@lang.Translate("Spanish")
-	{Key: "it", Name: "Italian", ImgPath: "lang/it.png"},               //@lang.Translate("Italian")
-	{Key: "nl", Name: "Dutch", ImgPath: "lang/nl.png"},                 //@lang.Translate("Dutch")
-	{Key: "ru", Name: "Russian", ImgPath: "lang/ru.png"},               //@lang.Translate("Russian")
-	{Key: "pt", Name: "Portuguese", ImgPath: "lang/pt.png"},            //@lang.Translate("Portuguese")
-	{Key: "ro", Name: "Romanian", ImgPath: "lang/ro.png"},              //@lang.Translate("Romanian")
-	{Key: "jp", Name: "Japanese", ImgPath: "lang/jp.png"},              //@lang.Translate("Japanese")
-	{Key: "ko", Name: "Korean", ImgPath: "lang/ko.png"},                //@lang.Translate("Korean")
-	{Key: "zh_s", Name: "Chinese Simplified", ImgPath: "lang/zh.png"},  //@lang.Translate("Chinese Simplified")
-	{Key: "zh_t", Name: "Chinese Traditional", ImgPath: "lang/zh.png"}, //@lang.Translate("Chinese Traditional")
+	{Key: "en", Name: "English", ImgPath: "lang/en.png"},    //@lang.Translate("English")
+	{Key: "fr", Name: "French", ImgPath: "lang/fr.png"},     //@lang.Translate("French")
+	{Key: "es", Name: "Spanish", ImgPath: "lang/es.png"},    //@lang.Translate("Spanish")
+	{Key: "it", Name: "Italian", ImgPath: "lang/it.png"},    //@lang.Translate("Italian")
+	{Key: "nl", Name: "Dutch", ImgPath: "lang/nl.png"},      //@lang.Translate("Dutch")
+	{Key: "ru", Name: "Russian", ImgPath: "lang/ru.png"},    //@lang.Translate("Russian")
+	{Key: "pt", Name: "Portuguese", ImgPath: "lang/pt.png"}, //@lang.Translate("Portuguese")
+	{Key: "ro", Name: "Romanian", ImgPath: "lang/ro.png"},   //@lang.Translate("Romanian")
+	// {Key: "jp", Name: "Japanese", ImgPath: "lang/jp.png"},              //@lang.Translate("Japanese")
+	// {Key: "ko", Name: "Korean", ImgPath: "lang/ko.png"},                //@lang.Translate("Korean")
+	// {Key: "zh_s", Name: "Chinese Simplified", ImgPath: "lang/zh.png"},  //@lang.Translate("Chinese Simplified")
+	// {Key: "zh_t", Name: "Chinese Traditional", ImgPath: "lang/zh.png"}, //@lang.Translate("Chinese Traditional")
 }
 
 var langValues = make(map[string]map[string]string)
