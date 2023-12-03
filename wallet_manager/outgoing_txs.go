@@ -21,7 +21,6 @@ type OutgoingTx struct {
 	TxType      sql.NullInt32
 	HexData     sql.NullString
 	BlockHeight sql.NullInt64
-	Description sql.NullString
 }
 
 func initDatabaseOutgoingTxs(db *sql.DB) error {
@@ -33,8 +32,7 @@ func initDatabaseOutgoingTxs(db *sql.DB) error {
 			status VARCHAR,
 			tx_type VARCHAR,
 			hex_data VARCHAR,
-			block_height BIGINT,
-			description VARCHAR
+			block_height BIGINT
 		);
 	`)
 	return err
@@ -54,7 +52,6 @@ func rowsScanOutgoingTxs(rows *sql.Rows) ([]OutgoingTx, error) {
 			&outgoingTx.TxType,
 			&outgoingTx.HexData,
 			&outgoingTx.BlockHeight,
-			&outgoingTx.Description,
 		)
 		if err != nil {
 			return nil, err
@@ -253,17 +250,17 @@ func (w *Wallet) UpdateOugoingTx(txId string, status string, blockHeight int64) 
 	return err
 }
 
-func (w *Wallet) InsertOutgoingTx(tx *transaction.Transaction, description string) error {
+func (w *Wallet) InsertOutgoingTx(tx *transaction.Transaction) error {
 	txId := tx.GetHash().String()
 	height := tx.Height
 	txType := tx.TransactionType
 	hexData := hex.EncodeToString(tx.Serialize())
 
 	_, err := w.DB.Exec(`
-		INSERT INTO outgoing_txs (tx_id,height_built,tx_type,timestamp,status,hex_data,description)
-		VALUES (?,?,?,?,?,?,?)
+		INSERT INTO outgoing_txs (tx_id,height_built,tx_type,timestamp,status,hex_data)
+		VALUES (?,?,?,?,?,?)
 		ON CONFLICT DO NOTHING;
-	`, txId, height, txType, time.Now().Unix(), "pending", hexData, description)
+	`, txId, height, txType, time.Now().Unix(), "pending", hexData)
 	return err
 }
 

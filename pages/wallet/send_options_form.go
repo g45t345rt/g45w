@@ -23,7 +23,6 @@ type PageSendOptionsForm struct {
 	isActive bool
 
 	txtComment     *prefabs.TextField
-	txtDescription *prefabs.TextField
 	txtDstPort     *prefabs.TextField
 	buttonContinue *components.Button
 
@@ -39,9 +38,6 @@ func NewPageSendOptionsForm() *PageSendOptionsForm {
 	txtComment := prefabs.NewTextField()
 	txtComment.Editor().SingleLine = false
 	txtComment.Editor().Submit = false
-	txtDescription := prefabs.NewTextField()
-	txtDescription.Editor().SingleLine = false
-	txtDescription.Editor().Submit = false
 	txtDstPort := prefabs.NewNumberTextField()
 
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
@@ -70,7 +66,6 @@ func NewPageSendOptionsForm() *PageSendOptionsForm {
 	return &PageSendOptionsForm{
 		txtComment:     txtComment,
 		txtDstPort:     txtDstPort,
-		txtDescription: txtDescription,
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		list:           list,
@@ -139,10 +134,7 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), lang.Translate("Specific service port."))
 		},
-		func(gtx layout.Context) layout.Dimensions {
-			p.txtDescription.Input.EditorMinY = gtx.Dp(75)
-			return p.txtDescription.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
-		},
+
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonContinue.Style.Colors = theme.Current.ButtonPrimaryColors
 			p.buttonContinue.Text = lang.Translate("CONTINUE")
@@ -162,10 +154,6 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 
 	if p.txtDstPort.Input.Clickable.Clicked() {
 		p.list.ScrollTo(1)
-	}
-
-	if p.txtDescription.Input.Clickable.Clicked() {
-		p.list.ScrollTo(2)
 	}
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {

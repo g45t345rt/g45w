@@ -31,11 +31,10 @@ import (
 )
 
 type TxPayload struct {
-	Transfers   []rpc.Transfer
-	Ringsize    uint64
-	SCArgs      rpc.Arguments
-	Description string
-	TokensInfo  []*wallet_manager.Token
+	Transfers  []rpc.Transfer
+	Ringsize   uint64
+	SCArgs     rpc.Arguments
+	TokensInfo []*wallet_manager.Token
 }
 
 func (t TxPayload) GetTokenInfo(scId crypto.Hash) *wallet_manager.Token {
@@ -205,7 +204,7 @@ func (b *BuildTxModal) sendTx() error {
 	b.buttonSend.SetLoading(true)
 	wallet := wallet_manager.OpenedWallet
 
-	err := wallet.InsertOutgoingTx(b.builtTx, b.txPayload.Description)
+	err := wallet.InsertOutgoingTx(b.builtTx)
 	if err != nil {
 		b.buttonSend.SetLoading(false)
 		return err
@@ -265,7 +264,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(20), lang.Translate("Building transaction..."))
+								lbl := material.Label(th, unit.Sp(20), lang.Translate("Sending transaction..."))
 								lbl.Font.Weight = font.Bold
 								return lbl.Layout(gtx)
 							}),

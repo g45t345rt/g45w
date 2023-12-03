@@ -213,14 +213,22 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	widgets := []layout.Widget{
-		func(gtx layout.Context) layout.Dimensions {
+		func(gtx layout.Context) layout.Dimensions { // This is the balance
 			return p.balanceContainer.Layout(gtx, th)
 		},
-		func(gtx layout.Context) layout.Dimensions {
+		func(gtx layout.Context) layout.Dimensions { // This is address
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return p.walletAddrInput.Layout(gtx, th)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+			)
+		},
+		func(gtx layout.Context) layout.Dimensions { // This is amount
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					v := utils.ShiftNumber{Number: 0, Decimals: int(p.token.Decimals)}
-					return p.txtAmount.Layout(gtx, th, lang.Translate("Amount"), v.Format())
+					return p.txtAmount.Layout(gtx, th, lang.Translate("Amount"), v.Format()) // this is where the amount is
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -235,28 +243,21 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				}),
 			)
 		},
-		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.walletAddrInput.Layout(gtx, th)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
-			)
-		},
-		func(gtx layout.Context) layout.Dimensions {
+
+		func(gtx layout.Context) layout.Dimensions { // This is ringsize
 			return p.ringSizeSelector.Layout(gtx, th)
 		},
-		func(gtx layout.Context) layout.Dimensions {
-			p.buttonOptions.Text = lang.Translate("OPTIONS")
+		func(gtx layout.Context) layout.Dimensions { // This is options
+			p.buttonOptions.Text = lang.Translate("ADD TX COMMENT & DST PORT")
 			p.buttonOptions.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonOptions.Layout(gtx, th)
 		},
-		func(gtx layout.Context) layout.Dimensions {
-			p.buttonBuildTx.Text = lang.Translate("BUILD TRANSACTION")
+		func(gtx layout.Context) layout.Dimensions { // This is the build
+			p.buttonBuildTx.Text = lang.Translate("SEND TRANSACTION")
 			p.buttonBuildTx.Style.Colors = theme.Current.ButtonPrimaryColors
 			return p.buttonBuildTx.Layout(gtx, th)
 		},
-		func(gtx layout.Context) layout.Dimensions {
+		func(gtx layout.Context) layout.Dimensions { // This is a spacer
 			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
 		},
 	}
@@ -285,11 +286,9 @@ func (p *PageSendForm) ClearForm() {
 	txtWalletAddr := p.walletAddrInput.txtWalletAddr
 	txtComment := page_instance.pageSendOptionsForm.txtComment
 	txtDstPort := page_instance.pageSendOptionsForm.txtDstPort
-	txtDescription := page_instance.pageSendOptionsForm.txtDescription
 
 	txtWalletAddr.SetValue("")
 	txtAmount.SetValue("")
-	txtDescription.SetValue("")
 	txtComment.SetValue("")
 	txtDstPort.SetValue("")
 	p.list.ScrollTo(0)
@@ -574,7 +573,7 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 	var childs []layout.FlexChild
 
 	childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(20), lang.Translate(" DERO Address / Name"))
+		lbl := material.Label(th, unit.Sp(20), lang.Translate("DERO Address / Name"))
 		lbl.Font.Weight = font.Bold
 		return lbl.Layout(gtx)
 	}),
