@@ -61,7 +61,7 @@ func LoadInstance() *BottomBar {
 		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
-	settingsIcon, _ := widget.NewIcon(icons.ActionSettingsApplications)
+	settingsIcon, _ := widget.NewIcon(icons.ActionSettings)
 	buttonSettings := components.NewButton(components.ButtonStyle{
 		Icon:      settingsIcon,
 		Animation: components.NewButtonAnimationScale(animScale),
@@ -73,7 +73,7 @@ func LoadInstance() *BottomBar {
 		Animation: components.NewButtonAnimationScale(animScale),
 	})
 
-	nodeIcon, _ := widget.NewIcon(icons.ActionDNS)
+	nodeIcon, _ := widget.NewIcon(icons.ActionImportantDevices)
 	buttonNode := components.NewButton(components.ButtonStyle{
 		Icon:      nodeIcon,
 		Animation: components.NewButtonAnimationScale(animScale),
