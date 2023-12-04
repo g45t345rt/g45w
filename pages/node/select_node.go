@@ -245,21 +245,54 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 
 	p.connecting = true
 	go func() {
-		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), nodeConn.Endpoint)
-		notification_modals.InfoInstance.SetVisible(true, 0)
-		err := node_manager.Connect(nodeConn, true)
+		notification_modals.
+			InfoInstance.SetText(lang.Translate("Connecting..."),
+			nodeConn.Endpoint)
+
+		notification_modals.
+			InfoInstance.SetVisible(true, 0)
+
+		err := node_manager.
+			Connect(nodeConn, true)
+
 		p.connecting = false
-		notification_modals.InfoInstance.SetVisible(false, 0)
+
+		notification_modals.
+			InfoInstance.SetVisible(false, 0)
 
 		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, 0)
+
+			notification_modals.
+				ErrorInstance.
+				SetText(lang.Translate("Error"),
+					err.Error())
+
+			notification_modals.
+				ErrorInstance.
+				SetVisible(true, 0)
+
 		} else {
-			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
-			page_instance.header.AddHistory(PAGE_REMOTE_NODE)
-			app_instance.Window.Invalidate()
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node connected."))
-			notification_modals.SuccessInstance.SetVisible(true, 0)
+
+			page_instance.
+				pageRouter.
+				SetCurrent(PAGE_REMOTE_NODE)
+
+			page_instance.
+				header.
+				AddHistory(PAGE_REMOTE_NODE)
+
+			app_instance.
+				Window.
+				Invalidate()
+
+			notification_modals.
+				SuccessInstance.
+				SetText(lang.Translate("Success"), // header message is one line
+					lang.Translate("Remote node connected.")) // body message is one line
+
+			notification_modals.
+				SuccessInstance.
+				SetVisible(true, 10)
 		}
 	}()
 }
