@@ -73,10 +73,18 @@ func (n *NotificationModal) SetVisible(visible bool, closeAfter time.Duration) {
 		}
 
 		if closeAfter > 0 {
-			n.timer = time.AfterFunc(closeAfter, func() {
-				n.Modal.SetVisible(false)
-				n.window.Invalidate()
-			})
+			n.timer = time.AfterFunc(closeAfter,
+				func(
+				// this is an empty function,
+				) {
+					n.
+						Modal.
+						SetVisible(false)
+
+					n.
+						window.
+						Invalidate()
+				})
 		}
 	}
 
