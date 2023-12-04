@@ -250,7 +250,7 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 			nodeConn.Endpoint)
 
 		notification_modals.
-			InfoInstance.SetVisible(true, 0)
+			InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 
 		err := node_manager.
 			Connect(nodeConn, true)
@@ -258,7 +258,7 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 		p.connecting = false
 
 		notification_modals.
-			InfoInstance.SetVisible(false, 0)
+			InfoInstance.SetVisible(false, notification_modals.CLOSE_AFTER_DEFAULT)
 
 		if err != nil {
 
@@ -269,7 +269,7 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 
 			notification_modals.
 				ErrorInstance.
-				SetVisible(true, 0)
+				SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 
 		} else {
 
@@ -292,7 +292,7 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 
 			notification_modals.
 				SuccessInstance.
-				SetVisible(true, 10)
+				SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT) // this can't be a int it has to be 10 * time.Second
 		}
 	}()
 }
