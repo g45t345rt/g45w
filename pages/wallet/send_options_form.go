@@ -116,23 +116,53 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 		page_instance.header.GoBack()
 	}
 
-	widgets := []layout.Widget{
+	widgets := []layout.
+		Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(14), lang.Translate("When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded."))
-					lbl.Color = theme.Current.TextMuteColor
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					p.txtComment.Input.EditorMinY = gtx.Dp(75)
-					return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt."))
-				}),
+
+			return layout.
+				Flex{Axis: layout.Vertical}.Layout(
+				gtx, layout.Rigid(
+					func(gtx layout.Context) layout.Dimensions {
+
+						lbl := material.
+							Label(th, unit.Sp(14),
+								lang.Translate("The message and dst port are encrypted."+
+									"\n\nOnly the sender / receiver can decrypt."))
+
+						lbl.Color = theme.
+							Current.
+							TextMuteColor
+
+						return lbl.
+							Layout(gtx)
+					}),
+
+				layout.Rigid(
+					layout.Spacer{Height: unit.Dp(10)}.Layout),
+
+				layout.Rigid(
+					func(
+						gtx layout.Context) layout.Dimensions {
+						p.
+							txtComment.
+							Input.
+							EditorMinY = gtx.Dp(75)
+
+						return p.
+							txtComment.
+							Layout(
+								gtx,
+								th,
+								lang.
+									Translate("Message"),
+								lang.
+									Translate("ex. secret loves you"))
+					}),
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), lang.Translate("Specific service port."))
+			return p.txtDstPort.Layout(gtx, th, lang.Translate("DST Port"), lang.Translate("ex. 1337"))
 		},
 
 		func(gtx layout.Context) layout.Dimensions {
