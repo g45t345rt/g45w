@@ -1,11 +1,7 @@
 package bottom_bar
 
 import (
-	"image"
-	"strings"
-
 	"gioui.org/f32"
-	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -118,7 +114,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		Max: gtx.Constraints.Max,
 	}.Op())
 
-	BottomBarTopWallet{}.Layout(gtx, th)
+	// BottomBarTopWallet{}.Layout(gtx, th)
 
 	if wallet_manager.OpenedWallet != nil {
 		b.ButtonClose.Button.Disabled = false
@@ -219,42 +215,42 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 	return b.Button.Layout(gtx, th)
 }
 
-type BottomBarTopWallet struct{}
+// type BottomBarTopWallet struct{}
 
-func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
-	openedWallet := wallet_manager.OpenedWallet
-	if openedWallet == nil {
-		return
-	}
+// func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
+// 	openedWallet := wallet_manager.OpenedWallet
+// 	if openedWallet == nil {
+// 		return
+// 	}
 
-	layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		r := op.Record(gtx.Ops)
-		dims := layout.Inset{
-			Top: unit.Dp(6), Bottom: unit.Dp(6),
-			Left: unit.Dp(10), Right: unit.Dp(10),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			walletName := openedWallet.Info.Name
-			text := lang.Translate("Wallet [{}]")
-			text = strings.Replace(text, "{}", walletName, -1)
-			lbl := material.Label(th, unit.Sp(14), text)
-			lbl.Color = theme.Current.BottomBarWalletTextColor
-			lbl.Font.Weight = font.Bold
-			return lbl.Layout(gtx)
-		})
-		c := r.Stop()
+// 	layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+// 		r := op.Record(gtx.Ops)
+// 		dims := layout.Inset{
+// 			Top: unit.Dp(6), Bottom: unit.Dp(6),
+// 			Left: unit.Dp(10), Right: unit.Dp(10),
+// 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+// 			walletName := openedWallet.Info.Name
+// 			text := lang.Translate("Wallet [{}]")
+// 			text = strings.Replace(text, "{}", walletName, -1)
+// 			lbl := material.Label(th, unit.Sp(14), text)
+// 			lbl.Color = theme.Current.BottomBarWalletTextColor
+// 			lbl.Font.Weight = font.Bold
+// 			return lbl.Layout(gtx)
+// 		})
+// 		c := r.Stop()
 
-		x := float32(dims.Size.X / 2)
-		y := float32(dims.Size.Y / 2)
-		offset := f32.Pt(-x, -y)
-		defer op.Affine(f32.Affine2D{}.Offset(offset)).Push(gtx.Ops).Pop()
+// 		x := float32(dims.Size.X / 2)
+// 		y := float32(dims.Size.Y / 2)
+// 		offset := f32.Pt(-x, -y)
+// 		defer op.Affine(f32.Affine2D{}.Offset(offset)).Push(gtx.Ops).Pop()
 
-		bgColor := theme.Current.BottomBarWalletBgColor
-		paint.FillShape(gtx.Ops, bgColor, clip.UniformRRect(
-			image.Rect(0, 0, dims.Size.X, dims.Size.Y),
-			gtx.Dp(5),
-		).Op(gtx.Ops))
+// 		bgColor := theme.Current.BottomBarWalletBgColor
+// 		paint.FillShape(gtx.Ops, bgColor, clip.UniformRRect(
+// 			image.Rect(0, 0, dims.Size.X, dims.Size.Y),
+// 			gtx.Dp(5),
+// 		).Op(gtx.Ops))
 
-		c.Add(gtx.Ops)
-		return layout.Dimensions{}
-	})
-}
+// 		c.Add(gtx.Ops)
+// 		return layout.Dimensions{}
+// 	})
+// }
