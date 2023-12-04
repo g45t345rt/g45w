@@ -105,7 +105,7 @@ func NewPageSendForm() *PageSendForm {
 
 	txtAmount.
 		Input.
-		TextSize = unit.Sp(26)
+		TextSize = unit.Sp(17)
 
 	txtAmount.
 		Input.

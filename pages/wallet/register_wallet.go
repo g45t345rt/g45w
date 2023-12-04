@@ -244,7 +244,11 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(14), lang.Translate("The Dero blockchain is an account based model and requires a one time POW registration proccess to avoid spam."))
+		lbl := material.Label(th, unit.Sp(14), lang.Translate(
+			"DERO requires a one-time, Registration Process. "+
+				"This Proof of Work prevents spam on the network."+
+				"Leave screen on and this page open."+
+				"\n\nDO NOT LEAVE UNTIL COMPLETE"))
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	})
@@ -256,9 +260,29 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				lbl := material.Label(th, unit.Sp(13), lang.Translate("By default, the worker count is set to the recommended value for your device. More workers is faster but takes more cpu resources."))
+				lbl := material.Label(th, unit.Sp(13), lang.Translate(
+					"Recommended number of workers set"+
+						"\n\nMore workers requires more cpu resources."))
 				lbl.Color = theme.Current.TextMuteColor
 				return lbl.Layout(gtx)
+			}),
+		)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				label := material.Label(th, unit.Sp(16), lang.Translate("Work Stats:"))
+				label.Font.Weight = font.Bold
+				return label.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+
+				label := material.Label(th, unit.Sp(16), p.statusText)
+				label.Font.Weight = font.Bold
+				return label.Layout(gtx)
 			}),
 		)
 	})
@@ -278,32 +302,6 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 			)
 		})
 	}
-
-	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				label := material.Label(th, unit.Sp(16), lang.Translate("Progress"))
-				label.Font.Weight = font.Bold
-				return label.Layout(gtx)
-			}),
-			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return components.ProgressBar{
-					Value:   float32(p.progressBarValue),
-					Colors:  theme.Current.ProgressBarColors,
-					Rounded: unit.Dp(5),
-					Height:  unit.Dp(20),
-				}.Layout(gtx)
-			}),
-			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-
-				label := material.Label(th, unit.Sp(16), p.statusText)
-				label.Font.Weight = font.Bold
-				return label.Layout(gtx)
-			}),
-		)
-	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		if p.normalReg.Running {

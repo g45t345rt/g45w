@@ -121,45 +121,47 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 		func(gtx layout.Context) layout.Dimensions {
 
 			return layout.
-				Flex{Axis: layout.Vertical}.Layout(
-				gtx, layout.Rigid(
-					func(gtx layout.Context) layout.Dimensions {
+				Flex{Axis: layout.Vertical}.
+				Layout(gtx, layout.
+					Rigid(
+						func(gtx layout.Context) layout.
+							Dimensions {
 
-						lbl := material.
-							Label(th, unit.Sp(14),
-								lang.Translate("The message and dst port are encrypted."+
-									"\n\nOnly the sender / receiver can decrypt."))
+							lbl := material.
+								Label(th, unit.Sp(14),
+									lang.Translate("The message and dst port are encrypted."+
+										"\n\nOnly the sender / receiver can decrypt."))
 
-						lbl.Color = theme.
-							Current.
-							TextMuteColor
+							lbl.Color = theme.
+								Current.
+								TextMuteColor
 
-						return lbl.
-							Layout(gtx)
-					}),
+							return lbl.
+								Layout(gtx)
+						}),
 
-				layout.Rigid(
-					layout.Spacer{Height: unit.Dp(10)}.Layout),
+					layout.Rigid(
+						layout.Spacer{Height: unit.Dp(10)}.Layout),
 
-				layout.Rigid(
-					func(
-						gtx layout.Context) layout.Dimensions {
-						p.
-							txtComment.
-							Input.
-							EditorMinY = gtx.Dp(75)
+					layout.Rigid(
+						func(
+							gtx layout.Context) layout.Dimensions {
+							p.
+								txtComment.
+								Input.
+								EditorMinY = gtx.Dp(75)
 
-						return p.
-							txtComment.
-							Layout(
-								gtx,
-								th,
-								lang.
-									Translate("Message"),
-								lang.
-									Translate("ex. secret loves you"))
-					}),
-			)
+							return p.
+								txtComment.
+								Layout(
+									gtx,
+									th,
+									lang.
+										Translate("Message"),
+									lang.
+										Translate("ex. secret loves you"))
+						}),
+				)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtDstPort.Layout(gtx, th, lang.Translate("DST Port"), lang.Translate("ex. 1337"))

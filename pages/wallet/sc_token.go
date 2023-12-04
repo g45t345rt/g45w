@@ -652,7 +652,7 @@ func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout
 
 										r := op.Record(gtx.Ops)
 										balanceEditor := material.Editor(th, b.balanceEditor, "")
-										balanceEditor.TextSize = unit.Sp(34)
+										balanceEditor.TextSize = unit.Sp(17)
 										balanceEditor.Font.Weight = font.Bold
 
 										dims := balanceEditor.Layout(gtx)

@@ -708,7 +708,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), lang.Translate("Available Balance"))
+			lbl := material.Label(th, unit.Sp(14), lang.Translate("DERO Balance"))
 			lbl.Color = theme.Current.TextMuteColor
 
 			return lbl.Layout(gtx)
@@ -726,7 +726,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 					r := op.Record(gtx.Ops)
 					amountEditor := material.Editor(th, d.balanceEditor, "")
-					amountEditor.TextSize = unit.Sp(34)
+					amountEditor.TextSize = unit.Sp(17)
 					amountEditor.Font.Weight = font.Bold
 
 					dims := amountEditor.Layout(gtx)
