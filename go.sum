@@ -52,8 +52,6 @@ github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD88=
 github.com/fxamacker/cbor/v2 v2.4.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
-github.com/g45t345rt/derohe v0.0.0-20230922200235-9ce15702110f h1:ZRIDjSJH9FTqmASqb+j8OxCwBjC4Y/prkEdmiPJ5Bac=
-github.com/g45t345rt/derohe v0.0.0-20230922200235-9ce15702110f/go.mod h1:oNz7lyXVe/P8qJ6chyHMRkgGHfNOY/t15ZC9zWZSRg4=
 github.com/g45t345rt/gio v0.0.0-20230904133952-efeff66801c5 h1:+yGMSaY5HgGmCzGJyq46EI3aWo9HfEdd43WBTY8cUgs=
 github.com/g45t345rt/gio v0.0.0-20230904133952-efeff66801c5/go.mod h1:1H72sKEk/fNFV+l0JNeM2Dt3co3Y4uaQcD+I+/GQ0e4=
 github.com/g45t345rt/gio-x v0.0.0-20230919164904-d758e00e2b78 h1:K61Povf1yc0aFbTbNWYrOkS3h2RQa3jnKYK6e+AuP6A=
@@ -185,6 +183,8 @@ github.com/rogpeppe/go-internal v1.6.1 h1:/FiVV8dS/e+YqF2JvO3yXRFbBLTIuSDkuC7aBO
 github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 github.com/satori/go.uuid v1.2.0 h1:0uYX9dsZ2yD7q2RtLRtPSdGDWzjeM3TbMJP9utgA0ww=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
+github.com/secretnamebasis/derohe v0.0.0-20231204120612-20ae0a3ce360 h1:PGeLTUGu/+5tQzT3vp4BKt+ChKbyED8yPmt3GnWysb8=
+github.com/secretnamebasis/derohe v0.0.0-20231204120612-20ae0a3ce360/go.mod h1:oNz7lyXVe/P8qJ6chyHMRkgGHfNOY/t15ZC9zWZSRg4=
 github.com/segmentio/fasthash v1.0.3 h1:EI9+KE1EwvMLBWwjpRDc+fEM+prwxDYbslddQGtrmhM=
 github.com/segmentio/fasthash v1.0.3/go.mod h1:waKX8l2N8yckOgmSsXJi7x1ZfdKZ4x7KRMzBtS3oedY=
 github.com/shirou/gopsutil/v3 v3.23.3 h1:Syt5vVZXUDXPEXpIBt5ziWsJ4LdSAAxF4l/xZeQgSEE=
