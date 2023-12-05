@@ -172,12 +172,14 @@ func (p *PageSettings) IsActive() bool {
 }
 
 func (p *PageSettings) Enter() {
-	openedWallet := wallet_manager.OpenedWallet
-	walletName := openedWallet.Info.Name
+
 	page_instance.header.Title = func() string { return lang.Translate("Settings") }
-	p.txtWalletName.SetValue(walletName)
 	page_instance.header.Subtitle = nil
 	page_instance.header.ButtonRight = nil
+
+	openedWallet := wallet_manager.OpenedWallet
+	walletName := openedWallet.Info.Name
+	p.txtWalletName.SetValue(walletName)
 
 	p.isActive = true
 

@@ -32,6 +32,7 @@ type PageMain struct {
 	langSelector  *prefabs.LangSelector
 	themeSelector *prefabs.ThemeSelector
 	buttonInfo    *components.Button
+	buttonDERO    *components.Button
 }
 
 var _ router.Page = &PageMain{}
@@ -51,6 +52,7 @@ func NewPageFront() *PageMain {
 	))
 
 	infoIcon, _ := widget.NewIcon(icons.ActionInfo)
+
 	buttonInfo := components.NewButton(components.ButtonStyle{
 		Icon:      infoIcon,
 		TextSize:  unit.Sp(16),
@@ -66,6 +68,21 @@ func NewPageFront() *PageMain {
 	buttonInfo.Label.Alignment = text.Middle
 	buttonInfo.Style.Font.Weight = font.Bold
 
+	buttonDERO := components.NewButton(components.ButtonStyle{
+		Icon:      infoIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+	})
+	buttonDERO.Label.Alignment = text.Middle
+	buttonDERO.Style.Font.Weight = font.Bold
+
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -77,6 +94,7 @@ func NewPageFront() *PageMain {
 		langSelector:  langSelector,
 		themeSelector: themeSelector,
 		buttonInfo:    buttonInfo,
+		buttonDERO:    buttonDERO,
 	}
 }
 
@@ -126,6 +144,11 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		page_instance.header.AddHistory(PAGE_APP_INFO)
 	}
 
+	if p.buttonDERO.Clicked() {
+		page_instance.pageRouter.SetCurrent(PAGE_DERO)
+		page_instance.header.AddHistory(PAGE_DERO)
+	}
+
 	if p.langSelector.Changed {
 		settings.App.Language = p.langSelector.Key
 		err := settings.Save()
@@ -154,7 +177,12 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonInfo.Text = lang.Translate("App Information")
+			p.buttonDERO.Text = lang.Translate("About DERO")
+			p.buttonDERO.Style.Colors = theme.Current.ButtonSecondaryColors
+			return p.buttonDERO.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonInfo.Text = lang.Translate("App Info")
 			p.buttonInfo.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonInfo.Layout(gtx, th)
 		},
