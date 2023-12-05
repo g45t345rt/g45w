@@ -36,7 +36,6 @@ type PageContactForm struct {
 	buttonDelete *components.Button
 	txtName      *prefabs.TextField
 	txtAddr      *prefabs.TextField
-	txtNote      *prefabs.TextField
 
 	contact *wallet_manager.Contact
 
@@ -83,9 +82,6 @@ func NewPageContactForm() *PageContactForm {
 
 	txtName := prefabs.NewTextField()
 	txtAddr := prefabs.NewTextField()
-	txtNote := prefabs.NewTextField()
-	txtNote.Editor().SingleLine = false
-	txtNote.Editor().Submit = false
 
 	return &PageContactForm{
 		animationEnter: animationEnter,
@@ -95,7 +91,6 @@ func NewPageContactForm() *PageContactForm {
 		buttonDelete: buttonDelete,
 		txtName:      txtName,
 		txtAddr:      txtAddr,
-		txtNote:      txtNote,
 
 		list: list,
 	}
@@ -112,7 +107,6 @@ func (p *PageContactForm) Enter() {
 		page_instance.header.Title = func() string { return lang.Translate("Edit Contact") }
 		p.txtName.SetValue(p.contact.Name)
 		p.txtAddr.SetValue(p.contact.Addr)
-		p.txtNote.SetValue(p.contact.Note)
 	} else {
 		page_instance.header.Title = func() string { return lang.Translate("New Contact") }
 	}
@@ -191,12 +185,12 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "")
+			return p.txtName.Layout(gtx, th, lang.Translate("Contact Name"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.txtAddr.Layout(gtx, th, lang.Translate("Address"), "")
+					return p.txtAddr.Layout(gtx, th, lang.Translate("DERO Address / Name"), "")
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					addr, err := globals.ParseValidateAddress(p.txtAddr.Value())
@@ -217,10 +211,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 				}),
 			)
 		},
-		func(gtx layout.Context) layout.Dimensions {
-			p.txtNote.Input.EditorMinY = gtx.Dp(75)
-			return p.txtNote.Layout(gtx, th, lang.Translate("Note"), "")
-		},
+
 		func(gtx layout.Context) layout.Dimensions {
 			if p.contact != nil {
 				p.buttonSave.Text = lang.Translate("SAVE")
@@ -260,10 +251,6 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		p.list.ScrollTo(1)
 	}
 
-	if p.txtNote.Input.Clickable.Clicked() {
-		p.list.ScrollTo(2)
-	}
-
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
@@ -276,13 +263,11 @@ func (p *PageContactForm) ClearForm() {
 	p.contact = nil
 	p.txtName.Editor().SetText("")
 	p.txtAddr.Editor().SetText("")
-	p.txtNote.Editor().SetText("")
 }
 
 func (p *PageContactForm) submitForm() error {
 	txtName := p.txtName.Editor()
 	txtAddr := p.txtAddr.Editor()
-	txtNote := p.txtNote.Editor()
 
 	// don't validate addr because of service names
 	//_, err := globals.ParseValidateAddress(txtAddr.Text())
@@ -299,7 +284,6 @@ func (p *PageContactForm) submitForm() error {
 	err := wallet.StoreContact(wallet_manager.Contact{
 		Name:      txtName.Text(),
 		Addr:      txtAddr.Text(),
-		Note:      txtNote.Text(),
 		Timestamp: time.Now().Unix(),
 	})
 	if err != nil {
