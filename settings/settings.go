@@ -29,10 +29,9 @@ type AppSettings struct {
 }
 
 var (
-	AppDir            string
-	IntegratedNodeDir string
-	WalletsDir        string
-	CacheDir          string
+	AppDir     string
+	WalletsDir string
+	CacheDir   string
 )
 
 var App AppSettings
@@ -62,12 +61,10 @@ func Load() error {
 		}
 	}
 
-	integratedNodeDir := filepath.Join(appDir, "node")
 	walletsDir := filepath.Join(appDir, "wallets")
 	cacheDir := filepath.Join(appDir, "cache")
 
 	AppDir = appDir
-	IntegratedNodeDir = integratedNodeDir
 	WalletsDir = walletsDir
 	CacheDir = cacheDir
 

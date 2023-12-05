@@ -296,24 +296,16 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		if walletapi.Connected && wallet != nil {
 			nodeSynced := false
 			walletSynced := false
-
 			walletHeight := wallet.Memory.Get_Height()
 			stableHeight := uint64(0)
 			nodeHeight := uint64(0)
 
-			if currentNode.Integrated {
-				nodeStatus := node_status_bar.Instance.IntegratedNodeStatus
-				nodeHeight = uint64(nodeStatus.Height)
-				stableHeight = uint64(nodeStatus.BestHeight)
-				nodeSynced = nodeHeight >= stableHeight-8
-				walletSynced = walletHeight >= stableHeight-8
-			} else {
-				nodeStatus := node_status_bar.Instance.RemoteNodeInfo.Result
-				nodeHeight = uint64(nodeStatus.Height)
-				stableHeight = uint64(nodeStatus.StableHeight)
-				nodeSynced = nodeHeight >= stableHeight
-				walletSynced = walletHeight >= stableHeight
-			}
+			nodeStatus := node_status_bar.Instance.RemoteNodeInfo.Result
+
+			nodeHeight = uint64(nodeStatus.Height)
+			stableHeight = uint64(nodeStatus.StableHeight)
+			nodeSynced = nodeHeight >= stableHeight
+			walletSynced = walletHeight >= stableHeight
 
 			if nodeSynced {
 				isRegistered := wallet.Memory.IsRegistered()

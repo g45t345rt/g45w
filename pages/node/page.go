@@ -22,12 +22,11 @@ type Page struct {
 
 	pageRouter *router.Router
 
-	pageSelectNode     *PageSelectNode
-	pageAddNodeForm    *PageAddNodeForm
-	pageEditNodeForm   *PageEditNodeForm
-	pageRemoteNode     *PageRemoteNode
-	pageIntegratedNode *PageIntegratedNode
-	header             *prefabs.Header
+	pageSelectNode   *PageSelectNode
+	pageAddNodeForm  *PageAddNodeForm
+	pageEditNodeForm *PageEditNodeForm
+	pageRemoteNode   *PageRemoteNode
+	header           *prefabs.Header
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -38,11 +37,10 @@ var _ router.Page = &Page{}
 var page_instance *Page
 
 const (
-	PAGE_SELECT_NODE     = "page_select_node"
-	PAGE_ADD_NODE_FORM   = "page_add_node_form"
-	PAGE_EDIT_NODE_FORM  = "page_edit_node_form"
-	PAGE_INTEGRATED_NODE = "page_integrated_node"
-	PAGE_REMOTE_NODE     = "page_remote_node"
+	PAGE_SELECT_NODE    = "page_select_node"
+	PAGE_ADD_NODE_FORM  = "page_add_node_form"
+	PAGE_EDIT_NODE_FORM = "page_edit_node_form"
+	PAGE_REMOTE_NODE    = "page_remote_node"
 )
 
 func New() *Page {
@@ -64,22 +62,18 @@ func New() *Page {
 	pageEditNodeForm := NewPageEditNodeForm()
 	pageRouter.Add(PAGE_EDIT_NODE_FORM, pageEditNodeForm)
 
-	pageIntegratedNode := NewPageIntegratedNode()
-	pageRouter.Add(PAGE_INTEGRATED_NODE, pageIntegratedNode)
-
 	pageRemoteNode := NewPageRemoteNode()
 	pageRouter.Add(PAGE_REMOTE_NODE, pageRemoteNode)
 
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
-		pageRouter:         pageRouter,
-		pageSelectNode:     pageSelectNode,
-		pageAddNodeForm:    pageAddNodeForm,
-		pageEditNodeForm:   pageEditNodeForm,
-		pageRemoteNode:     pageRemoteNode,
-		pageIntegratedNode: pageIntegratedNode,
-		header:             header,
+		pageRouter:       pageRouter,
+		pageSelectNode:   pageSelectNode,
+		pageAddNodeForm:  pageAddNodeForm,
+		pageEditNodeForm: pageEditNodeForm,
+		pageRemoteNode:   pageRemoteNode,
+		header:           header,
 
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
@@ -103,15 +97,10 @@ func (p *Page) Enter() {
 	p.header.ResetHistory()
 	p.header.AddHistory(PAGE_SELECT_NODE)
 	if currentNode != nil {
-		if currentNode.Integrated {
-			p.header.AddHistory(PAGE_INTEGRATED_NODE)
-			p.pageIntegratedNode.animationLeave.Reset()
-			p.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
-		} else {
-			p.header.AddHistory(PAGE_REMOTE_NODE)
-			p.pageRemoteNode.animationLeave.Reset()
-			p.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
-		}
+		p.header.AddHistory(PAGE_REMOTE_NODE)
+		p.pageRemoteNode.animationLeave.Reset()
+		p.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
+
 	} else {
 		p.pageRouter.SetCurrent(PAGE_SELECT_NODE)
 	}
@@ -119,7 +108,6 @@ func (p *Page) Enter() {
 
 func (p *Page) Leave() {
 	p.pageRemoteNode.animationLeave.Reset()
-	p.pageIntegratedNode.animationLeave.Reset()
 
 	p.animationEnter.Reset()
 	p.animationLeave.Start()

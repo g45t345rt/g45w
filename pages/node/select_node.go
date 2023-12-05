@@ -29,13 +29,12 @@ import (
 )
 
 type PageSelectNode struct {
-	isActive                bool
-	animationEnter          *animation.Animation
-	animationLeave          *animation.Animation
-	buttonSetIntegratedNode *components.Button
-	buttonAddNode           *components.Button
-	buttonResetNodeList     *components.Button
-	connecting              bool
+	isActive            bool
+	animationEnter      *animation.Animation
+	animationLeave      *animation.Animation
+	buttonAddNode       *components.Button
+	buttonResetNodeList *components.Button
+	connecting          bool
 
 	nodeList *NodeList
 	list     *widget.List
@@ -56,18 +55,6 @@ func NewPageSelectNode() *PageSelectNode {
 	list.Axis = layout.Vertical
 
 	nodeList := NewNodeList()
-
-	nodeIcon, _ := widget.NewIcon(icons.ActionDNS)
-	buttonSetIntegratedNode := components.NewButton(components.ButtonStyle{
-		Rounded:   components.UniformRounded(unit.Dp(5)),
-		TextSize:  unit.Sp(16),
-		Inset:     layout.UniformInset(unit.Dp(10)),
-		Animation: components.NewButtonAnimationDefault(),
-		Icon:      nodeIcon,
-		IconGap:   unit.Dp(10),
-	})
-	buttonSetIntegratedNode.Label.Alignment = text.Middle
-	buttonSetIntegratedNode.Style.Font.Weight = font.Bold
 
 	addIcon, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
@@ -92,10 +79,9 @@ func NewPageSelectNode() *PageSelectNode {
 		animationLeave: animationLeave,
 		list:           list,
 
-		nodeList:                nodeList,
-		buttonSetIntegratedNode: buttonSetIntegratedNode,
-		buttonAddNode:           buttonAddNode,
-		buttonResetNodeList:     buttonResetNodeList,
+		nodeList:            nodeList,
+		buttonAddNode:       buttonAddNode,
+		buttonResetNodeList: buttonResetNodeList,
 	}
 }
 
@@ -150,11 +136,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	widgets := []layout.Widget{
-		// func(gtx layout.Context) layout.Dimensions {
-		// 	p.buttonSetIntegratedNode.Text = lang.Translate("Use Local Node Settings")
-		// 	p.buttonSetIntegratedNode.Style.Colors = theme.Current.ButtonPrimaryColors
-		// 	return p.buttonSetIntegratedNode.Layout(gtx, th)
-		// },
+
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(5)}.Layout(gtx)
 		},

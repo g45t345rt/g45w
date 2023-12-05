@@ -12,15 +12,7 @@ type NodeConnection struct {
 	ID          int64
 	Endpoint    string
 	Name        string
-	Integrated  bool
 	OrderNumber int
-}
-
-var INTEGRATED_NODE_CONNECTION = NodeConnection{
-	ID:         -1,
-	Endpoint:   "integrated", // ws://127.0.0.1:10102/ws
-	Name:       "Integrated",
-	Integrated: true,
 }
 
 var TRUSTED_NODE_CONNECTIONS = []NodeConnection{
