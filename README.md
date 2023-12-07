@@ -1,6 +1,6 @@
 # `secret-wallet`
 
-`IN DEVELOPMENT`
+`experimental`
 
 A Dero Wallet with mobile UI.
 Cross-platform: Linux, Windows, MacOS, Android, IOS...
@@ -140,10 +140,7 @@ If you notice any errors, pls update the values in `/assets/lang` folder and cre
 
 ### Testing
 
-`jvx`, `secretnamebasis`, `Derolifestyle`, `JoyRaptor`, `chakipu`, `TheObjectiveAlpha`,
-`Lutamm`, `VastoLorde`, `rexBGcoxx`, `Kray0005`, `Apollo`, `Coose`, `Cypherpunk`, `o1o7`
-`keyper`, `Zalamender`, `ArcaneSphere`, `proprivacy`, `Wind_W#369`, `Ulmo`, `AltCtrl`, `Cats`
-`derionner`
+``secretnamebasis`, `chakipu`, `TheObjectiveAlpha`, `Ulmo`, `derionner`
 
 ## License
 
