@@ -136,11 +136,11 @@ If your alias is not here pls let me know.
 Most translations were done with ChatGPT and are far from being accurate.
 If you notice any errors, pls update the values in `/assets/lang` folder and create a pull request.
 
-`jvx`
+
 
 ### Testing
 
-``secretnamebasis`, `chakipu`, `TheObjectiveAlpha`, `Ulmo`, `derionner`
+`secretnamebasis`, `chakipu`, `TheObjectiveAlpha`, `Ulmo`, `derionner`
 
 ## License
 
