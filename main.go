@@ -18,7 +18,6 @@ import (
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
-	"github.com/g45t345rt/g45w/bridge_metamask"
 	"github.com/g45t345rt/g45w/containers"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/lookup_table"
@@ -43,29 +42,29 @@ import (
 func loadFontCollection() ([]font.FontFace, error) {
 	// universal fonts from https://github.com/satbyy/go-noto-universal
 
-	goNotoKurrentRegularTTF, err := assets.GetFont("GoNotoKurrent-Regular.ttf")
+	RobotoBlackTTF, err := assets.GetFont("Roboto-Black.ttf")
 	if err != nil {
 		return nil, err
 	}
 
-	goNotoKurrentRegular, err := opentype.Parse(goNotoKurrentRegularTTF)
+	RobotoBlack, err := opentype.Parse(RobotoBlackTTF)
 	if err != nil {
 		return nil, err
 	}
 
-	goNotoKurrentBoldTTF, err := assets.GetFont("GoNotoKurrent-Bold.ttf")
+	RobotoBlackBoldTTF, err := assets.GetFont("Roboto-Bold.ttf")
 	if err != nil {
 		return nil, err
 	}
 
-	goNotoKurrentBold, err := opentype.Parse(goNotoKurrentBoldTTF)
+	RobotoBlackBold, err := opentype.Parse(RobotoBlackBoldTTF)
 	if err != nil {
 		return nil, err
 	}
 
 	fontCollection := []font.FontFace{}
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: goNotoKurrentRegular})
-	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: goNotoKurrentBold})
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{}, Face: RobotoBlack})
+	fontCollection = append(fontCollection, font.FontFace{Font: font.Font{Weight: font.Bold}, Face: RobotoBlackBold})
 	return fontCollection, nil
 }
 
@@ -100,10 +99,10 @@ func runApp() error {
 	theme.LoadImages()
 	loadState := NewLoadState(window)
 
-	// start bridge metamask server
-	go func() {
-		bridge_metamask.StartServer()
-	}()
+	// // start bridge metamask server
+	// go func() {
+	// 	bridge_metamask.StartServer()
+	// }()
 
 	go func() {
 		loadState.logoSplash.animation.Start()

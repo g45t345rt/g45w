@@ -303,7 +303,7 @@ func (p *PageRemoteNode) reconnect() {
 			p.nodeInfo.Update()
 			app_instance.Window.Invalidate()
 			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node reconnected."))
-			notification_modals.SuccessInstance.SetVisible(true, 0)
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		}
 	}()
 }

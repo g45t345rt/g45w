@@ -125,23 +125,23 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(14), lang.Translate("When using an integrated address, the options for \"Comment\" and \"Destination Port\" are discarded."))
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Using an integrated address override  \"Comment\" and \"DST Port\"."))
 					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					p.txtComment.Input.EditorMinY = gtx.Dp(75)
-					return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt."))
+					return p.txtComment.Layout(gtx, th, lang.Translate("Comment"), lang.Translate("The comment is Homomorphically Encrypted and stored on the blockchain. Only the sender / receiver can decrypt."))
 				}),
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return p.txtDstPort.Layout(gtx, th, lang.Translate("Destination Port"), lang.Translate("Specific service port."))
+			return p.txtDstPort.Layout(gtx, th, lang.Translate("DST Port"), lang.Translate("ex. 1337."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.txtDescription.Input.EditorMinY = gtx.Dp(75)
-			return p.txtDescription.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally in your wallet."))
+			return p.txtDescription.Layout(gtx, th, lang.Translate("Description"), lang.Translate("Saved locally to your application database."))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonContinue.Style.Colors = theme.Current.ButtonPrimaryColors

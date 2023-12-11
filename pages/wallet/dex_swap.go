@@ -115,9 +115,9 @@ func (p *PageDEXSwap) Enter() {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
-	page_instance.header.Title = func() string {
-		return lang.Translate("DEX Swap")
-	}
+	// page_instance.header.Title = func() string {
+	// 	return lang.Translate("DEX Swap")
+	// }
 
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		lbl := material.Label(th, unit.Sp(14), p.pair.Symbol)

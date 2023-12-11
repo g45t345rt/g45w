@@ -29,13 +29,13 @@ import (
 )
 
 type PageSelectNode struct {
-	isActive                bool
-	animationEnter          *animation.Animation
-	animationLeave          *animation.Animation
-	buttonSetIntegratedNode *components.Button
-	buttonAddNode           *components.Button
-	buttonResetNodeList     *components.Button
-	connecting              bool
+	isActive       bool
+	animationEnter *animation.Animation
+	animationLeave *animation.Animation
+	// buttonSetIntegratedNode *components.Button
+	buttonAddNode       *components.Button
+	buttonResetNodeList *components.Button
+	connecting          bool
 
 	nodeList *NodeList
 	list     *widget.List
@@ -92,10 +92,10 @@ func NewPageSelectNode() *PageSelectNode {
 		animationLeave: animationLeave,
 		list:           list,
 
-		nodeList:                nodeList,
-		buttonSetIntegratedNode: buttonSetIntegratedNode,
-		buttonAddNode:           buttonAddNode,
-		buttonResetNodeList:     buttonResetNodeList,
+		nodeList: nodeList,
+		// buttonSetIntegratedNode: buttonSetIntegratedNode,
+		buttonAddNode:       buttonAddNode,
+		buttonResetNodeList: buttonResetNodeList,
 	}
 }
 
@@ -150,16 +150,16 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	widgets := []layout.Widget{
-		func(gtx layout.Context) layout.Dimensions {
-			p.buttonSetIntegratedNode.Text = lang.Translate("Use Integrated Node")
-			p.buttonSetIntegratedNode.Style.Colors = theme.Current.ButtonPrimaryColors
-			return p.buttonSetIntegratedNode.Layout(gtx, th)
-		},
+		// func(gtx layout.Context) layout.Dimensions {
+		// 	p.buttonSetIntegratedNode.Text = lang.Translate("Use Integrated Node")
+		// 	p.buttonSetIntegratedNode.Style.Colors = theme.Current.ButtonPrimaryColors
+		// 	return p.buttonSetIntegratedNode.Layout(gtx, th)
+		// },
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(5)}.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), lang.Translate("Always use Integrated Node or your own remote node for full privacy and trust."))
+			lbl := material.Label(th, unit.Sp(14), lang.Translate("Always use a local node or a remote node you trust with your privacy."))
 			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		},
@@ -215,18 +215,18 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 	}
 
-	if p.buttonSetIntegratedNode.Clicked() {
-		err := node_manager.Connect(app_db.INTEGRATED_NODE_CONNECTION, true)
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
-			page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Integrated node selected"))
-			notification_modals.SuccessInstance.SetVisible(true, 0)
-		}
-	}
+	// if p.buttonSetIntegratedNode.Clicked() {
+	// 	err := node_manager.Connect(app_db.INTEGRATED_NODE_CONNECTION, true)
+	// 	if err != nil {
+	// 		notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+	// 		notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+	// 	} else {
+	// 		page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
+	// 		page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
+	// 		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Integrated node selected"))
+	// 		notification_modals.SuccessInstance.SetVisible(true, 0)
+	// 	}
+	// }
 
 	for _, item := range p.nodeList.items {
 		if item.buttonEdit.Clicked() {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -13,12 +12,12 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"gioui.org/x/browser"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
-	"github.com/g45t345rt/g45w/bridge_metamask"
+
+	// "github.com/g45t345rt/g45w/bridge_metamask"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -131,30 +130,30 @@ func (p *PageDEXSCBridgeIn) SetToken(token *wallet_manager.Token) {
 	p.bridgeOpened, _ = strconv.ParseBool(result.ValuesString[0])
 }
 
-func (p *PageDEXSCBridgeIn) submitForm() error {
-	//browser.OpenUrl("wc:0254c043869952027016fd697a276e137039af5a6f077284c000a74bda702857@2?relay-protocol=irn&symKey=22f98d50e70540eb9407f40c8a081bf9a18e221305cc5bf7306cecc12b5def66")
+// func (p *PageDEXSCBridgeIn) submitForm() error {
+// 	//browser.OpenUrl("wc:0254c043869952027016fd697a276e137039af5a6f077284c000a74bda702857@2?relay-protocol=irn&symKey=22f98d50e70540eb9407f40c8a081bf9a18e221305cc5bf7306cecc12b5def66")
 
-	amount, err := strconv.ParseFloat(p.txtAmount.Value(), 64)
-	if err != nil {
-		return err
-	}
+// 	amount, err := strconv.ParseFloat(p.txtAmount.Value(), 64)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	wallet := wallet_manager.OpenedWallet
-	addr := wallet.Memory.GetAddress()
+// 	wallet := wallet_manager.OpenedWallet
+// 	addr := wallet.Memory.GetAddress()
 
-	symbol := strings.Replace(p.token.Symbol.String, "D", "", 1)
+// 	symbol := strings.Replace(p.token.Symbol.String, "D", "", 1)
 
-	url, err := bridge_metamask.Link(bridge_metamask.BridgeInData{
-		WalletAddress: addr.String(),
-		Symbol:        symbol,
-		Amount:        amount,
-	})
-	if err != nil {
-		return err
-	}
+// 	url, err := bridge_metamask.Link(bridge_metamask.BridgeInData{
+// 		WalletAddress: addr.String(),
+// 		Symbol:        symbol,
+// 		Amount:        amount,
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return browser.OpenUrl(url)
-}
+// 	return browser.OpenUrl(url)
+// }
 
 func (p *PageDEXSCBridgeIn) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
@@ -176,9 +175,9 @@ func (p *PageDEXSCBridgeIn) Layout(gtx layout.Context, th *material.Theme) layou
 		}
 	}
 
-	if p.buttonConnect.Clicked() {
-		go p.submitForm()
-	}
+	// if p.buttonConnect.Clicked() {
+	// 	go p.submitForm()
+	// }
 
 	widgets := []layout.Widget{}
 

@@ -24,12 +24,9 @@ var INTEGRATED_NODE_CONNECTION = NodeConnection{
 }
 
 var TRUSTED_NODE_CONNECTIONS = []NodeConnection{
-	{Endpoint: "wss://node.deronfts.com/ws", Name: "DeroNFTs"},
-	{Endpoint: "wss://dero-node.mysrv.cloud/ws", Name: "MySrvCloud"},
-	{Endpoint: "ws://derostats.io:10102/ws", Name: "DeroStats"},
-	{Endpoint: "ws://node.derofoundation.org:11012/ws", Name: "Foundation"},
-	{Endpoint: "ws://wallet.friendspool.club:10102/ws", Name: "Friendspool"},
-}
+	{Endpoint: "ws://127.0.0.1:10102/ws", Name: "Local"},
+	{Endpoint: "ws://89.38.99.117:10102/ws", Name: "CaptianDero's Remote"},
+	{Endpoint: "ws://node.derofoundation.org:11012/ws", Name: "The DERO Foundation"}}
 
 var nodeOrderer = order_column.Orderer{
 	TableName:  "nodes",
