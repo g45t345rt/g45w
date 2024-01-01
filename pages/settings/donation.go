@@ -176,43 +176,45 @@ type DonationResult struct {
 	LastDonationAddr         string
 	LastDonationTimestamp    uint64
 	TotalAnonymouslyDonated  uint64
+	Loaded                   bool
 }
 
 var DONATION_SC = "cb02ab94fa3eb10a06397b80c158aecce84880491d4beb5b88e634ee4ae0b8f3"
 
 func (p *PageDonation) Load() error {
 	var result rpc.GetSC_Result
+	p.donationResult = DonationResult{Loaded: false}
 
-	err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
-		SCID:      DONATION_SC,
-		Code:      false,
-		Variables: false,
-		KeysString: []string{
-			"totalDonated", "totalDonations",
-			"highestDonation", "highestDonationAddr", "highestDonationTimestamp",
-			"lastDonation", "lastDonationAddr", "lastDonationTimestamp",
-			"d_", // d_ = total donated anonymously or d_{signer} = total value donated by one specific addr
-		},
-	}, &result)
-	if err != nil {
-		return err
+	if walletapi.Connected {
+		err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+			SCID:      DONATION_SC,
+			Code:      false,
+			Variables: false,
+			KeysString: []string{
+				"totalDonated", "totalDonations",
+				"highestDonation", "highestDonationAddr", "highestDonationTimestamp",
+				"lastDonation", "lastDonationAddr", "lastDonationTimestamp",
+				"d_", // d_ = total donated anonymously or d_{signer} = total value donated by one specific addr
+			},
+		}, &result)
+		if err != nil {
+			return err
+		}
+
+		p.donationResult.TotalDonated, _ = strconv.ParseUint(result.ValuesString[0], 10, 64)
+		p.donationResult.TotalDonations, _ = strconv.ParseUint(result.ValuesString[1], 10, 64)
+
+		p.donationResult.HighestDonation, _ = strconv.ParseUint(result.ValuesString[2], 10, 64)
+		p.donationResult.HighestDonationAddr, _ = utils.DecodeString(result.ValuesString[3])
+		p.donationResult.HighestDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[4], 10, 64)
+
+		p.donationResult.LastDonation, _ = strconv.ParseUint(result.ValuesString[5], 10, 64)
+		p.donationResult.LastDonationAddr, _ = utils.DecodeString(result.ValuesString[6])
+		p.donationResult.LastDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[7], 10, 64)
+
+		p.donationResult.TotalAnonymouslyDonated, _ = strconv.ParseUint(result.ValuesString[8], 10, 64)
+		p.donationResult.Loaded = true
 	}
-
-	var donationResult DonationResult
-	donationResult.TotalDonated, _ = strconv.ParseUint(result.ValuesString[0], 10, 64)
-	donationResult.TotalDonations, _ = strconv.ParseUint(result.ValuesString[1], 10, 64)
-
-	donationResult.HighestDonation, _ = strconv.ParseUint(result.ValuesString[2], 10, 64)
-	donationResult.HighestDonationAddr, _ = utils.DecodeString(result.ValuesString[3])
-	donationResult.HighestDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[4], 10, 64)
-
-	donationResult.LastDonation, _ = strconv.ParseUint(result.ValuesString[5], 10, 64)
-	donationResult.LastDonationAddr, _ = utils.DecodeString(result.ValuesString[6])
-	donationResult.LastDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[7], 10, 64)
-
-	donationResult.TotalAnonymouslyDonated, _ = strconv.ParseUint(result.ValuesString[8], 10, 64)
-
-	p.donationResult = donationResult
 
 	return nil
 }
@@ -308,12 +310,20 @@ func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			txt := lang.Translate("As of now, there have been {0} donations with a total of {1} DERO.")
-			txt = strings.Replace(txt, "{0}", fmt.Sprint(p.donationResult.TotalDonations), -1)
-			totalDonated := globals.FormatMoney(p.donationResult.TotalDonated)
-			txt = strings.Replace(txt, "{1}", totalDonated, -1)
+			txt := ""
+			textColor := theme.Current.TextMuteColor
+			if p.donationResult.Loaded {
+				txt = lang.Translate("As of now, there have been {0} donations with a total of {1} DERO.")
+				txt = strings.Replace(txt, "{0}", fmt.Sprint(p.donationResult.TotalDonations), -1)
+				totalDonated := globals.FormatMoney(p.donationResult.TotalDonated)
+				txt = strings.Replace(txt, "{1}", totalDonated, -1)
+			} else {
+				txt = lang.Translate("The donation details were not loaded because the wallet is not connected to a node.")
+				textColor = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
+			}
+
 			lbl := material.Label(th, unit.Sp(16), txt)
-			lbl.Color = theme.Current.TextMuteColor
+			lbl.Color = textColor
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
