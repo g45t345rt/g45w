@@ -125,7 +125,7 @@ func (p *PageDEXPairs) Load() error {
 		// a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce
 
 		var result rpc.GetSC_Result
-		err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
+		err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 			SCID:      "a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce",
 			Code:      false,
 			Variables: true,
@@ -146,7 +146,7 @@ func (p *PageDEXPairs) Load() error {
 					scId := value.(string)
 
 					var result rpc.GetSC_Result
-					err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
+					err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 						SCID:      scId,
 						Code:      false,
 						Variables: true,

@@ -35,11 +35,15 @@ This change should remove a painful/unsafe step of connecting your wallet direct
   - Bridge to Eth (with ringsize).
   - Bridge from Eth through Metamask Extensions and Mobile :D
 
+## WIP
+
+- DApps interaction with XSWD protocol by Slixe.
+
 ## TODO
 
 - App release (iOS app store, Google play store & F-Droid).
-- DApps interaction with XSWD protocol by Slixe.
-- Expose daemon/wallet API for integrated node.
+- Expose daemon/wallet API.
+- Improve UI based on JoyRaptor design.
 
 ## Demo
 

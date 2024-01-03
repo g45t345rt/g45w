@@ -186,7 +186,7 @@ func (p *PageDonation) Load() error {
 	p.donationResult = DonationResult{Loaded: false}
 
 	if walletapi.Connected {
-		err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+		err := walletapi.GetRPCClient().RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
 			SCID:      DONATION_SC,
 			Code:      false,
 			Variables: false,

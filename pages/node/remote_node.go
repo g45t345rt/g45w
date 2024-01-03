@@ -1,7 +1,6 @@
 package page_node
 
 import (
-	"context"
 	"fmt"
 	"image"
 	"time"
@@ -147,8 +146,9 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	if p.buttonDisconnect.Clicked() {
 		go func() {
-			walletapi.RPC_Client.RPC.Close()
-			walletapi.RPC_Client.WS.Close()
+			rpcClient := walletapi.GetRPCClient()
+			rpcClient.RPC.Close()
+			rpcClient.WS.Close()
 		}()
 	}
 
@@ -339,9 +339,9 @@ func (n *RemoteNodeInfo) Active() {
 }
 
 func (n *RemoteNodeInfo) Update() {
-	if walletapi.RPC_Client.RPC == nil {
+	if walletapi.GetRPCClient().RPC == nil {
 		return
 	}
 
-	n.Err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetInfo", nil, &n.Result)
+	n.Err = walletapi.GetRPCClient().Call("DERO.GetInfo", nil, &n.Result)
 }

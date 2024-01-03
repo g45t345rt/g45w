@@ -250,7 +250,7 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		_, err := walletapi.TestConnect(txtEndpoint.Text())
+		_, err := TestConnect(txtEndpoint.Text())
 		if err != nil {
 			setError(err)
 			return

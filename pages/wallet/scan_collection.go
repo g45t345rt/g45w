@@ -1,7 +1,6 @@
 package page_wallet
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"image"
@@ -188,7 +187,7 @@ func (p *PageScanCollection) submitForm() (scId string, scType sc.SCType, result
 		return scId, sc.UNKNOWN_TYPE, nil, fmt.Errorf("scid is empty")
 	}
 
-	err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+	err = walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 		SCID:      scId,
 		Variables: true,
 		Code:      true,

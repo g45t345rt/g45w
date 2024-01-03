@@ -1,7 +1,6 @@
 package page_wallet
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"image"
@@ -725,7 +724,7 @@ func (d *G45DisplayContainer) Load() {
 		d.ownerEditor.SetText("")
 
 		var result rpc.GetSC_Result
-		err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+		err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 			SCID:       d.token.SCID,
 			Code:       false,
 			Variables:  false,
@@ -751,7 +750,7 @@ func (d *G45DisplayContainer) Load() {
 		key := fmt.Sprintf("owner_%s", addr)
 
 		var result rpc.GetSC_Result
-		err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+		err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 			SCID:       d.token.SCID,
 			Code:       false,
 			Variables:  false,

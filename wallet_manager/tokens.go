@@ -2,7 +2,6 @@ package wallet_manager
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"fmt"
 	"image"
@@ -276,7 +275,7 @@ func GetSC(scId string) (result rpc.GetSC_Result, cached bool, err error) {
 		return
 	}
 
-	err = walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+	err = walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 		SCID:      scId,
 		Variables: true,
 		Code:      true,

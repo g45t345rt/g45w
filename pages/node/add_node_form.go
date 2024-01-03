@@ -10,6 +10,11 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/creachadair/jrpc2"
+	"github.com/creachadair/jrpc2/channel"
+	"github.com/deroproject/derohe/globals"
+	"github.com/deroproject/derohe/glue/rwc"
+	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
@@ -19,6 +24,7 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
+	"github.com/gorilla/websocket"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -184,7 +190,7 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 			return
 		}
 
-		_, err := walletapi.TestConnect(txtEndpoint.Text())
+		_, err := TestConnect(txtEndpoint.Text())
 		if err != nil {
 			setError(err)
 			return
@@ -204,4 +210,34 @@ func (p *PageAddNodeForm) submitForm(gtx layout.Context) {
 		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 		page_instance.header.GoBack()
 	}()
+}
+
+func TestConnect(endpoint string) (info rpc.GetInfo_Result, err error) {
+	client := walletapi.Client{}
+	ws, _, err := websocket.DefaultDialer.Dial(endpoint, nil)
+	if err != nil {
+		return
+	}
+
+	client.WS = ws
+	input_output := rwc.New(client.WS)
+	client.RPC = jrpc2.NewClient(channel.RawJSON(input_output, input_output), &jrpc2.ClientOptions{})
+	defer client.WS.Close()
+
+	var result string
+	err = client.Call("DERO.Echo", []string{"hello"}, &result)
+	if err != nil {
+		return
+	}
+
+	err = client.Call("DERO.GetInfo", nil, &info)
+	if err != nil {
+		return
+	}
+
+	if info.Testnet != !globals.IsMainnet() {
+		err = fmt.Errorf("Mainnet/TestNet is different between wallet/daemon.Please run daemon/wallet without --testnet")
+	}
+
+	return
 }

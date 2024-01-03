@@ -1,7 +1,6 @@
 package page_wallet
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -118,7 +117,7 @@ func (p *PageDEXSCBridgeIn) SetToken(token *wallet_manager.Token) {
 	p.balanceContainer.SetToken(p.token)
 
 	var result rpc.GetSC_Result
-	err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
+	err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 		SCID:       p.token.SCID,
 		Code:       false,
 		Variables:  false,

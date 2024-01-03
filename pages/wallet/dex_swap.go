@@ -141,7 +141,7 @@ func (p *PageDEXSwap) SetPair(pair dex_sc.Pair, token1 *wallet_manager.Token, to
 
 func (p *PageDEXSwap) Load() error {
 	var result rpc.GetSC_Result
-	err := walletapi.RPC_Client.Call("DERO.GetSC", rpc.GetSC_Params{
+	err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
 		SCID:      p.pair.SCID,
 		Code:      false,
 		Variables: true,

@@ -1,7 +1,6 @@
 package wallet_manager
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -12,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/config"
 	"github.com/deroproject/derohe/cryptography/bn256"
 	"github.com/deroproject/derohe/cryptography/crypto"
@@ -19,6 +19,7 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
+	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/settings"
@@ -30,9 +31,10 @@ import (
 )
 
 type Wallet struct {
-	Info   app_db.WalletInfo
-	Memory *walletapi.Wallet_Disk
-	DB     *sql.DB
+	Info       app_db.WalletInfo
+	Memory     *walletapi.Wallet_Disk
+	DB         *sql.DB
+	ServerXSWD *xswd.XSWD
 }
 
 var OpenedWallet *Wallet
@@ -44,6 +46,10 @@ func CloseOpenedWallet() {
 			close(wallet.Memory.Quit) // make sure to close goroutines when wallet is in online mode
 			wallet.Memory.Close_Encrypted_Wallet()
 		}()
+		if wallet.ServerXSWD != nil {
+			wallet.ServerXSWD.Stop()
+			wallet.ServerXSWD = nil
+		}
 		wallet.DB.Close()
 		OpenedWallet = nil
 	}
@@ -131,6 +137,13 @@ open_wallet:
 
 	OpenedWallet = wallet
 	return nil
+}
+
+func (w *Wallet) LoadXSWD(appHandler func(appData *xswd.ApplicationData) bool, reqHandler func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission) {
+	// create the XSWD server and start listening to incoming calls for authorization
+	// XSWD is a secure communication protocol that offers easy interaction between the user wallet and a dApp
+	// it was create by Slixe
+	w.ServerXSWD = xswd.NewXSWDServer(w.Memory, appHandler, reqHandler)
 }
 
 func (w *Wallet) Delete() error {
@@ -378,7 +391,7 @@ func (w *Wallet) GetGasEstimate(transfers []rpc.Transfer, ringsize uint64, scArg
 	signer := w.Memory.GetAddress().String()
 
 	var result rpc.GasEstimate_Result
-	err := walletapi.RPC_Client.RPC.CallResult(context.Background(), "DERO.GetGasEstimate", rpc.GasEstimate_Params{
+	err := walletapi.GetRPCClient().Call("DERO.GetGasEstimate", rpc.GasEstimate_Params{
 		Transfers: transfers,
 		SC_RPC:    scArgs,
 		Ringsize:  ringsize,
@@ -578,7 +591,7 @@ func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 func (w *Wallet) GetRandomAddresses(scId crypto.Hash) ([]string, error) {
 	var result rpc.GetRandomAddress_Result
 
-	err := walletapi.RPC_Client.Call("DERO.GetRandomAddress", rpc.GetRandomAddress_Params{
+	err := walletapi.GetRPCClient().Call("DERO.GetRandomAddress", rpc.GetRandomAddress_Params{
 		SCID: scId,
 	}, &result)
 	if err != nil {

@@ -3,6 +3,7 @@ package page_wallet
 import (
 	"image"
 	"image/color"
+	"strings"
 
 	"gioui.org/app"
 	"gioui.org/font"
@@ -12,10 +13,14 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/creachadair/jrpc2"
+	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
+	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -194,6 +199,23 @@ func (p *Page) Enter() {
 
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
+
+		appHandler := func(appData *xswd.ApplicationData) bool {
+			prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
+			prompt = strings.Replace(prompt, "{}", appData.Name, -1)
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+				Title:  "XSWD Auth",
+				Prompt: prompt,
+			})
+			w.Invalidate()
+			return <-yesChan
+		}
+
+		reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
+			return xswd.Allow
+		}
+
+		openedWallet.LoadXSWD(appHandler, reqHandler)
 
 		//node_status_bar.Instance.Update()
 		lastHistory := p.header.GetLastHistory()

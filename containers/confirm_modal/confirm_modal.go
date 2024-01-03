@@ -14,6 +14,7 @@ import (
 )
 
 type ConfirmText struct {
+	Title  string
 	Prompt string
 	Yes    string
 	No     string
@@ -33,7 +34,7 @@ var Instance *ConfirmModal
 
 func LoadInstance() {
 	modal := components.NewModal(components.ModalStyle{
-		CloseOnOutsideClick: true,
+		CloseOnOutsideClick: false,
 		CloseOnInsideClick:  false,
 		Direction:           layout.Center,
 		Rounded:             components.UniformRounded(unit.Dp(10)),
@@ -110,6 +111,16 @@ func (c *ConfirmModal) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	return c.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					if c.confirmText.Title != "" {
+						label := material.Label(th, unit.Sp(22), c.confirmText.Title)
+						label.Font.Weight = font.Bold
+						return label.Layout(gtx)
+					}
+
+					return layout.Dimensions{}
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					label := material.Label(th, unit.Sp(18), c.confirmText.Prompt)
 					lblSize = label.Layout(gtx)

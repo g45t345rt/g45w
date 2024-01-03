@@ -1,4 +1,4 @@
-replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20230922200235-9ce15702110f
+replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20240103154241-1ca722e6b44e
 
 replace gioui.org => github.com/g45t345rt/gio v0.0.0-20230904133952-efeff66801c5
 
@@ -25,6 +25,8 @@ require (
 
 require (
 	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
+	github.com/cenkalti/hub v1.0.2 // indirect
+	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -60,10 +62,9 @@ require (
 	github.com/beevik/ntp v1.0.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/caarlos0/env/v6 v6.10.1 // indirect
-	github.com/cenkalti/hub v1.0.1 // indirect
 	github.com/cenkalti/rpc2 v0.0.0-20210604223624-c1acbc6ec984 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/creachadair/jrpc2 v0.36.0
+	github.com/creachadair/jrpc2 v0.35.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/siphash v1.2.3 // indirect
 	github.com/deroproject/graviton v0.0.0-20220130070622-2c248a53b2e1 // indirect
@@ -72,7 +73,7 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
 	github.com/go-text/typesetting v0.0.0-20230803102845-24e03d8b5372 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/golang-lru v0.6.0 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
