@@ -115,12 +115,14 @@ func (c *ConfirmModal) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					if c.confirmText.Title != "" {
 						label := material.Label(th, unit.Sp(22), c.confirmText.Title)
 						label.Font.Weight = font.Bold
-						return label.Layout(gtx)
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(label.Layout),
+							layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+						)
 					}
 
 					return layout.Dimensions{}
 				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					label := material.Label(th, unit.Sp(18), c.confirmText.Prompt)
 					lblSize = label.Layout(gtx)

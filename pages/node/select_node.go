@@ -216,7 +216,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonSetIntegratedNode.Clicked() {
-		err := node_manager.Connect(app_db.INTEGRATED_NODE_CONNECTION, true)
+		err := node_manager.Set(&app_db.INTEGRATED_NODE_CONNECTION, true)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -236,7 +236,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 
 		if item.buttonSelect.Clicked() {
-			p.connect(item.conn)
+			p.selectNode(item.conn)
 		}
 	}
 
@@ -251,7 +251,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	})
 }
 
-func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
+func (p *PageSelectNode) selectNode(nodeConn app_db.NodeConnection) {
 	if p.connecting {
 		return
 	}
@@ -260,7 +260,7 @@ func (p *PageSelectNode) connect(nodeConn app_db.NodeConnection) {
 	go func() {
 		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), nodeConn.Endpoint)
 		notification_modals.InfoInstance.SetVisible(true, 0)
-		err := node_manager.Connect(nodeConn, true)
+		err := node_manager.Set(&nodeConn, true)
 		p.connecting = false
 		notification_modals.InfoInstance.SetVisible(false, 0)
 

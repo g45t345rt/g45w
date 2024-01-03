@@ -9,6 +9,9 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
+	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -28,7 +31,8 @@ type Page struct {
 	pageSelectWallet     *PageSelectWallet
 	pageCreateWalletForm *PageCreateWalletForm
 
-	pageRouter *router.Router
+	pageRouter               *router.Router
+	displayNodeModalReminder bool
 }
 
 var _ router.Page = &Page{}
@@ -76,12 +80,13 @@ func New() *Page {
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
-		animationEnter:       animationEnter,
-		animationLeave:       animationLeave,
-		pageRouter:           pageRouter,
-		header:               header,
-		pageSelectWallet:     pageSelectWallet,
-		pageCreateWalletForm: pageCreateWalletForm,
+		animationEnter:           animationEnter,
+		animationLeave:           animationLeave,
+		pageRouter:               pageRouter,
+		header:                   header,
+		pageSelectWallet:         pageSelectWallet,
+		pageCreateWalletForm:     pageCreateWalletForm,
+		displayNodeModalReminder: true,
 	}
 
 	page_instance = page
@@ -106,6 +111,24 @@ func (p *Page) Enter() {
 	} else {
 		p.header.AddHistory(PAGE_SELECT_WALLET)
 		p.pageRouter.SetCurrent(PAGE_SELECT_WALLET)
+	}
+
+	if p.displayNodeModalReminder && node_manager.CurrentNode == nil {
+		go func() {
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+				Title:  lang.Translate("SELECT NODE"),
+				Prompt: lang.Translate("Don't forget to assign a node if you want to interact with your wallet."),
+				No:     lang.Translate("Skip"),
+				Yes:    lang.Translate("Select"),
+			})
+
+			for yes := range yesChan {
+				if yes {
+					app_instance.Router.SetCurrent(pages.PAGE_NODE)
+				}
+			}
+			p.displayNodeModalReminder = false
+		}()
 	}
 }
 

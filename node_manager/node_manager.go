@@ -23,15 +23,9 @@ func Load() error {
 			}
 
 			nodeConn = &conn
-			if nodeConn == nil {
-				nodeConn = &app_db.NodeConnection{
-					Name:     "",
-					Endpoint: endpoint,
-				}
-			}
 		}
 
-		err := Connect(*nodeConn, false)
+		err := Set(nodeConn, false)
 		if err != nil {
 			return err
 		}
@@ -42,21 +36,33 @@ func Load() error {
 	return nil
 }
 
-func Connect(nodeConn app_db.NodeConnection, save bool) error {
+func Set(nodeConn *app_db.NodeConnection, save bool) error {
 	integratedEndpoint := app_db.INTEGRATED_NODE_CONNECTION.Endpoint
-	endpoint := nodeConn.Endpoint
-	if nodeConn.Endpoint == integratedEndpoint {
-		err := integrated_node.Start()
+	if nodeConn != nil {
+		endpoint := nodeConn.Endpoint
+		if nodeConn.Endpoint == integratedEndpoint {
+			err := integrated_node.Start()
+			if err != nil {
+				return err
+			}
+
+			endpoint = "ws://127.0.0.1:10102/ws"
+		}
+
+		err := walletapi.Connect(endpoint)
 		if err != nil {
 			return err
 		}
 
-		endpoint = "ws://127.0.0.1:10102/ws"
-	}
+		settings.App.NodeEndpoint = nodeConn.Endpoint
+	} else {
+		go func() {
+			rpcClient := walletapi.GetRPCClient()
+			rpcClient.WS.Close()
+			rpcClient.RPC.Close()
+		}()
 
-	err := walletapi.Connect(endpoint)
-	if err != nil {
-		return err
+		settings.App.NodeEndpoint = ""
 	}
 
 	if integrated_node.Running &&
@@ -64,8 +70,7 @@ func Connect(nodeConn app_db.NodeConnection, save bool) error {
 		integrated_node.Stop()
 	}
 
-	CurrentNode = &nodeConn
-	settings.App.NodeEndpoint = nodeConn.Endpoint
+	CurrentNode = nodeConn
 
 	if save {
 		err := settings.Save()

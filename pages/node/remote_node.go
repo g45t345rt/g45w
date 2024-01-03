@@ -38,6 +38,7 @@ type PageRemoteNode struct {
 
 	buttonReconnect  *components.Button
 	buttonDisconnect *components.Button
+	buttonDeselect   *components.Button
 	nodeInfo         *RemoteNodeInfo
 	connecting       bool
 
@@ -82,6 +83,18 @@ func NewPageRemoteNode() *PageRemoteNode {
 	buttonDisconnect.Label.Alignment = text.Middle
 	buttonDisconnect.Style.Font.Weight = font.Bold
 
+	arrowBackIcon, _ := widget.NewIcon(icons.NavigationArrowBack)
+	buttonDeselect := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      arrowBackIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonDeselect.Label.Alignment = text.Middle
+	buttonDeselect.Style.Font.Weight = font.Bold
+
 	nodeInfo := NewRemoteNodeInfo(3 * time.Second)
 
 	return &PageRemoteNode{
@@ -90,6 +103,7 @@ func NewPageRemoteNode() *PageRemoteNode {
 		nodeInfo:         nodeInfo,
 		buttonReconnect:  buttonReconnect,
 		buttonDisconnect: buttonDisconnect,
+		buttonDeselect:   buttonDeselect,
 		list:             list,
 	}
 }
@@ -147,8 +161,20 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	if p.buttonDisconnect.Clicked() {
 		go func() {
 			rpcClient := walletapi.GetRPCClient()
-			rpcClient.RPC.Close()
 			rpcClient.WS.Close()
+			rpcClient.RPC.Close()
+		}()
+	}
+
+	if p.buttonDeselect.Clicked() {
+		go func() {
+			err := node_manager.Set(nil, true)
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			} else {
+				page_instance.header.GoBack()
+			}
 		}()
 	}
 
@@ -261,6 +287,12 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 					p.buttonDisconnect.Style.Colors = theme.Current.ButtonPrimaryColors
 					return p.buttonDisconnect.Layout(gtx, th)
 				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonDeselect.Text = lang.Translate("Deselect")
+					p.buttonDeselect.Style.Colors = theme.Current.ButtonInvertColors
+					return p.buttonDeselect.Layout(gtx, th)
+				}),
 			)
 		})
 	}
@@ -291,7 +323,8 @@ func (p *PageRemoteNode) reconnect() {
 
 		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), currentNode.Endpoint)
 		notification_modals.InfoInstance.SetVisible(true, 0)
-		err := node_manager.Connect(*currentNode, true)
+		err := walletapi.Connect(currentNode.Endpoint)
+		// err := node_manager.Set(currentNode, true)
 		p.connecting = false
 		notification_modals.InfoInstance.SetVisible(false, 0)
 
