@@ -90,6 +90,7 @@ func (p *PageSendOptionsForm) Enter() {
 	}
 	page_instance.header.Title = func() string { return lang.Translate("Send Options") }
 	page_instance.header.Subtitle = nil
+	page_instance.header.LeftLayout = nil
 }
 
 func (p *PageSendOptionsForm) Leave() {
@@ -117,7 +118,7 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 		}
 	}
 
-	if p.buttonContinue.Clicked() {
+	if p.buttonContinue.Clicked(gtx) {
 		page_instance.header.GoBack()
 	}
 
@@ -156,15 +157,15 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtComment.Input.Clickable.Clicked() {
+	if p.txtComment.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(0)
 	}
 
-	if p.txtDstPort.Input.Clickable.Clicked() {
+	if p.txtDstPort.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 
-	if p.txtDescription.Input.Clickable.Clicked() {
+	if p.txtDescription.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(2)
 	}
 

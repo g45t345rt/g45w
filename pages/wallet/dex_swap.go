@@ -125,7 +125,17 @@ func (p *PageDEXSwap) Enter() {
 		return lbl.Layout(gtx)
 	}
 
-	page_instance.header.ButtonRight = p.buttonOpenMenu
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonOpenMenu.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonOpenMenu.Clicked(gtx) {
+			go p.OpenMenu()
+		}
+
+		return p.buttonOpenMenu.Layout(gtx, th)
+	}
 }
 
 func (p *PageDEXSwap) SetPair(pair dex_sc.Pair, token1 *wallet_manager.Token, token2 *wallet_manager.Token) {
@@ -161,6 +171,76 @@ func (p *PageDEXSwap) Load() error {
 func (p *PageDEXSwap) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
+}
+
+func (p *PageDEXSwap) OpenMenu() {
+	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
+	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	addIcon, _ := widget.NewIcon(icons.ContentAddBox)
+	removeIcon, _ := widget.NewIcon(icons.ContentClear)
+
+	token1 := p.pairTokenInputContainer.token1
+	token2 := p.pairTokenInputContainer.token2
+
+	txt := lang.Translate("Copy {} SCID")
+	txt1 := strings.Replace(txt, "{}", lang.Translate("Pair"), -1)
+	txt2 := strings.Replace(txt, "{}", token1.Symbol.String, -1)
+	txt3 := strings.Replace(txt, "{}", token2.Symbol.String, -1)
+
+	keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
+		listselect_modal.NewSelectListItem("refresh_data",
+			listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh data")).Layout,
+		),
+		listselect_modal.NewSelectListItem("add_liquidity",
+			listselect_modal.NewItemText(addIcon, lang.Translate("Add liquidity")).Layout,
+		),
+		listselect_modal.NewSelectListItem("rem_liquidity",
+			listselect_modal.NewItemText(removeIcon, lang.Translate("Remove liquidity")).Layout,
+		),
+		listselect_modal.NewSelectListItem("copy_scid",
+			listselect_modal.NewItemText(copyIcon, txt1).Layout,
+		),
+		listselect_modal.NewSelectListItem("copy_token1_scid",
+			listselect_modal.NewItemText(copyIcon, txt2).Layout,
+		),
+		listselect_modal.NewSelectListItem("copy_token2_scid",
+			listselect_modal.NewItemText(copyIcon, txt3).Layout,
+		),
+	})
+	for key := range keyChan {
+		switch key {
+		case "refresh_data":
+			err := p.Load()
+
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			} else {
+				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Data reloaded."))
+				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			}
+
+			app_instance.Window.Invalidate()
+		case "add_liquidity":
+			page_instance.pageRouter.SetCurrent(PAGE_DEX_ADD_LIQUIDITY)
+			page_instance.header.AddHistory(PAGE_DEX_ADD_LIQUIDITY)
+		case "rem_liquidity":
+			page_instance.pageRouter.SetCurrent(PAGE_DEX_REM_LIQUIDITY)
+			page_instance.header.AddHistory(PAGE_DEX_REM_LIQUIDITY)
+		case "copy_scid":
+			app_instance.Window.WriteClipboard(p.pair.SCID)
+			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
+			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		case "copy_token1_scid":
+			app_instance.Window.WriteClipboard(token1.SCID)
+			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
+			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		case "copy_token2_scid":
+			app_instance.Window.WriteClipboard(token2.SCID)
+			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
+			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
+	}
 }
 
 func (p *PageDEXSwap) submitForm() error {
@@ -219,79 +299,7 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
-	if p.buttonOpenMenu.Clicked() {
-		go func() {
-			copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
-			refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-			addIcon, _ := widget.NewIcon(icons.ContentAddBox)
-			removeIcon, _ := widget.NewIcon(icons.ContentClear)
-
-			token1 := p.pairTokenInputContainer.token1
-			token2 := p.pairTokenInputContainer.token2
-
-			txt := lang.Translate("Copy {} SCID")
-			txt1 := strings.Replace(txt, "{}", lang.Translate("Pair"), -1)
-			txt2 := strings.Replace(txt, "{}", token1.Symbol.String, -1)
-			txt3 := strings.Replace(txt, "{}", token2.Symbol.String, -1)
-
-			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
-				listselect_modal.NewSelectListItem("refresh_data",
-					listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh data")).Layout,
-				),
-				listselect_modal.NewSelectListItem("add_liquidity",
-					listselect_modal.NewItemText(addIcon, lang.Translate("Add liquidity")).Layout,
-				),
-				listselect_modal.NewSelectListItem("rem_liquidity",
-					listselect_modal.NewItemText(removeIcon, lang.Translate("Remove liquidity")).Layout,
-				),
-				listselect_modal.NewSelectListItem("copy_scid",
-					listselect_modal.NewItemText(copyIcon, txt1).Layout,
-				),
-				listselect_modal.NewSelectListItem("copy_token1_scid",
-					listselect_modal.NewItemText(copyIcon, txt2).Layout,
-				),
-				listselect_modal.NewSelectListItem("copy_token2_scid",
-					listselect_modal.NewItemText(copyIcon, txt3).Layout,
-				),
-			})
-			for key := range keyChan {
-				switch key {
-				case "refresh_data":
-					err := p.Load()
-
-					if err != nil {
-						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					} else {
-						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Data reloaded."))
-						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					}
-
-					app_instance.Window.Invalidate()
-				case "add_liquidity":
-					page_instance.pageRouter.SetCurrent(PAGE_DEX_ADD_LIQUIDITY)
-					page_instance.header.AddHistory(PAGE_DEX_ADD_LIQUIDITY)
-				case "rem_liquidity":
-					page_instance.pageRouter.SetCurrent(PAGE_DEX_REM_LIQUIDITY)
-					page_instance.header.AddHistory(PAGE_DEX_REM_LIQUIDITY)
-				case "copy_scid":
-					app_instance.Window.WriteClipboard(p.pair.SCID)
-					notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
-					notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				case "copy_token1_scid":
-					app_instance.Window.WriteClipboard(token1.SCID)
-					notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
-					notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				case "copy_token2_scid":
-					app_instance.Window.WriteClipboard(token2.SCID)
-					notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
-					notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				}
-			}
-		}()
-	}
-
-	if p.buttonSwap.Clicked() {
+	if p.buttonSwap.Clicked(gtx) {
 		go func() {
 			err := p.submitForm()
 			if err != nil {
@@ -471,7 +479,7 @@ func (p *PairTokenInputContainer) SetTokens(token1 *wallet_manager.Token, token2
 }
 
 func (p *PairTokenInputContainer) Layout(gtx layout.Context, th *material.Theme, title1 string, title2 string) layout.Dimensions {
-	if p.buttonSwitch.Clicked() {
+	if p.buttonSwitch.Clicked(gtx) {
 		token1 := p.token1
 		p.token1 = p.token2
 		p.token2 = token1

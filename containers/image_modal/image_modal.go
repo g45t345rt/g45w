@@ -65,7 +65,7 @@ func (r *ImageModal) Open(title string, imgSrc paint.ImageOp) {
 }
 
 func (r *ImageModal) layout(gtx layout.Context, th *material.Theme) {
-	if r.buttonClose.Clicked() {
+	if r.buttonClose.Clicked(gtx) {
 		r.modal.SetVisible(false)
 	}
 

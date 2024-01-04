@@ -171,8 +171,8 @@ func (modal *Modal) Layout(gtx layout.Context, beforeLayout func(gtx layout.Cont
 	animationLeave := modal.Style.Animation.animationLeave
 	transformLeave := modal.Style.Animation.transformLeave
 
-	clickedOut := modal.clickableOut.Clicked()
-	clickedIn := modal.clickableIn.Clicked()
+	clickedOut := modal.clickableOut.Clicked(gtx)
+	clickedIn := modal.clickableIn.Clicked(gtx)
 
 	if modal.Style.CloseOnOutsideClick {
 		if clickedOut && !clickedIn {

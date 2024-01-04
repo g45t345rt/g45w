@@ -77,7 +77,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 
 func (l *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	l.Changed = false
-	if l.buttonSelect.Clicked() {
+	if l.buttonSelect.Clicked(gtx) {
 		go func() {
 			keyChan := listselect_modal.Instance.Open(l.items)
 			for key := range keyChan {

@@ -88,8 +88,8 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 	}
 
 	l.itemMoved = false
-	for _, e := range l.drag.Events(gtx.Metric, gtx.Queue, gesture.Both) {
-		switch e.Type {
+	for _, e := range l.drag.Update(gtx.Metric, gtx.Queue, gesture.Both) {
+		switch e.Kind {
 		case pointer.Drag:
 			if l.canStartDrag {
 				l.dragEvent = &e
@@ -176,7 +176,6 @@ func (l *DragItems) Layout(gtx layout.Context, scroll *layout.Position, w layout
 		if state.Active {
 			origin := f32.Pt(float32(l.dragItem.Dims.Size.X/2), float32(l.dragItem.Dims.Size.Y/2))
 			x := float32(state.Value)
-			//fmt.Println(x, state.Value)
 			scale := f32.Affine2D{}.Scale(origin, f32.Pt(x, x))
 			defer op.Affine(scale).Push(gtx.Ops).Pop()
 		}

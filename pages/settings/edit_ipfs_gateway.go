@@ -108,7 +108,7 @@ func (p *PageEditIPFSGateway) IsActive() bool {
 func (p *PageEditIPFSGateway) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Edit IPFS Gateway") }
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 
 	if !page_instance.header.IsHistory(PAGE_EDIT_IPFS_GATEWAY) {
 		p.animationEnter.Start()
@@ -145,11 +145,11 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 		}
 	}
 
-	if p.buttonEdit.Clicked() {
+	if p.buttonEdit.Clicked(gtx) {
 		p.submitForm(gtx)
 	}
 
-	if p.buttonDelete.Clicked() {
+	if p.buttonDelete.Clicked(gtx) {
 		go func() {
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
@@ -216,11 +216,11 @@ func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) lay
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtName.Input.Clickable.Clicked() {
+	if p.txtName.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(0)
 	}
 
-	if p.txtEndpoint.Input.Clickable.Clicked() {
+	if p.txtEndpoint.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 

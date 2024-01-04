@@ -73,7 +73,7 @@ func NewThemeSelector(defaultThemeKey string) *ThemeSelector {
 func (t *ThemeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	t.Changed = false
 
-	if t.buttonSelect.Clicked() {
+	if t.buttonSelect.Clicked(gtx) {
 		go func() {
 			keyChan := listselect_modal.Instance.Open(t.items)
 

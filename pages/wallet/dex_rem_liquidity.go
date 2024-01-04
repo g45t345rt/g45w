@@ -110,7 +110,7 @@ func (p *PageDEXRemLiquidity) Enter() {
 		return lbl.Layout(gtx)
 	}
 
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 	p.liquidityContainer.SetPair(p.pair, p.token1, p.token2)
 }
 
@@ -174,7 +174,7 @@ func (p *PageDEXRemLiquidity) Layout(gtx layout.Context, th *material.Theme) lay
 		}
 	}
 
-	if p.buttonRemove.Clicked() {
+	if p.buttonRemove.Clicked(gtx) {
 		go func() {
 			err := p.submitForm()
 			if err != nil {

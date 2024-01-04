@@ -166,7 +166,7 @@ func runApp() error {
 	th.FingerSize = 48
 
 	for {
-		e := <-window.Events()
+		e := window.NextEvent()
 		explorer.ListenEvents(e)
 		camera.ListenEvents(e)
 		switch e := e.(type) {

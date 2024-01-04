@@ -79,7 +79,18 @@ func (p *PageContacts) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Contacts") }
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = p.buttonMenuContact
+
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonMenuContact.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonMenuContact.Clicked(gtx) {
+			go p.OpenMenu()
+		}
+
+		return p.buttonMenuContact.Layout(gtx, th)
+	}
 
 	if !page_instance.header.IsHistory(PAGE_CONTACTS) {
 		p.animationEnter.Start()
@@ -111,6 +122,107 @@ func (p *PageContacts) Load() error {
 	return nil
 }
 
+func (p *PageContacts) OpenMenu() {
+	addContactIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
+	downIcon, _ := widget.NewIcon(icons.FileFileDownload)
+	upIcon, _ := widget.NewIcon(icons.FileFileUpload)
+
+	keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
+		listselect_modal.NewSelectListItem("add_contact",
+			listselect_modal.NewItemText(addContactIcon, lang.Translate("Add contact")).Layout,
+		),
+		listselect_modal.NewSelectListItem("import_contacts",
+			listselect_modal.NewItemText(downIcon, lang.Translate("Import contacts")).Layout,
+		),
+		listselect_modal.NewSelectListItem("export_contacts",
+			listselect_modal.NewItemText(upIcon, lang.Translate("Export contacts")).Layout,
+		),
+	})
+
+	for key := range keyChan {
+		switch key {
+		case "add_contact":
+			page_instance.pageContactForm.ClearForm()
+			page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
+			page_instance.header.AddHistory(PAGE_CONTACT_FORM)
+		case "export_contacts":
+			exportContacts := func() error {
+				file, err := app_instance.Explorer.CreateFile("contacts.json")
+				if err != nil {
+					return err
+				}
+
+				wallet := wallet_manager.OpenedWallet
+				contacts, err := wallet.GetContacts(wallet_manager.GetContactsParams{})
+				if err != nil {
+					return err
+				}
+
+				data, err := json.MarshalIndent(contacts, "", " ")
+				if err != nil {
+					return err
+				}
+
+				_, err = file.Write(data)
+				if err != nil {
+					return err
+				}
+				defer file.Close()
+
+				return nil
+			}
+
+			err := exportContacts()
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, 0)
+			} else {
+				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts exported."))
+				notification_modals.SuccessInstance.SetVisible(true, 0)
+			}
+		case "import_contacts":
+			importContacts := func() error {
+				file, err := app_instance.Explorer.ChooseFile(".json")
+				if err != nil {
+					return err
+				}
+
+				reader := utils.ReadCloser{ReadCloser: file}
+				data, err := reader.ReadAll()
+				if err != nil {
+					return err
+				}
+
+				var contacts []wallet_manager.Contact
+				err = json.Unmarshal(data, &contacts)
+				if err != nil {
+					return err
+				}
+
+				wallet := wallet_manager.OpenedWallet
+				for _, contact := range contacts {
+					err = wallet.StoreContact(contact)
+					if err != nil {
+						return err
+					}
+				}
+
+				return nil
+			}
+
+			err := importContacts()
+			if err != nil {
+				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+				notification_modals.ErrorInstance.SetVisible(true, 0)
+			} else {
+				p.Load()
+				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts imported."))
+				notification_modals.SuccessInstance.SetVisible(true, 0)
+			}
+		}
+	}
+}
+
 func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
@@ -129,110 +241,6 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			p.isActive = false
 			op.InvalidateOp{}.Add(gtx.Ops)
 		}
-	}
-
-	if p.buttonMenuContact.Clicked() {
-		go func() {
-
-			addContactIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
-			downIcon, _ := widget.NewIcon(icons.FileFileDownload)
-			upIcon, _ := widget.NewIcon(icons.FileFileUpload)
-
-			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
-				listselect_modal.NewSelectListItem("add_contact",
-					listselect_modal.NewItemText(addContactIcon, lang.Translate("Add contact")).Layout,
-				),
-				listselect_modal.NewSelectListItem("import_contacts",
-					listselect_modal.NewItemText(downIcon, lang.Translate("Import contacts")).Layout,
-				),
-				listselect_modal.NewSelectListItem("export_contacts",
-					listselect_modal.NewItemText(upIcon, lang.Translate("Export contacts")).Layout,
-				),
-			})
-
-			for key := range keyChan {
-				switch key {
-				case "add_contact":
-					page_instance.pageContactForm.ClearForm()
-					page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
-					page_instance.header.AddHistory(PAGE_CONTACT_FORM)
-				case "export_contacts":
-					exportContacts := func() error {
-						file, err := app_instance.Explorer.CreateFile("contacts.json")
-						if err != nil {
-							return err
-						}
-
-						wallet := wallet_manager.OpenedWallet
-						contacts, err := wallet.GetContacts(wallet_manager.GetContactsParams{})
-						if err != nil {
-							return err
-						}
-
-						data, err := json.MarshalIndent(contacts, "", " ")
-						if err != nil {
-							return err
-						}
-
-						_, err = file.Write(data)
-						if err != nil {
-							return err
-						}
-						defer file.Close()
-
-						return nil
-					}
-
-					err := exportContacts()
-					if err != nil {
-						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, 0)
-					} else {
-						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts exported."))
-						notification_modals.SuccessInstance.SetVisible(true, 0)
-					}
-				case "import_contacts":
-					importContacts := func() error {
-						file, err := app_instance.Explorer.ChooseFile(".json")
-						if err != nil {
-							return err
-						}
-
-						reader := utils.ReadCloser{ReadCloser: file}
-						data, err := reader.ReadAll()
-						if err != nil {
-							return err
-						}
-
-						var contacts []wallet_manager.Contact
-						err = json.Unmarshal(data, &contacts)
-						if err != nil {
-							return err
-						}
-
-						wallet := wallet_manager.OpenedWallet
-						for _, contact := range contacts {
-							err = wallet.StoreContact(contact)
-							if err != nil {
-								return err
-							}
-						}
-
-						return nil
-					}
-
-					err := importContacts()
-					if err != nil {
-						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, 0)
-					} else {
-						p.Load()
-						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contacts imported."))
-						notification_modals.SuccessInstance.SetVisible(true, 0)
-					}
-				}
-			}
-		}()
 	}
 
 	widgets := []layout.ListElement{}
@@ -311,13 +319,13 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
 
-	if item.buttonEdit.Clicked() {
+	if item.buttonEdit.Clicked(gtx) {
 		page_instance.pageContactForm.contact = &item.contact
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
 		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
 	}
 
-	if item.buttonSelect.Clicked() {
+	if item.buttonSelect.Clicked(gtx) {
 		txtWalletAddr := page_instance.pageSendForm.walletAddrInput.txtWalletAddr
 		txtWalletAddr.SetValue(item.contact.Addr)
 		page_instance.header.GoBack()
@@ -367,7 +375,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				)
 			}
 
-			if item.clickable.Clicked() {
+			if item.clickable.Clicked(gtx) {
 				item.listItemSelect.Toggle()
 			}
 

@@ -34,11 +34,11 @@ func (h *HoldPress) Layout(gtx layout.Context, w layout.Widget) layout.Dimension
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
-	for _, e := range h.hold.Events(gtx.Queue) {
-		switch e.Type {
-		case gesture.TypePress:
+	for _, e := range h.hold.Update(gtx.Queue) {
+		switch e.Kind {
+		case gesture.KindPress:
 			h.pressTime = &gtx.Now
-		case gesture.TypeCancel, gesture.TypeClick:
+		case gesture.KindCancel, gesture.KindClick:
 			h.pressTime = nil
 		}
 	}

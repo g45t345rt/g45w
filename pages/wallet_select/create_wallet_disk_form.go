@@ -134,7 +134,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		}
 	}
 
-	if p.buttonLoad.Clicked() {
+	if p.buttonLoad.Clicked(gtx) {
 		go func() {
 			loadFile := func() (filePath string, data []byte, err error) {
 				file, err := app_instance.Explorer.ChooseFile()
@@ -168,7 +168,7 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 		}()
 	}
 
-	if p.buttonCreate.Clicked() {
+	if p.buttonCreate.Clicked(gtx) {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -216,11 +216,11 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtPassword.Input.Clickable.Clicked() {
+	if p.txtPassword.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 
-	if p.txtWalletName.Input.Clickable.Clicked() {
+	if p.txtWalletName.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(2)
 	}
 

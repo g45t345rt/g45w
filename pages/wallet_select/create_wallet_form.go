@@ -122,7 +122,7 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 		}
 	}
 
-	if p.buttonCreate.Clicked() {
+	if p.buttonCreate.Clicked(gtx) {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -161,15 +161,15 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 	list := material.List(th, p.list)
 	list.AnchorStrategy = material.Overlay
 
-	if p.txtWalletName.Input.Clickable.Clicked() {
+	if p.txtWalletName.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 
-	if p.txtPassword.Input.Clickable.Clicked() {
+	if p.txtPassword.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(2)
 	}
 
-	if p.txtConfirmPassword.Input.Clickable.Clicked() {
+	if p.txtConfirmPassword.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(3)
 	}
 

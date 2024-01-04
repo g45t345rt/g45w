@@ -1,7 +1,6 @@
 package page_wallet_select
 
 import (
-	"fmt"
 	"image"
 
 	"gioui.org/font"
@@ -28,6 +27,7 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
+	gioui_hashicon "github.com/g45t345rt/gioui-hashicon"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -199,7 +199,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 									return listStyle.Layout(gtx, len(p.items), func(gtx layout.Context, index int) layout.Dimensions {
 										item := p.items[index]
 
-										if item.clickable.Clicked() {
+										if item.clickable.Clicked(gtx) {
 											p.currentWallet = item.walletInfo
 											password_modal.Instance.SetVisible(true)
 										}
@@ -226,7 +226,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(30)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						if p.buttonWalletCreate.Clicked() {
+						if p.buttonWalletCreate.Clicked(gtx) {
 							go func() {
 								fastIcon, _ := widget.NewIcon(icons.ImageFlashOn)
 								newIcon, _ := widget.NewIcon(icons.ContentAddCircle)
@@ -306,11 +306,16 @@ func (item *walletItem) Layout(gtx layout.Context, th *material.Theme, fill bool
 	r := op.Record(gtx.Ops)
 	dims := layout.UniformInset(unit.Dp(12)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Alignment: layout.Start}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return gioui_hashicon.Hashicon{
+					Config: gioui_hashicon.DefaultConfig,
+				}.Layout(gtx, float32(gtx.Dp(40)), item.walletInfo.Addr)
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(12)}.Layout),
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						name := fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), item.walletInfo.Name)
-						lbl := material.Label(th, unit.Sp(18), name)
+						lbl := material.Label(th, unit.Sp(18), item.walletInfo.Name)
 						lbl.Font.Weight = font.Bold
 						return lbl.Layout(gtx)
 					}),

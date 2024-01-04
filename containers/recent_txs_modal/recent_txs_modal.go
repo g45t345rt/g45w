@@ -133,7 +133,7 @@ func (r *RecentTxsModal) SetVisible(visible bool) {
 func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 	wallet := wallet_manager.OpenedWallet
 
-	if r.buttonClear.Clicked() {
+	if r.buttonClear.Clicked(gtx) {
 		go func() {
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
 				Prompt: lang.Translate("Are you sure you want to clear outgoing txs?"),
@@ -276,7 +276,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	date := time.Unix(item.tx.Timestamp.Int64, 0)
 
-	if item.buttonOpen.Clicked() {
+	if item.buttonOpen.Clicked(gtx) {
 		go func() {
 			url := fmt.Sprintf("https://explorer.dero.io/tx/%s", txId)
 			err := browser.OpenUrl(url)
@@ -287,7 +287,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		}()
 	}
 
-	if item.buttonRemove.Clicked() {
+	if item.buttonRemove.Clicked(gtx) {
 		wallet := wallet_manager.OpenedWallet
 		err := wallet.DelOutgoingTx(item.tx.TxId)
 
@@ -301,7 +301,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		}
 	}
 
-	if item.clickable.Clicked() {
+	if item.clickable.Clicked(gtx) {
 		item.listItemSelect.Toggle()
 	}
 

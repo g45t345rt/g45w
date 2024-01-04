@@ -193,15 +193,15 @@ func (w *CameraQRScanModal) close() {
 }
 
 func (w *CameraQRScanModal) layout(gtx layout.Context, th *material.Theme) {
-	if w.buttonCancel.Clicked() {
+	if w.buttonCancel.Clicked(gtx) {
 		go w.close()
 	}
 
-	if w.buttonRetry.Clicked() {
+	if w.buttonRetry.Clicked(gtx) {
 		go w.scan()
 	}
 
-	if w.buttonOk.Clicked() {
+	if w.buttonOk.Clicked(gtx) {
 		w.send = true
 		w.Modal.SetVisible(false)
 	}

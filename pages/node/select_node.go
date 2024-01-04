@@ -144,7 +144,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 	}
 
-	if p.buttonAddNode.Clicked() {
+	if p.buttonAddNode.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_ADD_NODE_FORM)
 		page_instance.header.AddHistory(PAGE_ADD_NODE_FORM)
 	}
@@ -202,7 +202,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		},
 	}
 
-	if p.buttonResetNodeList.Clicked() {
+	if p.buttonResetNodeList.Clicked(gtx) {
 		err := app_db.ResetNodeConnections()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -215,7 +215,7 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}
 	}
 
-	if p.buttonSetIntegratedNode.Clicked() {
+	if p.buttonSetIntegratedNode.Clicked(gtx) {
 		err := node_manager.Set(&app_db.INTEGRATED_NODE_CONNECTION, true)
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -229,13 +229,13 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	for _, item := range p.nodeList.items {
-		if item.buttonEdit.Clicked() {
+		if item.buttonEdit.Clicked(gtx) {
 			page_instance.pageEditNodeForm.nodeConn = item.conn
 			page_instance.pageRouter.SetCurrent(PAGE_EDIT_NODE_FORM)
 			page_instance.header.AddHistory(PAGE_EDIT_NODE_FORM)
 		}
 
-		if item.buttonSelect.Clicked() {
+		if item.buttonSelect.Clicked(gtx) {
 			p.selectNode(item.conn)
 		}
 	}
@@ -463,7 +463,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme, fill bo
 		item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
 		item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
 
-		if item.clickable.Clicked() {
+		if item.clickable.Clicked(gtx) {
 			item.listItemSelect.Toggle()
 		}
 

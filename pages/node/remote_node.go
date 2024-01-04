@@ -154,11 +154,11 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	p.nodeInfo.Active()
 
-	if p.buttonReconnect.Clicked() {
+	if p.buttonReconnect.Clicked(gtx) {
 		p.reconnect()
 	}
 
-	if p.buttonDisconnect.Clicked() {
+	if p.buttonDisconnect.Clicked(gtx) {
 		go func() {
 			rpcClient := walletapi.GetRPCClient()
 			rpcClient.WS.Close()
@@ -166,7 +166,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		}()
 	}
 
-	if p.buttonDeselect.Clicked() {
+	if p.buttonDeselect.Clicked(gtx) {
 		go func() {
 			err := node_manager.Set(nil, true)
 			if err != nil {

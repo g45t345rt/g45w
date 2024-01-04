@@ -34,6 +34,7 @@ This change should remove a painful/unsafe step of connecting your wallet direct
   - Add and remove liquidity form.
   - Bridge to Eth (with ringsize).
   - Bridge from Eth through Metamask Extensions and Mobile :D
+- Wallet address hashicon (easily recognize your wallets with a unique icons) <https://github.com/emeraldpay/hashicon>.
 
 ## WIP
 

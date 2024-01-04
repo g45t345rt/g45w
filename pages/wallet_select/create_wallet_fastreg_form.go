@@ -215,7 +215,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 		}
 	}
 
-	if p.buttonStart.Clicked() {
+	if p.buttonStart.Clicked(gtx) {
 		err := p.startRegistration()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -223,7 +223,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 		}
 	}
 
-	if p.buttonStop.Clicked() {
+	if p.buttonStop.Clicked(gtx) {
 		p.fastReg.Stop()
 	}
 
@@ -306,7 +306,7 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtThreadCount.Input.Clickable.Clicked() {
+	if p.txtThreadCount.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 

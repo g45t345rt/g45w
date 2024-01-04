@@ -108,7 +108,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
 
-	if n.clickable.Clicked() {
+	if n.clickable.Clicked(gtx) {
 		app_instance.Router.SetCurrent(pages.PAGE_NODE)
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}

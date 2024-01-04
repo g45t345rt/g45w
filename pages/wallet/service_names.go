@@ -140,7 +140,7 @@ func (p *PageServiceNames) Layout(gtx layout.Context, th *material.Theme) layout
 		}
 	}
 
-	if p.buttonRegister.Clicked() {
+	if p.buttonRegister.Clicked(gtx) {
 		go func() {
 			err := p.submitForm()
 			if err != nil {

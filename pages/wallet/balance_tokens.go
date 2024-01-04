@@ -35,6 +35,7 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
+	gioui_hashicon "github.com/g45t345rt/gioui-hashicon"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -160,7 +161,20 @@ func (p *PageBalanceTokens) Enter() {
 	}
 
 	p.ResetWalletHeader()
-	page_instance.header.ButtonRight = p.buttonSettings
+
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonSettings.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonSettings.Clicked(gtx) {
+			page_instance.pageRouter.SetCurrent(PAGE_SETTINGS)
+			page_instance.header.AddHistory(PAGE_SETTINGS)
+		}
+
+		return p.buttonSettings.Layout(gtx, th)
+	}
+
 	p.Load()
 }
 
@@ -211,13 +225,19 @@ func (p *PageBalanceTokens) LoadTxs() {
 func (p *PageBalanceTokens) ResetWalletHeader() {
 	wallet := wallet_manager.OpenedWallet
 	page_instance.header.Title = func() string {
-		return fmt.Sprintf("%s [%s]", lang.Translate("Wallet"), wallet.Info.Name)
+		return wallet.Info.Name
 	}
 
-	page_instance.header.ButtonRight = nil
+	page_instance.header.LeftLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		return gioui_hashicon.Hashicon{
+			Config: gioui_hashicon.DefaultConfig,
+		}.Layout(gtx, float32(gtx.Dp(40)), wallet.Info.Addr)
+	}
+
+	page_instance.header.RightLayout = nil
 	addr := wallet.Memory.GetAddress().String()
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
-		if p.buttonCopyAddr.Clicked() {
+		if p.buttonCopyAddr.Clicked(gtx) {
 			clipboard.WriteOp{
 				Text: addr,
 			}.Add(gtx.Ops)
@@ -246,7 +266,7 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 func (p *PageBalanceTokens) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 }
 
 func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -269,17 +289,12 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		}
 	}
 
-	if p.buttonSettings.Clicked() {
-		page_instance.pageRouter.SetCurrent(PAGE_SETTINGS)
-		page_instance.header.AddHistory(PAGE_SETTINGS)
-	}
-
-	if p.buttonRegister.Clicked() {
+	if p.buttonRegister.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_REGISTER_WALLET)
 		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
 	}
 
-	if p.buttonDexSwap.Clicked() {
+	if p.buttonDexSwap.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_DEX_PAIRS)
 		page_instance.header.AddHistory(PAGE_DEX_PAIRS)
 	}
@@ -661,7 +676,7 @@ func (b *ButtonHideBalance) Layout(gtx layout.Context, th *material.Theme) layou
 		b.Button.Style.Icon = b.hideBalanceIcon
 	}
 
-	if b.Button.Clicked() {
+	if b.Button.Clicked(gtx) {
 		settings.App.HideBalance = !settings.App.HideBalance
 		settings.Save()
 		op.InvalidateOp{}.Add(gtx.Ops)
@@ -694,14 +709,14 @@ func NewDisplayBalance() *DisplayBalance {
 func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	wallet := wallet_manager.OpenedWallet
 
-	if d.sendReceiveButtons.ButtonSend.Clicked() {
+	if d.sendReceiveButtons.ButtonSend.Clicked(gtx) {
 		page_instance.pageSendForm.SetToken(wallet_manager.DeroToken())
 		page_instance.pageSendForm.ClearForm()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
 
-	if d.sendReceiveButtons.ButtonReceive.Clicked() {
+	if d.sendReceiveButtons.ButtonReceive.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
 		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
 	}
@@ -781,7 +796,7 @@ func NewTokenBar() *TokenBar {
 }
 
 func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if t.buttonManageTokens.Clicked() {
+	if t.buttonManageTokens.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_SC_FOLDERS)
 		page_instance.header.AddHistory(PAGE_SC_FOLDERS)
 	}
@@ -821,7 +836,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
 
-	if item.clickable.Clicked() {
+	if item.clickable.Clicked(gtx) {
 		page_instance.pageSCToken.SetToken(item.token)
 		page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
 		page_instance.header.AddHistory(PAGE_SC_TOKEN)
@@ -835,7 +850,7 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				if item.imageHover.Clickable.Clicked() {
+				if item.imageHover.Clickable.Clicked(gtx) {
 					image_modal.Instance.Open(item.token.Name, item.imageHover.Image.Src)
 				}
 
@@ -1039,22 +1054,22 @@ func (t *TxBar) setActiveButton(button *components.Button, tab string) {
 func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	t.changed = false
 
-	if t.buttonAll.Clicked() {
+	if t.buttonAll.Clicked(gtx) {
 		t.changed = true
 		t.tab = "all"
 	}
 
-	if t.buttonIn.Clicked() {
+	if t.buttonIn.Clicked(gtx) {
 		t.changed = true
 		t.tab = "in"
 	}
 
-	if t.buttonOut.Clicked() {
+	if t.buttonOut.Clicked(gtx) {
 		t.changed = true
 		t.tab = "out"
 	}
 
-	if t.buttonCoinbase.Clicked() {
+	if t.buttonCoinbase.Clicked(gtx) {
 		t.changed = true
 		t.tab = "coinbase"
 	}
@@ -1089,12 +1104,13 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 						}),
 					)
 				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				// TODO: create modal for advance filtering
+				/*layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					//t.buttonFilter.Text = lang.Translate("Filter")
 					gtx.Constraints.Max = image.Pt(gtx.Dp(30), gtx.Dp(30))
 					t.buttonFilter.Style.Colors = theme.Current.ButtonSecondaryColors
 					return t.buttonFilter.Layout(gtx, th)
-				}),
+				}),*/
 			)
 		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
@@ -1130,7 +1146,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
 
-	if item.clickable.Clicked() {
+	if item.clickable.Clicked(gtx) {
 		page_instance.pageTransaction.SetEntry(item.entry)
 		page_instance.pageRouter.SetCurrent(PAGE_TRANSACTION)
 		page_instance.header.AddHistory(PAGE_TRANSACTION)

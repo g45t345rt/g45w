@@ -141,11 +141,11 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		}
 	}
 
-	if p.buttonEdit.Clicked() {
+	if p.buttonEdit.Clicked(gtx) {
 		p.submitForm(gtx)
 	}
 
-	if p.buttonDelete.Clicked() {
+	if p.buttonDelete.Clicked(gtx) {
 		go func() {
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
@@ -190,11 +190,11 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtName.Input.Clickable.Clicked() {
+	if p.txtName.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(0)
 	}
 
-	if p.txtEndpoint.Input.Clickable.Clicked() {
+	if p.txtEndpoint.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 

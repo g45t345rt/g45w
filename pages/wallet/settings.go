@@ -177,7 +177,8 @@ func (p *PageSettings) Enter() {
 	page_instance.header.Title = func() string { return lang.Translate("Settings") }
 	p.txtWalletName.SetValue(walletName)
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
+	page_instance.header.LeftLayout = nil
 
 	p.isActive = true
 
@@ -193,32 +194,32 @@ func (p *PageSettings) Leave() {
 }
 
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if p.buttonDeleteWallet.Clicked() {
+	if p.buttonDeleteWallet.Clicked(gtx) {
 		p.action = "delete_wallet"
 		password_modal.Instance.SetVisible(true)
 	}
 
-	if p.buttonSave.Clicked() {
+	if p.buttonSave.Clicked(gtx) {
 		p.action = "save_changes"
 		password_modal.Instance.SetVisible(true)
 	}
 
-	if p.buttonServiceNames.Clicked() {
+	if p.buttonServiceNames.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_SERVICE_NAMES)
 		page_instance.header.AddHistory(PAGE_SERVICE_NAMES)
 	}
 
-	if p.buttonInfo.Clicked() {
+	if p.buttonInfo.Clicked(gtx) {
 		p.action = "wallet_info"
 		password_modal.Instance.SetVisible(true)
 	}
 
-	if p.buttonCleanWallet.Clicked() {
+	if p.buttonCleanWallet.Clicked(gtx) {
 		p.action = "clean_wallet"
 		password_modal.Instance.SetVisible(true)
 	}
 
-	if p.buttonExportTxs.Clicked() {
+	if p.buttonExportTxs.Clicked(gtx) {
 		p.action = "export_txs"
 		password_modal.Instance.SetVisible(true)
 	}

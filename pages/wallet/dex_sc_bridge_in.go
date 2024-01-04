@@ -104,7 +104,7 @@ func (p *PageDEXSCBridgeIn) Enter() {
 		return lbl.Layout(gtx)
 	}
 
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 }
 
 func (p *PageDEXSCBridgeIn) Leave() {
@@ -175,7 +175,7 @@ func (p *PageDEXSCBridgeIn) Layout(gtx layout.Context, th *material.Theme) layou
 		}
 	}
 
-	if p.buttonConnect.Clicked() {
+	if p.buttonConnect.Clicked(gtx) {
 		go p.submitForm()
 	}
 

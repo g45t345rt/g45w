@@ -177,7 +177,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonBuildTx.Clicked() {
+	if p.buttonBuildTx.Clicked(gtx) {
 		go func() {
 			p.buttonBuildTx.SetLoading(true)
 			err := p.prepareTx()
@@ -189,12 +189,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}()
 	}
 
-	if p.buttonOptions.Clicked() {
+	if p.buttonOptions.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_OPTIONS_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_OPTIONS_FORM)
 	}
 
-	if p.buttonSetMax.Clicked() {
+	if p.buttonSetMax.Clicked(gtx) {
 		wallet := wallet_manager.OpenedWallet
 		balance, _ := wallet.Memory.Get_Balance_scid(p.token.GetHash())
 		amount := utils.ShiftNumber{Number: balance, Decimals: int(p.token.Decimals)}.Format()
@@ -264,11 +264,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtAmount.Input.Clickable.Clicked() {
+	if p.txtAmount.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 
-	if p.walletAddrInput.txtWalletAddr.Clickable.Clicked() {
+	if p.walletAddrInput.txtWalletAddr.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(2)
 	}
 
@@ -470,7 +470,7 @@ func (t *TokenContainer) Layout(gtx layout.Context, th *material.Theme) layout.D
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				t.tokenImagerHover.Image.Src = t.token.LoadImageOp()
 
-				if t.tokenImagerHover.Clickable.Clicked() {
+				if t.tokenImagerHover.Clickable.Clicked(gtx) {
 					image_modal.Instance.Open(t.token.Name, t.tokenImagerHover.Image.Src)
 				}
 
@@ -538,7 +538,7 @@ func NewWalletAddrInput() *WalletAddrInput {
 }
 
 func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if p.buttonAddrMenu.Clicked() {
+	if p.buttonAddrMenu.Clicked(gtx) {
 		go func() {
 			contactIcon, _ := widget.NewIcon(icons.SocialGroup)
 			scanIcon, _ := widget.NewIcon(app_icons.QRCodeScanner)
@@ -632,7 +632,7 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 				pointer.CursorPointer.Add(gtx.Ops)
 			}
 
-			if p.newContactClickable.Clicked() {
+			if p.newContactClickable.Clicked(gtx) {
 				page_instance.pageContactForm.ClearForm()
 				page_instance.pageContactForm.txtAddr.SetValue(addr)
 				page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)

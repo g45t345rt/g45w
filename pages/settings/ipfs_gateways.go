@@ -139,7 +139,18 @@ func (p *PageIPFSGateways) Enter() {
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
-	page_instance.header.ButtonRight = p.buttonAdd
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonAdd.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonAdd.Clicked(gtx) {
+			page_instance.pageRouter.SetCurrent(PAGE_ADD_IPFS_GATEWAY)
+			page_instance.header.AddHistory(PAGE_ADD_IPFS_GATEWAY)
+		}
+
+		return p.buttonAdd.Layout(gtx, th)
+	}
 
 	if !page_instance.header.IsHistory(PAGE_IPFS_GATEWAYS) {
 		p.animationEnter.Start()
@@ -174,16 +185,11 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 		}
 	}
 
-	if p.buttonAdd.Clicked() {
-		page_instance.pageRouter.SetCurrent(PAGE_ADD_IPFS_GATEWAY)
-		page_instance.header.AddHistory(PAGE_ADD_IPFS_GATEWAY)
-	}
-
-	if p.buttonInfo.Clicked() {
+	if p.buttonInfo.Clicked(gtx) {
 		p.modalInfo.SetVisible(true)
 	}
 
-	if p.buttonResetGatewayList.Clicked() {
+	if p.buttonResetGatewayList.Clicked(gtx) {
 		err := app_db.ResetIPFSGateways()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -385,7 +391,7 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme, fill
 			)
 		}
 
-		if item.clickable.Clicked() {
+		if item.clickable.Clicked(gtx) {
 			page_instance.pageEditIPFSGateway.gateway = item.gateway
 			page_instance.pageRouter.SetCurrent(PAGE_EDIT_IPFS_GATEWAY)
 			page_instance.header.AddHistory(PAGE_EDIT_IPFS_GATEWAY)

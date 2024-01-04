@@ -160,7 +160,7 @@ func NewInfoListItem(title string, value string, wrap text.WrapPolicy) *InfoList
 }
 
 func (s InfoListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if s.buttonCopy.Clicked() {
+	if s.buttonCopy.Clicked(gtx) {
 		clipboard.WriteOp{
 			Text: s.editor.Text(),
 		}.Add(gtx.Ops)

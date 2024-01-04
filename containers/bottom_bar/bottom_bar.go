@@ -122,7 +122,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 	if wallet_manager.OpenedWallet != nil {
 		b.ButtonClose.Button.Disabled = false
-		if b.ButtonClose.Button.Clicked() {
+		if b.ButtonClose.Button.Clicked(gtx) {
 			go func() {
 				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
 					Prompt: lang.Translate("Closing current wallet?"),
@@ -140,11 +140,11 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		b.ButtonClose.Button.Disabled = true
 	}
 
-	if b.ButtonNode.Button.Clicked() {
+	if b.ButtonNode.Button.Clicked(gtx) {
 		b.appRouter.SetCurrent(pages.PAGE_NODE)
 	}
 
-	if b.ButtonWallet.Button.Clicked() {
+	if b.ButtonWallet.Button.Clicked(gtx) {
 		if b.appRouter.Current == pages.PAGE_WALLET {
 			b.appRouter.SetCurrent(pages.PAGE_WALLET_SELECT)
 		} else {
@@ -152,11 +152,11 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		}
 	}
 
-	if b.ButtonSettings.Button.Clicked() {
+	if b.ButtonSettings.Button.Clicked(gtx) {
 		b.appRouter.SetCurrent(pages.PAGE_SETTINGS)
 	}
 
-	if b.ButtonTxs.Button.Clicked() {
+	if b.ButtonTxs.Button.Clicked(gtx) {
 		recent_txs_modal.Instance.SetVisible(true)
 	}
 

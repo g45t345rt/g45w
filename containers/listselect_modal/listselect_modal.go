@@ -75,7 +75,7 @@ func (l *ListSelectModal) Layout(gtx layout.Context, th *material.Theme) layout.
 			listStyle.AnchorStrategy = material.Overlay
 
 			return listStyle.Layout(gtx, len(l.items), func(gtx layout.Context, index int) layout.Dimensions {
-				if l.items[index].clickable.Clicked() {
+				if l.items[index].clickable.Clicked(gtx) {
 					l.keyChan <- l.items[index].Key
 					l.Modal.SetVisible(false)
 					//close(l.keyChan) don't close channel it panics if spamming click

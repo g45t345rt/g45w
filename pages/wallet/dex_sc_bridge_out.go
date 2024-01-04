@@ -113,7 +113,7 @@ func (p *PageDEXSCBridgeOut) Enter() {
 		return lbl.Layout(gtx)
 	}
 
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 }
 
 func (p *PageDEXSCBridgeOut) Leave() {
@@ -196,7 +196,7 @@ func (p *PageDEXSCBridgeOut) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 	}
 
-	if p.buttonBridge.Clicked() {
+	if p.buttonBridge.Clicked(gtx) {
 		go func() {
 			err := p.submitForm()
 			if err != nil {

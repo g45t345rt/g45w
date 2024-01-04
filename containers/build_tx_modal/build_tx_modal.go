@@ -227,11 +227,11 @@ func (b *BuildTxModal) sendTx() error {
 func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 	wallet := wallet_manager.OpenedWallet
 
-	if b.buttonSend.Clicked() {
+	if b.buttonSend.Clicked(gtx) {
 		password_modal.Instance.SetVisible(true)
 	}
 
-	if b.buttonClose.Clicked() {
+	if b.buttonClose.Clicked(gtx) {
 		b.modal.SetVisible(false)
 	}
 

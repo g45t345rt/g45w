@@ -132,12 +132,12 @@ func (btn *Button) SetLoading(loading bool) {
 	}
 }
 
-func (btn *Button) Clicked() bool {
+func (btn *Button) Clicked(gtx layout.Context) bool {
 	if btn.Disabled {
 		return false
 	}
 
-	return btn.Clickable.Clicked()
+	return btn.Clickable.Clicked(gtx)
 }
 
 func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -211,6 +211,8 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 					if animationLeave != nil {
 						animationLeave.Reset()
 					}
+
+					op.InvalidateOp{}.Add(gtx.Ops)
 				}
 
 				if !animClickable.Hovered() && btn.hoverSwitchState {
@@ -223,18 +225,20 @@ func (btn *Button) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 					if animationEnter != nil {
 						animationEnter.Reset()
 					}
+
+					op.InvalidateOp{}.Add(gtx.Ops)
 				}
 
-				if animClickable.Clicked() {
+				if animClickable.Clicked(gtx) {
 					if animationClick != nil {
 						animationClick.Reset().Start()
 					}
 				}
-			} else {
-				animationLeave.Reset()
-				animationEnter.Reset()
-				animationClick.Reset()
-			}
+			} //else {
+			//animationLeave.Reset()
+			//animationEnter.Reset()
+			//animationClick.Reset()
+			//}
 
 			c := op.Record(gtx.Ops)
 			style.Border.Color = colors.BorderColor

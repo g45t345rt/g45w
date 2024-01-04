@@ -92,7 +92,19 @@ func (p *PageDEXPairs) Enter() {
 	}
 
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = p.buttonRefresh
+	page_instance.header.LeftLayout = nil
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonRefresh.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonRefresh.Clicked(gtx) {
+			p.loaded = false
+			go p.Load()
+		}
+
+		return p.buttonRefresh.Layout(gtx, th)
+	}
 
 	go p.Load()
 }
@@ -229,11 +241,6 @@ func (p *PageDEXPairs) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonRefresh.Clicked() {
-		p.loaded = false
-		go p.Load()
-	}
-
 	widgets := []layout.Widget{}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
@@ -264,7 +271,7 @@ func (p *PageDEXPairs) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					}
 
 					item := p.items[idx]
-					if item.clickable.Clicked() {
+					if item.clickable.Clicked(gtx) {
 						page_instance.pageDexSwap.SetPair(item.pair, item.token1, item.token2)
 						page_instance.pageRouter.SetCurrent(PAGE_DEX_SWAP)
 						page_instance.header.AddHistory(PAGE_DEX_SWAP)

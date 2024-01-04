@@ -151,7 +151,7 @@ func (p *PageDonation) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Donation") }
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 
 	if !page_instance.header.IsHistory(PAGE_DONATION) {
 		p.animationEnter.Start()
@@ -239,19 +239,19 @@ func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonAmount1.Clicked() {
+	if p.buttonAmount1.Clicked(gtx) {
 		p.txtAmount.SetValue("1")
 	}
 
-	if p.buttonAmount2.Clicked() {
+	if p.buttonAmount2.Clicked(gtx) {
 		p.txtAmount.SetValue("10")
 	}
 
-	if p.buttonAmount3.Clicked() {
+	if p.buttonAmount3.Clicked(gtx) {
 		p.txtAmount.SetValue("25")
 	}
 
-	if p.buttonDonate.Clicked() {
+	if p.buttonDonate.Clicked(gtx) {
 		go func() {
 			donate := func() error {
 				wallet := wallet_manager.OpenedWallet
@@ -469,7 +469,7 @@ func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtAmount.Input.Clickable.Clicked() {
+	if p.txtAmount.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(3)
 	}
 

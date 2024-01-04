@@ -122,7 +122,7 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 		}
 	}
 
-	if p.buttonCreate.Clicked() {
+	if p.buttonCreate.Clicked(gtx) {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -157,19 +157,19 @@ func (p *PageCreateWalletSeedForm) Layout(gtx layout.Context, th *material.Theme
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtSeed.Input.Clickable.Clicked() {
+	if p.txtSeed.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(0)
 	}
 
-	if p.txtWalletName.Input.Clickable.Clicked() {
+	if p.txtWalletName.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 
-	if p.txtPassword.Input.Clickable.Clicked() {
+	if p.txtPassword.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(2)
 	}
 
-	if p.txtConfirmPassword.Input.Clickable.Clicked() {
+	if p.txtConfirmPassword.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(3)
 	}
 

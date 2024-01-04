@@ -17,7 +17,8 @@ import (
 type Header struct {
 	Title       func() string
 	Subtitle    func(gtx layout.Context, th *material.Theme) layout.Dimensions
-	ButtonRight *components.Button
+	LeftLayout  func(gtx layout.Context, th *material.Theme) layout.Dimensions
+	RightLayout func(gtx layout.Context, th *material.Theme) layout.Dimensions
 
 	buttonGoBack *components.Button
 	router       *router.Router
@@ -98,8 +99,8 @@ func (h *Header) HandleKeyGoBack(gtx layout.Context) {
 
 func (h *Header) HandleSwipeRightGoBack(gtx layout.Context) {
 	var de *pointer.Event
-	for _, e := range h.slideRight.Events(gtx.Metric, gtx, gesture.Horizontal) {
-		switch e.Type {
+	for _, e := range h.slideRight.Update(gtx.Metric, gtx, gesture.Horizontal) {
+		switch e.Kind {
 		case pointer.Drag:
 			de = &e
 		case pointer.Press:
@@ -124,7 +125,7 @@ func (h *Header) HandleSwipeRightGoBack(gtx layout.Context) {
 }
 
 func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout HeaderTitleLayoutFunc) layout.Dimensions {
-	if h.buttonGoBack.Clicked() {
+	if h.buttonGoBack.Clicked(gtx) {
 		h.GoBack()
 	}
 
@@ -136,18 +137,27 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 	}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			if showBackButton {
-				gtx.Constraints.Min.X = gtx.Dp(30)
-				gtx.Constraints.Min.Y = gtx.Dp(30)
-			} else {
-				gtx.Constraints.Max.X = 0
-				gtx.Constraints.Max.Y = 0
+				return layout.Flex{}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						gtx.Constraints.Min.X = gtx.Dp(30)
+						gtx.Constraints.Min.Y = gtx.Dp(30)
+						h.buttonGoBack.Style.Colors = theme.Current.HeaderBackButtonColors
+						return h.buttonGoBack.Layout(gtx, th)
+					}),
+					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				)
 			}
-			h.buttonGoBack.Style.Colors = theme.Current.HeaderBackButtonColors
-			return h.buttonGoBack.Layout(gtx, th)
+
+			return layout.Dimensions{}
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if showBackButton {
-				return layout.Spacer{Width: unit.Dp(10)}.Layout(gtx)
+			if h.LeftLayout != nil {
+				return layout.Flex{}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return h.LeftLayout(gtx, th)
+					}),
+					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				)
 			}
 
 			return layout.Dimensions{}
@@ -168,11 +178,13 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if h.ButtonRight != nil {
-				gtx.Constraints.Min.X = gtx.Dp(30)
-				gtx.Constraints.Min.Y = gtx.Dp(30)
-				h.ButtonRight.Style.Colors = theme.Current.ButtonIconPrimaryColors
-				return h.ButtonRight.Layout(gtx, th)
+			if h.RightLayout != nil {
+				return layout.Flex{}.Layout(gtx,
+					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return h.RightLayout(gtx, th)
+					}),
+				)
 			}
 
 			return layout.Dimensions{}

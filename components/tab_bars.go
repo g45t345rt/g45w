@@ -47,7 +47,7 @@ func (t *TabBars) Layout(gtx layout.Context, th *material.Theme, textSize unit.S
 	var childrens []layout.FlexChild
 
 	for i, item := range t.Items {
-		if item.clickable.Clicked() {
+		if item.clickable.Clicked(gtx) {
 			t.Key = item.Key
 			t.changed = true
 			op.InvalidateOp{}.Add(gtx.Ops)

@@ -33,30 +33,29 @@ func NewAnimation(startImmediately bool, sequence *gween.Sequence) *Animation {
 }
 
 func (animation *Animation) Update(gtx layout.Context) AnimState {
-	now := time.Now()
 	var dt time.Duration
 
 	if animation.startTime.IsZero() {
-		animation.startTime = now
+		animation.startTime = gtx.Now
 	}
 
 	if !animation.lastFrameTime.IsZero() {
-		dt = now.Sub(animation.lastFrameTime)
+		dt = gtx.Now.Sub(animation.lastFrameTime)
 	}
 
-	if now.Sub(animation.startTime) > animation.delay && !animation.stop {
-		animation.lastFrameTime = now
+	if gtx.Now.Sub(animation.startTime) > animation.delay && !animation.stop {
+		animation.lastFrameTime = gtx.Now
 	}
 
 	seconds := float32(dt.Seconds())
 	value, _, finished := animation.Sequence.Update(seconds)
 
-	if finished {
-		animation.stop = true
-	}
-
 	if !animation.stop {
 		op.InvalidateOp{}.Add(gtx.Ops)
+	}
+
+	if finished {
+		animation.stop = true
 	}
 
 	return AnimState{

@@ -110,7 +110,19 @@ func (p *PageSCFolders) Enter() {
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
-	page_instance.header.ButtonRight = p.buttonOpenMenu
+
+	page_instance.header.LeftLayout = nil
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonOpenMenu.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonOpenMenu.Clicked(gtx) {
+			go p.OpenMenu()
+		}
+
+		return p.buttonOpenMenu.Layout(gtx, th)
+	}
 
 	if !page_instance.header.IsHistory(PAGE_SC_FOLDERS) {
 		p.animationEnter.Start()
@@ -187,6 +199,169 @@ func (p *PageSCFolders) Load() error {
 	return nil
 }
 
+func (p *PageSCFolders) OpenMenu() {
+	addIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
+	scanIcon, _ := widget.NewIcon(icons.ActionSearch)
+	folderIcon, _ := widget.NewIcon(icons.FileCreateNewFolder)
+	editIcon, _ := widget.NewIcon(icons.EditorBorderColor)
+	listIcon, _ := widget.NewIcon(icons.ActionList)
+	gridIcon, _ := widget.NewIcon(icons.ActionViewModule)
+	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
+
+	var items []*listselect_modal.SelectListItem
+
+	items = append(items, listselect_modal.NewSelectListItem("add_token",
+		listselect_modal.NewItemText(addIcon, lang.Translate("Add token")).Layout,
+	))
+
+	items = append(items, listselect_modal.NewSelectListItem("scan_collection",
+		listselect_modal.NewItemText(scanIcon, lang.Translate("Scan collection")).Layout,
+	))
+
+	items = append(items, listselect_modal.NewSelectListItem("new_folder",
+		listselect_modal.NewItemText(folderIcon, lang.Translate("New folder")).Layout,
+	))
+
+	if page_instance.pageSCFolders.currentFolder != nil {
+		items = append(items, listselect_modal.NewSelectListItem("rename_folder",
+			listselect_modal.NewItemText(editIcon, lang.Translate("Rename folder")).Layout,
+		))
+	}
+
+	if settings.App.FolderLayout == settings.FolderLayoutGrid {
+		items = append(items, listselect_modal.NewSelectListItem("view_list",
+			listselect_modal.NewItemText(listIcon, lang.Translate("View list")).Layout,
+		))
+	}
+
+	if settings.App.FolderLayout == settings.FolderLayoutList {
+		items = append(items, listselect_modal.NewSelectListItem("view_grid",
+			listselect_modal.NewItemText(gridIcon, lang.Translate("View grid")).Layout,
+		))
+	}
+
+	items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
+		listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
+	))
+
+	if page_instance.pageSCFolders.currentFolder != nil {
+		items = append(items, listselect_modal.NewSelectListItem("delete_folder",
+			listselect_modal.NewItemText(deleteIcon, lang.Translate("Delete this folder")).Layout,
+		))
+	}
+
+	items = append(items, listselect_modal.NewSelectListItem("remove_tokens",
+		listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove tokens")).Layout,
+	))
+
+	keyChan := listselect_modal.Instance.Open(items)
+	for sKey := range keyChan {
+		switch sKey {
+		case "add_token":
+			page_instance.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
+			page_instance.header.AddHistory(PAGE_ADD_SC_FORM)
+		case "scan_collection":
+			page_instance.pageRouter.SetCurrent(PAGE_SCAN_COLLECTION)
+			page_instance.header.AddHistory(PAGE_SCAN_COLLECTION)
+		case "new_folder":
+			wallet := wallet_manager.OpenedWallet
+			currentFolder := page_instance.pageSCFolders.currentFolder
+
+			txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter folder name"), key.HintText)
+			for folderName := range txtChan {
+				tokenFolder := wallet_manager.TokenFolder{Name: folderName}
+				if currentFolder != nil {
+					parentId := sql.NullInt64{Int64: currentFolder.ID, Valid: true}
+					tokenFolder.ParentId = parentId
+				}
+
+				err := wallet.InsertFolderToken(tokenFolder)
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					page_instance.pageSCFolders.Load()
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New folder created."))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				}
+			}
+		case "rename_folder":
+			wallet := wallet_manager.OpenedWallet
+			currentFolder := page_instance.pageSCFolders.currentFolder
+
+			txtChan := prompt_modal.Instance.Open(currentFolder.Name, lang.Translate("Rename folder"), key.HintText)
+			for folderName := range txtChan {
+				err := wallet.UpdateFolderToken(wallet_manager.TokenFolder{
+					ID:       currentFolder.ID,
+					Name:     folderName,
+					ParentId: currentFolder.ParentId,
+				})
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					page_instance.pageSCFolders.Load()
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Folder renamed."))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				}
+
+				currentFolder.Name = folderName
+			}
+		case "view_list":
+			p.SetLayout(settings.FolderLayoutList)
+		case "view_grid":
+			p.SetLayout(settings.FolderLayoutGrid)
+		case "refresh_cache":
+			wallet := wallet_manager.OpenedWallet
+
+			for _, item := range p.items {
+				if item.token != nil {
+					wallet.Memory.TokenAdd(item.token.GetHash())
+					wallet.ResetBalanceResult(item.token.SCID)
+				}
+			}
+
+			notification_modals.SuccessInstance.SetText("Success", lang.Translate("Cache refreshed."))
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		case "remove_tokens":
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+			for yes := range yesChan {
+				if yes {
+					wallet := wallet_manager.OpenedWallet
+
+					for _, item := range p.items {
+						if item.token != nil { // not a folder
+							wallet.DelToken(item.token.ID)
+						}
+					}
+
+					notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					p.Load()
+				}
+			}
+		case "delete_folder":
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+			for yes := range yesChan {
+				if yes {
+					err := p.deleteCurrentFolder()
+					if err != nil {
+						notification_modals.ErrorInstance.SetText("Error", err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
+						notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+						p.changeFolder(p.currentFolder.ParentId)
+					}
+				}
+			}
+		}
+	}
+}
+
 func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	{
 		state := p.animationEnter.Update(gtx)
@@ -207,172 +382,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
-	if p.buttonOpenMenu.Clicked() {
-		go func() {
-			addIcon, _ := widget.NewIcon(icons.ActionNoteAdd)
-			scanIcon, _ := widget.NewIcon(icons.ActionSearch)
-			folderIcon, _ := widget.NewIcon(icons.FileCreateNewFolder)
-			editIcon, _ := widget.NewIcon(icons.EditorBorderColor)
-			listIcon, _ := widget.NewIcon(icons.ActionList)
-			gridIcon, _ := widget.NewIcon(icons.ActionViewModule)
-			refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-			deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
-
-			var items []*listselect_modal.SelectListItem
-
-			items = append(items, listselect_modal.NewSelectListItem("add_token",
-				listselect_modal.NewItemText(addIcon, lang.Translate("Add token")).Layout,
-			))
-
-			items = append(items, listselect_modal.NewSelectListItem("scan_collection",
-				listselect_modal.NewItemText(scanIcon, lang.Translate("Scan collection")).Layout,
-			))
-
-			items = append(items, listselect_modal.NewSelectListItem("new_folder",
-				listselect_modal.NewItemText(folderIcon, lang.Translate("New folder")).Layout,
-			))
-
-			if page_instance.pageSCFolders.currentFolder != nil {
-				items = append(items, listselect_modal.NewSelectListItem("rename_folder",
-					listselect_modal.NewItemText(editIcon, lang.Translate("Rename folder")).Layout,
-				))
-			}
-
-			if settings.App.FolderLayout == settings.FolderLayoutGrid {
-				items = append(items, listselect_modal.NewSelectListItem("view_list",
-					listselect_modal.NewItemText(listIcon, lang.Translate("View list")).Layout,
-				))
-			}
-
-			if settings.App.FolderLayout == settings.FolderLayoutList {
-				items = append(items, listselect_modal.NewSelectListItem("view_grid",
-					listselect_modal.NewItemText(gridIcon, lang.Translate("View grid")).Layout,
-				))
-			}
-
-			items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
-				listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
-			))
-
-			if page_instance.pageSCFolders.currentFolder != nil {
-				items = append(items, listselect_modal.NewSelectListItem("delete_folder",
-					listselect_modal.NewItemText(deleteIcon, lang.Translate("Delete this folder")).Layout,
-				))
-			}
-
-			items = append(items, listselect_modal.NewSelectListItem("remove_tokens",
-				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove tokens")).Layout,
-			))
-
-			keyChan := listselect_modal.Instance.Open(items)
-			for sKey := range keyChan {
-				switch sKey {
-				case "add_token":
-					page_instance.pageRouter.SetCurrent(PAGE_ADD_SC_FORM)
-					page_instance.header.AddHistory(PAGE_ADD_SC_FORM)
-				case "scan_collection":
-					page_instance.pageRouter.SetCurrent(PAGE_SCAN_COLLECTION)
-					page_instance.header.AddHistory(PAGE_SCAN_COLLECTION)
-				case "new_folder":
-					wallet := wallet_manager.OpenedWallet
-					currentFolder := page_instance.pageSCFolders.currentFolder
-
-					txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter folder name"), key.HintText)
-					for folderName := range txtChan {
-						tokenFolder := wallet_manager.TokenFolder{Name: folderName}
-						if currentFolder != nil {
-							parentId := sql.NullInt64{Int64: currentFolder.ID, Valid: true}
-							tokenFolder.ParentId = parentId
-						}
-
-						err := wallet.InsertFolderToken(tokenFolder)
-						if err != nil {
-							notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-							notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						} else {
-							page_instance.pageSCFolders.Load()
-							notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New folder created."))
-							notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						}
-					}
-				case "rename_folder":
-					wallet := wallet_manager.OpenedWallet
-					currentFolder := page_instance.pageSCFolders.currentFolder
-
-					txtChan := prompt_modal.Instance.Open(currentFolder.Name, lang.Translate("Rename folder"), key.HintText)
-					for folderName := range txtChan {
-						err := wallet.UpdateFolderToken(wallet_manager.TokenFolder{
-							ID:       currentFolder.ID,
-							Name:     folderName,
-							ParentId: currentFolder.ParentId,
-						})
-						if err != nil {
-							notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-							notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						} else {
-							page_instance.pageSCFolders.Load()
-							notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Folder renamed."))
-							notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						}
-
-						currentFolder.Name = folderName
-					}
-				case "view_list":
-					p.SetLayout(settings.FolderLayoutList)
-				case "view_grid":
-					p.SetLayout(settings.FolderLayoutGrid)
-				case "refresh_cache":
-					wallet := wallet_manager.OpenedWallet
-
-					for _, item := range p.items {
-						if item.token != nil {
-							wallet.Memory.TokenAdd(item.token.GetHash())
-							wallet.ResetBalanceResult(item.token.SCID)
-						}
-					}
-
-					notification_modals.SuccessInstance.SetText("Success", lang.Translate("Cache refreshed."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				case "remove_tokens":
-					yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
-
-					for yes := range yesChan {
-						if yes {
-							wallet := wallet_manager.OpenedWallet
-
-							for _, item := range p.items {
-								if item.token != nil { // not a folder
-									wallet.DelToken(item.token.ID)
-								}
-							}
-
-							notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
-							notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-							p.Load()
-						}
-					}
-				case "delete_folder":
-					yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
-
-					for yes := range yesChan {
-						if yes {
-							err := p.deleteCurrentFolder()
-							if err != nil {
-								notification_modals.ErrorInstance.SetText("Error", err.Error())
-								notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-							} else {
-								notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
-								notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-								p.changeFolder(p.currentFolder.ParentId)
-							}
-						}
-					}
-				}
-			}
-		}()
-	}
-
-	if p.buttonFolderGoBack.Clicked() {
+	if p.buttonFolderGoBack.Clicked(gtx) {
 		p.changeFolder(p.currentFolder.ParentId)
 	}
 
@@ -559,7 +569,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 		pointer.CursorPointer.Add(gtx.Ops)
 	}
 
-	if item.clickable.Clicked() {
+	if item.clickable.Clicked(gtx) {
 		if item.folder != nil {
 			id := sql.NullInt64{Int64: item.folder.ID, Valid: true}
 			page_instance.pageSCFolders.changeFolder(id)

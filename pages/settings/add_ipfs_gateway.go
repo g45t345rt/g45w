@@ -87,7 +87,7 @@ func (p *PageAddIPFSGateway) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Add IPFS Gateway") }
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 
 	if !page_instance.header.IsHistory(PAGE_ADD_IPFS_GATEWAY) {
 		p.animationEnter.Start()
@@ -120,7 +120,7 @@ func (p *PageAddIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 	}
 
-	if p.buttonAdd.Clicked() {
+	if p.buttonAdd.Clicked(gtx) {
 		p.submitForm(gtx)
 	}
 
@@ -146,11 +146,11 @@ func (p *PageAddIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layo
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtName.Input.Clickable.Clicked() {
+	if p.txtName.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(0)
 	}
 
-	if p.txtEndpoint.Input.Clickable.Clicked() {
+	if p.txtEndpoint.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(0)
 	}
 

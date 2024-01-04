@@ -118,7 +118,7 @@ func (p *PageContactForm) Enter() {
 	}
 
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 
 	if !page_instance.header.IsHistory(PAGE_CONTACT_FORM) {
 		p.animationEnter.Start()
@@ -152,7 +152,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}
 	}
 
-	if p.buttonSave.Clicked() {
+	if p.buttonSave.Clicked(gtx) {
 		err := p.submitForm()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
@@ -166,7 +166,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}
 	}
 
-	if p.buttonDelete.Clicked() {
+	if p.buttonDelete.Clicked(gtx) {
 		go func() {
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
@@ -252,15 +252,15 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	if p.txtName.Input.Clickable.Clicked() {
+	if p.txtName.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(0)
 	}
 
-	if p.txtAddr.Input.Clickable.Clicked() {
+	if p.txtAddr.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(1)
 	}
 
-	if p.txtNote.Input.Clickable.Clicked() {
+	if p.txtNote.Input.Clickable.Clicked(gtx) {
 		p.list.ScrollTo(2)
 	}
 

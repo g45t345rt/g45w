@@ -1,6 +1,7 @@
 package app_instance
 
 import (
+	"image"
 	"image/color"
 
 	"gioui.org/app"
@@ -15,16 +16,15 @@ var Router *router.Router
 var Explorer *explorer.Explorer
 
 func Load() {
-	minSizeX := unit.Dp(375)
-	minSizeY := unit.Dp(600)
-	maxSizeX := unit.Dp(500)
-	maxSizeY := unit.Dp(1000)
+	minSize := image.Pt(375, 480)
+	maxSize := image.Pt(480, 800)
+	size := image.Pt(375, 625)
 
 	Window = app.NewWindow(
 		app.Title(settings.Name),
-		app.MinSize(minSizeX, minSizeY),
-		app.Size(minSizeX, minSizeY),
-		app.MaxSize(maxSizeX, maxSizeY),
+		app.MinSize(unit.Dp(minSize.X), unit.Dp(minSize.Y)),
+		app.Size(unit.Dp(size.X), unit.Dp(size.Y)),
+		app.MaxSize(unit.Dp(maxSize.X), unit.Dp(maxSize.Y)),
 		app.PortraitOrientation.Option(),
 		app.NavigationColor(color.NRGBA{A: 0}),
 	)

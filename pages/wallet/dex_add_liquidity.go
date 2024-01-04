@@ -108,7 +108,7 @@ func (p *PageDEXAddLiquidity) Enter() {
 		return lbl.Layout(gtx)
 	}
 
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 }
 
 func (p *PageDEXAddLiquidity) SetPair(pair dex_sc.Pair, token1 *wallet_manager.Token, token2 *wallet_manager.Token) {
@@ -185,7 +185,7 @@ func (p *PageDEXAddLiquidity) Layout(gtx layout.Context, th *material.Theme) lay
 		}
 	}
 
-	if p.buttonAdd.Clicked() {
+	if p.buttonAdd.Clicked(gtx) {
 		go func() {
 			err := p.submitForm()
 			if err != nil {

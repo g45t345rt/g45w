@@ -100,7 +100,7 @@ func (p *PageScanCollection) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Scan Collection") }
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 	if !page_instance.header.IsHistory(PAGE_SCAN_COLLECTION) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
@@ -132,7 +132,7 @@ func (p *PageScanCollection) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 	}
 
-	if p.buttonFetchData.Clicked() {
+	if p.buttonFetchData.Clicked(gtx) {
 		go func() {
 			p.buttonFetchData.SetLoading(true)
 			scId, scType, scResult, err := p.submitForm()
@@ -412,15 +412,15 @@ func (c *SCCollectionDetailsContainer) storeTokens() error {
 func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	var widgets []layout.Widget
 
-	if c.buttonScan.Clicked() {
+	if c.buttonScan.Clicked(gtx) {
 		go c.scan()
 	}
 
-	if c.buttonStop.Clicked() {
+	if c.buttonStop.Clicked(gtx) {
 		c.scanning = false
 	}
 
-	if c.buttonAddTokens.Clicked() {
+	if c.buttonAddTokens.Clicked(gtx) {
 		c.buttonAddTokens.SetLoading(true)
 		go c.storeTokens()
 	}

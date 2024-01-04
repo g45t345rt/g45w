@@ -229,7 +229,7 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 }
 
 func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if p.buttonStart.Clicked() {
+	if p.buttonStart.Clicked(gtx) {
 		err := p.startRegistration()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())
@@ -237,7 +237,7 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 		}
 	}
 
-	if p.buttonStop.Clicked() {
+	if p.buttonStop.Clicked(gtx) {
 		p.normalReg.Stop()
 	}
 
@@ -370,7 +370,7 @@ func NewSendRegistrationForm() *SendRegistrationForm {
 }
 
 func (p *SendRegistrationForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if p.buttonSend.Clicked() {
+	if p.buttonSend.Clicked(gtx) {
 		err := p.sendTransaction()
 		if err != nil {
 			notification_modals.ErrorInstance.SetVisible(true, 0)

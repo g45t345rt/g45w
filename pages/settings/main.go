@@ -125,7 +125,7 @@ func (p *PageMain) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Settings") }
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.LeftLayout = nil
 
 	if !page_instance.header.IsHistory(PAGE_MAIN) {
 		p.animationEnter.Start()
@@ -158,17 +158,17 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		}
 	}
 
-	if p.buttonInfo.Clicked() {
+	if p.buttonInfo.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_APP_INFO)
 		page_instance.header.AddHistory(PAGE_APP_INFO)
 	}
 
-	if p.buttonIpfsGateway.Clicked() {
+	if p.buttonIpfsGateway.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_IPFS_GATEWAYS)
 		page_instance.header.AddHistory(PAGE_IPFS_GATEWAYS)
 	}
 
-	if p.buttonDonation.Clicked() {
+	if p.buttonDonation.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_DONATION)
 		page_instance.header.AddHistory(PAGE_DONATION)
 	}

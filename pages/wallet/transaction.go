@@ -136,7 +136,7 @@ func (p *PageTransaction) Enter() {
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 
 	p.isActive = true
 	if !page_instance.header.IsHistory(PAGE_TRANSACTION) {

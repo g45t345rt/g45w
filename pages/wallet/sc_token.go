@@ -137,7 +137,7 @@ func (p *PageSCToken) Enter() {
 
 	page_instance.header.Title = func() string { return p.token.Name }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
-		if p.buttonCopySCID.Clicked() {
+		if p.buttonCopySCID.Clicked(gtx) {
 			clipboard.WriteOp{
 				Text: p.token.SCID,
 			}.Add(gtx.Ops)
@@ -165,7 +165,19 @@ func (p *PageSCToken) Enter() {
 			}),
 		)
 	}
-	page_instance.header.ButtonRight = p.buttonOpenMenu
+
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonOpenMenu.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonOpenMenu.Clicked(gtx) {
+			go p.OpenMenu()
+		}
+
+		return p.buttonOpenMenu.Layout(gtx, th)
+	}
+
 	p.scIdEditor.SetText(p.token.SCID)
 
 	if !page_instance.header.IsHistory(PAGE_SC_TOKEN) {
@@ -177,6 +189,215 @@ func (p *PageSCToken) Enter() {
 func (p *PageSCToken) Leave() {
 	p.animationLeave.Start()
 	p.animationEnter.Reset()
+}
+
+func (p *PageSCToken) OpenMenu() {
+	showIcon, _ := widget.NewIcon(icons.ActionVisibility)
+	hideIcon, _ := widget.NewIcon(icons.ActionVisibilityOff)
+	refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+	addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
+	delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
+	//editIcon, _ := widget.NewIcon(icons.ActionInput)
+	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
+	ethereumIcon, _ := widget.NewIcon(app_icons.Ethereum)
+
+	var items []*listselect_modal.SelectListItem
+	token := page_instance.pageSCToken.token
+
+	isFav := false
+	if token != nil && token.IsFavorite.Valid {
+		isFav = token.IsFavorite.Bool
+	}
+
+	standardType := sc.UNKNOWN_TYPE
+	if token != nil {
+		standardType = token.StandardType
+	}
+
+	if standardType == sc.G45_NFT_TYPE {
+		items = append(items, listselect_modal.NewSelectListItem("g45_display_nft",
+			listselect_modal.NewItemText(showIcon, lang.Translate("Display NFT")).Layout,
+		))
+
+		items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_nft",
+			listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve NFT")).Layout,
+		))
+	}
+
+	if standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE {
+		items = append(items, listselect_modal.NewSelectListItem("g45_display_token",
+			listselect_modal.NewItemText(showIcon, lang.Translate("Display tokens")).Layout,
+		))
+
+		items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_token",
+			listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve tokens")).Layout,
+		))
+	}
+
+	if standardType == sc.DEX_SC_TYPE {
+		items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_in",
+			listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge in")).Layout,
+		))
+
+		items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_out",
+			listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge out")).Layout,
+		))
+	}
+
+	items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
+		listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
+	))
+
+	if !isFav {
+		items = append(items, listselect_modal.NewSelectListItem("add_favorite",
+			listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
+		))
+	}
+
+	if isFav {
+		items = append(items, listselect_modal.NewSelectListItem("remove_favorite",
+			listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from favorites")).Layout,
+		))
+	}
+
+	/*
+		items = append(items, listselect_modal.NewSelectListItem("edit_token",
+			listselect_modal.NewItemText(editIcon, lang.Translate("Edit token")).Layout,
+		))
+	*/
+
+	items = append(items, listselect_modal.NewSelectListItem("remove_token",
+		listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove token")).Layout,
+	))
+
+	keyChan := listselect_modal.Instance.Open(items)
+
+	for sKey := range keyChan {
+		wallet := wallet_manager.OpenedWallet
+		var err error
+		var successMsg = ""
+
+		switch sKey {
+		case "refresh_cache":
+			wallet.ResetBalanceResult(p.token.SCID)
+			successMsg = lang.Translate("Cache refreshed.")
+		case "add_favorite":
+			p.token.IsFavorite = sql.NullBool{Bool: true, Valid: true}
+			err = wallet.UpdateToken(*p.token)
+			successMsg = lang.Translate("Token added to favorites.")
+		case "remove_favorite":
+			p.token.IsFavorite = sql.NullBool{Bool: false, Valid: true}
+			err = wallet.UpdateToken(*p.token)
+			successMsg = lang.Translate("Token removed from favorites.")
+		case "remove_token":
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+			for yes := range yesChan {
+				if yes {
+					wallet := wallet_manager.OpenedWallet
+					err := wallet.DelToken(p.token.ID)
+
+					if err != nil {
+						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					} else {
+						page_instance.header.GoBack()
+						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
+						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					}
+				}
+			}
+		case "g45_display_nft":
+			scId := p.token.GetHash()
+			build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+				open(build_tx_modal.TxPayload{
+					Transfers: []rpc.Transfer{
+						{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
+					},
+					Ringsize: 2,
+					SCArgs: rpc.Arguments{
+						{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+						{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+						{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
+					},
+					TokensInfo: []*wallet_manager.Token{p.token},
+				})
+			})
+		case "g45_retrieve_nft":
+			scId := p.token.GetHash()
+			build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
+				Ringsize: 2,
+				SCArgs: rpc.Arguments{
+					{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+					{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+					{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveNFT"},
+				},
+			})
+		case "g45_display_token":
+			txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
+			for txt := range txtChan {
+				amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
+				err := amount.Parse(txt)
+				if err != nil {
+					return
+				}
+
+				scId := p.token.GetHash()
+				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+					open(build_tx_modal.TxPayload{
+						Transfers: []rpc.Transfer{
+							{SCID: scId, Destination: randomAddr, Burn: amount.Number},
+						},
+						Ringsize: 2,
+						SCArgs: rpc.Arguments{
+							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+							{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
+						},
+						TokensInfo: []*wallet_manager.Token{p.token},
+					})
+				})
+			}
+		case "g45_retrieve_token":
+			txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
+			for txt := range txtChan {
+				amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
+				err := amount.Parse(txt)
+				if err != nil {
+					return
+				}
+
+				scId := p.token.GetHash()
+				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
+					open(build_tx_modal.TxPayload{
+						Ringsize: 2,
+						SCArgs: rpc.Arguments{
+							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+							{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
+							{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
+						},
+					})
+				})
+			}
+		case "dex_sc_bridge_in":
+			page_instance.pageDEXSCBridgeIn.SetToken(p.token)
+			page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_IN)
+			page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_IN)
+		case "dex_sc_bridge_out":
+			page_instance.pageDEXSCBridgeOut.SetToken(p.token)
+			page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_OUT)
+			page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_OUT)
+		}
+
+		if err != nil {
+			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		} else if successMsg != "" {
+			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
+			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		}
+	}
 }
 
 func (p *PageSCToken) LoadTxs() {
@@ -223,217 +444,6 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
-	if p.buttonOpenMenu.Clickable.Clicked() {
-		go func() {
-			showIcon, _ := widget.NewIcon(icons.ActionVisibility)
-			hideIcon, _ := widget.NewIcon(icons.ActionVisibilityOff)
-			refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-			addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
-			delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
-			//editIcon, _ := widget.NewIcon(icons.ActionInput)
-			deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
-			ethereumIcon, _ := widget.NewIcon(app_icons.Ethereum)
-
-			var items []*listselect_modal.SelectListItem
-			token := page_instance.pageSCToken.token
-
-			isFav := false
-			if token != nil && token.IsFavorite.Valid {
-				isFav = token.IsFavorite.Bool
-			}
-
-			standardType := sc.UNKNOWN_TYPE
-			if token != nil {
-				standardType = token.StandardType
-			}
-
-			if standardType == sc.G45_NFT_TYPE {
-				items = append(items, listselect_modal.NewSelectListItem("g45_display_nft",
-					listselect_modal.NewItemText(showIcon, lang.Translate("Display NFT")).Layout,
-				))
-
-				items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_nft",
-					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve NFT")).Layout,
-				))
-			}
-
-			if standardType == sc.G45_AT_TYPE || standardType == sc.G45_FAT_TYPE {
-				items = append(items, listselect_modal.NewSelectListItem("g45_display_token",
-					listselect_modal.NewItemText(showIcon, lang.Translate("Display tokens")).Layout,
-				))
-
-				items = append(items, listselect_modal.NewSelectListItem("g45_retrieve_token",
-					listselect_modal.NewItemText(hideIcon, lang.Translate("Retrieve tokens")).Layout,
-				))
-			}
-
-			if standardType == sc.DEX_SC_TYPE {
-				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_in",
-					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge in")).Layout,
-				))
-
-				items = append(items, listselect_modal.NewSelectListItem("dex_sc_bridge_out",
-					listselect_modal.NewItemText(ethereumIcon, lang.Translate("Bridge out")).Layout,
-				))
-			}
-
-			items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
-				listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
-			))
-
-			if !isFav {
-				items = append(items, listselect_modal.NewSelectListItem("add_favorite",
-					listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
-				))
-			}
-
-			if isFav {
-				items = append(items, listselect_modal.NewSelectListItem("remove_favorite",
-					listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from favorites")).Layout,
-				))
-			}
-
-			/*
-				items = append(items, listselect_modal.NewSelectListItem("edit_token",
-					listselect_modal.NewItemText(editIcon, lang.Translate("Edit token")).Layout,
-				))
-			*/
-
-			items = append(items, listselect_modal.NewSelectListItem("remove_token",
-				listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove token")).Layout,
-			))
-
-			keyChan := listselect_modal.Instance.Open(items)
-
-			for sKey := range keyChan {
-				wallet := wallet_manager.OpenedWallet
-				var err error
-				var successMsg = ""
-
-				switch sKey {
-				case "refresh_cache":
-					wallet.ResetBalanceResult(p.token.SCID)
-					successMsg = lang.Translate("Cache refreshed.")
-				case "add_favorite":
-					p.token.IsFavorite = sql.NullBool{Bool: true, Valid: true}
-					err = wallet.UpdateToken(*p.token)
-					successMsg = lang.Translate("Token added to favorites.")
-				case "remove_favorite":
-					p.token.IsFavorite = sql.NullBool{Bool: false, Valid: true}
-					err = wallet.UpdateToken(*p.token)
-					successMsg = lang.Translate("Token removed from favorites.")
-				case "remove_token":
-					yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
-
-					for yes := range yesChan {
-						if yes {
-							wallet := wallet_manager.OpenedWallet
-							err := wallet.DelToken(p.token.ID)
-
-							if err != nil {
-								notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-								notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-							} else {
-								page_instance.header.GoBack()
-								notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
-								notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-							}
-						}
-					}
-				case "g45_display_nft":
-					scId := p.token.GetHash()
-					build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-						open(build_tx_modal.TxPayload{
-							Transfers: []rpc.Transfer{
-								{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
-							},
-							Ringsize: 2,
-							SCArgs: rpc.Arguments{
-								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-								{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
-							},
-							TokensInfo: []*wallet_manager.Token{p.token},
-						})
-					})
-				case "g45_retrieve_nft":
-					scId := p.token.GetHash()
-					build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
-						Ringsize: 2,
-						SCArgs: rpc.Arguments{
-							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-							{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveNFT"},
-						},
-					})
-				case "g45_display_token":
-					txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
-					for txt := range txtChan {
-						amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
-						err := amount.Parse(txt)
-						if err != nil {
-							return
-						}
-
-						scId := p.token.GetHash()
-						build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-							open(build_tx_modal.TxPayload{
-								Transfers: []rpc.Transfer{
-									{SCID: scId, Destination: randomAddr, Burn: amount.Number},
-								},
-								Ringsize: 2,
-								SCArgs: rpc.Arguments{
-									{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-									{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-									{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
-								},
-								TokensInfo: []*wallet_manager.Token{p.token},
-							})
-						})
-					}
-				case "g45_retrieve_token":
-					txtChan := prompt_modal.Instance.Open("", lang.Translate("Enter amount"), key.HintNumeric)
-					for txt := range txtChan {
-						amount := utils.ShiftNumber{Decimals: int(p.token.Decimals)}
-						err := amount.Parse(txt)
-						if err != nil {
-							return
-						}
-
-						scId := p.token.GetHash()
-						build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-							open(build_tx_modal.TxPayload{
-								Ringsize: 2,
-								SCArgs: rpc.Arguments{
-									{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-									{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-									{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
-									{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
-								},
-							})
-						})
-					}
-				case "dex_sc_bridge_in":
-					page_instance.pageDEXSCBridgeIn.SetToken(p.token)
-					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_IN)
-					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_IN)
-				case "dex_sc_bridge_out":
-					page_instance.pageDEXSCBridgeOut.SetToken(p.token)
-					page_instance.pageRouter.SetCurrent(PAGE_DEX_SC_BRIDGE_OUT)
-					page_instance.header.AddHistory(PAGE_DEX_SC_BRIDGE_OUT)
-				}
-
-				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				} else if successMsg != "" {
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-				}
-			}
-		}()
-	}
-
 	{
 		changed, tab := p.txBar.Changed()
 		if changed {
@@ -458,14 +468,14 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		}
 	}
 
-	if p.sendReceiveButtons.ButtonSend.Clicked() {
+	if p.sendReceiveButtons.ButtonSend.Clicked(gtx) {
 		page_instance.pageSendForm.SetToken(p.token)
 		page_instance.pageSendForm.ClearForm()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
 	}
 
-	if p.sendReceiveButtons.ButtonReceive.Clicked() {
+	if p.sendReceiveButtons.ButtonReceive.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
 		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
 	}
@@ -601,7 +611,7 @@ func (b *BalanceContainer) SetToken(token *wallet_manager.Token) {
 }
 
 func (b *BalanceContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if b.tokenImage.Clickable.Clicked() {
+	if b.tokenImage.Clickable.Clicked(gtx) {
 		image_modal.Instance.Open(b.token.Name, b.tokenImage.Image.Src)
 	}
 

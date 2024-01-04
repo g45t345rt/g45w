@@ -94,7 +94,7 @@ func (p *PageAddSCForm) Enter() {
 	p.isActive = true
 	page_instance.header.Title = func() string { return lang.Translate("Add Token") }
 	page_instance.header.Subtitle = nil
-	page_instance.header.ButtonRight = nil
+	page_instance.header.RightLayout = nil
 	if !page_instance.header.IsHistory(PAGE_ADD_SC_FORM) {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
@@ -126,7 +126,7 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
-	if p.buttonFetchData.Clicked() {
+	if p.buttonFetchData.Clicked(gtx) {
 		go func() {
 			p.scDetailsContainer.token = nil
 			p.buttonFetchData.SetLoading(true)
@@ -306,7 +306,7 @@ func (c *SCDetailsContainer) addToken() error {
 }
 
 func (c *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if c.buttonAddToken.Clicked() {
+	if c.buttonAddToken.Clicked(gtx) {
 		err := c.addToken()
 		if err != nil {
 			notification_modals.ErrorInstance.SetText("Error", err.Error())

@@ -62,7 +62,7 @@ func NewRingSizeSelector(defaultSize int) *RingSizeSelector {
 func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	r.Changed = false
 
-	if r.buttonSelect.Clicked() {
+	if r.buttonSelect.Clicked(gtx) {
 		go func() {
 			keyChan := listselect_modal.Instance.Open(r.items)
 
