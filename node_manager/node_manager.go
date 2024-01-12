@@ -1,6 +1,8 @@
 package node_manager
 
 import (
+	"strconv"
+
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/integrated_node"
@@ -10,14 +12,23 @@ import (
 var CurrentNode *app_db.NodeConnection
 
 func Load() error {
-	endpoint := settings.App.NodeEndpoint
-	if endpoint != "" {
+	nodeIdString := settings.App.NodeSelect
+	if nodeIdString != "" {
+		id, err := strconv.ParseInt(nodeIdString, 10, 64)
+		if err != nil {
+			return err
+		}
+
 		var nodeConn *app_db.NodeConnection
 		integratedNodeConn := app_db.INTEGRATED_NODE_CONNECTION
-		if endpoint == integratedNodeConn.Endpoint {
+		localNodeConn := app_db.LOCAL_NODE_CONNECTION
+		switch id {
+		case integratedNodeConn.ID:
 			nodeConn = &integratedNodeConn
-		} else {
-			conn, err := app_db.GetNodeConnectionByEndpoint(endpoint)
+		case localNodeConn.ID:
+			nodeConn = &localNodeConn
+		default:
+			conn, err := app_db.GetNodeConnection(id)
 			if err != nil {
 				return err
 			}
@@ -25,7 +36,7 @@ func Load() error {
 			nodeConn = &conn
 		}
 
-		err := Set(nodeConn, false)
+		err = Set(nodeConn, false)
 		if err != nil {
 			return err
 		}
@@ -37,24 +48,23 @@ func Load() error {
 }
 
 func Set(nodeConn *app_db.NodeConnection, save bool) error {
-	integratedEndpoint := app_db.INTEGRATED_NODE_CONNECTION.Endpoint
 	if nodeConn != nil {
-		endpoint := nodeConn.Endpoint
-		if nodeConn.Endpoint == integratedEndpoint {
+		if nodeConn.Integrated {
 			err := integrated_node.Start()
 			if err != nil {
 				return err
 			}
-
-			endpoint = "ws://127.0.0.1:10102/ws"
 		}
 
-		err := walletapi.Connect(endpoint)
+		err := walletapi.Connect(nodeConn.Endpoint)
 		if err != nil {
 			return err
 		}
 
-		settings.App.NodeEndpoint = nodeConn.Endpoint
+		settings.App.NodeSelect = strconv.FormatInt(nodeConn.ID, 10)
+		if integrated_node.Running && !nodeConn.Integrated {
+			integrated_node.Stop()
+		}
 	} else {
 		go func() {
 			rpcClient := walletapi.GetRPCClient()
@@ -62,12 +72,10 @@ func Set(nodeConn *app_db.NodeConnection, save bool) error {
 			rpcClient.RPC.Close()
 		}()
 
-		settings.App.NodeEndpoint = ""
-	}
-
-	if integrated_node.Running &&
-		settings.App.NodeEndpoint == integratedEndpoint {
-		integrated_node.Stop()
+		settings.App.NodeSelect = ""
+		if integrated_node.Running {
+			integrated_node.Stop()
+		}
 	}
 
 	CurrentNode = nodeConn

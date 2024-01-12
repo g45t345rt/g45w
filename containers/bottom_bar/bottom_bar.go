@@ -127,11 +127,9 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 					Prompt: lang.Translate("Closing current wallet?"),
 				})
 
-				for yes := range yesChan {
-					if yes {
-						b.appRouter.SetCurrent(pages.PAGE_WALLET_SELECT)
-						wallet_manager.CloseOpenedWallet()
-					}
+				if <-yesChan {
+					b.appRouter.SetCurrent(pages.PAGE_WALLET_SELECT)
+					wallet_manager.CloseOpenedWallet()
 				}
 			}()
 		}

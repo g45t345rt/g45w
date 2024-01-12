@@ -122,10 +122,8 @@ func (p *Page) Enter() {
 				Yes:    lang.Translate("Select"),
 			})
 
-			for yes := range yesChan {
-				if yes {
-					app_instance.Router.SetCurrent(pages.PAGE_NODE)
-				}
+			if <-yesChan {
+				app_instance.Router.SetCurrent(pages.PAGE_NODE)
 			}
 			p.displayNodeModalReminder = false
 		}()

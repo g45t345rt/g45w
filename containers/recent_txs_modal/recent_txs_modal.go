@@ -139,17 +139,15 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 				Prompt: lang.Translate("Are you sure you want to clear outgoing txs?"),
 			})
 
-			for yes := range yesChan {
-				if yes {
-					err := wallet.ClearOutgoingTxs()
-					if err != nil {
-						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					} else {
-						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Outgoing txs cleared."))
-						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						r.LoadOutgoingTxs()
-					}
+			if <-yesChan {
+				err := wallet.ClearOutgoingTxs()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Outgoing txs cleared."))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					r.LoadOutgoingTxs()
 				}
 			}
 		}()

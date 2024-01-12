@@ -10,7 +10,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/components"
@@ -20,7 +19,6 @@ import (
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
-	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -149,17 +147,15 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 		go func() {
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
-			for yes := range yesChan {
-				if yes {
-					err := p.removeNode()
-					if err != nil {
-						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					} else {
-						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
-						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						page_instance.header.GoBack()
-					}
+			if <-yesChan {
+				err := p.removeNode()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					page_instance.header.GoBack()
 				}
 			}
 		}()
@@ -213,15 +209,8 @@ func (p *PageEditNodeForm) removeNode() error {
 	}
 
 	if node_manager.CurrentNode != nil {
-		if node_manager.CurrentNode.Endpoint == p.nodeConn.Endpoint {
-			node_manager.CurrentNode = nil
-			walletapi.Connected = false
-
-			settings.App.NodeEndpoint = ""
-			err := settings.Save()
-			if err != nil {
-				return err
-			}
+		if node_manager.CurrentNode.ID == p.nodeConn.ID {
+			node_manager.Set(nil, true)
 		}
 	}
 

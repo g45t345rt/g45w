@@ -327,35 +327,31 @@ func (p *PageSCFolders) OpenMenu() {
 		case "remove_tokens":
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
-			for yes := range yesChan {
-				if yes {
-					wallet := wallet_manager.OpenedWallet
+			if <-yesChan {
+				wallet := wallet_manager.OpenedWallet
 
-					for _, item := range p.items {
-						if item.token != nil { // not a folder
-							wallet.DelToken(item.token.ID)
-						}
+				for _, item := range p.items {
+					if item.token != nil { // not a folder
+						wallet.DelToken(item.token.ID)
 					}
-
-					notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					p.Load()
 				}
+
+				notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
+				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				p.Load()
 			}
 		case "delete_folder":
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
-			for yes := range yesChan {
-				if yes {
-					err := p.deleteCurrentFolder()
-					if err != nil {
-						notification_modals.ErrorInstance.SetText("Error", err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					} else {
-						notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
-						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						p.changeFolder(p.currentFolder.ParentId)
-					}
+			if <-yesChan {
+				err := p.deleteCurrentFolder()
+				if err != nil {
+					notification_modals.ErrorInstance.SetText("Error", err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					p.changeFolder(p.currentFolder.ParentId)
 				}
 			}
 		}

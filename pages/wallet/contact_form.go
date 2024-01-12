@@ -170,20 +170,18 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		go func() {
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
-			for yes := range yesChan {
-				if yes {
-					wallet := wallet_manager.OpenedWallet
-					err := wallet.DelContact(p.contact.Addr)
-					if err != nil {
-						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					} else {
-						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
-						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-						page_instance.pageContacts.Load()
-						page_instance.header.GoBack()
-						p.ClearForm()
-					}
+			if <-yesChan {
+				wallet := wallet_manager.OpenedWallet
+				err := wallet.DelContact(p.contact.Addr)
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					page_instance.pageContacts.Load()
+					page_instance.header.GoBack()
+					p.ClearForm()
 				}
 			}
 		}()

@@ -18,9 +18,16 @@ type NodeConnection struct {
 
 var INTEGRATED_NODE_CONNECTION = NodeConnection{
 	ID:         -1,
-	Endpoint:   "integrated", // ws://127.0.0.1:10102/ws
+	Endpoint:   "ws://127.0.0.1:10102/ws",
 	Name:       "Integrated",
 	Integrated: true,
+}
+
+var LOCAL_NODE_CONNECTION = NodeConnection{
+	ID:         -2,
+	Endpoint:   "ws://127.0.0.1:10102/ws",
+	Name:       "Local",
+	Integrated: false,
 }
 
 var TRUSTED_NODE_CONNECTIONS = []NodeConnection{

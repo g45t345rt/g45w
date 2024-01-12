@@ -1,0 +1,12 @@
+v0.9.0
+- Update to GioUI v0.4.0.
+- Added XSWD package.
+- New bottom wallet text layout.
+- New deselect node button.
+- New set local node button.
+- New startup popup if no node is selected.
+- Added wallet address hashicon.
+- Fix donation button crash if wallet & node is not connected.
+- TODO: New background service for Android. Mandatory to interact with XSWD or keep the node connection open.
+- Confirm box for Integrated Node (avoid missclick and start bootstrap).
+- Support webp by importing golang.org/x/image/webp

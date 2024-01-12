@@ -292,19 +292,17 @@ func (p *PageSCToken) OpenMenu() {
 		case "remove_token":
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
-			for yes := range yesChan {
-				if yes {
-					wallet := wallet_manager.OpenedWallet
-					err := wallet.DelToken(p.token.ID)
+			if <-yesChan {
+				wallet := wallet_manager.OpenedWallet
+				err := wallet.DelToken(p.token.ID)
 
-					if err != nil {
-						notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-						notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					} else {
-						page_instance.header.GoBack()
-						notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
-						notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-					}
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					page_instance.header.GoBack()
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
+					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
 				}
 			}
 		case "g45_display_nft":

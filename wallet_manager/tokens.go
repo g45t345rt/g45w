@@ -5,12 +5,16 @@ import (
 	"database/sql"
 	"fmt"
 	"image"
+
+	//"image"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
+
+	_ "golang.org/x/image/webp" // Support webp images
 
 	"gioui.org/op/paint"
 	sq "github.com/Masterminds/squirrel"
@@ -154,7 +158,7 @@ func (token *Token) GetImageOp() (imgOp paint.ImageOp, err error) {
 			}
 		}
 
-		var img image.Image // jpg, png, gif and webp by importing github.com/chai2010/webp
+		var img image.Image // jpg, png, gif and webp by importing golang.org/x/image/webp
 		buffer := bytes.NewBuffer(imgData)
 		img, _, err = image.Decode(buffer)
 		if err != nil {

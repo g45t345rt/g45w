@@ -17,6 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
@@ -33,6 +34,7 @@ type PageSelectNode struct {
 	animationEnter          *animation.Animation
 	animationLeave          *animation.Animation
 	buttonSetIntegratedNode *components.Button
+	buttonUseLocalNode      *components.Button
 	buttonAddNode           *components.Button
 	buttonResetNodeList     *components.Button
 	connecting              bool
@@ -69,6 +71,18 @@ func NewPageSelectNode() *PageSelectNode {
 	buttonSetIntegratedNode.Label.Alignment = text.Middle
 	buttonSetIntegratedNode.Style.Font.Weight = font.Bold
 
+	localIcon, _ := widget.NewIcon(icons.DeviceDataUsage)
+	buttonUseLocalNode := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		TextSize:  unit.Sp(16),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Icon:      localIcon,
+		IconGap:   unit.Dp(10),
+	})
+	buttonUseLocalNode.Label.Alignment = text.Middle
+	buttonUseLocalNode.Style.Font.Weight = font.Bold
+
 	addIcon, _ := widget.NewIcon(icons.ContentAddBox)
 	buttonAddNode := components.NewButton(components.ButtonStyle{
 		Icon:      addIcon,
@@ -94,6 +108,7 @@ func NewPageSelectNode() *PageSelectNode {
 
 		nodeList:                nodeList,
 		buttonSetIntegratedNode: buttonSetIntegratedNode,
+		buttonUseLocalNode:      buttonUseLocalNode,
 		buttonAddNode:           buttonAddNode,
 		buttonResetNodeList:     buttonResetNodeList,
 	}
@@ -156,15 +171,23 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 			return p.buttonSetIntegratedNode.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			return layout.Spacer{Height: unit.Dp(10)}.Layout(gtx)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonUseLocalNode.Text = lang.Translate("Connect to Local Node")
+			p.buttonUseLocalNode.Style.Colors = theme.Current.ButtonPrimaryColors
+			return p.buttonUseLocalNode.Layout(gtx, th)
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(5)}.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(14), lang.Translate("Always use Integrated Node or your own remote node for full privacy and trust."))
+			lbl := material.Label(th, unit.Sp(14), lang.Translate("Always use your own node for full privacy and trust."))
 			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Spacer{Height: unit.Dp(20)}.Layout(gtx)
+			return layout.Spacer{Height: unit.Dp(10)}.Layout(gtx)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -216,16 +239,25 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonSetIntegratedNode.Clicked(gtx) {
-		err := node_manager.Set(&app_db.INTEGRATED_NODE_CONNECTION, true)
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
-			page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Integrated node selected"))
-			notification_modals.SuccessInstance.SetVisible(true, 0)
-		}
+		go func() {
+			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+			if <-yesChan {
+				err := node_manager.Set(&app_db.INTEGRATED_NODE_CONNECTION, true)
+				if err != nil {
+					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				} else {
+					page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
+					page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
+					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Integrated node selected"))
+					notification_modals.SuccessInstance.SetVisible(true, 0)
+				}
+			}
+		}()
+	}
+
+	if p.buttonUseLocalNode.Clicked(gtx) {
+		p.selectNode(app_db.LOCAL_NODE_CONNECTION)
 	}
 
 	for _, item := range p.nodeList.items {

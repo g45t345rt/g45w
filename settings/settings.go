@@ -22,10 +22,10 @@ type AppSettings struct {
 	Language     string `json:"language"`
 	HideBalance  bool   `json:"hide_balance"`
 	SendRingSize int    `json:"send_ring_size"`
-	NodeEndpoint string `json:"node_endpoint"`
 	MainTabBars  string `json:"main_tab_bars"`
 	Theme        string `json:"theme"`
 	FolderLayout string `json:"folder_layout"`
+	NodeSelect   string `json:"node_select`
 }
 
 var (
@@ -79,7 +79,7 @@ func Load() error {
 		Language:     "en",
 		HideBalance:  false,
 		SendRingSize: 16,
-		NodeEndpoint: "",
+		NodeSelect:   "",
 		MainTabBars:  MainTabBarsTxs,
 		FolderLayout: FolderLayoutGrid,
 	}
