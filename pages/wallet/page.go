@@ -200,22 +200,24 @@ func (p *Page) Enter() {
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
 
-		appHandler := func(appData *xswd.ApplicationData) bool {
-			prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
-			prompt = strings.Replace(prompt, "{}", appData.Name, -1)
-			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
-				Title:  "XSWD Auth",
-				Prompt: prompt,
-			})
-			w.Invalidate()
-			return <-yesChan
-		}
+		if openedWallet.ServerXSWD == nil {
+			appHandler := func(appData *xswd.ApplicationData) bool {
+				prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
+				prompt = strings.Replace(prompt, "{}", appData.Name, -1)
+				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+					Title:  "XSWD Auth",
+					Prompt: prompt,
+				})
+				w.Invalidate()
+				return <-yesChan
+			}
 
-		reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
-			return xswd.Allow
-		}
+			reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
+				return xswd.Allow
+			}
 
-		openedWallet.LoadXSWD(appHandler, reqHandler)
+			openedWallet.LoadXSWD(appHandler, reqHandler)
+		}
 
 		//node_status_bar.Instance.Update()
 		lastHistory := p.header.GetLastHistory()
@@ -269,6 +271,15 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return node_status_bar.Instance.Layout(gtx, th)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					xswd := openedWallet.ServerXSWD
+					txt := "xswd: not running"
+					if xswd.IsRunning() {
+						txt = "xswd: running"
+					}
+					lbl := material.Label(th, unit.Sp(20), txt)
+					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					r := op.Record(gtx.Ops)

@@ -421,6 +421,10 @@ func NewNodeListItem(conn app_db.NodeConnection) NodeListItem {
 }
 
 func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme, fill bool) layout.Dimensions {
+	if item.clickable.Clicked(gtx) {
+		item.listItemSelect.Toggle()
+	}
+
 	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		r := op.Record(gtx.Ops)
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -462,10 +466,6 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme, fill bo
 		item.buttonEdit.Text = lang.Translate("Edit")
 		item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
 		item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
-
-		if item.clickable.Clicked(gtx) {
-			item.listItemSelect.Toggle()
-		}
 
 		c.Add(gtx.Ops)
 		return dims
