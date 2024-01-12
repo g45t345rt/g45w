@@ -2,7 +2,6 @@ package bottom_bar
 
 import (
 	"image"
-	"strings"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -203,7 +202,7 @@ func NewBottomBarButton(button *components.Button) *BottomBarButton {
 }
 
 func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	iconSize := unit.Dp(45)
+	iconSize := unit.Dp(50)
 	gtx.Constraints.Min.X = gtx.Dp(iconSize)
 	gtx.Constraints.Min.Y = gtx.Dp(iconSize)
 
@@ -212,7 +211,7 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 		b.Button.Style.Colors.TextColor = theme.Current.BottomButtonSelectedColor
 	} else {
 		// important scale down instead of up to avoid blurry icon
-		scale := f32.Affine2D{}.Scale(f32.Pt(float32(iconSize)/2, float32(iconSize)/2), f32.Pt(.7, .7))
+		scale := f32.Affine2D{}.Scale(f32.Pt(float32(iconSize)/2, float32(iconSize)/2), f32.Pt(.65, .65))
 		defer op.Affine(scale).Push(gtx.Ops).Pop()
 	}
 
@@ -230,29 +229,29 @@ func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
 	layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		r := op.Record(gtx.Ops)
 		dims := layout.Inset{
-			Top: unit.Dp(6), Bottom: unit.Dp(6),
-			Left: unit.Dp(10), Right: unit.Dp(10),
+			Top: unit.Dp(5), Bottom: unit.Dp(5),
+			Left: unit.Dp(16), Right: unit.Dp(16),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			walletName := openedWallet.Info.Name
-			text := lang.Translate("Wallet [{}]")
-			text = strings.Replace(text, "{}", walletName, -1)
-			lbl := material.Label(th, unit.Sp(14), text)
-			lbl.Color = theme.Current.BottomBarWalletTextColor
+			//text := lang.Translate("Wallet: {}")
+			//text = strings.Replace(text, "{}", walletName, -1)
+			lbl := material.Label(th, unit.Sp(18), walletName)
+			lbl.Color = theme.Current.BottomButtonSelectedColor
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)
 		})
 		c := r.Stop()
 
 		x := float32(dims.Size.X / 2)
-		y := float32(dims.Size.Y / 2)
+		y := float32(dims.Size.Y / 2) // + float32(gtx.Dp(5))
 		offset := f32.Pt(-x, -y)
 		defer op.Affine(f32.Affine2D{}.Offset(offset)).Push(gtx.Ops).Pop()
 
-		bgColor := theme.Current.BottomBarWalletBgColor
-		paint.FillShape(gtx.Ops, bgColor, clip.UniformRRect(
-			image.Rect(0, 0, dims.Size.X, dims.Size.Y),
-			gtx.Dp(5),
-		).Op(gtx.Ops))
+		bgColor := theme.Current.BottomBarBgColor
+		paint.FillShape(gtx.Ops, bgColor, clip.RRect{
+			Rect: image.Rect(0, 0, dims.Size.X, dims.Size.Y),
+			NW:   gtx.Dp(10), NE: gtx.Dp(10),
+		}.Op(gtx.Ops))
 
 		c.Add(gtx.Ops)
 		return layout.Dimensions{}

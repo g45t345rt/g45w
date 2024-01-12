@@ -27,8 +27,6 @@ type Theme struct {
 
 	// Bottom Bar
 	BottomBarBgColor          color.NRGBA
-	BottomBarWalletBgColor    color.NRGBA
-	BottomBarWalletTextColor  color.NRGBA
 	BottomButtonColors        components.ButtonColors
 	BottomButtonSelectedColor color.NRGBA
 

@@ -25,9 +25,7 @@ var Blue = &Theme{
 	},
 	HeaderTopBgColor: color.NRGBA{R: 27, G: 107, B: 211, A: 255},
 
-	BottomBarBgColor:         blueColor,
-	BottomBarWalletBgColor:   whiteColor,
-	BottomBarWalletTextColor: blueColor,
+	BottomBarBgColor: blueColor,
 	BottomButtonColors: components.ButtonColors{
 		TextColor:      color.NRGBA{R: 255, G: 255, B: 255, A: 100},
 		HoverTextColor: &whiteColor,
