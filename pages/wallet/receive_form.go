@@ -79,6 +79,10 @@ func (p *PageReceiveForm) Enter() {
 	p.addrImage = &components.Image{
 		Src: paint.NewImageOp(img),
 		Fit: components.Contain,
+		Rounded: components.Rounded{
+			NW: unit.Dp(10), NE: unit.Dp(10),
+			SW: unit.Dp(10), SE: unit.Dp(10),
+		},
 	}
 
 	p.addrEditor.SetText(addr)
@@ -124,6 +128,9 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 				gtx.Constraints.Max.Y = gtx.Dp(250)
 				return p.addrImage.Layout(gtx)
 			})
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Spacer{Height: unit.Dp(10)}.Layout(gtx)
 		},
 	}
 
