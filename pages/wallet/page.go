@@ -9,11 +9,13 @@ import (
 	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
+	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/walletapi/xswd"
@@ -38,7 +40,8 @@ type Page struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	header *prefabs.Header
+	header     *prefabs.Header
+	xswdHeader *XSWDHeader
 
 	pageBalanceTokens   *PageBalanceTokens
 	pageSendForm        *PageSendForm
@@ -165,7 +168,8 @@ func New() *Page {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		header: header,
+		header:     header,
+		xswdHeader: NewXSWDHeader(),
 
 		pageBalanceTokens:   pageBalanceTokens,
 		pageSendForm:        pageSendForm,
@@ -203,23 +207,7 @@ func (p *Page) Enter() {
 		p.animationEnter.Start()
 
 		if openedWallet.ServerXSWD == nil {
-			appHandler := func(appData *xswd.ApplicationData) bool {
-				prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
-				prompt = strings.Replace(prompt, "{}", appData.Name, -1)
-				yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
-					Title:  "XSWD Auth",
-					Prompt: prompt,
-				})
-				w.Invalidate()
-				return <-yesChan
-			}
-
-			reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
-				fmt.Println(req)
-				return xswd.Allow
-			}
-
-			openedWallet.LoadXSWD(appHandler, reqHandler)
+			p.LoadXSWD()
 		}
 
 		//node_status_bar.Instance.Update()
@@ -233,6 +221,29 @@ func (p *Page) Enter() {
 	} else {
 		app_instance.Router.SetCurrent(pages.PAGE_WALLET_SELECT)
 	}
+}
+
+func (p *Page) LoadXSWD() {
+	openedWallet := wallet_manager.OpenedWallet
+	w := app_instance.Window
+
+	appHandler := func(appData *xswd.ApplicationData) bool {
+		prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
+		prompt = strings.Replace(prompt, "{}", appData.Name, -1)
+		yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+			Title:  "XSWD Auth",
+			Prompt: prompt,
+		})
+		w.Invalidate()
+		return <-yesChan
+	}
+
+	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
+		fmt.Println(req)
+		return xswd.Allow
+	}
+
+	openedWallet.OpenXSWD(appHandler, reqHandler)
 }
 
 func (p *Page) Leave() {
@@ -288,41 +299,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 							return lbl.Layout(gtx)
 						})
 
-						{
-							xswd := openedWallet.ServerXSWD
-							txt := ""
-							if xswd.IsRunning() {
-								txt = lang.Translate("XSWD ON")
-							} else {
-								txt = lang.Translate("XSWD OFF")
-							}
-
-							lbl := material.Label(th, unit.Sp(14), txt)
-							lbl.Color = theme.Current.XSWDBgTextColor
-							lbl.Font.Weight = font.Bold
-
-							offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(30))))
-							op.Affine(offset).Add(gtx.Ops)
-
-							layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-								r := op.Record(gtx.Ops)
-								dims := layout.Inset{
-									Top: unit.Dp(3), Bottom: unit.Dp(3),
-									Left: unit.Dp(12), Right: unit.Dp(12),
-								}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-									return lbl.Layout(gtx)
-								})
-								c := r.Stop()
-
-								paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
-									Rect: image.Rectangle{Max: dims.Size},
-									SE:   gtx.Dp(10), SW: gtx.Dp(10),
-								}.Op(gtx.Ops))
-
-								c.Add(gtx.Ops)
-								return dims
-							})
-						}
+						p.xswdHeader.Layout(gtx, th)
 
 						return dims
 					})
@@ -352,4 +329,68 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			return bottom_bar.Instance.Layout(gtx, th)
 		}),
 	)
+}
+
+type XSWDHeader struct {
+	clickable *widget.Clickable
+}
+
+func NewXSWDHeader() *XSWDHeader {
+	return &XSWDHeader{
+		clickable: new(widget.Clickable),
+	}
+}
+
+func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	openedWallet := wallet_manager.OpenedWallet
+	xswd := openedWallet.ServerXSWD
+
+	txt := ""
+	if xswd != nil && xswd.IsRunning() {
+		txt = lang.Translate("XSWD ON")
+	} else {
+		txt = lang.Translate("XSWD OFF")
+	}
+
+	lbl := material.Label(th, unit.Sp(14), txt)
+	lbl.Color = theme.Current.XSWDBgTextColor
+	lbl.Font.Weight = font.Bold
+
+	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(30))))
+	op.Affine(offset).Add(gtx.Ops)
+
+	if x.clickable.Clicked(gtx) {
+		go func() {
+			if xswd != nil && xswd.IsRunning() {
+				openedWallet.CloseXSWD()
+			} else {
+				page_instance.LoadXSWD()
+			}
+		}()
+	}
+
+	return x.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		if x.clickable.Hovered() {
+			pointer.CursorPointer.Add(gtx.Ops)
+		}
+
+		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			r := op.Record(gtx.Ops)
+			dims := layout.Inset{
+				Top: unit.Dp(3), Bottom: unit.Dp(3),
+				Left: unit.Dp(12), Right: unit.Dp(12),
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return lbl.Layout(gtx)
+			})
+			c := r.Stop()
+
+			paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
+				Rect: image.Rectangle{Max: dims.Size},
+				SE:   gtx.Dp(10), SW: gtx.Dp(10),
+			}.Op(gtx.Ops))
+
+			c.Add(gtx.Ops)
+			return dims
+		})
+	})
 }

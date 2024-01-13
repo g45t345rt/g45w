@@ -47,10 +47,7 @@ func CloseOpenedWallet() {
 			close(wallet.Memory.Quit) // make sure to close goroutines when wallet is in online mode
 			wallet.Memory.Close_Encrypted_Wallet()
 		}()
-		if wallet.ServerXSWD != nil {
-			wallet.ServerXSWD.Stop()
-			wallet.ServerXSWD = nil
-		}
+		wallet.CloseXSWD()
 		wallet.DB.Close()
 		OpenedWallet = nil
 	}
@@ -140,11 +137,18 @@ open_wallet:
 	return nil
 }
 
-func (w *Wallet) LoadXSWD(appHandler func(appData *xswd.ApplicationData) bool, reqHandler func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission) {
+func (w *Wallet) OpenXSWD(appHandler func(appData *xswd.ApplicationData) bool, reqHandler func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission) {
 	// create the XSWD server and start listening to incoming calls for authorization
 	// XSWD is a secure communication protocol that offers easy interaction between the user wallet and a dApp
 	// it was create by Slixe
 	w.ServerXSWD = xswd.NewXSWDServer(w.Memory, appHandler, reqHandler)
+}
+
+func (w *Wallet) CloseXSWD() {
+	if w.ServerXSWD != nil {
+		w.ServerXSWD.Stop()
+		w.ServerXSWD = nil
+	}
 }
 
 func (w *Wallet) Delete() error {
