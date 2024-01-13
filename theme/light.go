@@ -38,6 +38,9 @@ var Light = &Theme{
 	NodeStatusDotYellowColor: color.NRGBA{R: 255, G: 255, B: 0, A: 255},
 	NodeStatusDotRedColor:    color.NRGBA{R: 225, G: 0, B: 0, A: 255},
 
+	XSWDBgColor:     color.NRGBA{A: 100},
+	XSWDBgTextColor: blackColor,
+
 	InputColors: components.InputColors{
 		BackgroundColor: whiteColor,
 		TextColor:       blackColor,

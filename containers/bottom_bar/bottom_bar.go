@@ -233,7 +233,7 @@ func (b BottomBarTopWallet) Layout(gtx layout.Context, th *material.Theme) {
 			walletName := openedWallet.Info.Name
 			//text := lang.Translate("Wallet: {}")
 			//text = strings.Replace(text, "{}", walletName, -1)
-			lbl := material.Label(th, unit.Sp(18), walletName)
+			lbl := material.Label(th, unit.Sp(20), walletName)
 			lbl.Color = theme.Current.BottomButtonSelectedColor
 			lbl.Font.Weight = font.Bold
 			return lbl.Layout(gtx)

@@ -315,10 +315,6 @@ func NewContactListItem(contact wallet_manager.Contact) *ContactListItem {
 }
 
 func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if item.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
 	if item.buttonEdit.Clicked(gtx) {
 		page_instance.pageContactForm.contact = &item.contact
 		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)

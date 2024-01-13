@@ -1,11 +1,13 @@
 package page_wallet
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"strings"
 
 	"gioui.org/app"
+	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -213,6 +215,7 @@ func (p *Page) Enter() {
 			}
 
 			reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
+				fmt.Println(req)
 				return xswd.Allow
 			}
 
@@ -273,25 +276,55 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					return node_status_bar.Instance.Layout(gtx, th)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					xswd := openedWallet.ServerXSWD
-					txt := "xswd: not running"
-					if xswd.IsRunning() {
-						txt = "xswd: running"
-					}
-					lbl := material.Label(th, unit.Sp(20), txt)
-					return lbl.Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					r := op.Record(gtx.Ops)
 					dims := layout.Inset{
 						Left: unit.Dp(30), Right: unit.Dp(30),
 						Top: unit.Dp(30), Bottom: unit.Dp(20),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
+
+						dims := p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
 							lbl := material.Label(th, unit.Sp(22), title)
 							lbl.Font.Weight = font.Bold
 							return lbl.Layout(gtx)
 						})
+
+						{
+							xswd := openedWallet.ServerXSWD
+							txt := ""
+							if xswd.IsRunning() {
+								txt = lang.Translate("XSWD ON")
+							} else {
+								txt = lang.Translate("XSWD OFF")
+							}
+
+							lbl := material.Label(th, unit.Sp(14), txt)
+							lbl.Color = theme.Current.XSWDBgTextColor
+							lbl.Font.Weight = font.Bold
+
+							offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(30))))
+							op.Affine(offset).Add(gtx.Ops)
+
+							layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+								r := op.Record(gtx.Ops)
+								dims := layout.Inset{
+									Top: unit.Dp(3), Bottom: unit.Dp(3),
+									Left: unit.Dp(12), Right: unit.Dp(12),
+								}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+									return lbl.Layout(gtx)
+								})
+								c := r.Stop()
+
+								paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
+									Rect: image.Rectangle{Max: dims.Size},
+									SE:   gtx.Dp(10), SW: gtx.Dp(10),
+								}.Op(gtx.Ops))
+
+								c.Add(gtx.Ops)
+								return dims
+							})
+						}
+
+						return dims
 					})
 					c := r.Stop()
 

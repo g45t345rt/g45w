@@ -37,6 +37,10 @@ type Theme struct {
 	NodeStatusDotYellowColor color.NRGBA
 	NodeStatusDotRedColor    color.NRGBA
 
+	// XSWD Top Bar
+	XSWDBgColor     color.NRGBA
+	XSWDBgTextColor color.NRGBA
+
 	// Input
 	InputColors components.InputColors
 

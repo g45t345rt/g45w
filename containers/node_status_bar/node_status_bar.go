@@ -104,16 +104,16 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}
 	}
 
-	if n.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
 	if n.clickable.Clicked(gtx) {
 		app_instance.Router.SetCurrent(pages.PAGE_NODE)
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
 	return n.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		if n.clickable.Hovered() {
+			pointer.CursorPointer.Add(gtx.Ops)
+		}
+
 		return layout.Inset{
 			Top: unit.Dp(15), Bottom: unit.Dp(15),
 			Left: unit.Dp(10), Right: unit.Dp(10),

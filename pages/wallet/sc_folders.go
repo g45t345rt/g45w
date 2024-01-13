@@ -561,10 +561,6 @@ func NewTokenFolderItemFolder(folder wallet_manager.TokenFolder, tokenCount int)
 }
 
 func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if item.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
 	if item.clickable.Clicked(gtx) {
 		if item.folder != nil {
 			id := sql.NullInt64{Int64: item.folder.ID, Valid: true}
@@ -590,6 +586,10 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 					paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(image.Rectangle{
 						Max: gtx.Constraints.Max,
 					}, gtx.Dp(10)).Op(gtx.Ops))
+
+					if item.clickable.Hovered() {
+						pointer.CursorPointer.Add(gtx.Ops)
+					}
 
 					if item.folderIcon != nil {
 						return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -674,6 +674,10 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 						)
 					})
 					c := r.Stop()
+
+					if item.clickable.Hovered() {
+						pointer.CursorPointer.Add(gtx.Ops)
+					}
 
 					paint.FillShape(gtx.Ops, theme.Current.ListBgColor, clip.UniformRRect(image.Rectangle{
 						Max: dims.Size,

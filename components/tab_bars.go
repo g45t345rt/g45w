@@ -80,11 +80,11 @@ func NewTabBarItem(key string) *TabBarsItem {
 }
 
 func (t *TabBarsItem) Layout(gtx layout.Context, th *material.Theme, tabBars *TabBars, textSize unit.Sp, text string) layout.Dimensions {
-	if t.clickable.Hovered() && !t.selected {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
 	return t.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		if t.clickable.Hovered() && !t.selected {
+			pointer.CursorPointer.Add(gtx.Ops)
+		}
+
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{

@@ -832,10 +832,6 @@ func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
 }
 
 func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if item.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
 	if item.clickable.Clicked(gtx) {
 		page_instance.pageSCToken.SetToken(item.token)
 		page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)
@@ -862,6 +858,10 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 				return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					if item.clickable.Hovered() {
+						pointer.CursorPointer.Add(gtx.Ops)
+					}
+
 					return layout.Flex{
 						Axis:      layout.Horizontal,
 						Alignment: layout.Middle,
@@ -1142,10 +1142,6 @@ func NewTxListItem(entry wallet_manager.Entry, decimals int) *TxListItem {
 }
 
 func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if item.clickable.Hovered() {
-		pointer.CursorPointer.Add(gtx.Ops)
-	}
-
 	if item.clickable.Clicked(gtx) {
 		page_instance.pageTransaction.SetEntry(item.entry)
 		page_instance.pageRouter.SetCurrent(PAGE_TRANSACTION)
@@ -1164,6 +1160,10 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	m := op.Record(gtx.Ops)
 	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		if item.clickable.Hovered() {
+			pointer.CursorPointer.Add(gtx.Ops)
+		}
+
 		return layout.Inset{
 			Top: unit.Dp(13), Bottom: unit.Dp(13),
 			Left: unit.Dp(15), Right: unit.Dp(15),
