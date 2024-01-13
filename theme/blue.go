@@ -99,7 +99,7 @@ var Blue = &Theme{
 
 	ListTextColor:        whiteColor,
 	ListBgColor:          color.NRGBA{R: 16, G: 87, B: 181, A: 255},
-	ListItemHoverBgColor: color.NRGBA{R: 16, G: 87, B: 181, A: 255},
+	ListItemHoverBgColor: color.NRGBA{R: 19, G: 101, B: 210, A: 255},
 	ListScrollBarBgColor: whiteColor,
 	ListItemTagBgColor:   blueColor,
 	ListItemTagTextColor: whiteColor,
