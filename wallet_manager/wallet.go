@@ -1,6 +1,7 @@
 package wallet_manager
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -391,7 +392,7 @@ func (w *Wallet) GetGasEstimate(transfers []rpc.Transfer, ringsize uint64, scArg
 	signer := w.Memory.GetAddress().String()
 
 	var result rpc.GasEstimate_Result
-	err := walletapi.GetRPCClient().Call("DERO.GetGasEstimate", rpc.GasEstimate_Params{
+	err := RPCCall("DERO.GetGasEstimate", rpc.GasEstimate_Params{
 		Transfers: transfers,
 		SC_RPC:    scArgs,
 		Ringsize:  ringsize,
@@ -591,7 +592,7 @@ func saveWalletData(wallet *walletapi.Wallet_Memory) error {
 func (w *Wallet) GetRandomAddresses(scId crypto.Hash) ([]string, error) {
 	var result rpc.GetRandomAddress_Result
 
-	err := walletapi.GetRPCClient().Call("DERO.GetRandomAddress", rpc.GetRandomAddress_Params{
+	err := RPCCall("DERO.GetRandomAddress", rpc.GetRandomAddress_Params{
 		SCID: scId,
 	}, &result)
 	if err != nil {
@@ -626,4 +627,13 @@ func (w *Wallet) GetRandomAddress(scId crypto.Hash) (string, error) {
 
 	index := rand.Intn(len(addrList))
 	return addrList[index], nil
+}
+
+func RPCCall(method string, params interface{}, result interface{}) error {
+	rpcClient := walletapi.GetRPCClient()
+	if rpcClient.RPC == nil {
+		return fmt.Errorf("node client is not connected")
+	}
+
+	return rpcClient.RPC.CallResult(context.Background(), method, params, result)
 }

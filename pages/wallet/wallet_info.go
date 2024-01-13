@@ -71,6 +71,8 @@ func (p *PageWalletInfo) Enter() {
 func (p *PageWalletInfo) Leave() {
 	p.animationEnter.Reset()
 	p.animationLeave.Start()
+	// clear from memory
+	p.infoItems = make([]*page_settings.InfoListItem, 0)
 }
 
 func (p *PageWalletInfo) IsActive() bool {

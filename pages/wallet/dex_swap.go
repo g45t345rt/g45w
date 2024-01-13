@@ -16,7 +16,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
@@ -151,7 +150,7 @@ func (p *PageDEXSwap) SetPair(pair dex_sc.Pair, token1 *wallet_manager.Token, to
 
 func (p *PageDEXSwap) Load() error {
 	var result rpc.GetSC_Result
-	err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
+	err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
 		SCID:      p.pair.SCID,
 		Code:      false,
 		Variables: true,

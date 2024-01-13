@@ -372,9 +372,10 @@ func (n *RemoteNodeInfo) Active() {
 }
 
 func (n *RemoteNodeInfo) Update() {
-	if walletapi.GetRPCClient().RPC == nil {
+	rpcClient := walletapi.GetRPCClient()
+	if rpcClient.RPC == nil {
 		return
 	}
 
-	n.Err = walletapi.GetRPCClient().Call("DERO.GetInfo", nil, &n.Result)
+	n.Err = rpcClient.Call("DERO.GetInfo", nil, &n.Result)
 }

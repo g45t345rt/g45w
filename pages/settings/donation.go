@@ -1,7 +1,6 @@
 package page_settings
 
 import (
-	"context"
 	"fmt"
 	"image/color"
 	"strconv"
@@ -19,7 +18,6 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
@@ -185,36 +183,34 @@ func (p *PageDonation) Load() error {
 	var result rpc.GetSC_Result
 	p.donationResult = DonationResult{Loaded: false}
 
-	if walletapi.Connected {
-		err := walletapi.GetRPCClient().RPC.CallResult(context.Background(), "DERO.GetSC", rpc.GetSC_Params{
-			SCID:      DONATION_SC,
-			Code:      false,
-			Variables: false,
-			KeysString: []string{
-				"totalDonated", "totalDonations",
-				"highestDonation", "highestDonationAddr", "highestDonationTimestamp",
-				"lastDonation", "lastDonationAddr", "lastDonationTimestamp",
-				"d_", // d_ = total donated anonymously or d_{signer} = total value donated by one specific addr
-			},
-		}, &result)
-		if err != nil {
-			return err
-		}
-
-		p.donationResult.TotalDonated, _ = strconv.ParseUint(result.ValuesString[0], 10, 64)
-		p.donationResult.TotalDonations, _ = strconv.ParseUint(result.ValuesString[1], 10, 64)
-
-		p.donationResult.HighestDonation, _ = strconv.ParseUint(result.ValuesString[2], 10, 64)
-		p.donationResult.HighestDonationAddr, _ = utils.DecodeString(result.ValuesString[3])
-		p.donationResult.HighestDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[4], 10, 64)
-
-		p.donationResult.LastDonation, _ = strconv.ParseUint(result.ValuesString[5], 10, 64)
-		p.donationResult.LastDonationAddr, _ = utils.DecodeString(result.ValuesString[6])
-		p.donationResult.LastDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[7], 10, 64)
-
-		p.donationResult.TotalAnonymouslyDonated, _ = strconv.ParseUint(result.ValuesString[8], 10, 64)
-		p.donationResult.Loaded = true
+	err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
+		SCID:      DONATION_SC,
+		Code:      false,
+		Variables: false,
+		KeysString: []string{
+			"totalDonated", "totalDonations",
+			"highestDonation", "highestDonationAddr", "highestDonationTimestamp",
+			"lastDonation", "lastDonationAddr", "lastDonationTimestamp",
+			"d_", // d_ = total donated anonymously or d_{signer} = total value donated by one specific addr
+		},
+	}, &result)
+	if err != nil {
+		return err
 	}
+
+	p.donationResult.TotalDonated, _ = strconv.ParseUint(result.ValuesString[0], 10, 64)
+	p.donationResult.TotalDonations, _ = strconv.ParseUint(result.ValuesString[1], 10, 64)
+
+	p.donationResult.HighestDonation, _ = strconv.ParseUint(result.ValuesString[2], 10, 64)
+	p.donationResult.HighestDonationAddr, _ = utils.DecodeString(result.ValuesString[3])
+	p.donationResult.HighestDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[4], 10, 64)
+
+	p.donationResult.LastDonation, _ = strconv.ParseUint(result.ValuesString[5], 10, 64)
+	p.donationResult.LastDonationAddr, _ = utils.DecodeString(result.ValuesString[6])
+	p.donationResult.LastDonationTimestamp, _ = strconv.ParseUint(result.ValuesString[7], 10, 64)
+
+	p.donationResult.TotalAnonymouslyDonated, _ = strconv.ParseUint(result.ValuesString[8], 10, 64)
+	p.donationResult.Loaded = true
 
 	return nil
 }

@@ -18,7 +18,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -137,7 +136,7 @@ func (p *PageDEXPairs) Load() error {
 		// a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce
 
 		var result rpc.GetSC_Result
-		err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
+		err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
 			SCID:      "a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce",
 			Code:      false,
 			Variables: true,
@@ -158,7 +157,7 @@ func (p *PageDEXPairs) Load() error {
 					scId := value.(string)
 
 					var result rpc.GetSC_Result
-					err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
+					err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
 						SCID:      scId,
 						Code:      false,
 						Variables: true,

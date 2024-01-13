@@ -21,7 +21,6 @@ import (
 
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/caching"
@@ -279,7 +278,7 @@ func GetSC(scId string) (result rpc.GetSC_Result, cached bool, err error) {
 		return
 	}
 
-	err = walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
+	err = RPCCall("DERO.GetSC", rpc.GetSC_Params{
 		SCID:      scId,
 		Variables: true,
 		Code:      true,

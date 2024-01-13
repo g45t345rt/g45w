@@ -14,7 +14,6 @@ import (
 	"gioui.org/widget/material"
 	crypto "github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/deroproject/derohe/walletapi"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
@@ -126,7 +125,7 @@ func (p *PageDEXSCBridgeOut) SetToken(token *wallet_manager.Token) {
 	p.balanceContainer.SetToken(p.token)
 
 	var result rpc.GetSC_Result
-	err := walletapi.GetRPCClient().Call("DERO.GetSC", rpc.GetSC_Params{
+	err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
 		SCID:       p.token.SCID,
 		Code:       false,
 		Variables:  false,

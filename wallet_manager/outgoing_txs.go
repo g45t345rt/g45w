@@ -113,7 +113,7 @@ func (w *Wallet) CheckRegistrationTx(tx transaction.Transaction) (rpc.GetEncrypt
 	// use GetEncryptedBalance to get registration height/block
 
 	var balanceResult rpc.GetEncryptedBalance_Result
-	err := walletapi.GetRPCClient().Call("DERO.GetEncryptedBalance", rpc.GetEncryptedBalance_Params{
+	err := RPCCall("DERO.GetEncryptedBalance", rpc.GetEncryptedBalance_Params{
 		TopoHeight: -1,
 		Address:    w.Info.Addr,
 	}, &balanceResult)
@@ -122,7 +122,7 @@ func (w *Wallet) CheckRegistrationTx(tx transaction.Transaction) (rpc.GetEncrypt
 	}
 
 	var blockResult rpc.GetBlock_Result
-	err = walletapi.GetRPCClient().Call("DERO.GetBlock", rpc.GetBlock_Params{
+	err = RPCCall("DERO.GetBlock", rpc.GetBlock_Params{
 		Height: uint64(balanceResult.Registration),
 	}, &blockResult)
 	if err != nil {
@@ -175,7 +175,7 @@ func (w *Wallet) UpdatePendingOutgoingTxs() (int, error) {
 	}
 
 	var txResult rpc.GetTransaction_Result
-	err = walletapi.GetRPCClient().Call("DERO.GetTransaction", rpc.GetTransaction_Params{
+	err = RPCCall("DERO.GetTransaction", rpc.GetTransaction_Params{
 		Tx_Hashes: txIds,
 	}, &txResult)
 	if err != nil {

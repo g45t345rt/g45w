@@ -322,7 +322,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(14), lang.Translate("Delete most data and rescan."))
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Delete wallet cache data and rescan blockchain."))
 					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				}),
