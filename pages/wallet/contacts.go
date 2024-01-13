@@ -331,6 +331,10 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		page_instance.header.GoBack()
 	}
 
+	if item.clickable.Clicked(gtx) {
+		item.listItemSelect.Toggle()
+	}
+
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(10),
 		Right: unit.Dp(30), Left: unit.Dp(30),
@@ -373,10 +377,6 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 						gtx.Dp(10),
 					).Op(gtx.Ops),
 				)
-			}
-
-			if item.clickable.Clicked(gtx) {
-				item.listItemSelect.Toggle()
 			}
 
 			layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {

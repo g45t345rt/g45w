@@ -348,8 +348,13 @@ func NewGatewayListItem(gateway app_db.IPFSGateway) GatewayListItem {
 }
 
 func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme, fill bool) layout.Dimensions {
-	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+	if item.clickable.Clicked(gtx) {
+		page_instance.pageEditIPFSGateway.gateway = item.gateway
+		page_instance.pageRouter.SetCurrent(PAGE_EDIT_IPFS_GATEWAY)
+		page_instance.header.AddHistory(PAGE_EDIT_IPFS_GATEWAY)
+	}
 
+	return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		r := op.Record(gtx.Ops)
 		dims := layout.UniformInset(item.rounded).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			if item.gateway.Active {
@@ -389,12 +394,6 @@ func (item *GatewayListItem) Layout(gtx layout.Context, th *material.Theme, fill
 					gtx.Dp(item.rounded),
 				).Op(gtx.Ops),
 			)
-		}
-
-		if item.clickable.Clicked(gtx) {
-			page_instance.pageEditIPFSGateway.gateway = item.gateway
-			page_instance.pageRouter.SetCurrent(PAGE_EDIT_IPFS_GATEWAY)
-			page_instance.header.AddHistory(PAGE_EDIT_IPFS_GATEWAY)
 		}
 
 		c.Add(gtx.Ops)
