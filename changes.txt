@@ -7,6 +7,6 @@ v0.9.0
 - New startup popup if no node is selected.
 - Added wallet address hashicon.
 - Fix donation button crash if wallet & node is not connected.
-- TODO: New background service for Android. Mandatory to interact with XSWD or keep the node connection open.
 - Confirm box for Integrated Node (avoid missclick and start bootstrap).
-- Support webp by importing golang.org/x/image/webp
+- Support NFT webp image by importing golang.org/x/image/webp.
+- New background service for Android. Required to interact with XSWD or keep the node connection open.

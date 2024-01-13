@@ -10,6 +10,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/android_background_service"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
@@ -30,11 +31,12 @@ type PageMain struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	langSelector      *prefabs.LangSelector
-	themeSelector     *prefabs.ThemeSelector
-	buttonInfo        *components.Button
-	buttonIpfsGateway *components.Button
-	buttonDonation    *components.Button
+	langSelector                   *prefabs.LangSelector
+	themeSelector                  *prefabs.ThemeSelector
+	buttonInfo                     *components.Button
+	buttonIpfsGateway              *components.Button
+	buttonDonation                 *components.Button
+	androidBackgroundServiceSwitch *AndroidBackgroundServiceSwitch
 }
 
 var _ router.Page = &PageMain{}
@@ -109,11 +111,12 @@ func NewPageFront() *PageMain {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		langSelector:      langSelector,
-		themeSelector:     themeSelector,
-		buttonInfo:        buttonInfo,
-		buttonIpfsGateway: buttonIpfsGateway,
-		buttonDonation:    buttonDonation,
+		langSelector:                   langSelector,
+		themeSelector:                  themeSelector,
+		buttonInfo:                     buttonInfo,
+		buttonIpfsGateway:              buttonIpfsGateway,
+		buttonDonation:                 buttonDonation,
+		androidBackgroundServiceSwitch: NewAndroidBackgroundServiceSwitch(),
 	}
 }
 
@@ -221,6 +224,9 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			p.buttonDonation.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonDonation.Layout(gtx, th)
 		},
+		func(gtx layout.Context) layout.Dimensions {
+			return p.androidBackgroundServiceSwitch.Layout(gtx, th)
+		},
 	}
 
 	listStyle := material.List(th, p.list)
@@ -232,4 +238,62 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
+}
+
+type AndroidBackgroundServiceSwitch struct {
+	switchForeground *widget.Bool
+	switchValue      bool
+}
+
+func NewAndroidBackgroundServiceSwitch() *AndroidBackgroundServiceSwitch {
+	return &AndroidBackgroundServiceSwitch{
+		switchForeground: new(widget.Bool),
+	}
+}
+
+func (a *AndroidBackgroundServiceSwitch) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	available := android_background_service.IsAvailable()
+	running, _ := android_background_service.IsRunning()
+
+	if available && running {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(20), lang.Translate("Android background service"))
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						s := material.Switch(th, a.switchForeground, "")
+						s.Color = theme.Current.SwitchColors
+
+						// switch does not have a released func
+						if a.switchForeground.Value != a.switchValue {
+							a.switchValue = a.switchForeground.Value
+
+							go func() {
+								if a.switchValue {
+									android_background_service.StartForeground()
+								} else {
+									android_background_service.StopForeground()
+								}
+							}()
+						}
+
+						return s.Layout(gtx)
+					}),
+					layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						lbl := material.Label(th, unit.Sp(14), lang.Translate("This is required to either interact with XSWD or keep the node connection open."))
+						lbl.Color = theme.Current.TextMuteColor
+						return lbl.Layout(gtx)
+					}),
+				)
+			}),
+		)
+	}
+
+	return layout.Dimensions{}
 }
