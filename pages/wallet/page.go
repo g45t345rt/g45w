@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"strings"
+	"time"
 
 	"gioui.org/app"
 	"gioui.org/f32"
@@ -24,6 +25,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
+	"github.com/g45t345rt/g45w/containers/xswd_perm_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -33,6 +35,7 @@ import (
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type Page struct {
@@ -56,6 +59,8 @@ type Page struct {
 	pageDEXRemLiquidity *PageDEXRemLiquidity
 	pageDEXSCBridgeOut  *PageDEXSCBridgeOut
 	pageDEXSCBridgeIn   *PageDEXSCBridgeIn
+	pageXSWDManage      *PageXSWDManage
+	pageXSWDApp         *PageXSWDApp
 
 	pageRouter *router.Router
 }
@@ -87,6 +92,8 @@ var (
 	PAGE_DEX_REM_LIQUIDITY = "page_dex_rem_liquidity"
 	PAGE_DEX_SC_BRIDGE_OUT = "page_dex_sc_bridge_out"
 	PAGE_DEX_SC_BRIDGE_IN  = "page_dex_sc_bridge_in"
+	PAGE_XSWD_MANAGE       = "page_xswd_manage"
+	PAGE_XSWD_APP          = "page_xswd_app"
 )
 
 func New() *Page {
@@ -162,6 +169,12 @@ func New() *Page {
 	pageDEXSCBridgeIn := NewPageDEXSCBridgeIn()
 	pageRouter.Add(PAGE_DEX_SC_BRIDGE_IN, pageDEXSCBridgeIn)
 
+	pageXSWDManage := NewPageXSWDManage()
+	pageRouter.Add(PAGE_XSWD_MANAGE, pageXSWDManage)
+
+	pageXSWDApp := NewPageXSWDApp()
+	pageRouter.Add(PAGE_XSWD_APP, pageXSWDApp)
+
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
@@ -184,6 +197,8 @@ func New() *Page {
 		pageDEXRemLiquidity: pageDEXRemLiquidity,
 		pageDEXSCBridgeOut:  pageDEXSCBridgeOut,
 		pageDEXSCBridgeIn:   pageDEXSCBridgeIn,
+		pageXSWDManage:      pageXSWDManage,
+		pageXSWDApp:         pageXSWDApp,
 
 		pageRouter: pageRouter,
 	}
@@ -206,9 +221,11 @@ func (p *Page) Enter() {
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
 
+		/* Commented because for now we want it disabled by default
 		if openedWallet.ServerXSWD == nil {
 			p.LoadXSWD()
 		}
+		*/
 
 		//node_status_bar.Instance.Update()
 		lastHistory := p.header.GetLastHistory()
@@ -231,16 +248,26 @@ func (p *Page) LoadXSWD() {
 		prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
 		prompt = strings.Replace(prompt, "{}", appData.Name, -1)
 		yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
-			Title:  "XSWD Auth",
+			Title:  lang.Translate("XSWD Auth"),
 			Prompt: prompt,
 		})
+
 		w.Invalidate()
-		return <-yesChan
+		yes := <-yesChan
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			page_instance.pageXSWDManage.Load()
+			w.Invalidate()
+		}()
+
+		return yes
 	}
 
 	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
-		fmt.Println(req)
-		return xswd.Allow
+		fmt.Println(req.Method(), req.ParamString())
+		permChan := xswd_perm_modal.Instance.Open(appData, req.Method())
+		w.Invalidate()
+		return <-permChan
 	}
 
 	openedWallet.OpenXSWD(appHandler, reqHandler)
@@ -292,14 +319,15 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 						Left: unit.Dp(30), Right: unit.Dp(30),
 						Top: unit.Dp(30), Bottom: unit.Dp(20),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-
 						dims := p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
 							lbl := material.Label(th, unit.Sp(22), title)
 							lbl.Font.Weight = font.Bold
 							return lbl.Layout(gtx)
 						})
 
-						p.xswdHeader.Layout(gtx, th)
+						if page_instance.pageRouter.Current == PAGE_BALANCE_TOKENS {
+							p.xswdHeader.Layout(gtx, th)
+						}
 
 						return dims
 					})
@@ -332,12 +360,18 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 }
 
 type XSWDHeader struct {
-	clickable *widget.Clickable
+	toggleClickable *widget.Clickable
+	manageClickable *widget.Clickable
+	manageIcon      *widget.Icon
 }
 
 func NewXSWDHeader() *XSWDHeader {
+	manageIcon, _ := widget.NewIcon(icons.ActionSettingsApplications)
+
 	return &XSWDHeader{
-		clickable: new(widget.Clickable),
+		toggleClickable: new(widget.Clickable),
+		manageClickable: new(widget.Clickable),
+		manageIcon:      manageIcon,
 	}
 }
 
@@ -345,52 +379,89 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	openedWallet := wallet_manager.OpenedWallet
 	xswd := openedWallet.ServerXSWD
 
-	txt := ""
-	if xswd != nil && xswd.IsRunning() {
-		txt = lang.Translate("XSWD ON")
-	} else {
-		txt = lang.Translate("XSWD OFF")
-	}
-
-	lbl := material.Label(th, unit.Sp(14), txt)
-	lbl.Color = theme.Current.XSWDBgTextColor
-	lbl.Font.Weight = font.Bold
-
 	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(30))))
 	op.Affine(offset).Add(gtx.Ops)
 
-	if x.clickable.Clicked(gtx) {
-		go func() {
-			if xswd != nil && xswd.IsRunning() {
-				openedWallet.CloseXSWD()
-			} else {
-				page_instance.LoadXSWD()
-			}
-		}()
-	}
+	return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if x.toggleClickable.Clicked(gtx) {
+					go func() {
+						if xswd != nil && xswd.IsRunning() {
+							openedWallet.CloseXSWD()
+						} else {
+							page_instance.LoadXSWD()
+						}
+					}()
+				}
 
-	return x.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		if x.clickable.Hovered() {
-			pointer.CursorPointer.Add(gtx.Ops)
-		}
+				return x.toggleClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					if x.toggleClickable.Hovered() {
+						pointer.CursorPointer.Add(gtx.Ops)
+					}
 
-		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			r := op.Record(gtx.Ops)
-			dims := layout.Inset{
-				Top: unit.Dp(3), Bottom: unit.Dp(3),
-				Left: unit.Dp(12), Right: unit.Dp(12),
-			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return lbl.Layout(gtx)
-			})
-			c := r.Stop()
+					r := op.Record(gtx.Ops)
+					dims := layout.Inset{
+						Top: unit.Dp(4), Bottom: unit.Dp(4),
+						Left: unit.Dp(12), Right: unit.Dp(4),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						txt := ""
+						if xswd != nil && xswd.IsRunning() {
+							txt = lang.Translate("XSWD ON")
+						} else {
+							txt = lang.Translate("XSWD OFF")
+						}
 
-			paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
-				Rect: image.Rectangle{Max: dims.Size},
-				SE:   gtx.Dp(10), SW: gtx.Dp(10),
-			}.Op(gtx.Ops))
+						lbl := material.Label(th, unit.Sp(14), txt)
+						lbl.Color = theme.Current.XSWDBgTextColor
+						lbl.Font.Weight = font.Bold
+						return lbl.Layout(gtx)
+					})
+					c := r.Stop()
 
-			c.Add(gtx.Ops)
-			return dims
-		})
+					paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
+						Rect: image.Rectangle{Max: dims.Size},
+						//SE:   gtx.Dp(10),
+						SW: gtx.Dp(10),
+					}.Op(gtx.Ops))
+
+					c.Add(gtx.Ops)
+
+					return dims
+				})
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if x.manageClickable.Clicked(gtx) {
+					page_instance.pageRouter.SetCurrent(PAGE_XSWD_MANAGE)
+					page_instance.header.AddHistory(PAGE_XSWD_MANAGE)
+				}
+
+				return x.manageClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					if x.manageClickable.Hovered() {
+						pointer.CursorPointer.Add(gtx.Ops)
+					}
+
+					r := op.Record(gtx.Ops)
+					dims := layout.Inset{
+						Top: unit.Dp(4), Bottom: unit.Dp(4),
+						Left: unit.Dp(4), Right: unit.Dp(10),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						gtx.Constraints.Min.X = gtx.Dp(20)
+						gtx.Constraints.Min.Y = gtx.Dp(20)
+						return x.manageIcon.Layout(gtx, theme.Current.XSWDBgTextColor)
+					})
+					c := r.Stop()
+
+					paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
+						Rect: image.Rectangle{Max: dims.Size},
+						SE:   gtx.Dp(10), //SW: gtx.Dp(10),
+					}.Op(gtx.Ops))
+
+					c.Add(gtx.Ops)
+
+					return dims
+				})
+			}),
+		)
 	})
 }

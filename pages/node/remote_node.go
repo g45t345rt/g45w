@@ -287,7 +287,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 					p.buttonDisconnect.Style.Colors = theme.Current.ButtonPrimaryColors
 					return p.buttonDisconnect.Layout(gtx, th)
 				}),
-				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					p.buttonDeselect.Text = lang.Translate("Deselect")
 					p.buttonDeselect.Style.Colors = theme.Current.ButtonInvertColors

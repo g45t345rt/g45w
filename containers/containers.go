@@ -12,6 +12,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
+	"github.com/g45t345rt/g45w/containers/xswd_perm_modal"
 )
 
 func Load() {
@@ -26,4 +27,5 @@ func Load() {
 	password_modal.LoadInstance()
 	prompt_modal.LoadInstance()
 	listselect_modal.LoadInstance()
+	xswd_perm_modal.LoadInstance()
 }
