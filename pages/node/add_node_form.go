@@ -235,8 +235,10 @@ func TestConnect(endpoint string) (info rpc.GetInfo_Result, err error) {
 		return
 	}
 
-	if info.Testnet != !globals.IsMainnet() {
-		err = fmt.Errorf("Mainnet/TestNet is different between wallet/daemon.Please run daemon/wallet without --testnet")
+	if globals.IsMainnet() && info.Testnet {
+		err = fmt.Errorf("this is not a Mainnet node")
+	} else if !globals.IsMainnet() && !info.Testnet {
+		err = fmt.Errorf("this is not a Testnet node")
 	}
 
 	return

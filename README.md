@@ -33,12 +33,10 @@ This change should remove a painful/unsafe step of connecting your wallet direct
   - Swap form.
   - Add and remove liquidity form.
   - Bridge to Eth (with ringsize).
-  - Bridge from Eth through Metamask Extensions and Mobile :D
-- Wallet address hashicon (easily recognize your wallets with a unique icons) <https://github.com/emeraldpay/hashicon>.
-
-## WIP
-
-- DApps interaction with XSWD protocol by Slixe.
+  - Bridge from Eth through Metamask Extensions and Mobile.
+- Wallet address hashicon (easily recognize your wallets with unique icons) <https://github.com/emeraldpay/hashicon>.
+- DApps connection with XSWD protocol by Slixe (toggle on/off, manage connections and permissions).
+- Testnet/Mainnet switch component mode.
 
 ## TODO
 

@@ -2,10 +2,13 @@ package app_db
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/deroproject/derohe/globals"
 	"github.com/g45t345rt/g45w/app_db/order_column"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
+	"github.com/g45t345rt/g45w/settings"
 )
 
 type NodeConnection struct {
@@ -16,26 +19,38 @@ type NodeConnection struct {
 	OrderNumber int
 }
 
-var INTEGRATED_NODE_CONNECTION = NodeConnection{
-	ID:         -1,
-	Endpoint:   "ws://127.0.0.1:10102/ws",
-	Name:       "Integrated",
-	Integrated: true,
+func GetIntegratedNode() NodeConnection {
+	endpoint := fmt.Sprintf("ws://127.0.0.1:%d/ws", globals.Config.RPC_Default_Port)
+	return NodeConnection{
+		ID:         -1,
+		Endpoint:   endpoint,
+		Name:       "Integrated",
+		Integrated: true,
+	}
 }
 
-var LOCAL_NODE_CONNECTION = NodeConnection{
-	ID:         -2,
-	Endpoint:   "ws://127.0.0.1:10102/ws",
-	Name:       "Local",
-	Integrated: false,
+func GetLocalNode() NodeConnection {
+	endpoint := fmt.Sprintf("ws://127.0.0.1:%d/ws", globals.Config.RPC_Default_Port)
+	return NodeConnection{
+		ID:         -2,
+		Endpoint:   endpoint,
+		Name:       "Local",
+		Integrated: false,
+	}
 }
 
-var TRUSTED_NODE_CONNECTIONS = []NodeConnection{
-	{Endpoint: "wss://node.deronfts.com/ws", Name: "DeroNFTs"},
-	{Endpoint: "wss://dero-node.mysrv.cloud/ws", Name: "MySrvCloud"},
-	{Endpoint: "ws://derostats.io:10102/ws", Name: "DeroStats"},
-	{Endpoint: "ws://node.derofoundation.org:11012/ws", Name: "Foundation"},
-	{Endpoint: "ws://wallet.friendspool.club:10102/ws", Name: "Friendspool"},
+func GetTrustedRemoveNodes() []NodeConnection {
+	if settings.App.Testnet {
+		return []NodeConnection{}
+	}
+
+	return []NodeConnection{
+		{Endpoint: "wss://node.deronfts.com/ws", Name: "DeroNFTs"},
+		{Endpoint: "wss://dero-node.mysrv.cloud/ws", Name: "MySrvCloud"},
+		{Endpoint: "ws://derostats.io:10102/ws", Name: "DeroStats"},
+		{Endpoint: "ws://node.derofoundation.org:11012/ws", Name: "Foundation"},
+		{Endpoint: "ws://wallet.friendspool.club:10102/ws", Name: "Friendspool"},
+	}
 }
 
 var nodeOrderer = order_column.Orderer{
@@ -96,7 +111,7 @@ func ResetNodeConnections() error {
 		return err
 	}
 
-	for i, node := range TRUSTED_NODE_CONNECTIONS {
+	for i, node := range GetTrustedRemoveNodes() {
 		_, err = tx.Exec(`
 			INSERT INTO nodes (endpoint, name, order_number)
 			VALUES (?,?,?);

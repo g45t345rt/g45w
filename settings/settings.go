@@ -9,6 +9,7 @@ import (
 	sysTheme "gioui.org/x/pref/theme"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/theme"
+	"github.com/g45t345rt/g45w/utils"
 )
 
 var (
@@ -25,7 +26,8 @@ type AppSettings struct {
 	MainTabBars  string `json:"main_tab_bars"`
 	Theme        string `json:"theme"`
 	FolderLayout string `json:"folder_layout"`
-	NodeSelect   string `json:"node_select`
+	NodeSelect   string `json:"node_select"`
+	Testnet      bool   `json:"testnet"`
 }
 
 var (
@@ -36,13 +38,16 @@ var (
 )
 
 var App AppSettings
+
 var Name = "G45W"
+var DonationAddress = "dero1qyhunyuk24g9qsjtcr4r0c7rgjquuernqcfnx76kq0jvn4ns98tf2qgj5dq70"
 
 // vars below are replaced by -ldflags during build
 var Version = "development"
 var BuildTime = ""
 var GitVersion = "development"
-var DonationAddress = "dero1qyhunyuk24g9qsjtcr4r0c7rgjquuernqcfnx76kq0jvn4ns98tf2qgj5dq70"
+
+var settingsPath = ""
 
 func Load() error {
 	dataDir, err := app.DataDir()
@@ -51,30 +56,14 @@ func Load() error {
 	}
 
 	appDir := filepath.Join(dataDir, "g45w")
-	_, err = os.Stat(appDir)
+	err = utils.CreateFolderPath(appDir)
 	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.Mkdir(appDir, os.ModePerm)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+		return err
 	}
 
-	integratedNodeDir := filepath.Join(appDir, "node")
-	walletsDir := filepath.Join(appDir, "wallets")
-	cacheDir := filepath.Join(appDir, "cache")
+	settingsPath = filepath.Join(AppDir, "settings.json")
 
-	AppDir = appDir
-	IntegratedNodeDir = integratedNodeDir
-	WalletsDir = walletsDir
-	CacheDir = cacheDir
-
-	settingsPath := filepath.Join(AppDir, "settings.json")
-
-	// settings with default values
+	// default values
 	appSettings := AppSettings{
 		Language:     "en",
 		HideBalance:  false,
@@ -82,6 +71,7 @@ func Load() error {
 		NodeSelect:   "",
 		MainTabBars:  MainTabBarsTxs,
 		FolderLayout: FolderLayoutGrid,
+		Testnet:      false,
 	}
 
 	_, err = os.Stat(settingsPath)
@@ -121,6 +111,20 @@ func Load() error {
 	}
 
 	App = appSettings
+
+	if App.Testnet {
+		appDir = filepath.Join(appDir, "testnet")
+		err = utils.CreateFolderPath(appDir)
+		if err != nil {
+			return err
+		}
+	}
+
+	AppDir = appDir
+	IntegratedNodeDir = filepath.Join(appDir, "node")
+	WalletsDir = filepath.Join(appDir, "wallets")
+	CacheDir = filepath.Join(appDir, "cache")
+
 	return nil
 }
 
@@ -130,6 +134,5 @@ func Save() error {
 		return err
 	}
 
-	path := filepath.Join(AppDir, "settings.json")
-	return os.WriteFile(path, data, os.ModePerm)
+	return os.WriteFile(settingsPath, data, os.ModePerm)
 }

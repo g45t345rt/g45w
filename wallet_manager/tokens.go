@@ -14,8 +14,6 @@ import (
 	"sync"
 	"time"
 
-	_ "golang.org/x/image/webp" // Support webp images
-
 	"gioui.org/op/paint"
 	sq "github.com/Masterminds/squirrel"
 

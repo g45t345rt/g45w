@@ -376,16 +376,18 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		})
 	})
 
-	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return layout.Inset{
-			Left: unit.Dp(30), Right: unit.Dp(30),
-			Top: unit.Dp(0), Bottom: unit.Dp(30),
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			p.buttonDexSwap.Style.Colors = theme.Current.ButtonSecondaryColors
-			p.buttonDexSwap.Text = lang.Translate("DEX Swap")
-			return p.buttonDexSwap.Layout(gtx, th)
+	if !settings.App.Testnet {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+			return layout.Inset{
+				Left: unit.Dp(30), Right: unit.Dp(30),
+				Top: unit.Dp(0), Bottom: unit.Dp(30),
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				p.buttonDexSwap.Style.Colors = theme.Current.ButtonSecondaryColors
+				p.buttonDexSwap.Text = lang.Translate("DEX Swap")
+				return p.buttonDexSwap.Layout(gtx, th)
+			})
 		})
-	})
+	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return prefabs.Divider(gtx, 3)

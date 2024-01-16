@@ -2,6 +2,7 @@ package page_settings
 
 import (
 	"image/color"
+	"os"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -14,6 +15,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modals"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -37,6 +39,7 @@ type PageMain struct {
 	buttonIpfsGateway              *components.Button
 	buttonDonation                 *components.Button
 	androidBackgroundServiceSwitch *AndroidBackgroundServiceSwitch
+	testnetSwitch                  *TestnetSwitch
 }
 
 var _ router.Page = &PageMain{}
@@ -117,6 +120,7 @@ func NewPageFront() *PageMain {
 		buttonIpfsGateway:              buttonIpfsGateway,
 		buttonDonation:                 buttonDonation,
 		androidBackgroundServiceSwitch: NewAndroidBackgroundServiceSwitch(),
+		testnetSwitch:                  NewTestnetSwitch(),
 	}
 }
 
@@ -134,6 +138,8 @@ func (p *PageMain) Enter() {
 		p.animationEnter.Start()
 		p.animationLeave.Reset()
 	}
+
+	p.testnetSwitch.Load()
 }
 
 func (p *PageMain) Leave() {
@@ -215,15 +221,23 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		func(gtx layout.Context) layout.Dimensions {
 			return p.themeSelector.Layout(gtx, th)
 		},
-		func(gtx layout.Context) layout.Dimensions {
+	}
+
+	if !settings.App.Testnet {
+		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			p.buttonDonation.Text = lang.Translate("Donate")
 			p.buttonDonation.Style.Colors = theme.Current.ButtonSecondaryColors
 			return p.buttonDonation.Layout(gtx, th)
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return p.androidBackgroundServiceSwitch.Layout(gtx, th)
-		},
+		})
 	}
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return p.testnetSwitch.Layout(gtx, th)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return p.androidBackgroundServiceSwitch.Layout(gtx, th)
+	})
 
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
@@ -292,4 +306,66 @@ func (a *AndroidBackgroundServiceSwitch) Layout(gtx layout.Context, th *material
 	}
 
 	return layout.Dimensions{}
+}
+
+type TestnetSwitch struct {
+	switchTestnet *widget.Bool
+	switchValue   bool
+}
+
+func NewTestnetSwitch() *TestnetSwitch {
+	return &TestnetSwitch{
+		switchTestnet: new(widget.Bool),
+	}
+}
+
+func (a *TestnetSwitch) Load() {
+	a.switchTestnet.Value = settings.App.Testnet
+	a.switchValue = settings.App.Testnet
+}
+
+func (a *TestnetSwitch) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(20), lang.Translate("Testnet"))
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					s := material.Switch(th, a.switchTestnet, "")
+					s.Color = theme.Current.SwitchColors
+
+					if a.switchTestnet.Value != a.switchValue {
+						a.switchValue = a.switchTestnet.Value
+
+						go func() {
+							yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+								Title:  lang.Translate("Are you sure?"),
+								Prompt: lang.Translate("The application will close, and you'll need to restart it."),
+							})
+							if yes {
+								settings.App.Testnet = a.switchValue
+								settings.Save()
+								os.Exit(0)
+							} else {
+								a.switchTestnet.Value = !a.switchTestnet.Value
+								a.switchValue = !a.switchValue
+							}
+						}()
+					}
+
+					return s.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Switching the application to Testnet mode enables connection with Testnet nodes and creates another instance for wallets."))
+					lbl.Color = theme.Current.TextMuteColor
+					return lbl.Layout(gtx)
+				}),
+			)
+		}),
+	)
 }

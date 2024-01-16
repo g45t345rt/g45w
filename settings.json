@@ -1,0 +1,10 @@
+{
+ "language": "en",
+ "hide_balance": false,
+ "send_ring_size": 16,
+ "main_tab_bars": "txs",
+ "theme": "dark",
+ "folder_layout": "grid",
+ "node_select": "1",
+ "testnet": false
+}

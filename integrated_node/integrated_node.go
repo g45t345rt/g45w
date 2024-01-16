@@ -11,7 +11,6 @@ import (
 	"github.com/deroproject/derohe/block"
 	"github.com/deroproject/derohe/blockchain"
 	derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
-	"github.com/deroproject/derohe/config"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/metrics"
 	"github.com/deroproject/derohe/p2p"
@@ -39,16 +38,9 @@ func Start() error {
 		return nil
 	}
 
-	rpcPort := config.Mainnet.RPC_Default_Port
-	rpcAddr := fmt.Sprintf("127.0.0.1:%d", rpcPort)
-	if isTcpPortInUse(rpcAddr) {
-		return fmt.Errorf("rpc port (%d) already in use", rpcPort)
-	}
-
-	nodeDir := settings.IntegratedNodeDir
-
 	runtime.MemProfileRate = 0
 
+	nodeDir := settings.IntegratedNodeDir
 	globals.Arguments["--timeisinsync"] = false
 	globals.Arguments["--p2p-bind"] = nil
 	globals.Arguments["--add-exclusive-node"] = make([]string, 0)
@@ -68,6 +60,12 @@ func Start() error {
 
 	globals.InitializeLog(os.Stdout, io.Discard)
 	globals.Initialize()
+
+	rpcPort := globals.Config.RPC_Default_Port
+	rpcAddr := fmt.Sprintf("127.0.0.1:%d", rpcPort)
+	if isTcpPortInUse(rpcAddr) {
+		return fmt.Errorf("rpc port (%d) already in use", rpcPort)
+	}
 
 	params := make(map[string]interface{})
 

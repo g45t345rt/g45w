@@ -1,6 +1,8 @@
 package main
 
 import (
+	"image"
+	"image/color"
 	"log"
 	"os"
 
@@ -10,8 +12,10 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/text"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"gioui.org/x/camera"
 	"github.com/deroproject/derohe/globals"
@@ -37,8 +41,9 @@ import (
 	_ "gioui.org/app/permission/camera"
 	_ "gioui.org/app/permission/networkstate"
 	_ "gioui.org/app/permission/storage"
-	// support webp image decode
-	//_ "github.com/chai2010/webp"
+
+	// support webp images
+	_ "golang.org/x/image/webp"
 )
 
 func loadFontCollection() ([]font.FontFace, error) {
@@ -83,15 +88,49 @@ func loadPages(router *router.Router) {
 	router.SetCurrent(pages.PAGE_WALLET_SELECT)
 }
 
-func runApp() error {
-	globals.Arguments["--testnet"] = false
+type TestnetTopBar struct{}
+
+func (t TestnetTopBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if !settings.App.Testnet {
+		return layout.Dimensions{}
+	}
+
+	return layout.N.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			r := op.Record(gtx.Ops)
+			dims := layout.Inset{
+				Left: unit.Dp(8), Right: unit.Dp(8),
+				Top: unit.Dp(2), Bottom: unit.Dp(3),
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(16), lang.Translate("Testnet"))
+				lbl.Font.Weight = font.Bold
+				return lbl.Layout(gtx)
+			})
+			c := r.Stop()
+
+			paint.FillShape(gtx.Ops, color.NRGBA{R: 255, A: 255}, clip.RRect{
+				Rect: image.Rectangle{Max: dims.Size},
+				SE:   gtx.Dp(5), SW: gtx.Dp(5),
+			}.Op(gtx.Ops))
+
+			c.Add(gtx.Ops)
+			return dims
+
+		})
+	})
+}
+
+func loadDeroGlobals(useTestnet bool) {
+	globals.Arguments["--testnet"] = useTestnet
 	globals.Arguments["--debug"] = false
 	globals.Arguments["--flog-level"] = nil
 	globals.Arguments["--log-dir"] = nil
 	globals.Arguments["--help"] = false
 	globals.Arguments["--version"] = false
 	globals.InitNetwork() // this func assign mainnet/testnet config depending on globals.Arguments["--testnet"] value
+}
 
+func runApp() error {
 	var ops op.Ops
 	app_instance.Load()
 	window := app_instance.Window
@@ -125,6 +164,8 @@ func runApp() error {
 			loadState.SetStatus("", err)
 			return
 		}
+
+		loadDeroGlobals(settings.App.Testnet)
 
 		loadState.SetStatus(lang.Translate("Loading lookup table"), nil)
 		//walletapi.Initialize_LookupTable(1, 1<<21)
@@ -189,6 +230,7 @@ func runApp() error {
 				loadState.Layout(gtx, th)
 			}
 
+			TestnetTopBar{}.Layout(gtx, th)
 			e.Frame(gtx.Ops)
 		}
 	}

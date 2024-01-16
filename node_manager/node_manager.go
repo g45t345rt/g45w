@@ -20,8 +20,8 @@ func Load() error {
 		}
 
 		var nodeConn *app_db.NodeConnection
-		integratedNodeConn := app_db.INTEGRATED_NODE_CONNECTION
-		localNodeConn := app_db.LOCAL_NODE_CONNECTION
+		integratedNodeConn := app_db.GetIntegratedNode()
+		localNodeConn := app_db.GetLocalNode()
 		switch id {
 		case integratedNodeConn.ID:
 			nodeConn = &integratedNodeConn

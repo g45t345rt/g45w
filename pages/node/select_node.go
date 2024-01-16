@@ -242,7 +242,8 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		go func() {
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 			if <-yesChan {
-				err := node_manager.Set(&app_db.INTEGRATED_NODE_CONNECTION, true)
+				integratedNode := app_db.GetIntegratedNode()
+				err := node_manager.Set(&integratedNode, true)
 				if err != nil {
 					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
 					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
@@ -257,7 +258,8 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonUseLocalNode.Clicked(gtx) {
-		p.selectNode(app_db.LOCAL_NODE_CONNECTION)
+		localNode := app_db.GetLocalNode()
+		p.selectNode(localNode)
 	}
 
 	for _, item := range p.nodeList.items {

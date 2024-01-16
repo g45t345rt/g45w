@@ -298,3 +298,19 @@ func IsMobile() bool {
 		return false
 	}
 }
+
+func CreateFolderPath(folderPath string) error {
+	_, err := os.Stat(folderPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.Mkdir(folderPath, os.ModePerm)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	return nil
+}
