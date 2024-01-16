@@ -19,7 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -199,8 +199,11 @@ func (p *PageDEXSCBridgeOut) Layout(gtx layout.Context, th *material.Theme) layo
 		go func() {
 			err := p.submitForm()
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, 0)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			}
 		}()
 	}

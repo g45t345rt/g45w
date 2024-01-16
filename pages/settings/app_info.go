@@ -18,7 +18,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
@@ -164,8 +164,12 @@ func (s InfoListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		clipboard.WriteOp{
 			Text: s.editor.Text(),
 		}.Add(gtx.Ops)
-		notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Text copied to clipboard"))
-		notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		notification_modal.Open(notification_modal.Params{
+			Type:       notification_modal.INFO,
+			Title:      lang.Translate("Clipboard"),
+			Text:       lang.Translate("Text copied to clipboard."),
+			CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+		})
 	}
 
 	dims := layout.Inset{

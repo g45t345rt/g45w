@@ -17,7 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -180,8 +180,11 @@ func NewRegisterWalletForm() *RegisterWalletForm {
 		}()
 
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
 			app_instance.Window.Invalidate()
 		}
@@ -232,8 +235,11 @@ func (p *RegisterWalletForm) Layout(gtx layout.Context, th *material.Theme) layo
 	if p.buttonStart.Clicked(gtx) {
 		err := p.startRegistration()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		}
 	}
 
@@ -373,8 +379,11 @@ func (p *SendRegistrationForm) Layout(gtx layout.Context, th *material.Theme) la
 	if p.buttonSend.Clicked(gtx) {
 		err := p.sendTransaction()
 		if err != nil {
-			notification_modals.ErrorInstance.SetVisible(true, 0)
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
 			recent_txs_modal.Instance.SetVisible(true)
 			page_instance.header.GoBack()

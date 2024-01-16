@@ -19,7 +19,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/router"
@@ -170,8 +170,11 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		go func() {
 			err := node_manager.Set(nil, true)
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			} else {
 				page_instance.header.GoBack()
 			}
@@ -326,23 +329,31 @@ func (p *PageRemoteNode) reconnect() {
 	p.connecting = true
 	go func() {
 		currentNode := node_manager.CurrentNode
-
-		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), currentNode.Endpoint)
-		notification_modals.InfoInstance.SetVisible(true, 0)
+		notification_modal.Open(notification_modal.Params{
+			Type:       notification_modal.INFO,
+			Title:      lang.Translate("Connecting..."),
+			Text:       currentNode.Endpoint,
+			CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+		})
 		err := walletapi.Connect(currentNode.Endpoint)
 		// err := node_manager.Set(currentNode, true)
 		p.connecting = false
-		notification_modals.InfoInstance.SetVisible(false, 0)
 
 		if err != nil {
-			notification_modals.InfoInstance.SetVisible(false, 0)
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
 			p.nodeInfo.Update()
 			app_instance.Window.Invalidate()
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node reconnected."))
-			notification_modals.SuccessInstance.SetVisible(true, 0)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("Remote node reconnected."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 	}()
 }

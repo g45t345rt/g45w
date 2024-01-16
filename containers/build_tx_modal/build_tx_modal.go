@@ -17,7 +17,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/containers/recent_txs_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -158,8 +158,11 @@ func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr str
 	randomAddr, err := wallet.GetRandomAddress(scId)
 	if err != nil {
 		b.modal.SetVisible(false)
-		notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-		notification_modals.ErrorInstance.SetVisible(true, 0)
+		notification_modal.Open(notification_modal.Params{
+			Type:  notification_modal.ERROR,
+			Title: lang.Translate("Error"),
+			Text:  err.Error(),
+		})
 	}
 
 	onLoad(randomAddr, func(txPayload TxPayload) {
@@ -182,8 +185,11 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 
 	if err != nil {
 		b.modal.SetVisible(false)
-		notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-		notification_modals.ErrorInstance.SetVisible(true, 0)
+		notification_modal.Open(notification_modal.Params{
+			Type:  notification_modal.ERROR,
+			Title: lang.Translate("Error"),
+			Text:  err.Error(),
+		})
 	} else {
 		b.building = false
 		b.builtTx = tx
@@ -244,8 +250,11 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 		} else {
 			err := b.sendTx()
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			} else {
 				password_modal.Instance.SetVisible(false)
 			}

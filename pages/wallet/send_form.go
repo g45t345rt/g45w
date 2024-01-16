@@ -25,7 +25,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -183,8 +183,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			err := p.prepareTx()
 			p.buttonBuildTx.SetLoading(false)
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			}
 		}()
 	}
@@ -207,8 +210,10 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	{
 		if p.ringSizeSelector.Changed {
-			settings.App.SendRingSize = p.ringSizeSelector.Size
-			settings.Save()
+			go func() {
+				settings.App.SendRingSize = p.ringSizeSelector.Size
+				settings.Save()
+			}()
 		}
 	}
 

@@ -18,7 +18,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -228,13 +228,20 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	if p.buttonResetNodeList.Clicked(gtx) {
 		err := app_db.ResetNodeConnections()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
 			p.nodeList.Load()
 			node_manager.CurrentNode = nil // deselect node
-			notification_modals.SuccessInstance.SetText("Success", lang.Translate("List reset to default."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("List reset to default."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 	}
 
@@ -245,13 +252,20 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				integratedNode := app_db.GetIntegratedNode()
 				err := node_manager.Set(&integratedNode, true)
 				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
 					page_instance.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 					page_instance.header.AddHistory(PAGE_INTEGRATED_NODE)
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Integrated node selected"))
-					notification_modals.SuccessInstance.SetVisible(true, 0)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("Integrated node selected."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 				}
 			}
 		}()
@@ -292,21 +306,31 @@ func (p *PageSelectNode) selectNode(nodeConn app_db.NodeConnection) {
 
 	p.connecting = true
 	go func() {
-		notification_modals.InfoInstance.SetText(lang.Translate("Connecting..."), nodeConn.Endpoint)
-		notification_modals.InfoInstance.SetVisible(true, 0)
+		notification_modal.Open(notification_modal.Params{
+			Type:       notification_modal.INFO,
+			Title:      lang.Translate("Connecting..."),
+			Text:       nodeConn.Endpoint,
+			CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+		})
 		err := node_manager.Set(&nodeConn, true)
 		p.connecting = false
-		notification_modals.InfoInstance.SetVisible(false, 0)
 
 		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, 0)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
 			page_instance.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 			page_instance.header.AddHistory(PAGE_REMOTE_NODE)
 			app_instance.Window.Invalidate()
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Remote node connected."))
-			notification_modals.SuccessInstance.SetVisible(true, 0)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("Remote node connected."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 	}()
 }
@@ -365,8 +389,11 @@ func (l *NodeList) Layout(gtx layout.Context, th *material.Theme, emptyText stri
 
 				err := updateIndex()
 				if err != nil {
-					notification_modals.ErrorInstance.SetText("Error", err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				}
 				app_instance.Window.Invalidate()
 			}()

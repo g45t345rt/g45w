@@ -21,7 +21,7 @@ import (
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -142,11 +142,18 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 			if <-yesChan {
 				err := wallet.ClearOutgoingTxs()
 				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Outgoing txs cleared."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Outgoing txs cleared."),
+						Text:       err.Error(),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 					r.LoadOutgoingTxs()
 				}
 			}
@@ -279,8 +286,11 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			url := fmt.Sprintf("https://explorer.dero.io/tx/%s", txId)
 			err := browser.OpenUrl(url)
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			}
 		}()
 	}
@@ -290,11 +300,18 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		err := wallet.DelOutgoingTx(item.tx.TxId)
 
 		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Transaction ref remove."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("Transaction ref remove."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 			Instance.LoadOutgoingTxs()
 		}
 	}

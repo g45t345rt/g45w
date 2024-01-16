@@ -22,7 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -212,11 +212,18 @@ func (p *PageDEXSwap) OpenMenu() {
 			err := p.Load()
 
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			} else {
-				notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Data reloaded."))
-				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:       notification_modal.SUCCESS,
+					Title:      lang.Translate("Success"),
+					Text:       lang.Translate("Data reloaded."),
+					CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+				})
 			}
 
 			app_instance.Window.Invalidate()
@@ -228,16 +235,28 @@ func (p *PageDEXSwap) OpenMenu() {
 			page_instance.header.AddHistory(PAGE_DEX_REM_LIQUIDITY)
 		case "copy_scid":
 			app_instance.Window.WriteClipboard(p.pair.SCID)
-			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
-			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.INFO,
+				Title:      lang.Translate("Clipboard"),
+				Text:       lang.Translate("SCID copied to clipboard."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		case "copy_token1_scid":
 			app_instance.Window.WriteClipboard(token1.SCID)
-			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
-			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.INFO,
+				Title:      lang.Translate("Clipboard"),
+				Text:       lang.Translate("SCID copied to clipboard."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		case "copy_token2_scid":
 			app_instance.Window.WriteClipboard(token2.SCID)
-			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
-			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.INFO,
+				Title:      lang.Translate("Clipboard"),
+				Text:       lang.Translate("SCID copied to clipboard."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 	}
 }
@@ -302,8 +321,11 @@ func (p *PageDEXSwap) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		go func() {
 			err := p.submitForm()
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, 0)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			}
 		}()
 	}

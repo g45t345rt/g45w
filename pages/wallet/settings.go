@@ -16,7 +16,7 @@ import (
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
@@ -236,8 +236,11 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			err := p.submitForm(gtx, password)
 
 			if err != nil {
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			}
 		}
 	}
@@ -359,8 +362,12 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 	case "clean_wallet":
 		wallet.Memory.Clean()
 
-		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Wallet cleaned"))
-		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		notification_modal.Open(notification_modal.Params{
+			Type:       notification_modal.SUCCESS,
+			Title:      lang.Translate("Success"),
+			Text:       lang.Translate("Walled cleaned."),
+			CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+		})
 	case "delete_wallet":
 		err := wallet.Delete()
 		if err != nil {
@@ -371,19 +378,30 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 		app_instance.Router.SetCurrent(pages.PAGE_WALLET_SELECT)
 		wallet_manager.CloseOpenedWallet()
 
-		notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Wallet deleted"))
-		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		notification_modal.Open(notification_modal.Params{
+			Type:       notification_modal.SUCCESS,
+			Title:      lang.Translate("Success"),
+			Text:       lang.Translate("Wallet deleted."),
+			CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+		})
 	case "export_txs":
 		go func() error {
 			setError := func(err error) error {
 				p.buttonExportTxs.SetLoading(false)
-				notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 				return err
 			}
 
-			notification_modals.InfoInstance.SetText(lang.Translate("Info"), lang.Translate("Exporting transactions..."))
-			notification_modals.InfoInstance.SetVisible(true, 0)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.INFO,
+				Title:      lang.Translate("Info"),
+				Text:       lang.Translate("Exporting transactions..."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 
 			account := wallet.Memory.GetAccount()
 			p.buttonExportTxs.SetLoading(true)
@@ -419,9 +437,12 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 			}
 
 			p.buttonExportTxs.SetLoading(false)
-			notification_modals.InfoInstance.SetVisible(false, 0)
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Transactions exported."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("Transactions exported."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 			return nil
 		}()
 	case "save_changes":
@@ -442,8 +463,12 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 
 			p.txtWalletChangePassword.SetValue("")
 
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Data saved."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("Data saved."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 	}
 

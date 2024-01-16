@@ -7,7 +7,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
@@ -18,7 +18,7 @@ import (
 func Load() {
 	bottom_bar.LoadInstance()
 	node_status_bar.LoadInstance()
-	notification_modals.LoadInstance()
+	notification_modal.LoadInstance()
 	recent_txs_modal.LoadInstance()
 	build_tx_modal.LoadInstance()
 	image_modal.LoadInstance()

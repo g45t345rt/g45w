@@ -16,7 +16,7 @@ import (
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -183,25 +183,35 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	}
 
 	if p.langSelector.Changed {
-		settings.App.Language = p.langSelector.Key
-		err := settings.Save()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			lang.Current = settings.App.Language
-		}
+		go func() {
+			settings.App.Language = p.langSelector.Key
+			err := settings.Save()
+			if err != nil {
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
+			} else {
+				lang.Current = settings.App.Language
+			}
+		}()
 	}
 
 	if p.themeSelector.Changed {
-		settings.App.Theme = p.themeSelector.Key
-		err := settings.Save()
-		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-		} else {
-			theme.Current = theme.Get(settings.App.Theme)
-		}
+		go func() {
+			settings.App.Theme = p.themeSelector.Key
+			err := settings.Save()
+			if err != nil {
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
+			} else {
+				theme.Current = theme.Get(settings.App.Theme)
+			}
+		}()
 	}
 
 	widgets := []layout.Widget{

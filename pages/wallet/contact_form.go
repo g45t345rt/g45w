@@ -15,7 +15,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -155,11 +155,18 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	if p.buttonSave.Clicked(gtx) {
 		err := p.submitForm()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New contact added"))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("New contact added."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 			page_instance.pageContacts.Load()
 			page_instance.header.GoBack()
 			p.ClearForm()
@@ -174,11 +181,18 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 				wallet := wallet_manager.OpenedWallet
 				err := wallet.DelContact(p.contact.Addr)
 				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Contact deleted"))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("Contact deleted."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 					page_instance.pageContacts.Load()
 					page_instance.header.GoBack()
 					p.ClearForm()

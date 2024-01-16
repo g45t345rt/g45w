@@ -26,7 +26,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -241,8 +241,12 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 			clipboard.WriteOp{
 				Text: addr,
 			}.Add(gtx.Ops)
-			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("Addr copied to clipboard"))
-			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.INFO,
+				Title:      lang.Translate("Clipboard"),
+				Text:       lang.Translate("Wallet address copied to clipboard."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
@@ -433,8 +437,10 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	{
 		changed, key := p.tabBars.Changed()
 		if changed {
-			settings.App.MainTabBars = key
-			settings.Save()
+			go func() {
+				settings.App.MainTabBars = key
+				settings.Save()
+			}()
 		}
 	}
 
@@ -679,9 +685,11 @@ func (b *ButtonHideBalance) Layout(gtx layout.Context, th *material.Theme) layou
 	}
 
 	if b.Button.Clicked(gtx) {
-		settings.App.HideBalance = !settings.App.HideBalance
-		settings.Save()
-		op.InvalidateOp{}.Add(gtx.Ops)
+		go func() {
+			settings.App.HideBalance = !settings.App.HideBalance
+			settings.Save()
+			op.InvalidateOp{}.Add(gtx.Ops)
+		}()
 	}
 
 	return b.Button.Layout(gtx, th)

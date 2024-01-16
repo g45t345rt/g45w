@@ -18,7 +18,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -132,9 +132,11 @@ func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			p.buttonFetchData.SetLoading(true)
 			token, err := p.submitForm()
 			if err != nil {
-				notification_modals.ErrorInstance.SetText("Error", err.Error())
-				notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
-
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
 			}
 
 			p.buttonFetchData.SetLoading(false)
@@ -309,11 +311,18 @@ func (c *SCDetailsContainer) Layout(gtx layout.Context, th *material.Theme) layo
 	if c.buttonAddToken.Clicked(gtx) {
 		err := c.addToken()
 		if err != nil {
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else {
-			notification_modals.SuccessInstance.SetText("Success", lang.Translate("New token added."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("New token added."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 			page_instance.header.GoBack()
 		}
 	}

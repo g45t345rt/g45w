@@ -23,7 +23,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
@@ -278,12 +278,19 @@ func (p *PageSCFolders) OpenMenu() {
 
 				err := wallet.InsertFolderToken(tokenFolder)
 				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
 					page_instance.pageSCFolders.Load()
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("New folder created."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("New folder created."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 				}
 			}
 		case "rename_folder":
@@ -298,12 +305,19 @@ func (p *PageSCFolders) OpenMenu() {
 					ParentId: currentFolder.ParentId,
 				})
 				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
 					page_instance.pageSCFolders.Load()
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Folder renamed."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("Folder renamed."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 				}
 
 				currentFolder.Name = folderName
@@ -322,8 +336,12 @@ func (p *PageSCFolders) OpenMenu() {
 				}
 			}
 
-			notification_modals.SuccessInstance.SetText("Success", lang.Translate("Cache refreshed."))
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       lang.Translate("Cache refreshed."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		case "remove_tokens":
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 
@@ -336,8 +354,12 @@ func (p *PageSCFolders) OpenMenu() {
 					}
 				}
 
-				notification_modals.SuccessInstance.SetText("Success", lang.Translate("Tokens removed."))
-				notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+				notification_modal.Open(notification_modal.Params{
+					Type:       notification_modal.SUCCESS,
+					Title:      lang.Translate("Success"),
+					Text:       lang.Translate("Tokens removed."),
+					CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+				})
 				p.Load()
 			}
 		case "delete_folder":
@@ -346,11 +368,18 @@ func (p *PageSCFolders) OpenMenu() {
 			if <-yesChan {
 				err := p.deleteCurrentFolder()
 				if err != nil {
-					notification_modals.ErrorInstance.SetText("Error", err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
-					notification_modals.SuccessInstance.SetText("Success", lang.Translate("Folder and subfolders deleted."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("Folder and subfolders deleted."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 					p.changeFolder(p.currentFolder.ParentId)
 				}
 			}

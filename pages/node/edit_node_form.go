@@ -14,7 +14,7 @@ import (
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -150,11 +150,18 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 			if <-yesChan {
 				err := p.removeNode()
 				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Node deleted"))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("Node deleted."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 					page_instance.header.GoBack()
 				}
 			}
@@ -222,8 +229,11 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 	go func() {
 		setError := func(err error) {
 			p.buttonEdit.SetLoading(false)
-			notification_modals.ErrorInstance.SetText("Error", err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		}
 
 		txtName := p.txtName.Editor()
@@ -259,8 +269,12 @@ func (p *PageEditNodeForm) submitForm(gtx layout.Context) {
 		}
 
 		p.buttonEdit.SetLoading(false)
-		notification_modals.SuccessInstance.SetText("Success", lang.Translate("Data saved"))
-		notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+		notification_modal.Open(notification_modal.Params{
+			Type:       notification_modal.SUCCESS,
+			Title:      lang.Translate("Success"),
+			Text:       lang.Translate("Data saved."),
+			CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+		})
 		page_instance.header.GoBack()
 	}()
 }

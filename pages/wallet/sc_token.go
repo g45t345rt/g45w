@@ -25,7 +25,7 @@ import (
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
-	"github.com/g45t345rt/g45w/containers/notification_modals"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
@@ -140,8 +140,12 @@ func (p *PageSCToken) Enter() {
 			clipboard.WriteOp{
 				Text: p.token.SCID,
 			}.Add(gtx.Ops)
-			notification_modals.InfoInstance.SetText(lang.Translate("Clipboard"), lang.Translate("SCID copied to clipboard"))
-			notification_modals.InfoInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.INFO,
+				Title:      lang.Translate("Clipboard"),
+				Text:       lang.Translate("SCID copied to clipboard."),
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
@@ -296,12 +300,19 @@ func (p *PageSCToken) OpenMenu() {
 				err := wallet.DelToken(p.token.ID)
 
 				if err != nil {
-					notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-					notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
 				} else {
 					page_instance.header.GoBack()
-					notification_modals.SuccessInstance.SetText(lang.Translate("Success"), lang.Translate("Token removed."))
-					notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("Token removed."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
 				}
 			}
 		case "g45_display_nft":
@@ -388,11 +399,18 @@ func (p *PageSCToken) OpenMenu() {
 		}
 
 		if err != nil {
-			notification_modals.ErrorInstance.SetText(lang.Translate("Error"), err.Error())
-			notification_modals.ErrorInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
 		} else if successMsg != "" {
-			notification_modals.SuccessInstance.SetText(lang.Translate("Success"), successMsg)
-			notification_modals.SuccessInstance.SetVisible(true, notification_modals.CLOSE_AFTER_DEFAULT)
+			notification_modal.Open(notification_modal.Params{
+				Type:       notification_modal.SUCCESS,
+				Title:      lang.Translate("Success"),
+				Text:       successMsg,
+				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+			})
 		}
 	}
 }
