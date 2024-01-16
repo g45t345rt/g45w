@@ -66,6 +66,10 @@ func OpenWallet(addr string, password string) error {
 open_wallet:
 	memory, err := walletapi.Open_Encrypted_Wallet(walletPath, password)
 	if err != nil {
+		if err.Error() == "Invalid Password" {
+			return err
+		}
+
 		if bkCopied {
 			return err
 		}
