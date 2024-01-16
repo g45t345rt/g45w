@@ -61,7 +61,7 @@ func Load() error {
 		return err
 	}
 
-	settingsPath = filepath.Join(AppDir, "settings.json")
+	settingsPath = filepath.Join(appDir, "settings.json")
 
 	// default values
 	appSettings := AppSettings{
