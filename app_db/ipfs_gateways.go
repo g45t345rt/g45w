@@ -57,8 +57,7 @@ func initTableIPFSGateways() error {
 		}
 
 		_, err = DB.Exec(`
-		ALTER TABLE ipfs_gateways
-		ADD COLUMN order_number INT NOT NULL DEFAULT 0;
+			ALTER TABLE ipfs_gateways ADD COLUMN order_number INT NOT NULL DEFAULT 0;
 		`)
 		if err != nil {
 			return err
@@ -120,6 +119,7 @@ func GetIPFSGateways(params GetIPFSGatewaysParams) ([]IPFSGateway, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var ipfsGateways []IPFSGateway
 	for rows.Next() {
@@ -204,11 +204,13 @@ func InsertIPFSGateway(gateway IPFSGateway) error {
 		return err
 	}
 
-	err = walletOrderer.Insert(tx, gateway.OrderNumber)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
+	/*
+		err = walletOrderer.Insert(tx, gateway.OrderNumber)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	*/
 
 	result, err := tx.Exec(`
 		INSERT INTO ipfs_gateways (name,endpoint,fetch_headers,active,order_number)

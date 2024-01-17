@@ -77,8 +77,7 @@ func initTableNodes() error {
 		}
 
 		_, err = DB.Exec(`
-			ALTER TABLE nodes
-			ADD COLUMN order_number INT NOT NULL DEFAULT 0;
+			ALTER TABLE nodes ADD COLUMN order_number INT NOT NULL DEFAULT 0;
 		`)
 		if err != nil {
 			return err
@@ -132,6 +131,7 @@ func GetNodeConnections() ([]NodeConnection, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var nodes []NodeConnection
 	for rows.Next() {

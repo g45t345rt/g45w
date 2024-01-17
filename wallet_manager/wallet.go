@@ -589,7 +589,7 @@ func (w *Wallet) InsertDexTokensFolder() error {
 			Symbol:         sql.NullString{String: "DUSDT", Valid: true},
 			FolderId:       folderId,
 			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
-			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			IsFavorite:     true, //sql.NullBool{Bool: true, Valid: true},
 			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png", Valid: true},
 		},
 		// DUSDC
@@ -601,7 +601,7 @@ func (w *Wallet) InsertDexTokensFolder() error {
 			Symbol:         sql.NullString{String: "DUSDC", Valid: true},
 			FolderId:       folderId,
 			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
-			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			IsFavorite:     true, //sql.NullBool{Bool: true, Valid: true},
 			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", Valid: true},
 		},
 		// DWBTC
@@ -613,7 +613,7 @@ func (w *Wallet) InsertDexTokensFolder() error {
 			Symbol:         sql.NullString{String: "DWBTC", Valid: true},
 			FolderId:       folderId,
 			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
-			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			IsFavorite:     true, //sql.NullBool{Bool: true, Valid: true},
 			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599/logo.png", Valid: true},
 		},
 		// DWETH
@@ -625,7 +625,7 @@ func (w *Wallet) InsertDexTokensFolder() error {
 			Symbol:         sql.NullString{String: "DWETH", Valid: true},
 			FolderId:       folderId,
 			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
-			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			IsFavorite:     true, //sql.NullBool{Bool: true, Valid: true},
 			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png", Valid: true},
 		},
 		// DST
@@ -638,7 +638,7 @@ func (w *Wallet) InsertDexTokensFolder() error {
 			Symbol:         sql.NullString{String: "DST", Valid: true},
 			FolderId:       folderId,
 			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
-			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			IsFavorite:     true, //sql.NullBool{Bool: true, Valid: true},
 			ImageUrl:       sql.NullString{String: "ipfs://QmboGpusU71C9zBPNjxskrXfY7GX1uoPo83MJ7NiJU2RUP/dero_seals_token.jpg", Valid: true},
 		},
 		// COCO
@@ -701,8 +701,18 @@ func (w *Wallet) InsertDexTokensFolder() error {
 	for _, token := range tokens {
 		err = w.InsertToken(token)
 		if err != nil {
-			return err
+			break
 		}
+	}
+
+	if err != nil {
+		// remove folder if an error occured while adding tokens
+		err2 := w.DelTokenFolder(folderId.Int64)
+		if err2 != nil {
+			return err2
+		}
+
+		return err
 	}
 
 	return nil

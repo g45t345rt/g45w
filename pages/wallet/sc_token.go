@@ -169,6 +169,7 @@ func (p *PageSCToken) Enter() {
 		)
 	}
 
+	page_instance.header.LeftLayout = nil
 	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		p.buttonOpenMenu.Style.Colors = theme.Current.ButtonIconPrimaryColors
 		gtx.Constraints.Min.X = gtx.Dp(30)
@@ -207,10 +208,10 @@ func (p *PageSCToken) OpenMenu() {
 	var items []*listselect_modal.SelectListItem
 	token := page_instance.pageSCToken.token
 
-	isFav := false
+	/*isFav := false
 	if token != nil && token.IsFavorite.Valid {
 		isFav = token.IsFavorite.Bool
-	}
+	}*/
 
 	standardType := sc.UNKNOWN_TYPE
 	if token != nil {
@@ -251,15 +252,13 @@ func (p *PageSCToken) OpenMenu() {
 		listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
 	))
 
-	if !isFav {
-		items = append(items, listselect_modal.NewSelectListItem("add_favorite",
-			listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
-		))
-	}
-
-	if isFav {
+	if token.IsFavorite {
 		items = append(items, listselect_modal.NewSelectListItem("remove_favorite",
 			listselect_modal.NewItemText(delFavIcon, lang.Translate("Remove from favorites")).Layout,
+		))
+	} else {
+		items = append(items, listselect_modal.NewSelectListItem("add_favorite",
+			listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
 		))
 	}
 
@@ -285,11 +284,11 @@ func (p *PageSCToken) OpenMenu() {
 			wallet.ResetBalanceResult(p.token.SCID)
 			successMsg = lang.Translate("Cache refreshed.")
 		case "add_favorite":
-			p.token.IsFavorite = sql.NullBool{Bool: true, Valid: true}
+			p.token.IsFavorite = true //sql.NullBool{Bool: true, Valid: true}
 			err = wallet.UpdateToken(*p.token)
 			successMsg = lang.Translate("Token added to favorites.")
 		case "remove_favorite":
-			p.token.IsFavorite = sql.NullBool{Bool: false, Valid: true}
+			p.token.IsFavorite = false //sql.NullBool{Bool: false, Valid: true}
 			err = wallet.UpdateToken(*p.token)
 			successMsg = lang.Translate("Token removed from favorites.")
 		case "remove_token":

@@ -11,3 +11,5 @@ v0.9.0
 - New startup popup if a node is not selected by default.
 - Fix crashes when a node is not selected or disconnected.
 - Confirm box for Integrated Node (avoid missclick and start bootstrap).
+- Fix sometime occurring `database is locked SQLITE BUSY`.
+- New drag move to order favorites tokens.

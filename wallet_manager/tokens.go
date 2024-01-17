@@ -19,6 +19,7 @@ import (
 
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/g45t345rt/g45w/app_db/order_column"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/caching"
@@ -46,8 +47,8 @@ type Token struct {
 	Decimals          int64 // native dero decimals is 5
 	StandardType      sc.SCType
 	Metadata          sql.NullString
-	IsFavorite        sql.NullBool
-	ListOrderFavorite sql.NullInt64
+	IsFavorite        bool
+	ListOrderFavorite int
 	ImageUrl          sql.NullString
 	Symbol            sql.NullString
 	FolderId          sql.NullInt64
@@ -57,6 +58,12 @@ type Token struct {
 	imgLoaded bool
 	imageOp   *paint.ImageOp
 	hash      *crypto.Hash
+}
+
+var tokenFavOrderer = order_column.Orderer{
+	TableName:   "tokens",
+	ColumnName:  "list_order_favorite",
+	FilterQuery: "is_favorite = true",
 }
 
 func (token *Token) GetHash() crypto.Hash {
@@ -386,6 +393,43 @@ func initTableTokens(db *sql.DB) error {
 		}
 	}
 
+	if version == 2 {
+		// There is no ALTER COLUMN in SQLITE -___-
+		// Alter is_favorite and list_order_favorite to not null; This was a mistake way back.
+		tx, err := db.Begin()
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`
+			UPDATE tokens SET is_favorite = 0 WHERE is_favorite IS NULL;
+			ALTER TABLE tokens RENAME COLUMN is_favorite TO temp_is_favorite;
+			ALTER TABLE tokens ADD COLUMN is_favorite BOOL NOT NULL DEFAULT 0; 
+			UPDATE tokens SET is_favorite = COALESCE(temp_is_favorite, 0);
+			ALTER TABLE tokens DROP COLUMN temp_is_favorite;
+
+			UPDATE tokens SET list_order_favorite = 0 WHERE list_order_favorite IS NULL;
+			ALTER TABLE tokens RENAME COLUMN list_order_favorite TO temp_list_order_favorite;
+			ALTER TABLE tokens ADD COLUMN list_order_favorite INT NOT NULL DEFAULT 0;
+			UPDATE tokens SET list_order_favorite = COALESCE(temp_list_order_favorite, 0);
+			ALTER TABLE tokens DROP COLUMN temp_list_order_favorite;
+		`)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			return err
+		}
+
+		version = 3
+		err = schema_version.StoreVersion(db, "tokens", version)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -445,6 +489,7 @@ func (w *Wallet) GetTokenFolderFolders(id sql.NullInt64) ([]TokenFolder, error) 
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var folders []TokenFolder
 	for rows.Next() {
@@ -546,13 +591,13 @@ func (w *Wallet) GetToken(id int64) (*Token, error) {
 		&token.Decimals,
 		&token.StandardType,
 		&token.Metadata,
-		&token.IsFavorite,
-		&token.ListOrderFavorite,
 		&token.ImageUrl,
 		&token.Symbol,
 		&token.FolderId,
 		&token.CreatedTimestamp,
 		&token.AddedTimestamp,
+		&token.IsFavorite,
+		&token.ListOrderFavorite,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -590,7 +635,7 @@ type GetTokensParams struct {
 }
 
 func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
-	query := sq.Select("*").From("tokens")
+	query := sq.Select("*").From("tokens").OrderBy("list_order_favorite ASC")
 
 	if params.IsFavorite.Valid {
 		query = query.Where(sq.Eq{"is_favorite": params.IsFavorite.Bool})
@@ -625,6 +670,7 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var tokens []Token
 	for rows.Next() {
@@ -638,13 +684,13 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 			&token.Decimals,
 			&token.StandardType,
 			&token.Metadata,
-			&token.IsFavorite,
-			&token.ListOrderFavorite,
 			&token.ImageUrl,
 			&token.Symbol,
 			&token.FolderId,
 			&token.CreatedTimestamp,
 			&token.AddedTimestamp,
+			&token.IsFavorite,
+			&token.ListOrderFavorite,
 		)
 		if err != nil {
 			return tokens, err
@@ -657,12 +703,17 @@ func (w *Wallet) GetTokens(params GetTokensParams) ([]Token, error) {
 }
 
 func (w *Wallet) InsertToken(token Token) error {
-	row := w.DB.QueryRow(`
+	tx, err := w.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	row := tx.QueryRow(`
 		SELECT COUNT(*) FROM tokens
 		WHERE sc_id = ? AND folder_id = ?
 	`, token.SCID, token.FolderId)
 	var count int
-	err := row.Scan(&count)
+	err = row.Scan(&count)
 	if err != nil {
 		return err
 	}
@@ -671,17 +722,102 @@ func (w *Wallet) InsertToken(token Token) error {
 		return nil
 	}
 
-	_, err = w.DB.Exec(`
+	/*
+		// Update fav list order if not specified
+		if token.IsFavorite.Bool && !token.ListOrderFavorite.Valid {
+			favLastOrder, err := w.GetFavTokenLastOrder()
+			if err != nil {
+				return err
+			}
+			token.ListOrderFavorite = sql.NullInt64{Int64: favLastOrder + 1, Valid: true}
+		}*/
+
+	if token.IsFavorite {
+		token.ListOrderFavorite, err = tokenFavOrderer.GetNewOrderNumber(tx)
+		if err != nil {
+			return err
+		}
+
+		/*
+			err = tokenFavOrderer.Insert(tx, orderNumber)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		*/
+	}
+
+	_, err = tx.Exec(`
 		INSERT INTO tokens (sc_id,name,max_supply,total_supply,decimals,standard_type,metadata,is_favorite,list_order_favorite,image,symbol,folder_id,created_timestamp,added_timestamp)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite,
 		token.ListOrderFavorite, token.ImageUrl, token.Symbol, token.FolderId, token.CreatedTimestamp, token.AddedTimestamp)
-	return err
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (w *Wallet) GetFavTokenLastOrder() (int64, error) {
+	row := w.DB.QueryRow(`
+		SELECT list_order_favorite FROM tokens
+		WHERE is_favorite = true
+		ORDER BY list_order_favorite DESC
+		LIMIT 1
+	`)
+
+	var lastOrder int64
+	err := row.Scan(&lastOrder)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		}
+
+		return 0, err
+	}
+
+	return lastOrder, nil
 }
 
 func (w *Wallet) UpdateToken(token Token) error {
-	_, err := w.DB.Exec(`
+	// Update fav list order if not specified
+	/*if token.IsFavorite.Bool && !token.ListOrderFavorite.Valid {
+		favLastOrder, err := w.GetFavTokenLastOrder()
+		if err != nil {
+			return err
+		}
+		token.ListOrderFavorite = sql.NullInt64{Int64: favLastOrder + 1, Valid: true}
+	}*/
+
+	tx, err := w.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	currentToken, err := w.GetToken(token.ID)
+	if err != nil {
+		return err
+	}
+
+	if token.IsFavorite {
+		err = tokenFavOrderer.Update(tx, currentToken.ListOrderFavorite, token.ListOrderFavorite)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	} else {
+		err = tokenFavOrderer.Delete(tx, currentToken.ListOrderFavorite)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	_, err = tx.Exec(`
 		UPDATE tokens
 		SET sc_id = ?,
 				name = ?,
@@ -701,7 +837,13 @@ func (w *Wallet) UpdateToken(token Token) error {
 	`, token.SCID, token.Name, token.MaxSupply, token.TotalSupply, token.Decimals,
 		token.StandardType, token.Metadata, token.IsFavorite, token.ListOrderFavorite,
 		token.ImageUrl, token.Symbol, token.FolderId, token.CreatedTimestamp, token.AddedTimestamp, token.ID)
-	return err
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (w *Wallet) DelTokenFolder(id int64) error {
@@ -715,9 +857,31 @@ func (w *Wallet) DelTokenFolder(id int64) error {
 }
 
 func (w *Wallet) DelToken(id int64) error {
-	_, err := w.DB.Exec(`
+	tx, err := w.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	currentToken, err := w.GetToken(id)
+	if err != nil {
+		return err
+	}
+
+	err = tokenFavOrderer.Delete(tx, currentToken.ListOrderFavorite)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.Exec(`
 		DELETE FROM tokens
 		WHERE id = ?;
 	`, id)
-	return err
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }

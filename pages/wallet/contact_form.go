@@ -118,6 +118,7 @@ func (p *PageContactForm) Enter() {
 	}
 
 	page_instance.header.Subtitle = nil
+	page_instance.header.LeftLayout = nil
 	page_instance.header.RightLayout = nil
 
 	if !page_instance.header.IsHistory(PAGE_CONTACT_FORM) {

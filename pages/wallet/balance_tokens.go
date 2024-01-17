@@ -23,6 +23,7 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
@@ -478,7 +479,42 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 						return p.tokenItems[idx].Layout(gtx, th)
 					})
 				})
-			}*/
+			}
+		*/
+
+		{
+			moved, cIndex, nIndex := p.tokenDragItems.ItemMoved()
+			if moved {
+				go func() {
+					wallet := wallet_manager.OpenedWallet
+					updateIndex := func() error {
+						token := p.tokenItems[cIndex].token
+						token.ListOrderFavorite = nIndex //sql.NullInt64{Int64: int64(nIndex), Valid: true}
+						err := wallet.UpdateToken(*token)
+						if err != nil {
+							return err
+						}
+
+						err = p.LoadTokens()
+						if err != nil {
+							return err
+						}
+						return nil
+					}
+
+					err := updateIndex()
+					if err != nil {
+						notification_modal.Open(notification_modal.Params{
+							Type:  notification_modal.ERROR,
+							Title: lang.Translate("Error"),
+							Text:  err.Error(),
+						})
+					}
+					app_instance.Window.Invalidate()
+				}()
+			}
+		}
+
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return p.tokenDragItems.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 				return p.tokenList.List.Layout(gtx, len(p.tokenItems), func(gtx layout.Context, index int) layout.Dimensions {

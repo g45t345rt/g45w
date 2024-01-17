@@ -38,6 +38,7 @@ func (w *Wallet) GetContacts(params GetContactsParams) ([]Contact, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var contacts []Contact
 	for rows.Next() {
@@ -66,6 +67,7 @@ func (w *Wallet) GetContact(addr string) (*Contact, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var contact *Contact
 	for rows.Next() {

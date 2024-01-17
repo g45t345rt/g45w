@@ -318,6 +318,8 @@ func (p *Page) askToCreateFolderTokens() {
 				Text:  err.Error(),
 			})
 		}
+
+		page_instance.pageBalanceTokens.LoadTokens()
 	}()
 }
 

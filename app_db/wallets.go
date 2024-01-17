@@ -152,6 +152,7 @@ func GetWallets() ([]WalletInfo, error) {
 	if err != nil {
 		return nil, nil
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var wallet WalletInfo
@@ -198,11 +199,13 @@ func InsertWalletInfo(walletInfo WalletInfo) error {
 		return err
 	}
 
-	err = walletOrderer.Insert(tx, walletInfo.OrderNumber)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
+	/*
+		err = walletOrderer.Insert(tx, walletInfo.OrderNumber)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	*/
 
 	_, err = tx.Exec(`
 		INSERT INTO wallets (addr,name,registration_tx_hex,timestamp,order_number)
