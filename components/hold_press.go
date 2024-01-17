@@ -30,7 +30,6 @@ func (h *HoldPress) Layout(gtx layout.Context, w layout.Widget) layout.Dimension
 			h.pressTime = nil
 			h.Triggered = true
 		}
-
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
@@ -41,6 +40,7 @@ func (h *HoldPress) Layout(gtx layout.Context, w layout.Widget) layout.Dimension
 		case gesture.KindCancel, gesture.KindClick:
 			h.pressTime = nil
 		}
+		op.InvalidateOp{}.Add(gtx.Ops) // make sure you invalidate or it won't trigger render sometimes (depends on mouse move if I have to guess)
 	}
 
 	r := op.Record(gtx.Ops)
