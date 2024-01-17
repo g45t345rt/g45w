@@ -1,6 +1,6 @@
 replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20240103154241-1ca722e6b44e
 
-replace gioui.org => github.com/g45t345rt/gio v0.0.0-20240104202044-61f437dec69f
+replace gioui.org => github.com/g45t345rt/gio v0.0.0-20240117160847-ec56b578e017
 
 replace gioui.org/x => github.com/g45t345rt/gio-x v0.0.0-20230919164904-d758e00e2b78
 
@@ -10,6 +10,7 @@ go 1.19
 
 require (
 	gioui.org v0.4.1
+	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/deroproject/derohe v0.0.0-20230604143809-765b2db1f482
 	github.com/ethereum/go-ethereum v1.13.1
@@ -25,7 +26,6 @@ require (
 )
 
 require (
-	git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 // indirect
 	github.com/cenkalti/hub v1.0.2 // indirect
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
