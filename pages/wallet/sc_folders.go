@@ -276,7 +276,7 @@ func (p *PageSCFolders) OpenMenu() {
 					tokenFolder.ParentId = parentId
 				}
 
-				err := wallet.InsertFolderToken(tokenFolder)
+				_, err := wallet.InsertFolderToken(tokenFolder)
 				if err != nil {
 					notification_modal.Open(notification_modal.Params{
 						Type:  notification_modal.ERROR,

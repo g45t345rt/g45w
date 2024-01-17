@@ -58,7 +58,7 @@ var nodeOrderer = order_column.Orderer{
 	ColumnName: "order_number",
 }
 
-func initDatabaseNodes() error {
+func initTableNodes() error {
 	version, err := schema_version.GetVersion(DB, "nodes")
 	if err != nil {
 		return err

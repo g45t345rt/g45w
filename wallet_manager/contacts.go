@@ -15,7 +15,7 @@ type Contact struct {
 	ListOrder sql.NullInt32 `json:"list_order"`
 }
 
-func initDatabaseContacts(db *sql.DB) error {
+func initTableContacts(db *sql.DB) error {
 	_, err := db.Exec(`
 			CREATE TABLE IF NOT EXISTS contacts (
 				addr VARCHAR PRIMARY KEY,

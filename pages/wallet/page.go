@@ -25,11 +25,13 @@ import (
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/xswd_perm_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
@@ -235,6 +237,8 @@ func (p *Page) Enter() {
 			p.header.AddHistory(PAGE_BALANCE_TOKENS)
 			p.pageRouter.SetCurrent(PAGE_BALANCE_TOKENS)
 		}
+
+		p.askToCreateFolderTokens()
 	} else {
 		app_instance.Router.SetCurrent(pages.PAGE_WALLET_SELECT)
 	}
@@ -271,6 +275,50 @@ func (p *Page) LoadXSWD() {
 	}
 
 	openedWallet.OpenXSWD(appHandler, reqHandler)
+}
+
+func (p *Page) askToCreateFolderTokens() {
+	wallet := wallet_manager.OpenedWallet
+
+	// make you don't ask if testnet mode or was already asked before
+	if wallet.Settings.AskedToStoreDEXTokens ||
+		settings.App.Testnet {
+		return
+	}
+
+	go func() {
+		yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+			Title:  lang.Translate("DEX Tokens"),
+			Prompt: lang.Translate("Would you like to create a folder that includes all DEX tokens? Popular tokens will be automatically added to your favorites."),
+		})
+
+		if yes {
+			err := wallet.InsertDexTokensFolder()
+			if err != nil {
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.ERROR,
+					Title: lang.Translate("Error"),
+					Text:  err.Error(),
+				})
+			} else {
+				notification_modal.Open(notification_modal.Params{
+					Type:  notification_modal.SUCCESS,
+					Title: lang.Translate("Success"),
+					Text:  lang.Translate("The folder was created."),
+				})
+			}
+		}
+
+		wallet.Settings.AskedToStoreDEXTokens = true
+		err := wallet.SaveSettings()
+		if err != nil {
+			notification_modal.Open(notification_modal.Params{
+				Type:  notification_modal.ERROR,
+				Title: lang.Translate("Error"),
+				Text:  err.Error(),
+			})
+		}
+	}()
 }
 
 func (p *Page) Leave() {

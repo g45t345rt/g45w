@@ -24,7 +24,7 @@ type OutgoingTx struct {
 	Description sql.NullString
 }
 
-func initDatabaseOutgoingTxs(db *sql.DB) error {
+func initTableOutgoingTxs(db *sql.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS outgoing_txs (
 			tx_id VARCHAR PRIMARY KEY,

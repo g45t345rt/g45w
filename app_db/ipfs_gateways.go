@@ -36,7 +36,7 @@ var TRUSTED_IPFS_GATEWAYS = []IPFSGateway{
 	{Name: "nftstorage.link", Endpoint: "https://{cid}.ipfs.nftstorage.link"},
 }
 
-func initDatabaseIPFSGateways() error {
+func initTableIPFSGateways() error {
 	version, err := schema_version.GetVersion(DB, "ipfs_gateways")
 	if err != nil {
 		return err

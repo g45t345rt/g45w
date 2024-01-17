@@ -23,6 +23,7 @@ import (
 	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_db/schema_version"
+	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
 
@@ -36,6 +37,8 @@ type Wallet struct {
 	Memory     *walletapi.Wallet_Disk
 	DB         *sql.DB
 	ServerXSWD *xswd.XSWD
+	FolderPath string
+	Settings   Settings
 }
 
 var OpenedWallet *Wallet
@@ -60,7 +63,8 @@ func OpenWallet(addr string, password string) error {
 	}
 
 	walletsDir := settings.WalletsDir
-	walletPath := filepath.Join(walletsDir, addr, "wallet.db")
+	folderPath := filepath.Join(walletsDir, addr)
+	walletPath := filepath.Join(folderPath, "wallet.db")
 
 	bkCopied := false
 open_wallet:
@@ -110,17 +114,17 @@ open_wallet:
 		return err
 	}
 
-	err = initDatabaseOutgoingTxs(db)
+	err = initTableOutgoingTxs(db)
 	if err != nil {
 		return err
 	}
 
-	err = initDatabaseTokens(db)
+	err = initTableTokens(db)
 	if err != nil {
 		return err
 	}
 
-	err = initDatabaseContacts(db)
+	err = initTableContacts(db)
 	if err != nil {
 		return err
 	}
@@ -132,9 +136,15 @@ open_wallet:
 	}
 
 	wallet := &Wallet{
-		Info:   walletInfo,
-		Memory: memory,
-		DB:     db,
+		Info:       walletInfo,
+		Memory:     memory,
+		DB:         db,
+		FolderPath: folderPath,
+	}
+
+	err = wallet.LoadSettings()
+	if err != nil {
+		return err
 	}
 
 	OpenedWallet = wallet
@@ -550,6 +560,152 @@ func StoreRegistrationTx(addr string, tx *transaction.Transaction) error {
 
 	walletInfo.RegistrationTxHex = txHex
 	return app_db.UpdateWalletInfo(walletInfo)
+}
+
+// This function is unused but we can keep it.
+// I opted to insert tokens from DEX page instead of this hardcoded version.
+// Check askToCreateFolderTokens() in dex_pairs.go
+func (w *Wallet) InsertDexTokensFolder() error {
+	dexFolder := TokenFolder{
+		ParentId: sql.NullInt64{},
+		Name:     "DEX Tokens",
+	}
+
+	id, err := w.InsertFolderToken(dexFolder)
+	if err != nil {
+		return err
+	}
+
+	folderId := sql.NullInt64{Int64: id, Valid: true}
+
+	// Image for tokens will be loaded automatically when fetching dex data
+	tokens := []Token{
+		// DUSDT
+		Token{
+			SCID:           "f93b8d7fbbbf4e8f8a1e91b7ce21ac5d2b6aecc4de88cde8e929bce5f1746fbd",
+			Name:           "Dero wrapped Tether USD",
+			Decimals:       6,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DUSDT", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png", Valid: true},
+		},
+		// DUSDC
+		Token{
+			SCID:           "bc161c4f65285d5d927e9749fddbd127859748be7e161099f2f6785edc70b3dc",
+			Name:           "Dero wrapped USD Coin",
+			Decimals:       6,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DUSDC", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", Valid: true},
+		},
+		// DWBTC
+		Token{
+			SCID:           "b0bb9c1c75fc0e84dd92ce03f0619d1b61737981f0bb796911ea31529a76358c",
+			Name:           "Dero wrapped Wrapped BTC",
+			Decimals:       7,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DWBTC", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599/logo.png", Valid: true},
+		},
+		// DWETH
+		Token{
+			SCID:           "fb855d8edd1d95ea94e9544224019c3fe4e636086f7266808879d6134ee2b8f1",
+			Name:           "Dero wrapped Wrapped Ether",
+			Decimals:       7,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DWETH", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png", Valid: true},
+		},
+		// DST
+		Token{
+			SCID:           "d74d1bb9968e3947a9bd40c5a9bdf598135f6b07a93bc98ded1fefa6ddd36bf5",
+			Name:           "Dero Seals Token",
+			Decimals:       5,
+			MaxSupply:      sql.NullInt64{Int64: 2_800_000_00000, Valid: true}, // 2,800,000.00000
+			StandardType:   sc.G45_FAT_TYPE,
+			Symbol:         sql.NullString{String: "DST", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			IsFavorite:     sql.NullBool{Bool: true, Valid: true},
+			ImageUrl:       sql.NullString{String: "ipfs://QmboGpusU71C9zBPNjxskrXfY7GX1uoPo83MJ7NiJU2RUP/dero_seals_token.jpg", Valid: true},
+		},
+		// COCO
+		Token{
+			SCID:           "a9a977297ed6ed087861bfa117e6fbbd603c2051b0cc1b0d704bc764011aabb6",
+			Name:           "Coconuts",
+			Decimals:       0,
+			StandardType:   sc.UNKNOWN_TYPE,
+			Symbol:         sql.NullString{String: "COCO", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			ImageUrl:       sql.NullString{String: "", Valid: true},
+		},
+		// DLINK
+		Token{
+			SCID:           "ab8ee3627b212a0b3803c127f3de7c44465fac21ec30692cb7988b14059990bb",
+			Name:           "Dero wrapped ChainLink Token",
+			Decimals:       7,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DLINK", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x514910771AF9Ca656af840dff83E8264EcF986CA/logo.png", Valid: true},
+		},
+		// DgOHM
+		Token{
+			SCID:           "92136ec02ca1e0db8e1767f7d5d221c7951263790fe4ee6616c4dd6c011e65ba",
+			Name:           "Dero wrapped Governance OHM",
+			Decimals:       7,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DgOHM", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/OlympusDAO/olympus-frontend/develop/src/assets/tokens/token_OHM.svg", Valid: true},
+		},
+		// DFRAX
+		Token{
+			SCID:           "f42fd725bc3659a7e6502ce416363afea0951e7f21af4f8f71b42090206e29d4",
+			Name:           "Dero wrapped Frax",
+			Decimals:       7,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DFRAX", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x853d955aCEf822Db058eb8505911ED77F175b99e/logo.png", Valid: true},
+		},
+		// DDAI
+		Token{
+			SCID:           "93707e89ba07f9aafc862ae07df1bfa70f488d5157d37439b85498fb79b6d1e6",
+			Name:           "Dero wrapped Dai Stablecoin",
+			Decimals:       7,
+			StandardType:   sc.DEX_SC_TYPE,
+			Symbol:         sql.NullString{String: "DDAI", Valid: true},
+			FolderId:       folderId,
+			AddedTimestamp: sql.NullInt64{Int64: time.Now().Unix(), Valid: true},
+			ImageUrl:       sql.NullString{String: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png", Valid: true},
+		},
+	}
+
+	for _, token := range tokens {
+		err = w.InsertToken(token)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func createWallet(wallet *walletapi.Wallet_Memory, name string) error {

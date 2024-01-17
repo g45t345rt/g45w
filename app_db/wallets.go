@@ -26,7 +26,7 @@ var walletOrderer = order_column.Orderer{
 	ColumnName: "order_number",
 }
 
-func initDatabaseWallets() error {
+func initTableWallets() error {
 	version, err := schema_version.GetVersion(DB, "wallets")
 	if err != nil {
 		return err

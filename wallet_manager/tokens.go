@@ -322,7 +322,7 @@ func DeroToken() *Token {
 	}
 }
 
-func initDatabaseTokens(db *sql.DB) error {
+func initTableTokens(db *sql.DB) error {
 	version, err := schema_version.GetVersion(db, "tokens")
 	if err != nil {
 		return err
@@ -503,17 +503,17 @@ func (w *Wallet) FolderTokenExists(folder TokenFolder) (bool, error) {
 	return count >= 1, nil
 }
 
-func (w *Wallet) InsertFolderToken(folder TokenFolder) error {
+func (w *Wallet) InsertFolderToken(folder TokenFolder) (int64, error) {
 	// can't use UNIQUE() constraint because null does not count as towards uniqueness
 	// https://stackoverflow.com/questions/22699409/sqlite-null-and-unique
 	// we check manually instead
 	exists, err := w.FolderTokenExists(folder)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	if exists {
-		return fmt.Errorf("folder already exists")
+		return -1, fmt.Errorf("folder already exists")
 	}
 
 	result, err := w.DB.Exec(`
@@ -521,16 +521,15 @@ func (w *Wallet) InsertFolderToken(folder TokenFolder) error {
 		VALUES (?,?);
 	`, folder.Name, folder.ParentId)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return err
+		return -1, err
 	}
 
-	folder.ID = id
-	return nil
+	return id, nil
 }
 
 func (w *Wallet) GetToken(id int64) (*Token, error) {

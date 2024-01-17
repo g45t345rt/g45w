@@ -1,12 +1,13 @@
 v0.9.0
 - Update to GioUI v0.4.0.
 - XSWD integration (toggle ON/OFF, manage apps and permissions).
+- Support NFT webp image format by importing golang.org/x/image/webp.
+- New background service for Android. Required to interact with XSWD or keep the node connection open.
+- For wallet: ask to store hardcoded DEX tokens in a folder with few favorites.
+- New wallet address hashicon.
+- TODO: Apply transaction fees fix by Slixe.
 - New bottom wallet text layout.
 - New set local and deselect node button.
 - New startup popup if a node is not selected by default.
-- New wallet address hashicon.
-- Fix donation button crash if wallet & node is not connected.
+- Fix crashes when a node is not selected or disconnected.
 - Confirm box for Integrated Node (avoid missclick and start bootstrap).
-- Support NFT webp image format by importing golang.org/x/image/webp.
-- New background service for Android. Required to interact with XSWD or keep the node connection open.
-- TODO: Apply transaction fees fix by Slixe.

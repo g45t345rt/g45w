@@ -36,17 +36,17 @@ func Load() error {
 		return err
 	}
 
-	err = initDatabaseNodes()
+	err = initTableNodes()
 	if err != nil {
 		return err
 	}
 
-	err = initDatabaseIPFSGateways()
+	err = initTableIPFSGateways()
 	if err != nil {
 		return err
 	}
 
-	err = initDatabaseWallets()
+	err = initTableWallets()
 	if err != nil {
 		return err
 	}
