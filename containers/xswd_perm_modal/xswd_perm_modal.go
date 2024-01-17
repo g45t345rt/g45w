@@ -134,6 +134,7 @@ func (c *XSWDPermModal) set(perm xswd.Permission) {
 	c.permChan <- perm
 	c.Modal.SetVisible(false)
 	close(c.permChan)
+	app_instance.Window.Invalidate()
 }
 
 func (c *XSWDPermModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {

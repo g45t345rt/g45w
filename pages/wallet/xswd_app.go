@@ -41,11 +41,11 @@ var _ router.Page = &PageXSWDApp{}
 
 func NewPageXSWDApp() *PageXSWDApp {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
+		gween.New(-1, 0, .25, ease.Linear),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
+		gween.New(0, -1, .25, ease.Linear),
 	))
 
 	removeIcon, _ := widget.NewIcon(icons.NavigationCancel)
