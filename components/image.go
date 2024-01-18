@@ -13,6 +13,8 @@ import (
 	"gioui.org/unit"
 )
 
+type Transform func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D
+
 // Image is a widget that displays an image.
 type Image struct {
 	// Src is the image to display.
@@ -29,12 +31,10 @@ type Image struct {
 	// To map one image pixel to one output pixel, set Scale to 1.0 / gtx.Metric.PxPerDp.
 	Scale float32
 
-	Transform func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D
-
 	Rounded Rounded
 }
 
-func (im Image) Layout(gtx layout.Context) layout.Dimensions {
+func (im Image) Layout(gtx layout.Context, transform Transform) layout.Dimensions {
 	scale := im.Scale
 	if scale == 0 {
 		scale = 1
@@ -59,8 +59,8 @@ func (im Image) Layout(gtx layout.Context) layout.Dimensions {
 		SE: gtx.Dp(im.Rounded.SE), SW: gtx.Dp(im.Rounded.SW),
 	}.Push(gtx.Ops).Pop()
 
-	if im.Transform != nil {
-		trans = im.Transform(dims, trans)
+	if transform != nil {
+		trans = transform(dims, trans)
 	}
 
 	pixelScale := scale * gtx.Metric.PxPerDp

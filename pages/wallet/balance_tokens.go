@@ -724,7 +724,7 @@ func (b *ButtonHideBalance) Layout(gtx layout.Context, th *material.Theme) layou
 		go func() {
 			settings.App.HideBalance = !settings.App.HideBalance
 			settings.Save()
-			op.InvalidateOp{}.Add(gtx.Ops)
+			app_instance.Window.Invalidate()
 		}()
 	}
 
@@ -1218,7 +1218,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.X = gtx.Dp(35)
 					gtx.Constraints.Max.Y = gtx.Dp(35)
-					return item.image.Layout(gtx)
+					return item.image.Layout(gtx, nil)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

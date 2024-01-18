@@ -522,7 +522,7 @@ func (p *PairTokenInputContainer) Layout(gtx layout.Context, th *material.Theme,
 				defer op.Affine(trans).Push(gtx.Ops).Pop()
 				gtx.Constraints.Max = image.Pt(gtx.Dp(35), gtx.Dp(35))
 				p.tokenImage1.Src = p.token1.LoadImageOp()
-				return p.tokenImage1.Layout(gtx)
+				return p.tokenImage1.Layout(gtx, nil)
 			})
 			return dims
 		}),
@@ -548,7 +548,7 @@ func (p *PairTokenInputContainer) Layout(gtx layout.Context, th *material.Theme,
 				defer op.Affine(trans).Push(gtx.Ops).Pop()
 				gtx.Constraints.Max = image.Pt(gtx.Dp(35), gtx.Dp(35))
 				p.tokenImage2.Src = p.token2.LoadImageOp()
-				return p.tokenImage2.Layout(gtx)
+				return p.tokenImage2.Layout(gtx, nil)
 			})
 
 			return dims

@@ -213,14 +213,14 @@ func (w *CameraQRScanModal) layout(gtx layout.Context, th *material.Theme) {
 			if w.scanning {
 				childs = append(childs,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						w.cameraImage.Transform = func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
+						//w.cameraImage.Transform =
+
+						return w.cameraImage.Layout(gtx, func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
 							pt := dims.Size.Div(2)
 							origin := f32.Pt(float32(pt.X), float32(pt.Y))
 							rotate := float32(w.cameraOrientation) * (math.Pi / 180)
 							return trans.Rotate(origin, rotate)
-						}
-
-						return w.cameraImage.Layout(gtx)
+						})
 					}),
 				)
 			}

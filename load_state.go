@@ -46,7 +46,7 @@ func NewLogoSplash() *LogoSplash {
 
 func (l *LogoSplash) Layout(gtx layout.Context) layout.Dimensions {
 	r := op.Record(gtx.Ops)
-	dims := l.image.Layout(gtx)
+	dims := l.image.Layout(gtx, nil)
 	c := r.Stop()
 
 	gtx.Constraints.Min = dims.Size

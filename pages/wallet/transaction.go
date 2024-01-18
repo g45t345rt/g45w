@@ -190,7 +190,7 @@ func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								gtx.Constraints.Max.X = gtx.Dp(50)
 								gtx.Constraints.Max.Y = gtx.Dp(50)
-								return p.txTypeImg.Layout(gtx)
+								return p.txTypeImg.Layout(gtx, nil)
 							}),
 							layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {

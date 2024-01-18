@@ -227,11 +227,11 @@ func (p *PageCreateWalletDiskForm) Layout(gtx layout.Context, th *material.Theme
 	listStyle.AnchorStrategy = material.Overlay
 
 	if p.txtPassword.Input.Clickable.Clicked(gtx) {
-		p.list.ScrollTo(1)
+		p.list.ScrollTo(2)
 	}
 
 	if p.txtWalletName.Input.Clickable.Clicked(gtx) {
-		p.list.ScrollTo(2)
+		p.list.ScrollTo(3)
 	}
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {

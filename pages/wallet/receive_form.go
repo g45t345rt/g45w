@@ -126,7 +126,7 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				gtx.Constraints.Max.Y = gtx.Dp(250)
-				return p.addrImage.Layout(gtx)
+				return p.addrImage.Layout(gtx, nil)
 			})
 		},
 		func(gtx layout.Context) layout.Dimensions {

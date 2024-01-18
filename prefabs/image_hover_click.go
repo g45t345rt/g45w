@@ -45,28 +45,6 @@ func NewImageHoverClick() *ImageHoverClick {
 
 func (item *ImageHoverClick) Layout(gtx layout.Context) layout.Dimensions {
 	return item.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		{
-			state := item.AnimationEnter.Update(gtx)
-			if state.Active {
-				item.Image.Transform = func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
-					pt := dims.Size.Div(2)
-					origin := f32.Pt(float32(pt.X), float32(pt.Y))
-					return trans.Scale(origin, f32.Pt(state.Value, state.Value))
-				}
-			}
-		}
-
-		{
-			state := item.AnimationLeave.Update(gtx)
-			if state.Active {
-				item.Image.Transform = func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
-					pt := dims.Size.Div(2)
-					origin := f32.Pt(float32(pt.X), float32(pt.Y))
-					return trans.Scale(origin, f32.Pt(state.Value, state.Value))
-				}
-			}
-		}
-
 		if item.Clickable.Hovered() {
 			pointer.CursorPointer.Add(gtx.Ops)
 		}
@@ -83,6 +61,26 @@ func (item *ImageHoverClick) Layout(gtx layout.Context) layout.Dimensions {
 			item.AnimationEnter.Reset()
 		}
 
-		return item.Image.Layout(gtx)
+		return item.Image.Layout(gtx, func(dims layout.Dimensions, trans f32.Affine2D) f32.Affine2D {
+			{
+				state := item.AnimationEnter.Update(gtx)
+				if state.Active {
+					pt := dims.Size.Div(2)
+					origin := f32.Pt(float32(pt.X), float32(pt.Y))
+					return trans.Scale(origin, f32.Pt(state.Value, state.Value))
+				}
+			}
+
+			{
+				state := item.AnimationLeave.Update(gtx)
+				if state.Active {
+					pt := dims.Size.Div(2)
+					origin := f32.Pt(float32(pt.X), float32(pt.Y))
+					return trans.Scale(origin, f32.Pt(state.Value, state.Value))
+				}
+			}
+
+			return trans
+		})
 	})
 }

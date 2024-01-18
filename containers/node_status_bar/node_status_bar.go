@@ -7,7 +7,6 @@ import (
 
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
@@ -106,7 +105,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	if n.clickable.Clicked(gtx) {
 		app_instance.Router.SetCurrent(pages.PAGE_NODE)
-		op.InvalidateOp{}.Add(gtx.Ops)
+		//op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
 	return n.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

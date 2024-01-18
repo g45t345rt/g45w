@@ -88,7 +88,7 @@ func (r *ImageModal) layout(gtx layout.Context, th *material.Theme) {
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return r.image.Layout(gtx)
+					return r.image.Layout(gtx, nil)
 				}),
 			)
 		})

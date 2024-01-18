@@ -342,13 +342,13 @@ func (item *DexPairItem) Layout(gtx layout.Context, th *material.Theme) layout.D
 										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 											gtx.Constraints.Max = image.Pt(gtx.Dp(20), gtx.Dp(20))
 											item.tokenImage1.Src = item.token1.LoadImageOp()
-											return item.tokenImage1.Layout(gtx)
+											return item.tokenImage1.Layout(gtx, nil)
 										}),
 										layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
 										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 											gtx.Constraints.Max = image.Pt(gtx.Dp(20), gtx.Dp(20))
 											item.tokenImage2.Src = item.token2.LoadImageOp()
-											return item.tokenImage2.Layout(gtx)
+											return item.tokenImage2.Layout(gtx, nil)
 										}),
 										layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 										layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

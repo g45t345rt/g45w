@@ -629,7 +629,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 					if item.tokenImage != nil {
 						item.tokenImage.Src = item.token.LoadImageOp()
 						return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							return item.tokenImage.Layout(gtx)
+							return item.tokenImage.Layout(gtx, nil)
 						})
 					}
 
@@ -679,7 +679,7 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 
 								if item.tokenImage != nil {
 									item.tokenImage.Src = item.token.LoadImageOp()
-									return item.tokenImage.Layout(gtx)
+									return item.tokenImage.Layout(gtx, nil)
 								}
 
 								return layout.Dimensions{}

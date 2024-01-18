@@ -57,7 +57,7 @@ func NewLangSelector(defaultLangKey string) *LangSelector {
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.X = gtx.Dp(45)
 					gtx.Constraints.Max.Y = gtx.Dp(30)
-					return langImg.Layout(gtx)
+					return langImg.Layout(gtx, nil)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

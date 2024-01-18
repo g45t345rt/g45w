@@ -169,15 +169,15 @@ func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) la
 	list.AnchorStrategy = material.Overlay
 
 	if p.txtWalletName.Input.Clickable.Clicked(gtx) {
-		p.list.ScrollTo(1)
+		p.list.ScrollTo(0)
 	}
 
 	if p.txtPassword.Input.Clickable.Clicked(gtx) {
-		p.list.ScrollTo(2)
+		p.list.ScrollTo(1)
 	}
 
 	if p.txtConfirmPassword.Input.Clickable.Clicked(gtx) {
-		p.list.ScrollTo(3)
+		p.list.ScrollTo(2)
 	}
 
 	return list.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
