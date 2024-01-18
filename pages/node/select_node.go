@@ -226,23 +226,30 @@ func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	if p.buttonResetNodeList.Clicked(gtx) {
-		err := app_db.ResetNodeConnections()
-		if err != nil {
-			notification_modal.Open(notification_modal.Params{
-				Type:  notification_modal.ERROR,
-				Title: lang.Translate("Error"),
-				Text:  err.Error(),
-			})
-		} else {
-			p.nodeList.Load()
-			node_manager.CurrentNode = nil // deselect node
-			notification_modal.Open(notification_modal.Params{
-				Type:       notification_modal.SUCCESS,
-				Title:      lang.Translate("Success"),
-				Text:       lang.Translate("List reset to default."),
-				CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
-			})
-		}
+		go func() {
+			yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+
+			if yes {
+				err := app_db.ResetNodeConnections()
+				if err != nil {
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
+				} else {
+					p.nodeList.Load()
+					node_manager.CurrentNode = nil // deselect node
+					notification_modal.Open(notification_modal.Params{
+						Type:       notification_modal.SUCCESS,
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("List reset to default."),
+						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
+					})
+					app_instance.Window.Invalidate()
+				}
+			}
+		}()
 	}
 
 	if p.buttonSetIntegratedNode.Clicked(gtx) {

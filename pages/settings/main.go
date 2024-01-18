@@ -133,6 +133,7 @@ func (p *PageMain) Enter() {
 	page_instance.header.Title = func() string { return lang.Translate("Settings") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.LeftLayout = nil
+	page_instance.header.RightLayout = nil
 
 	if !page_instance.header.IsHistory(PAGE_MAIN) {
 		p.animationEnter.Start()

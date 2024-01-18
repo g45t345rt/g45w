@@ -487,11 +487,13 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		page_instance.pageSendForm.ClearForm()
 		page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
 		page_instance.header.AddHistory(PAGE_SEND_FORM)
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
 	if p.sendReceiveButtons.ButtonReceive.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_RECEIVE_FORM)
 		page_instance.header.AddHistory(PAGE_RECEIVE_FORM)
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
 	widgets := []layout.Widget{}

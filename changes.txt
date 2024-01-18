@@ -13,3 +13,4 @@ v0.9.0
 - Confirm box for Integrated Node (avoid missclick and start bootstrap).
 - Fix sometime occurring `database is locked SQLITE BUSY`.
 - New drag move to order favorites tokens.
+- Bunch of UX fixes.
