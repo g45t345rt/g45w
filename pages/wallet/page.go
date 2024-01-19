@@ -429,10 +429,8 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	openedWallet := wallet_manager.OpenedWallet
 	xswd := openedWallet.ServerXSWD
 
-	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(theme.PagePadding))))
-	op.Affine(offset).Add(gtx.Ops)
-
-	return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+	r := op.Record(gtx.Ops)
+	dims := layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				if x.toggleClickable.Clicked(gtx) {
@@ -471,8 +469,8 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 
 					paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
 						Rect: image.Rectangle{Max: dims.Size},
-						//SE:   gtx.Dp(10),
-						SW: gtx.Dp(10),
+						NW:   gtx.Dp(10),
+						SW:   gtx.Dp(10),
 					}.Op(gtx.Ops))
 
 					c.Add(gtx.Ops)
@@ -504,7 +502,8 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 
 					paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
 						Rect: image.Rectangle{Max: dims.Size},
-						SE:   gtx.Dp(10), //SW: gtx.Dp(10),
+						NE:   gtx.Dp(10),
+						SE:   gtx.Dp(10),
 					}.Op(gtx.Ops))
 
 					c.Add(gtx.Ops)
@@ -514,4 +513,12 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 			}),
 		)
 	})
+	c := r.Stop()
+
+	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(theme.PagePadding+(unit.Dp(dims.Size.Y)/3)))))
+	defer op.Affine(offset).Push(gtx.Ops).Pop()
+
+	c.Add(gtx.Ops)
+
+	return dims
 }

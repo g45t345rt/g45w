@@ -128,7 +128,7 @@ func (btn *Button) SetLoading(loading bool) {
 	if loading {
 		animationLoading.Reset().Start()
 	} else {
-		animationLoading.Pause()
+		animationLoading.Reset()
 	}
 }
 

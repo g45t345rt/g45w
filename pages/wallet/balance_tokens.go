@@ -398,7 +398,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Left: theme.PagePadding, Right: theme.PagePadding,
-			Top: unit.Dp(0), Bottom: unit.Dp(20),
+			Top: unit.Dp(0), Bottom: theme.PagePadding,
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return p.displayBalance.Layout(gtx, th)
 		})
@@ -408,7 +408,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
 				Left: theme.PagePadding, Right: theme.PagePadding,
-				Top: unit.Dp(0), Bottom: unit.Dp(30),
+				Top: unit.Dp(0), Bottom: theme.PagePadding,
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				p.buttonDexSwap.Style.Colors = theme.Current.ButtonSecondaryColors
 				p.buttonDexSwap.Text = lang.Translate("DEX Swap")
@@ -423,7 +423,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
-			Top: unit.Dp(20), Bottom: unit.Dp(15),
+			Top: theme.PagePadding - unit.Dp(10), Bottom: theme.PagePadding,
 			Left: theme.PagePadding, Right: theme.PagePadding,
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			text := make(map[string]string)

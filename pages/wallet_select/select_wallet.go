@@ -1,7 +1,9 @@
 package page_wallet_select
 
 import (
+	"fmt"
 	"image"
+	"strings"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -95,7 +97,11 @@ func (p *PageSelectWallet) IsActive() bool {
 
 func (p *PageSelectWallet) Enter() {
 	p.isActive = true
-	page_instance.header.Title = func() string { return lang.Translate("Select wallet") }
+	page_instance.header.Title = func() string {
+		txt := lang.Translate("Select Wallet ({})")
+		txt = strings.Replace(txt, "{}", fmt.Sprint(len(p.items)), -1)
+		return txt
+	}
 
 	if !page_instance.header.IsHistory(PAGE_SELECT_WALLET) {
 		p.animationLeave.Reset()
