@@ -15,9 +15,11 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/browser"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -26,6 +28,7 @@ import (
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageTransaction struct {
@@ -38,6 +41,7 @@ type PageTransaction struct {
 
 	txTypeImg components.Image
 
+	buttonViewExplorer      *components.Button
 	txIdEditor              *widget.Editor
 	senderDestinationEditor *widget.Editor
 	blockHashEditor         *widget.Editor
@@ -66,6 +70,11 @@ func NewPageTransaction() *PageTransaction {
 		Fit: components.Cover,
 	}
 
+	explorerIcon, _ := widget.NewIcon(icons.ActionOpenInBrowser)
+	buttonViewExplorer := components.NewButton(components.ButtonStyle{
+		Icon: explorerIcon,
+	})
+
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -81,6 +90,7 @@ func NewPageTransaction() *PageTransaction {
 		scDataEditor:            &widget.Editor{ReadOnly: true},
 		infoRows:                prefabs.NewInfoRows(3),
 		txTransfers:             NewTxTransfers(),
+		buttonViewExplorer:      buttonViewExplorer,
 
 		txTypeImg: txTypeImg,
 	}
@@ -137,7 +147,27 @@ func (p *PageTransaction) Enter() {
 		return lbl.Layout(gtx)
 	}
 	page_instance.header.LeftLayout = nil
-	page_instance.header.RightLayout = nil
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonViewExplorer.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonViewExplorer.Clicked(gtx) {
+			go func() {
+				url := fmt.Sprintf("https://explorer.dero.io/tx/%s", p.entry.TXID)
+				err := browser.OpenUrl(url)
+				if err != nil {
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
+				}
+			}()
+		}
+
+		return p.buttonViewExplorer.Layout(gtx, th)
+	}
 
 	p.isActive = true
 	if !page_instance.header.IsHistory(PAGE_TRANSACTION) {
