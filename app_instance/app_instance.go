@@ -16,9 +16,9 @@ var Router *router.Router
 var Explorer *explorer.Explorer
 
 func Load() {
-	minSize := image.Pt(375, 480)
+	minSize := image.Pt(350, 480)
 	maxSize := image.Pt(480, 800)
-	size := image.Pt(375, 625)
+	size := image.Pt(350, 625)
 
 	Window = app.NewWindow(
 		app.Title(settings.Name),

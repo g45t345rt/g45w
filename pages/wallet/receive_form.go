@@ -15,6 +15,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	qrcode "github.com/skip2/go-qrcode"
 	"github.com/tanema/gween"
@@ -140,7 +141,7 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
-			Left: unit.Dp(30), Right: unit.Dp(30),
+			Left: theme.PagePadding, Right: theme.PagePadding,
 		}.Layout(gtx, widgets[index])
 	})
 }

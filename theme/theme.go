@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"gioui.org/op/paint"
+	"gioui.org/unit"
 	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 )
@@ -95,6 +96,7 @@ type SwitchColors struct {
 // default to Light theme (avoid nil pointer in FrameEvent before settings.Load() is set)
 // settings.Load() will overwrite theme.Current with system pref or settings.json theme value
 var Current *Theme = Light
+var PagePadding = unit.Dp(20) // Page Inset
 
 // don't use map[string] the ordering is not guaranteed
 var Themes = []*Theme{Light, Dark, Blue}

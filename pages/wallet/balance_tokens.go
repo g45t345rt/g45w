@@ -24,6 +24,7 @@ import (
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
+	"github.com/g45t345rt/g45w/assets"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/image_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
@@ -62,6 +63,7 @@ type PageBalanceTokens struct {
 	getEntriesParams wallet_manager.GetEntriesParams
 	tokenDragItems   *components.DragItems
 	tokenList        *widget.List
+	bgImg            *components.Image
 
 	list *widget.List
 }
@@ -131,6 +133,13 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	tokenList := new(widget.List)
 	tokenList.Axis = layout.Vertical
 
+	src, _ := assets.GetImage("dero_bg.png")
+
+	bgImg := &components.Image{
+		Src: paint.NewImageOp(src),
+		Fit: components.Cover,
+	}
+
 	return &PageBalanceTokens{
 		displayBalance: NewDisplayBalance(),
 		tokenBar:       NewTokenBar(),
@@ -146,6 +155,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		txBar:          txBar,
 		tokenDragItems: tokenDragItems,
 		tokenList:      tokenList,
+		bgImg:          bgImg,
 	}
 }
 
@@ -304,6 +314,19 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		page_instance.header.AddHistory(PAGE_DEX_PAIRS)
 	}
 
+	/*
+		// dero background
+		{
+			layout.Inset{
+				Left: theme.PagePadding, Right: theme.PagePadding,
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				trans := f32.Affine2D{}.Offset(f32.Pt(0, float32(gtx.Dp(-30))))
+				defer op.Affine(trans).Push(gtx.Ops).Pop()
+				return p.bgImg.Layout(gtx, nil)
+			})
+		}
+	*/
+
 	widgets := []layout.Widget{}
 	wallet := wallet_manager.OpenedWallet
 
@@ -346,7 +369,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 						return layout.Inset{
 							Top: unit.Dp(0), Bottom: unit.Dp(20),
-							Left: unit.Dp(30), Right: unit.Dp(30),
+							Left: theme.PagePadding, Right: theme.PagePadding,
 						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 							p.buttonRegister.Text = lang.Translate("REGISTER WALLET")
 							p.buttonRegister.Style.Colors = theme.Current.ButtonPrimaryColors
@@ -374,7 +397,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
-			Left: unit.Dp(30), Right: unit.Dp(30),
+			Left: theme.PagePadding, Right: theme.PagePadding,
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return p.displayBalance.Layout(gtx, th)
@@ -384,7 +407,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	if !settings.App.Testnet {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
-				Left: unit.Dp(30), Right: unit.Dp(30),
+				Left: theme.PagePadding, Right: theme.PagePadding,
 				Top: unit.Dp(0), Bottom: unit.Dp(30),
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				p.buttonDexSwap.Style.Colors = theme.Current.ButtonSecondaryColors
@@ -401,7 +424,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(20), Bottom: unit.Dp(15),
-			Left: unit.Dp(30), Right: unit.Dp(30),
+			Left: theme.PagePadding, Right: theme.PagePadding,
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			text := make(map[string]string)
 			text["tokens"] = lang.Translate("Tokens")
@@ -449,7 +472,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
 				Top: unit.Dp(0), Bottom: unit.Dp(15),
-				Left: unit.Dp(30), Right: unit.Dp(30),
+				Left: theme.PagePadding, Right: theme.PagePadding,
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return p.tokenBar.Layout(gtx, th)
 			})
@@ -459,7 +482,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{
 					Top: unit.Dp(0), Bottom: unit.Dp(20),
-					Left: unit.Dp(30), Right: unit.Dp(30),
+					Left: theme.PagePadding, Right: theme.PagePadding,
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any favorite tokens. Click the folder icon to manage tokens."))
 					lbl.Color = theme.Current.TextMuteColor
@@ -474,7 +497,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 				widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{
 						Top: unit.Dp(0), Bottom: unit.Dp(15),
-						Right: unit.Dp(30), Left: unit.Dp(30),
+						Left: theme.PagePadding, Right: theme.PagePadding,
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return p.tokenItems[idx].Layout(gtx, th)
 					})
@@ -521,7 +544,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 					p.tokenDragItems.LayoutItem(gtx, index, func(gtx layout.Context) layout.Dimensions {
 						return layout.Inset{
 							Top: unit.Dp(0), Bottom: unit.Dp(15),
-							Right: unit.Dp(30), Left: unit.Dp(30),
+							Left: theme.PagePadding, Right: theme.PagePadding,
 						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 							return p.tokenItems[index].Layout(gtx, th)
 						})
@@ -529,7 +552,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 
 					return layout.Inset{
 						Top: unit.Dp(0), Bottom: unit.Dp(15),
-						Right: unit.Dp(30), Left: unit.Dp(30),
+						Left: theme.PagePadding, Right: theme.PagePadding,
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return p.tokenItems[index].Layout(gtx, th)
 					})
@@ -542,7 +565,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
 				Top: unit.Dp(0), Bottom: unit.Dp(15),
-				Left: unit.Dp(30), Right: unit.Dp(30),
+				Left: theme.PagePadding, Right: theme.PagePadding,
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return p.txBar.Layout(gtx, th)
 			})
@@ -552,7 +575,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{
 					Top: unit.Dp(0), Bottom: unit.Dp(20),
-					Left: unit.Dp(30), Right: unit.Dp(30),
+					Left: theme.PagePadding, Right: theme.PagePadding,
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any txs. Try adjusting filtering options or wait for wallet to sync."))
 					lbl.Color = theme.Current.TextMuteColor
@@ -566,7 +589,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{
 					Top: unit.Dp(0), Bottom: unit.Dp(15),
-					Right: unit.Dp(30), Left: unit.Dp(30),
+					Left: theme.PagePadding, Right: theme.PagePadding,
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return p.txItems[idx].Layout(gtx, th)
 				})
@@ -612,7 +635,7 @@ func (n *AlertBox) Layout(gtx layout.Context, th *material.Theme, text string) l
 
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(20),
-		Left: unit.Dp(30), Right: unit.Dp(30),
+		Left: theme.PagePadding, Right: theme.PagePadding,
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -886,28 +909,28 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 
 	m := op.Record(gtx.Ops)
 
-	dims := layout.Inset{
-		Top: unit.Dp(13), Bottom: unit.Dp(13),
-		Left: unit.Dp(15), Right: unit.Dp(15),
-	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				if item.imageHover.Clickable.Clicked(gtx) {
-					image_modal.Instance.Open(item.token.Name, item.imageHover.Image.Src)
-				}
+	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		if item.clickable.Hovered() {
+			pointer.CursorPointer.Add(gtx.Ops)
+		}
 
-				item.imageHover.Image.Src = item.token.LoadImageOp()
-				gtx.Constraints.Max.X = gtx.Dp(50)
-				gtx.Constraints.Max.Y = gtx.Dp(50)
-				return item.imageHover.Layout(gtx)
-			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				return item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					if item.clickable.Hovered() {
-						pointer.CursorPointer.Add(gtx.Ops)
+		return layout.Inset{
+			Top: unit.Dp(13), Bottom: unit.Dp(13),
+			Left: unit.Dp(15), Right: unit.Dp(15),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					if item.imageHover.Clickable.Clicked(gtx) {
+						image_modal.Instance.Open(item.token.Name, item.imageHover.Image.Src)
 					}
 
+					item.imageHover.Image.Src = item.token.LoadImageOp()
+					gtx.Constraints.Max.X = gtx.Dp(50)
+					gtx.Constraints.Max.Y = gtx.Dp(50)
+					return item.imageHover.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{
 						Axis:      layout.Horizontal,
 						Alignment: layout.Middle,
@@ -936,9 +959,9 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 							)
 						}),
 					)
-				})
-			}),
-		)
+				}),
+			)
+		})
 	})
 	c := m.Stop()
 

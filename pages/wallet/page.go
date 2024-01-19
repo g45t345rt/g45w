@@ -366,8 +366,8 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					r := op.Record(gtx.Ops)
 					dims := layout.Inset{
-						Left: unit.Dp(30), Right: unit.Dp(30),
-						Top: unit.Dp(30), Bottom: unit.Dp(20),
+						Left: theme.PagePadding, Right: theme.PagePadding,
+						Top: theme.PagePadding, Bottom: theme.PagePadding,
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						dims := p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
 							lbl := material.Label(th, unit.Sp(22), title)
@@ -429,7 +429,7 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	openedWallet := wallet_manager.OpenedWallet
 	xswd := openedWallet.ServerXSWD
 
-	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(30))))
+	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(theme.PagePadding))))
 	op.Affine(offset).Add(gtx.Ops)
 
 	return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

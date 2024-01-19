@@ -179,7 +179,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{
 				Top: unit.Dp(0), Bottom: unit.Dp(30),
-				Left: unit.Dp(30), Right: unit.Dp(30),
+				Left: theme.PagePadding, Right: theme.PagePadding,
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

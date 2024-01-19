@@ -171,8 +171,8 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{
-						Top: unit.Dp(30), Bottom: unit.Dp(30),
-						Left: unit.Dp(30), Right: unit.Dp(30),
+						Top: theme.PagePadding, Bottom: theme.PagePadding,
+						Left: theme.PagePadding, Right: theme.PagePadding,
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return p.header.Layout(gtx, th, func(gtx layout.Context, th *material.Theme, title string) layout.Dimensions {
 							lbl := material.Label(th, unit.Sp(22), title)

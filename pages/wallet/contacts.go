@@ -261,7 +261,7 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	if len(p.contactItems) == 0 {
 		return layout.Inset{
-			Left: unit.Dp(30), Right: unit.Dp(30),
+			Left: theme.PagePadding, Right: theme.PagePadding,
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(16), lang.Translate("You didn't add any contacts yet."))
 			return lbl.Layout(gtx)
@@ -347,7 +347,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(10),
-		Right: unit.Dp(30), Left: unit.Dp(30),
+		Left: theme.PagePadding, Right: theme.PagePadding,
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		r := op.Record(gtx.Ops)
 		dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

@@ -90,7 +90,7 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(30),
-		Left: unit.Dp(30), Right: unit.Dp(30),
+		Left: theme.PagePadding, Right: theme.PagePadding,
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),

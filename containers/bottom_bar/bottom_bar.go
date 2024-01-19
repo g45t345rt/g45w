@@ -158,8 +158,8 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	}
 
 	return layout.Inset{
-		Top: unit.Dp(20), Bottom: unit.Dp(20),
-		Left: unit.Dp(30), Right: unit.Dp(30),
+		Top: theme.PagePadding, Bottom: theme.PagePadding,
+		Left: theme.PagePadding - unit.Dp(5), Right: theme.PagePadding - unit.Dp(10), // weird values but probably because of the icon
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{
 			Axis:      layout.Horizontal,
@@ -169,19 +169,15 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.ButtonSettings.Layout(gtx, th)
 			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.ButtonTxs.Layout(gtx, th)
 			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.ButtonWallet.Layout(gtx, th)
 			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.ButtonNode.Layout(gtx, th)
 			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return b.ButtonClose.Layout(gtx, th)
 			}),
@@ -209,8 +205,10 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 		b.Button.Style.Colors.TextColor = theme.Current.BottomButtonSelectedColor
 	} else {
 		// important scale down instead of up to avoid blurry icon
-		scale := f32.Affine2D{}.Scale(f32.Pt(float32(iconSize)/2, float32(iconSize)/2), f32.Pt(.65, .65))
-		defer op.Affine(scale).Push(gtx.Ops).Pop()
+		origin := f32.Pt(float32(iconSize)/2, float32(iconSize)/2)
+		scale := f32.Pt(.65, .65)
+		trans := f32.Affine2D{}.Scale(origin, scale)
+		defer op.Affine(trans).Push(gtx.Ops).Pop()
 	}
 
 	return b.Button.Layout(gtx, th)

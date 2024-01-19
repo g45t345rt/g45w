@@ -256,7 +256,7 @@ func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
-			Left: unit.Dp(30), Right: unit.Dp(30),
+			Left: theme.PagePadding, Right: theme.PagePadding,
 		}.Layout(gtx, widgets[index])
 	})
 }
