@@ -1187,6 +1187,7 @@ func (t *TxBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 			txt := lang.Translate("{} transactions")
 			txt = strings.Replace(txt, "{}", fmt.Sprint(t.txCount), -1)
 			lbl := material.Label(th, unit.Sp(14), txt)
+			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		}),
 	)

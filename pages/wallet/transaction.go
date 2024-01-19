@@ -136,6 +136,7 @@ func (p *PageTransaction) Enter() {
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	}
+	page_instance.header.LeftLayout = nil
 	page_instance.header.RightLayout = nil
 
 	p.isActive = true
