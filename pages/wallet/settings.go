@@ -16,6 +16,7 @@ import (
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/password_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -40,6 +41,7 @@ type PageSettings struct {
 	buttonSave              *components.Button
 	buttonCleanWallet       *components.Button
 	buttonExportTxs         *components.Button
+	buttonAddDEXTokens      *components.Button
 
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
@@ -138,6 +140,23 @@ func NewPageSettings() *PageSettings {
 	buttonExportTxs.Label.Alignment = text.Middle
 	buttonExportTxs.Style.Font.Weight = font.Bold
 
+	swapIcon, _ := widget.NewIcon(app_icons.Swap)
+	buttonAddDEXTokens := components.NewButton(components.ButtonStyle{
+		Icon:      swapIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+		LoadingIcon: loadingIcon,
+	})
+	buttonAddDEXTokens.Label.Alignment = text.Middle
+	buttonAddDEXTokens.Style.Font.Weight = font.Bold
+
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
 		gween.New(1, 0, .25, ease.Linear),
 	))
@@ -164,6 +183,7 @@ func NewPageSettings() *PageSettings {
 		buttonCleanWallet:       buttonCleanWallet,
 		buttonExportTxs:         buttonExportTxs,
 		buttonServiceNames:      buttonServiceNames,
+		buttonAddDEXTokens:      buttonAddDEXTokens,
 	}
 }
 
@@ -222,6 +242,29 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	if p.buttonExportTxs.Clicked(gtx) {
 		p.action = "export_txs"
 		password_modal.Instance.SetVisible(true)
+	}
+
+	if p.buttonAddDEXTokens.Clicked(gtx) {
+		go func() {
+			yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
+			if yes {
+				wallet := wallet_manager.OpenedWallet
+				err := wallet.InsertDexTokensFolder()
+				if err != nil {
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
+				} else {
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.SUCCESS,
+						Title: lang.Translate("Success"),
+						Text:  lang.Translate("The folder was created."),
+					})
+				}
+			}
+		}()
 	}
 
 	submitted, password := password_modal.Instance.Input.Submitted()
@@ -315,9 +358,34 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return prefabs.Divider(gtx, unit.Dp(5))
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonExportTxs.Text = lang.Translate("Export Transactions")
-			p.buttonExportTxs.Style.Colors = theme.Current.ButtonSecondaryColors
-			return p.buttonExportTxs.Layout(gtx, th)
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonAddDEXTokens.Text = lang.Translate("Add DEX tokens")
+					p.buttonAddDEXTokens.Style.Colors = theme.Current.ButtonSecondaryColors
+					return p.buttonAddDEXTokens.Layout(gtx, th)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Create a folder and insert DEX tokens automatically."))
+					lbl.Color = theme.Current.TextMuteColor
+					return lbl.Layout(gtx)
+				}),
+			)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					p.buttonExportTxs.Text = lang.Translate("Export Transactions")
+					p.buttonExportTxs.Style.Colors = theme.Current.ButtonSecondaryColors
+					return p.buttonExportTxs.Layout(gtx, th)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Export all your transactions into a CSV file."))
+					lbl.Color = theme.Current.TextMuteColor
+					return lbl.Layout(gtx)
+				}),
+			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -328,7 +396,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(14), lang.Translate("Delete wallet cache data and rescan blockchain."))
+					lbl := material.Label(th, unit.Sp(14), lang.Translate("Delete cache data and rescan entire wallet."))
 					lbl.Color = theme.Current.TextMuteColor
 					return lbl.Layout(gtx)
 				}),
