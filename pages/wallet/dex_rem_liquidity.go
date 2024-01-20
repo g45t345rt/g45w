@@ -136,19 +136,19 @@ func (p *PageDEXRemLiquidity) submitForm() error {
 
 	remShares := uint64(float64(share) * percent / 100.0)
 	pairSCID := crypto.HashHexToHash(p.pair.SCID)
-	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string, open func(txPayload build_tx_modal.TxPayload)) {
-		open(build_tx_modal.TxPayload{
+	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(randomAddr string) build_tx_modal.TxPayload {
+		return build_tx_modal.TxPayload{
 			SCArgs: rpc.Arguments{
 				{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
 				{Name: rpc.SCID, DataType: rpc.DataHash, Value: pairSCID},
 				{Name: "entrypoint", DataType: rpc.DataString, Value: "RemoveLiquidity"},
 			},
 			Transfers: []rpc.Transfer{
-				rpc.Transfer{SCID: pairSCID, Burn: remShares, Destination: addr},
+				rpc.Transfer{SCID: pairSCID, Burn: remShares, Destination: randomAddr},
 			},
 			Ringsize:   2,
 			TokensInfo: []*wallet_manager.Token{p.token1},
-		})
+		}
 	})
 
 	return nil

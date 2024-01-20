@@ -274,8 +274,8 @@ func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					ringsize = 16
 				}
 
-				build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-					open(build_tx_modal.TxPayload{
+				build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(randomAddr string) build_tx_modal.TxPayload {
+					return build_tx_modal.TxPayload{
 						Transfers: []rpc.Transfer{
 							{SCID: crypto.ZEROHASH, Destination: randomAddr, Burn: amount.Number},
 						},
@@ -285,7 +285,7 @@ func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 							{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(DONATION_SC)},
 							{Name: "entrypoint", DataType: rpc.DataString, Value: "Donate"},
 						},
-					})
+					}
 				})
 
 				return nil

@@ -298,6 +298,9 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			)
 		},
 		func(gtx layout.Context) layout.Dimensions {
+			return prefabs.Divider(gtx, unit.Dp(5))
+		},
+		func(gtx layout.Context) layout.Dimensions {
 			return p.txtWalletName.Layout(gtx, th, lang.Translate("Wallet Name"), "")
 		},
 		func(gtx layout.Context) layout.Dimensions {
@@ -309,7 +312,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.buttonSave.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return prefabs.Divider(gtx, 5)
+			return prefabs.Divider(gtx, unit.Dp(5))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonExportTxs.Text = lang.Translate("Export Transactions")
@@ -330,6 +333,9 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 					return lbl.Layout(gtx)
 				}),
 			)
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			return prefabs.Divider(gtx, unit.Dp(5))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonDeleteWallet.Text = lang.Translate("DELETE WALLET")

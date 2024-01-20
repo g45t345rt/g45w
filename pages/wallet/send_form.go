@@ -44,7 +44,7 @@ type PageSendForm struct {
 
 	txtAmount *prefabs.TextField
 
-	buttonBuildTx    *components.Button
+	buttonValidate   *components.Button
 	buttonOptions    *components.Button
 	buttonSetMax     *components.Button
 	balanceContainer *BalanceContainer
@@ -63,19 +63,19 @@ type PageSendForm struct {
 var _ router.Page = &PageSendForm{}
 
 func NewPageSendForm() *PageSendForm {
-	buildIcon, _ := widget.NewIcon(icons.HardwareMemory)
+	validIcon, _ := widget.NewIcon(icons.ActionCheckCircle)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
-	buttonBuildTx := components.NewButton(components.ButtonStyle{
+	buttonValidate := components.NewButton(components.ButtonStyle{
 		Rounded:     components.UniformRounded(unit.Dp(5)),
-		Icon:        buildIcon,
+		Icon:        validIcon,
 		TextSize:    unit.Sp(14),
 		IconGap:     unit.Dp(10),
 		Inset:       layout.UniformInset(unit.Dp(10)),
 		LoadingIcon: loadingIcon,
 		Animation:   components.NewButtonAnimationDefault(),
 	})
-	buttonBuildTx.Label.Alignment = text.Middle
-	buttonBuildTx.Style.Font.Weight = font.Bold
+	buttonValidate.Label.Alignment = text.Middle
+	buttonValidate.Style.Font.Weight = font.Bold
 
 	txtAmount := prefabs.NewNumberTextField()
 	txtAmount.Input.TextSize = unit.Sp(26)
@@ -122,7 +122,7 @@ func NewPageSendForm() *PageSendForm {
 
 	return &PageSendForm{
 		txtAmount:        txtAmount,
-		buttonBuildTx:    buttonBuildTx,
+		buttonValidate:   buttonValidate,
 		ringSizeSelector: ringSizeSelector,
 		animationEnter:   animationEnter,
 		animationLeave:   animationLeave,
@@ -177,11 +177,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	if p.buttonBuildTx.Clicked(gtx) {
+	if p.buttonValidate.Clicked(gtx) {
 		go func() {
-			p.buttonBuildTx.SetLoading(true)
+			p.buttonValidate.SetLoading(true)
 			err := p.prepareTx()
-			p.buttonBuildTx.SetLoading(false)
+			p.buttonValidate.SetLoading(false)
 			if err != nil {
 				notification_modal.Open(notification_modal.Params{
 					Type:  notification_modal.ERROR,
@@ -204,9 +204,11 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		p.txtAmount.SetValue(amount)
 	}
 
-	if build_tx_modal.Instance.TxSent() {
-		p.ClearForm()
-	}
+	/*
+		if build_tx_modal.Instance.TxSent() {
+			p.ClearForm()
+		}
+	*/
 
 	{
 		if p.ringSizeSelector.Changed {
@@ -257,9 +259,12 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			return p.buttonOptions.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			p.buttonBuildTx.Text = lang.Translate("BUILD TRANSACTION")
-			p.buttonBuildTx.Style.Colors = theme.Current.ButtonPrimaryColors
-			return p.buttonBuildTx.Layout(gtx, th)
+			return prefabs.Divider(gtx, unit.Dp(5))
+		},
+		func(gtx layout.Context) layout.Dimensions {
+			p.buttonValidate.Text = lang.Translate("VALIDATE TRANSACTION")
+			p.buttonValidate.Style.Colors = theme.Current.ButtonPrimaryColors
+			return p.buttonValidate.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Spacer{Height: unit.Dp(30)}.Layout(gtx)
@@ -280,7 +285,7 @@ func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(0), Bottom: unit.Dp(20),
-			Left: theme.PagePadding, Right: theme.PagePadding,
+			Left: unit.Dp(30), Right: unit.Dp(30),
 		}.Layout(gtx, widgets[index])
 	})
 }
@@ -409,13 +414,7 @@ func (p *PageSendForm) prepareTx() error {
 	if scId.IsZero() && deroBalance == amount.Number {
 		// sender is trying to send entire Dero balance to another wallet
 		// let's calculate fees before and deduct
-
-		transfers[0].Amount = 0 // set amount to 0 or transaction won't build because you don't have enough funds
-		_, txFees, _, err := wallet.BuildTransaction(transfers, ringsize, nil, false)
-		if err != nil {
-			return err
-		}
-
+		txFees := wallet.Memory.EstimateTxFees(len(transfers), int(ringsize), nil, transaction.NORMAL)
 		transfers[0].Amount = amount.Number - txFees
 	}
 

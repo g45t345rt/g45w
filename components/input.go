@@ -16,10 +16,11 @@ import (
 )
 
 type InputColors struct {
-	BorderColor     color.NRGBA
-	BackgroundColor color.NRGBA
-	TextColor       color.NRGBA
-	HintColor       color.NRGBA
+	BorderColor       color.NRGBA
+	BackgroundColor   color.NRGBA
+	TextColor         color.NRGBA
+	HintColor         color.NRGBA
+	ReadOnlyTextColor color.NRGBA
 }
 
 type Input struct {
@@ -156,7 +157,13 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 				r := op.Record(gtx.Ops)
 				dims := t.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					editorStyle := material.Editor(th, t.Editor, hint)
-					editorStyle.Color = t.Colors.TextColor
+
+					if t.Editor.ReadOnly {
+						editorStyle.Color = t.Colors.ReadOnlyTextColor
+					} else {
+						editorStyle.Color = t.Colors.TextColor
+					}
+
 					editorStyle.HintColor = t.Colors.HintColor
 					editorStyle.TextSize = th.TextSize
 					if t.TextSize != 0 {

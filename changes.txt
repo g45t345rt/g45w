@@ -1,16 +1,18 @@
 v0.9.0
 - Update to GioUI v0.4.0.
-- XSWD integration (toggle ON/OFF, manage apps and permissions).
+- Apply XSWD integration (toggle ON/OFF, manage apps and permissions) by Slixe.
+- Change submit transaction logic (estimate size and tx fees before building and sending).
 - Support NFT webp image format by importing golang.org/x/image/webp.
 - New background service for Android. Required to interact with XSWD or keep the node connection open.
 - For wallet: ask to store hardcoded DEX tokens in a folder with few favorites.
-- New wallet address hashicon.
-- TODO: Apply transaction fees fix by Slixe.
-- New bottom wallet text layout.
+- New wallet address hashicon and tx hashicon.
+- Apply transaction fees fix by Slixe.
+- New bottom wallet name layout.
 - New set local and deselect node button.
 - New startup popup if a node is not selected by default.
 - Fix crashes when a node is not selected or disconnected.
-- Confirm box for Integrated Node (avoid missclick and start bootstrap).
+- Confirm box for Integrated Node and list reset (avoid missclick and start bootstrap).
 - Fix sometime occurring `database is locked SQLITE BUSY`.
-- New drag move to order favorites tokens.
+- New drag & move on favorites tokens.
+- Less padding layout (allow more space for content).
 - Bunch of UX fixes.

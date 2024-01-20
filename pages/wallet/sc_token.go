@@ -316,8 +316,8 @@ func (p *PageSCToken) OpenMenu() {
 			}
 		case "g45_display_nft":
 			scId := p.token.GetHash()
-			build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-				open(build_tx_modal.TxPayload{
+			build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string) build_tx_modal.TxPayload {
+				return build_tx_modal.TxPayload{
 					Transfers: []rpc.Transfer{
 						{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
 					},
@@ -328,7 +328,7 @@ func (p *PageSCToken) OpenMenu() {
 						{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
 					},
 					TokensInfo: []*wallet_manager.Token{p.token},
-				})
+				}
 			})
 		case "g45_retrieve_nft":
 			scId := p.token.GetHash()
@@ -350,8 +350,8 @@ func (p *PageSCToken) OpenMenu() {
 				}
 
 				scId := p.token.GetHash()
-				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-					open(build_tx_modal.TxPayload{
+				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string) build_tx_modal.TxPayload {
+					return build_tx_modal.TxPayload{
 						Transfers: []rpc.Transfer{
 							{SCID: scId, Destination: randomAddr, Burn: amount.Number},
 						},
@@ -362,7 +362,7 @@ func (p *PageSCToken) OpenMenu() {
 							{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
 						},
 						TokensInfo: []*wallet_manager.Token{p.token},
-					})
+					}
 				})
 			}
 		case "g45_retrieve_token":
@@ -375,8 +375,8 @@ func (p *PageSCToken) OpenMenu() {
 				}
 
 				scId := p.token.GetHash()
-				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string, open func(txPayload build_tx_modal.TxPayload)) {
-					open(build_tx_modal.TxPayload{
+				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string) build_tx_modal.TxPayload {
+					return build_tx_modal.TxPayload{
 						Ringsize: 2,
 						SCArgs: rpc.Arguments{
 							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
@@ -384,7 +384,7 @@ func (p *PageSCToken) OpenMenu() {
 							{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
 							{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
 						},
-					})
+					}
 				})
 			}
 		case "dex_sc_bridge_in":

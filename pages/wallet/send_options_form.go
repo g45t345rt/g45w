@@ -120,6 +120,7 @@ func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) lay
 
 	if p.buttonContinue.Clicked(gtx) {
 		page_instance.header.GoBack()
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
 	widgets := []layout.Widget{

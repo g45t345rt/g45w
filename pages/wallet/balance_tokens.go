@@ -474,7 +474,7 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 				Top: unit.Dp(0), Bottom: unit.Dp(15),
 				Left: theme.PagePadding, Right: theme.PagePadding,
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return p.tokenBar.Layout(gtx, th)
+				return p.tokenBar.Layout(gtx, th, len(p.tokenItems))
 			})
 		})
 
@@ -864,7 +864,7 @@ func NewTokenBar() *TokenBar {
 	}
 }
 
-func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme, tokenCount int) layout.Dimensions {
 	if t.buttonManageTokens.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_SC_FOLDERS)
 		page_instance.header.AddHistory(PAGE_SC_FOLDERS)
@@ -874,8 +874,19 @@ func (t *TokenBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(18), lang.Translate("Favorites"))
-					return lbl.Layout(gtx)
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(18), lang.Translate("Favorites"))
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							txt := lang.Translate("{} tokens")
+							txt = strings.Replace(txt, "{}", fmt.Sprint(tokenCount), -1)
+							lbl := material.Label(th, unit.Sp(14), txt)
+							lbl.Color = theme.Current.TextMuteColor
+							return lbl.Layout(gtx)
+						}),
+					)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					t.buttonManageTokens.Style.Colors = theme.Current.ButtonPrimaryColors

@@ -42,10 +42,11 @@ var Light = &Theme{
 	XSWDBgTextColor: blackColor,
 
 	InputColors: components.InputColors{
-		BackgroundColor: whiteColor,
-		TextColor:       blackColor,
-		BorderColor:     blackColor,
-		HintColor:       color.NRGBA{A: 200},
+		BackgroundColor:   whiteColor,
+		TextColor:         blackColor,
+		BorderColor:       blackColor,
+		HintColor:         color.NRGBA{A: 200},
+		ReadOnlyTextColor: color.NRGBA{A: 200},
 	},
 
 	ButtonIconPrimaryColors: components.ButtonColors{

@@ -146,20 +146,20 @@ func (p *PageDEXAddLiquidity) submitForm() error {
 		return err
 	}
 
-	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string, open func(txPayload build_tx_modal.TxPayload)) {
-		open(build_tx_modal.TxPayload{
+	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(randomAddr string) build_tx_modal.TxPayload {
+		return build_tx_modal.TxPayload{
 			SCArgs: rpc.Arguments{
 				{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
 				{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(p.pair.SCID)},
 				{Name: "entrypoint", DataType: rpc.DataString, Value: "AddLiquidity"},
 			},
 			Transfers: []rpc.Transfer{
-				rpc.Transfer{SCID: token1.GetHash(), Burn: amount1.Number, Destination: addr},
-				rpc.Transfer{SCID: token2.GetHash(), Burn: amount2.Number, Destination: addr},
+				rpc.Transfer{SCID: token1.GetHash(), Burn: amount1.Number, Destination: randomAddr},
+				rpc.Transfer{SCID: token2.GetHash(), Burn: amount2.Number, Destination: randomAddr},
 			},
 			Ringsize:   2,
 			TokensInfo: []*wallet_manager.Token{token1, token2},
-		})
+		}
 	})
 
 	return nil

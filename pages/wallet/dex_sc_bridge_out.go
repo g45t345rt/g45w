@@ -155,8 +155,8 @@ func (p *PageDEXSCBridgeOut) submitForm() error {
 		return fmt.Errorf("ethereum address must be in CamelCase (mixed case) not all lower or all upper")
 	}
 
-	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string, open func(txPayload build_tx_modal.TxPayload)) {
-		open(build_tx_modal.TxPayload{
+	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(randomAddr string) build_tx_modal.TxPayload {
+		return build_tx_modal.TxPayload{
 			SCArgs: rpc.Arguments{
 				{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
 				{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(p.token.SCID)},
@@ -164,12 +164,12 @@ func (p *PageDEXSCBridgeOut) submitForm() error {
 				{Name: "eth_addr", DataType: rpc.DataString, Value: ethAddr},
 			},
 			Transfers: []rpc.Transfer{
-				rpc.Transfer{SCID: p.token.GetHash(), Burn: amount.Number, Destination: addr},
-				rpc.Transfer{SCID: crypto.ZEROHASH, Burn: p.deroBridgeFee, Destination: addr},
+				rpc.Transfer{SCID: p.token.GetHash(), Burn: amount.Number, Destination: randomAddr},
+				rpc.Transfer{SCID: crypto.ZEROHASH, Burn: p.deroBridgeFee, Destination: randomAddr},
 			},
 			Ringsize:   uint64(p.ringSizeSelector.Size),
 			TokensInfo: []*wallet_manager.Token{p.token},
-		})
+		}
 	})
 
 	return nil

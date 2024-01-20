@@ -428,7 +428,7 @@ func (c *SCCollectionDetailsContainer) Layout(gtx layout.Context, th *material.T
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		return prefabs.Divider(gtx, 5)
+		return prefabs.Divider(gtx, unit.Dp(5))
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {

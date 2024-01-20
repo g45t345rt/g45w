@@ -248,7 +248,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	if p.contact != nil {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			return prefabs.Divider(gtx, 5)
+			return prefabs.Divider(gtx, unit.Dp(5))
 		})
 
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {

@@ -181,7 +181,7 @@ func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout
 			return p.buttonEdit.Layout(gtx, th)
 		},
 		func(gtx layout.Context) layout.Dimensions {
-			return prefabs.Divider(gtx, 5)
+			return prefabs.Divider(gtx, unit.Dp(5))
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			p.buttonDelete.Text = lang.Translate("DELETE NODE")

@@ -2,6 +2,7 @@ package build_tx_modal
 
 import (
 	"fmt"
+	"time"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -83,11 +84,9 @@ type BuildTxModal struct {
 	animationLoading *animation.Animation
 	buttonClose      *components.Button
 
-	building bool
-	builtTx  *transaction.Transaction
-	txFees   uint64
-	gasFees  uint64
-	txSent   bool
+	loadStatus string
+	txFees     uint64
+	gasFees    uint64
 
 	txPayload TxPayload
 }
@@ -104,7 +103,7 @@ func LoadInstance() {
 		Animation:           components.NewModalAnimationDown(),
 	})
 
-	sendIcon, _ := widget.NewIcon(icons.ContentSend)
+	sendIcon, _ := widget.NewIcon(icons.HardwareMemory)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
 	buttonSend := components.NewButton(components.ButtonStyle{
 		Rounded:     components.UniformRounded(unit.Dp(5)),
@@ -149,13 +148,13 @@ func LoadInstance() {
 	})
 }
 
-func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr string, open func(txPayload TxPayload))) {
+func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr string) TxPayload) {
 	wallet := wallet_manager.OpenedWallet
 	b.modal.SetVisible(true)
-	b.animationLoading.Reset().Start()
-	b.building = true
 
+	b.SetLoadStatus("fetch_addr")
 	randomAddr, err := wallet.GetRandomAddress(scId)
+	time.Sleep(1 * time.Second)
 	if err != nil {
 		b.modal.SetVisible(false)
 		notification_modal.Open(notification_modal.Params{
@@ -165,24 +164,42 @@ func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr str
 		})
 	}
 
-	onLoad(randomAddr, func(txPayload TxPayload) {
-		b.Open(txPayload)
-	})
+	txPayload := onLoad(randomAddr)
+	b.Open(txPayload)
 }
 
 func (b *BuildTxModal) Open(txPayload TxPayload) {
 	wallet := wallet_manager.OpenedWallet
-	b.txSent = false
-	b.txPayload = txPayload
-	b.builtTx = nil
+	if !b.modal.Visible {
+		b.modal.SetVisible(true)
+	}
 
-	b.modal.SetVisible(true)
-	b.animationLoading.Reset().Start()
-	b.building = true
+	loadFees := func() error {
+		txType := transaction.NORMAL
+		if len(txPayload.SCArgs) > 0 {
+			txType = transaction.SC_TX
 
-	tx, _, gasFees, err := wallet.BuildTransaction(txPayload.Transfers, txPayload.Ringsize, txPayload.SCArgs, false)
-	b.animationLoading.Pause()
+			signer := wallet.Memory.GetAddress().String()
+			gasFees, err := wallet.Memory.EstimateGasFees(rpc.Transfer_Params{
+				Transfers: txPayload.Transfers,
+				SC_RPC:    txPayload.SCArgs,
+				Ringsize:  txPayload.Ringsize,
+				Signer:    signer,
+			})
+			if err != nil {
+				return err
+			}
+			b.gasFees = gasFees
+		}
 
+		b.txFees = wallet.Memory.EstimateTxFees(len(txPayload.Transfers), int(txPayload.Ringsize), txPayload.SCArgs, txType)
+		b.txPayload = txPayload
+		return nil
+	}
+
+	b.SetLoadStatus("load_fees")
+	err := loadFees()
+	time.Sleep(1 * time.Second)
 	if err != nil {
 		b.modal.SetVisible(false)
 		notification_modal.Open(notification_modal.Params{
@@ -191,43 +208,59 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 			Text:  err.Error(),
 		})
 	} else {
-		b.building = false
-		b.builtTx = tx
-		b.gasFees = gasFees
-		b.txFees = tx.Fees()
+		b.SetLoadStatus("")
 	}
 }
 
-func (b *BuildTxModal) TxSent() bool {
-	if b.txSent {
-		b.txSent = false
-		return true
+func (b *BuildTxModal) SetLoadStatus(status string) {
+	if status == "" {
+		b.animationLoading.Reset()
+	} else {
+		b.animationLoading.Start()
 	}
 
-	return false
+	b.loadStatus = status
+	app_instance.Window.Invalidate()
 }
 
-func (b *BuildTxModal) sendTx() error {
+func (b *BuildTxModal) buildAndSendTx() {
 	b.buttonSend.SetLoading(true)
 	wallet := wallet_manager.OpenedWallet
 
-	err := wallet.InsertOutgoingTx(b.builtTx, b.txPayload.Description)
-	if err != nil {
-		b.buttonSend.SetLoading(false)
-		return err
+	buildAndSend := func() error {
+		b.SetLoadStatus("building")
+		tx, err := wallet.Memory.TransferFeesPrecomputed(b.txPayload.Transfers, b.txPayload.Ringsize, false, b.txPayload.SCArgs, b.gasFees, b.txFees, false)
+		if err != nil {
+			return err
+		}
+
+		b.SetLoadStatus("sending")
+		err = wallet.Memory.SendTransaction(tx)
+		if err != nil {
+			return err
+		}
+
+		err = wallet.InsertOutgoingTx(tx, b.txPayload.Description)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	err = wallet.Memory.SendTransaction(b.builtTx)
-	if err != nil {
-		b.buttonSend.SetLoading(false)
-		return err
-	}
-
+	err := buildAndSend()
 	b.buttonSend.SetLoading(false)
-	b.modal.SetVisible(false)
-	recent_txs_modal.Instance.SetVisible(true)
-	b.txSent = true
-	return nil
+	if err != nil {
+		notification_modal.Open(notification_modal.Params{
+			Type:  notification_modal.ERROR,
+			Title: lang.Translate("Error"),
+			Text:  err.Error(),
+		})
+	} else {
+		b.modal.SetVisible(false)
+		recent_txs_modal.Instance.SetVisible(true)
+	}
+	app_instance.Window.Invalidate()
 }
 
 func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
@@ -248,16 +281,8 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 		if !validPassword {
 			password_modal.Instance.StartWrongPassAnimation()
 		} else {
-			err := b.sendTx()
-			if err != nil {
-				notification_modal.Open(notification_modal.Params{
-					Type:  notification_modal.ERROR,
-					Title: lang.Translate("Error"),
-					Text:  err.Error(),
-				})
-			} else {
-				password_modal.Instance.SetVisible(false)
-			}
+			password_modal.Instance.SetVisible(false)
+			go b.buildAndSendTx()
 		}
 	}
 
@@ -269,12 +294,27 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			var childs []layout.FlexChild
 
-			if b.building {
+			if b.loadStatus != "" {
 				childs = append(childs,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						return layout.Flex{
+							Axis:      layout.Horizontal,
+							Alignment: layout.Middle,
+						}.Layout(gtx,
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(20), lang.Translate("Building transaction..."))
+								txt := ""
+								switch b.loadStatus {
+								case "building":
+									txt = lang.Translate("Building transaction...")
+								case "sending":
+									txt = lang.Translate("Sending transaction...")
+								case "fetch_addr":
+									txt = lang.Translate("Fetching addr...")
+								case "load_fees":
+									txt = lang.Translate("Estimating fees...")
+								}
+
+								lbl := material.Label(th, unit.Sp(20), txt)
 								lbl.Font.Weight = font.Bold
 								return lbl.Layout(gtx)
 							}),
@@ -298,7 +338,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							}),
 						)
 					}))
-			} else if b.builtTx != nil {
+			} else {
 				totalDero := b.txPayload.TotalDeroAmount()
 
 				childs = append(childs,
@@ -327,7 +367,10 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 								return lbl.Layout(gtx)
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Label(th, unit.Sp(16), fmt.Sprint(b.txPayload.Ringsize))
+								//ringSize := len(b.txPayload.RingMembers.Rings)
+								ringsize := b.txPayload.Ringsize
+								//lbl := material.Label(th, unit.Sp(16), fmt.Sprint(b.txPayload.Ringsize))
+								lbl := material.Label(th, unit.Sp(16), fmt.Sprint(ringsize))
 								return lbl.Layout(gtx)
 							}),
 						)
@@ -512,7 +555,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						b.buttonSend.Text = lang.Translate("SEND TRANSACTION")
+						b.buttonSend.Text = lang.Translate("BUILD & SEND TRANSACTION")
 						b.buttonSend.Style.Colors = theme.Current.ButtonPrimaryColors
 						return b.buttonSend.Layout(gtx, th)
 					}),
