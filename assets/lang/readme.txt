@@ -36,3 +36,7 @@ https://commons.wikimedia.org/wiki/File:Flag_of_Portuguese_language_(PT-BR).svg
 Romanian (ro)
 Romania
 https://commons.wikimedia.org/wiki/File:Flag_of_Romania.svg
+
+German (de)
+German
+https://commons.wikimedia.org/wiki/File:D-A-CH_Flag.svg

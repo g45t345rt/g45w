@@ -19,6 +19,7 @@ var Languages = []Lang{
 	{Key: "es", Name: "Spanish", ImgPath: "lang/es.png"},               //@lang.Translate("Spanish")
 	{Key: "it", Name: "Italian", ImgPath: "lang/it.png"},               //@lang.Translate("Italian")
 	{Key: "nl", Name: "Dutch", ImgPath: "lang/nl.png"},                 //@lang.Translate("Dutch")
+	{Key: "de", Name: "German", ImgPath: "lang/de.png"},                //@lang.Translate("German")
 	{Key: "ru", Name: "Russian", ImgPath: "lang/ru.png"},               //@lang.Translate("Russian")
 	{Key: "pt", Name: "Portuguese", ImgPath: "lang/pt.png"},            //@lang.Translate("Portuguese")
 	{Key: "ro", Name: "Romanian", ImgPath: "lang/ro.png"},              //@lang.Translate("Romanian")
