@@ -39,12 +39,16 @@ import (
 
 	// add android permissions
 	_ "gioui.org/app/permission/camera"
+	_ "gioui.org/app/permission/foreground_service"
 	_ "gioui.org/app/permission/networkstate"
+	_ "gioui.org/app/permission/post_notifications"
 	_ "gioui.org/app/permission/storage"
 
 	// support webp images
 	_ "golang.org/x/image/webp"
 )
+
+// ANDROID_MANIFEST_SERVICE:org.gioui.x.worker_android$WorkerService
 
 func loadFontCollection() ([]font.FontFace, error) {
 	// universal fonts from https://github.com/satbyy/go-noto-universal
@@ -152,17 +156,23 @@ func runApp() error {
 			return
 		}
 
-		err = android_background_service.Start()
-		if err != nil {
-			loadState.SetStatus("", err)
-			return
-		}
-
 		loadState.SetStatus(lang.Translate("Loading settings"), nil)
 		err = settings.Load()
 		if err != nil {
 			loadState.SetStatus("", err)
 			return
+		}
+
+		if android_background_service.IsAvailable() {
+			err = android_background_service.Start()
+			if err != nil {
+				loadState.SetStatus("", err)
+				return
+			}
+
+			if settings.App.MobileBackgroundService {
+				android_background_service.StartForeground()
+			}
 		}
 
 		loadDeroGlobals(settings.App.Testnet)

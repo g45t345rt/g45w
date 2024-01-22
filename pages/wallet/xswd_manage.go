@@ -15,6 +15,7 @@ import (
 	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
@@ -89,11 +90,12 @@ func (p *PageXSWDManage) Enter() {
 		gtx.Constraints.Min.X = gtx.Dp(30)
 		gtx.Constraints.Min.Y = gtx.Dp(30)
 
-		xswd := wallet_manager.OpenedWallet.ServerXSWD
+		wallet := wallet_manager.OpenedWallet
+		xswd := wallet.ServerXSWD
 
 		if xswd != nil && xswd.IsRunning() {
 			if p.buttonStop.Clicked(gtx) {
-				go xswd.Stop()
+				go page_instance.CloseXSWD()
 			}
 
 			return p.buttonStop.Layout(gtx, th)
@@ -101,7 +103,14 @@ func (p *PageXSWDManage) Enter() {
 
 		if p.buttonStart.Clicked(gtx) {
 			go func() {
-				page_instance.LoadXSWD()
+				err := page_instance.OpenXSWD()
+				if err != nil {
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
+				}
 				p.Load()
 			}()
 		}

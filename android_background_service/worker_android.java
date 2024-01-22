@@ -83,7 +83,7 @@ public class worker_android {
       Icon icon = Icon.createWithBitmap(whiteIcon());
       return new Notification.Builder(this, CHANNEL_ID)
           .setContentTitle("G45W")
-          .setContentText("Running in the background")
+          .setContentText("Running in the background.")
           .setSmallIcon(icon)
           .build();
     }

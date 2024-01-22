@@ -20,6 +20,7 @@ import (
 	"gioui.org/widget/material"
 	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/walletapi/xswd"
+	"github.com/g45t345rt/g45w/android_background_service"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
@@ -223,13 +224,6 @@ func (p *Page) Enter() {
 		p.animationLeave.Reset()
 		p.animationEnter.Start()
 
-		/* Commented because for now we want it disabled by default
-		if openedWallet.ServerXSWD == nil {
-			p.LoadXSWD()
-		}
-		*/
-
-		//node_status_bar.Instance.Update()
 		lastHistory := p.header.GetLastHistory()
 		if lastHistory != nil {
 			p.pageRouter.SetCurrent(lastHistory)
@@ -244,9 +238,69 @@ func (p *Page) Enter() {
 	}
 }
 
-func (p *Page) LoadXSWD() {
-	openedWallet := wallet_manager.OpenedWallet
+func (p *Page) CloseXSWD() error {
+	wallet := wallet_manager.OpenedWallet
 	w := app_instance.Window
+
+	if android_background_service.IsAvailable() {
+		if !settings.App.MobileBackgroundService {
+			foregroundRunning, err := android_background_service.IsForegroundRunning()
+			if err != nil {
+				return err
+			}
+
+			if foregroundRunning {
+				err := android_background_service.StopForeground()
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	wallet.CloseXSWD()
+	w.Invalidate()
+	return nil
+}
+
+func (p *Page) OpenXSWD() error {
+	wallet := wallet_manager.OpenedWallet
+	w := app_instance.Window
+
+	if android_background_service.IsAvailable() {
+		foregroundRunning, err := android_background_service.IsForegroundRunning()
+		if err != nil {
+			return err
+		}
+
+		if !foregroundRunning && wallet.Settings.NotifyXSWDMobileForegroundService {
+			yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+				Title:  lang.Translate("Foreground Service"),
+				Prompt: lang.Translate("Using XSWD on mobile requires running the application in the background."),
+				Yes:    lang.Translate("OK"),
+				No:     lang.Translate("CANCEL"),
+			})
+
+			if !yes {
+				return nil
+			}
+
+			wallet.Settings.NotifyXSWDMobileForegroundService = false
+			err := wallet.SaveSettings()
+			if err != nil {
+				return err
+			}
+		}
+
+		if !foregroundRunning {
+			err = android_background_service.StartForeground()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// TODO: IOS background app with GPS hack
 
 	appHandler := func(appData *xswd.ApplicationData) bool {
 		prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
@@ -274,14 +328,16 @@ func (p *Page) LoadXSWD() {
 		return <-permChan
 	}
 
-	openedWallet.OpenXSWD(appHandler, reqHandler)
+	wallet.OpenXSWD(appHandler, reqHandler)
+	w.Invalidate()
+	return nil
 }
 
 func (p *Page) askToCreateFolderTokens() {
 	wallet := wallet_manager.OpenedWallet
 
 	// make you don't ask if testnet mode or was already asked before
-	if wallet.Settings.AskedToStoreDEXTokens ||
+	if !wallet.Settings.AskToStoreDEXTokens ||
 		settings.App.Testnet {
 		return
 	}
@@ -309,7 +365,7 @@ func (p *Page) askToCreateFolderTokens() {
 			}
 		}
 
-		wallet.Settings.AskedToStoreDEXTokens = true
+		wallet.Settings.AskToStoreDEXTokens = false
 		err := wallet.SaveSettings()
 		if err != nil {
 			notification_modal.Open(notification_modal.Params{
@@ -426,8 +482,8 @@ func NewXSWDHeader() *XSWDHeader {
 }
 
 func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	openedWallet := wallet_manager.OpenedWallet
-	xswd := openedWallet.ServerXSWD
+	wallet := wallet_manager.OpenedWallet
+	xswd := wallet.ServerXSWD
 
 	r := op.Record(gtx.Ops)
 	dims := layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -436,9 +492,16 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 				if x.toggleClickable.Clicked(gtx) {
 					go func() {
 						if xswd != nil && xswd.IsRunning() {
-							openedWallet.CloseXSWD()
+							page_instance.CloseXSWD()
 						} else {
-							page_instance.LoadXSWD()
+							err := page_instance.OpenXSWD()
+							if err != nil {
+								notification_modal.Open(notification_modal.Params{
+									Type:  notification_modal.ERROR,
+									Title: lang.Translate("Error"),
+									Text:  err.Error(),
+								})
+							}
 						}
 					}()
 				}
@@ -515,7 +578,7 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	})
 	c := r.Stop()
 
-	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(theme.PagePadding+(unit.Dp(dims.Size.Y)/3)))))
+	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(theme.PagePadding+10))))
 	defer op.Affine(offset).Push(gtx.Ops).Pop()
 
 	c.Add(gtx.Ops)

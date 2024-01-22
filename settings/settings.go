@@ -20,14 +20,15 @@ var (
 )
 
 type AppSettings struct {
-	Language     string `json:"language"`
-	HideBalance  bool   `json:"hide_balance"`
-	SendRingSize int    `json:"send_ring_size"`
-	MainTabBars  string `json:"main_tab_bars"`
-	Theme        string `json:"theme"`
-	FolderLayout string `json:"folder_layout"`
-	NodeSelect   string `json:"node_select"`
-	Testnet      bool   `json:"testnet"`
+	Language                string `json:"language"`
+	HideBalance             bool   `json:"hide_balance"`
+	SendRingSize            int    `json:"send_ring_size"`
+	MainTabBars             string `json:"main_tab_bars"`
+	Theme                   string `json:"theme"`
+	FolderLayout            string `json:"folder_layout"`
+	NodeSelect              string `json:"node_select"`
+	Testnet                 bool   `json:"testnet"`
+	MobileBackgroundService bool   `json:"mobile_background_service"`
 }
 
 var (
@@ -65,13 +66,14 @@ func Load() error {
 
 	// default values
 	appSettings := AppSettings{
-		Language:     "en",
-		HideBalance:  false,
-		SendRingSize: 16,
-		NodeSelect:   "",
-		MainTabBars:  MainTabBarsTxs,
-		FolderLayout: FolderLayoutGrid,
-		Testnet:      false,
+		Language:                "en",
+		HideBalance:             false,
+		SendRingSize:            16,
+		NodeSelect:              "",
+		MainTabBars:             MainTabBarsTxs,
+		FolderLayout:            FolderLayoutGrid,
+		Testnet:                 false,
+		MobileBackgroundService: false,
 	}
 
 	_, err = os.Stat(settingsPath)

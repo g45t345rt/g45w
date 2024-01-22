@@ -243,15 +243,10 @@ func (p *PageEditIPFSGateway) removeGateway() error {
 
 	if node_manager.CurrentNode != nil {
 		if node_manager.CurrentNode.Endpoint == endpoint {
-			node_manager.Set(nil, true)
-			/*node_manager.CurrentNode = nil
-			walletapi.Connected = false
-
-			settings.App.NodeEndpoint = ""
-			err := settings.Save()
+			err := node_manager.Set(nil, true)
 			if err != nil {
 				return err
-			}*/
+			}
 		}
 	}
 

@@ -20,7 +20,7 @@ jobs:
       run: chmod +x ./build_gio.sh
 
     - name: Install gogio tool
-      run: go install gioui.org/cmd/gogio@latest
+      run: go install github.com/g45t345rt/gio-cmd/gogio@latest
 
     - name: Build ios arm64
       run: ./build_gio.sh ios arm64

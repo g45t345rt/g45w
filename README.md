@@ -71,7 +71,7 @@ Download and install GO.
 Install latest version of GioUI build tool.
 
 ```bash
-go install gioui.org/cmd/gogio@latest
+go install github.com/g45t345rt/gio-cmd/gogio@latest
 ```
 
 Check Github workflows for more build information.  

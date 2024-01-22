@@ -299,6 +299,14 @@ func IsMobile() bool {
 	}
 }
 
+func IsAndroid() bool {
+	return runtime.GOOS == "android"
+}
+
+func IsIOS() bool {
+	return runtime.GOOS == "ios"
+}
+
 func CreateFolderPath(folderPath string) error {
 	_, err := os.Stat(folderPath)
 	if err != nil {

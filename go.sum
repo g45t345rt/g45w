@@ -55,8 +55,8 @@ github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD
 github.com/fxamacker/cbor/v2 v2.4.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
 github.com/g45t345rt/derohe v0.0.0-20240120144215-a216df48a43b h1:D4+Zq6YFJIbseDtY/dgtdtB0gfWq52Z3drxHm+y9Gdg=
 github.com/g45t345rt/derohe v0.0.0-20240120144215-a216df48a43b/go.mod h1:EWHh1VkXRnCHvyGML98kXhngDFYebmOhk/9kZ1ATJ1c=
-github.com/g45t345rt/gio v0.0.0-20240117160847-ec56b578e017 h1:QZ7oCP1eo6NrTn37FVhYEwUHJH4MF4CPGFtjYST19Gg=
-github.com/g45t345rt/gio v0.0.0-20240117160847-ec56b578e017/go.mod h1:2atiYR4upH71/6ehnh6XsUELa7JZOrOHHNMDxGBZF0Q=
+github.com/g45t345rt/gio v0.0.0-20240122184612-c525c77eb0c7 h1:ao26fRPFbsw2q/a448IGdQOrZFtXo0qLCnRqfUWXchA=
+github.com/g45t345rt/gio v0.0.0-20240122184612-c525c77eb0c7/go.mod h1:2atiYR4upH71/6ehnh6XsUELa7JZOrOHHNMDxGBZF0Q=
 github.com/g45t345rt/gio-x v0.0.0-20230919164904-d758e00e2b78 h1:K61Povf1yc0aFbTbNWYrOkS3h2RQa3jnKYK6e+AuP6A=
 github.com/g45t345rt/gio-x v0.0.0-20230919164904-d758e00e2b78/go.mod h1:rCGN2nZ8ZHqrtseJoQxCMZpt2xrZUrdZ2WuMRLBJmYs=
 github.com/g45t345rt/gioui-hashicon v0.0.0-20231230024954-07d42b3a0066 h1:q/QZ5MqjYYpeV3ylwKQjCVZbvuQ+ZDRmJ8gUICjiUG0=

@@ -281,7 +281,7 @@ func (a *AndroidBackgroundServiceSwitch) Layout(gtx layout.Context, th *material
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(20), lang.Translate("Android background service"))
+						lbl := material.Label(th, unit.Sp(20), lang.Translate("Android Background Service"))
 						lbl.Font.Weight = font.Bold
 						return lbl.Layout(gtx)
 					}),
@@ -300,6 +300,9 @@ func (a *AndroidBackgroundServiceSwitch) Layout(gtx layout.Context, th *material
 								} else {
 									android_background_service.StopForeground()
 								}
+
+								settings.App.MobileBackgroundService = a.switchValue
+								settings.Save()
 							}()
 						}
 
