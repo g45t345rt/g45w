@@ -342,7 +342,6 @@
   "Allow": "Permitir",
   "Allow Always": "Permitir Siempre",
   "Always use your own node for full privacy and trust.": "Siempre usa tu propio nodo para total privacidad y confianza.",
-  "Android background service": "Servicio en segundo plano de Android",
   "BUILD & SEND TRANSACTION": "CONSTRUIR Y ENVIAR TRANSACCIÓN",
   "Connect to Local Node": "Conectar al Nodo Local",
   "Connection was terminated.": "La conexión fue terminada.",
@@ -393,5 +392,8 @@
   "XSWD OFF": "XSWD APAGADO",
   "XSWD ON": "XSWD ENCENDIDO",
   "XSWD is not running.": "XSWD no está en ejecución.",
-  "German": "Alemán"
+  "German": "Alemán",
+  "Android Background Service": "Servicio de fondo de Android",
+  "Background Service": "Servicio de fondo",
+  "Using XSWD on mobile requires running the application in the background.": "Usar XSWD en móviles requiere ejecutar la aplicación en segundo plano."
 }

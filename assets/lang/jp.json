@@ -342,7 +342,6 @@
   "Allow": "許可する",
   "Allow Always": "常に許可",
   "Always use your own node for full privacy and trust.": "完全なプライバシーと信頼のためには常に独自のノードを使用してください。",
-  "Android background service": "Android バックグラウンドサービス",
   "BUILD & SEND TRANSACTION": "トランザクションの構築と送信",
   "Connect to Local Node": "ローカルノードに接続",
   "Connection was terminated.": "接続が終了しました。",
@@ -393,5 +392,8 @@
   "XSWD OFF": "XSWD オフ",
   "XSWD ON": "XSWD オン",
   "XSWD is not running.": "XSWD は実行されていません。",
-  "German": "ドイツ語"
+  "German": "ドイツ語",
+  "Android Background Service": "Android バックグラウンド サービス",
+  "Background Service": "バックグラウンド サービス",
+  "Using XSWD on mobile requires running the application in the background.": "モバイルで XSWD を使用するには、アプリケーションをバックグラウンドで実行する必要があります。"
 }

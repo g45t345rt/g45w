@@ -342,7 +342,6 @@
   "Allow": "允许",
   "Allow Always": "始终允许",
   "Always use your own node for full privacy and trust.": "始终使用您自己的节点以确保完全隐私和信任。",
-  "Android background service": "Android 后台服务",
   "BUILD & SEND TRANSACTION": "构建和发送交易",
   "Connect to Local Node": "连接到本地节点",
   "Connection was terminated.": "连接已终止。",
@@ -393,5 +392,8 @@
   "XSWD OFF": "XSWD 关闭",
   "XSWD ON": "XSWD 打开",
   "XSWD is not running.": "XSWD 未运行。",
-  "German": "德国的"
+  "German": "德国的",
+  "Android Background Service": "Android 后台服务",
+  "Background Service": "后台服务",
+  "Using XSWD on mobile requires running the application in the background.": "在移动设备上使用 XSWD 需要在后台运行应用程序。"
 }

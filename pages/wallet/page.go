@@ -274,9 +274,9 @@ func (p *Page) OpenXSWD() error {
 		}
 
 		if !running {
-			if wallet.Settings.NotifyXSWDMobileForegroundService {
+			if wallet.Settings.NotifyXSWDMobileBackgroundService {
 				yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{
-					Title:  lang.Translate("Foreground Service"),
+					Title:  lang.Translate("Background Service"),
 					Prompt: lang.Translate("Using XSWD on mobile requires running the application in the background."),
 					Yes:    lang.Translate("OK"),
 					No:     lang.Translate("CANCEL"),
@@ -286,7 +286,7 @@ func (p *Page) OpenXSWD() error {
 					return nil
 				}
 
-				wallet.Settings.NotifyXSWDMobileForegroundService = false
+				wallet.Settings.NotifyXSWDMobileBackgroundService = false
 				err := wallet.SaveSettings()
 				if err != nil {
 					return err

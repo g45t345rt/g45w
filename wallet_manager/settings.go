@@ -8,7 +8,7 @@ import (
 
 type Settings struct {
 	AskToStoreDEXTokens               bool `json:"ask_to_store_dex_tokens"`
-	NotifyXSWDMobileForegroundService bool `json:"notify_xswd_mobile_foreground_service"`
+	NotifyXSWDMobileBackgroundService bool `json:"notify_xswd_mobile_background_service"`
 }
 
 func (w *Wallet) settingsPath() string {
@@ -20,7 +20,7 @@ func (w *Wallet) LoadSettings() error {
 
 	w.Settings = Settings{
 		AskToStoreDEXTokens:               true,
-		NotifyXSWDMobileForegroundService: true,
+		NotifyXSWDMobileBackgroundService: true,
 	}
 
 	_, err := os.Stat(settingsPath)

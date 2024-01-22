@@ -342,7 +342,6 @@
   "Allow": "Permite",
   "Allow Always": "Permite întotdeauna",
   "Always use your own node for full privacy and trust.": "Utilizați întotdeauna propriul nod pentru confidențialitate și încredere totală.",
-  "Android background service": "Serviciu de fundal Android",
   "BUILD & SEND TRANSACTION": "CONSTRUIEȘTE ȘI TRIMITE TRANZACȚIA",
   "Connect to Local Node": "Conectează-te la nodul local",
   "Connection was terminated.": "Conexiunea a fost întreruptă.",
@@ -393,5 +392,8 @@
   "XSWD OFF": "XSWD OPRIT",
   "XSWD ON": "XSWD ACTIVAT",
   "XSWD is not running.": "XSWD nu rulează.",
-  "German": "Germană"
+  "German": "Germană",
+  "Android Background Service": "Serviciu de fundal Android",
+  "Background Service": "Serviciu de fundal",
+  "Using XSWD on mobile requires running the application in the background.": "Utilizarea XSWD pe mobil necesită rularea aplicației în fundal."
 }

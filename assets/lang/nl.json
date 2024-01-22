@@ -342,7 +342,6 @@
   "Allow": "Toestaan",
   "Allow Always": "Altijd toestaan",
   "Always use your own node for full privacy and trust.": "Gebruik altijd je eigen node voor volledige privacy en vertrouwen.",
-  "Android background service": "Android achtergrondservice",
   "BUILD & SEND TRANSACTION": "TRANSACTION BOUWEN & VERZENDEN",
   "Connect to Local Node": "Verbinden met lokale node",
   "Connection was terminated.": "Verbinding is verbroken.",
@@ -393,5 +392,8 @@
   "XSWD OFF": "XSWD UIT",
   "XSWD ON": "XSWD AAN",
   "XSWD is not running.": "XSWD wordt niet uitgevoerd.",
-  "German": "Duits"
+  "German": "Duits",
+  "Android Background Service": "Android Achtergrondservice",
+  "Background Service": "Achtergrondservice",
+  "Using XSWD on mobile requires running the application in the background.": "Het gebruik van XSWD op mobiel vereist dat de toepassing op de achtergrond wordt uitgevoerd."
 }

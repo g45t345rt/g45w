@@ -4,7 +4,7 @@ import json
 import string
 
 
-lang_files = ["fr", "es", "it", "jp", "ko",
+lang_files = ["fr", "es", "it", "jp", "ko", "de",
               "nl", "pt", "ro", "ru", "zh_s", "zh_t"]
 folder_path = "./assets/lang"
 

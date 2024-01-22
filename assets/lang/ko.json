@@ -342,7 +342,6 @@
   "Allow": "허용",
   "Allow Always": "항상 허용",
   "Always use your own node for full privacy and trust.": "완벽한 개인 정보 보호와 신뢰를 위해 항상 자체 노드를 사용하십시오.",
-  "Android background service": "Android 백그라운드 서비스",
   "BUILD & SEND TRANSACTION": "트랜잭션 빌드 및 전송",
   "Connect to Local Node": "로컬 노드에 연결",
   "Connection was terminated.": "연결이 종료되었습니다.",
@@ -393,5 +392,8 @@
   "XSWD OFF": "XSWD 끄기",
   "XSWD ON": "XSWD 켜기",
   "XSWD is not running.": "XSWD가 실행되고 있지 않습니다.",
-  "German": "독일의"
+  "German": "독일의",
+  "Android Background Service": "안드로이드 백그라운드 서비스",
+  "Background Service": "백그라운드 서비스",
+  "Using XSWD on mobile requires running the application in the background.": "모바일에서 XSWD를 사용하려면 애플리케이션을 백그라운드에서 실행해야 합니다."
 }

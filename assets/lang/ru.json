@@ -342,7 +342,6 @@
   "Allow": "Разрешить",
   "Allow Always": "Всегда разрешать",
   "Always use your own node for full privacy and trust.": "Всегда используйте свой собственный узел для полной конфиденциальности и доверия.",
-  "Android background service": "Служба фонового режима Android",
   "BUILD & SEND TRANSACTION": "СОЗДАТЬ И ОТПРАВИТЬ ТРАНЗАКЦИЮ",
   "Connect to Local Node": "Подключиться к локальному узлу",
   "Connection was terminated.": "Соединение было прервано.",
@@ -393,5 +392,8 @@
   "XSWD OFF": "XSWD ВЫКЛ",
   "XSWD ON": "XSWD ВКЛ",
   "XSWD is not running.": "XSWD не запущен.",
-  "German": "немецкий"
+  "German": "немецкий",
+  "Android Background Service": "Служба фонового режима Android",
+  "Background Service": "Служба фонового режима",
+  "Using XSWD on mobile requires running the application in the background.": "Использование XSWD на мобильном устройстве требует запуска приложения в фоновом режиме."
 }
