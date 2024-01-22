@@ -143,6 +143,9 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 	gtx.Constraints.Min.Y = t.EditorMinY
 
 	if t.keyboardClick.Clicked(gtx) {
+		// important - request editor focus if clicked in the Inset layout
+		t.Editor.Focus()
+
 		// on mobile if the keyboard popups and the input lose focus it will automatically close the keyboard
 		// so we have to manually force keyboard request to avoid this issue
 		if !t.Editor.ReadOnly {
