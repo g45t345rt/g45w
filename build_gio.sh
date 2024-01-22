@@ -54,4 +54,4 @@ fi
 #	signKey       = flag.String("signkey", "", "specify the path of the keystore to be used to sign Android apk files.")
 #	signPass      = flag.String("signpass", "", "specify the password to decrypt the signkey.")
 
-gogio -name $NAME -target $GOOS -arch $GOARCH -minsdk $MIN_SDK -x -ldflags "$FLAGS" -appid $APPID -version $VERSION_INCREMENT -o "$OUTPUT" .
+gogio -name $NAME -target $GOOS -arch $GOARCH -minsdk $MIN_SDK -x -ldflags "$FLAGS" -appid $APPID -version $VERSION -o "$OUTPUT" .

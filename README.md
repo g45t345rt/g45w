@@ -5,16 +5,15 @@
 A Dero Universal Wallet with mobile UI.
 Cross-platform: Linux, Windows, MacOS, Android, IOS...
 
+*This wallet uses Gio UI for rendering components.*
+
 ## Why
 
-The goal is to bring more users into the Dero Ecosystem with a wallet that is intuitive, easy to use and don't compromise privacy.
+The goal is to attract more users into the Dero Ecosystem with a wallet that is intuitive, easy to use and does not compromise privacy.
 
-Although there is already a fantastic wallet created by the DERO Foundation members <https://github.com/DEROFDN/Engram>,
-I want to provide an alternative with a different user interface and additional features, such as smart contract interaction.
-One notable technological difference is that this wallet uses Gio UI instead of Fyne for rendering components.
+The primary focus is to phase out the `Dero RPC Bridge` browser extension in favor of this wallet, utilizing the DApps XSWD protocol. This should remove a painful and unsafe step of connecting your wallet directly to a DApp platform.
 
-Additionally, I intend to discontinue the `Dero RPC Bridge` browser extension in favor of this wallet using the DApps XSWD protocol.
-This change should remove a painful/unsafe step of connecting your wallet directly to a DApp platform.
+Addtitionally, I aim to offer an alternative UI with extra features, including smart contract interactions, organized visualiozation of NFTs, and extensive language support.
 
 ## Features
 
@@ -40,7 +39,7 @@ This change should remove a painful/unsafe step of connecting your wallet direct
 
 ## Supported languages
 
-English, French, Spanish, Italian, Dutch, German, Russian, Portuguese, Romanian, Japanese, Korean, Chinese (Simplified & Traditional)
+- English, French, Spanish, Italian, Dutch, German, Russian, Portuguese, Romanian, Japanese, Korean, Chinese Simplified, Chinese Traditional
 
 ## TODO
 
@@ -50,6 +49,10 @@ English, French, Spanish, Italian, Dutch, German, Russian, Portuguese, Romanian,
 ## Demo
 
 ![Wallet app demo](https://github.com/g45t345rt/g45w/blob/master/g45w_demo.gif)
+
+## Alternative wallets
+
+- Engram -> <https://github.com/DEROFDN/Engram>
 
 ## Releases
 
@@ -154,7 +157,7 @@ Build the app.
 ## Contributors
 
 List of contributors. Thank you all!  
-If your alias is not here pls let me know.  
+If your alias is not listed, pls let me know.  
 
 ### Translation
 
