@@ -13,7 +13,7 @@ The goal is to attract more users into the Dero Ecosystem with a wallet that is 
 
 The primary focus is to phase out the `Dero RPC Bridge` browser extension in favor of this wallet, utilizing the DApps XSWD protocol. This should remove a painful and unsafe step of connecting your wallet directly to a DApp platform.
 
-Addtitionally, I aim to offer an alternative UI with extra features, including smart contract interactions, organized visualiozation of NFTs, and extensive language support.
+Additionally, I aim to offer an alternative UI with extra features, including smart contract interactions, organized visualization of NFTs, and extensive language support.
 
 ## Features
 
