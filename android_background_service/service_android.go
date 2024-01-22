@@ -22,6 +22,8 @@ package android_background_service
 
 import "C"
 import (
+	"time"
+
 	"gioui.org/app"
 	"git.wow.st/gmp/jni"
 )
@@ -29,11 +31,82 @@ import (
 //go:generate javac -source 8 -target 8  -bootclasspath $ANDROID_HOME/platforms/android-33/android.jar -d $TEMP/worker_android/classes *.java
 //go:generate jar cf worker_android.jar -C $TEMP/worker_android/classes .
 
+func Start() (err error) {
+	serviceRunning, err := isServiceRunning()
+	if err != nil {
+		return err
+	}
+
+	if serviceRunning {
+		foregroundRunning, err := isForegroundRunning()
+		if err != nil {
+			return err
+		}
+
+		if !foregroundRunning {
+			err = startForeground()
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		err = startService()
+		if err != nil {
+			return
+		}
+
+		// Wait for service to initialized before setting foreground
+		time.Sleep(1 * time.Second)
+
+		err = startForeground()
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func Stop() (err error) {
+	err = stopForeground()
+	if err != nil {
+		return
+	}
+
+	/*
+		Don't stop entire service. It's faster to remove from foreground.
+		err = stopService()
+		if err != nil {
+			return
+		}
+	*/
+
+	return
+}
+
+func IsRunning() (bool, error) {
+	serviceRunning, err := isServiceRunning()
+	if err != nil {
+		return false, err
+	}
+
+	foregroundRunning, err := isForegroundRunning()
+	if err != nil {
+		return false, err
+	}
+
+	return serviceRunning && foregroundRunning, nil
+}
+
+func IsAvailable() bool {
+	return true
+}
+
 func loadWorkerClass(env jni.Env) (jni.Class, error) {
 	return jni.LoadClass(env, jni.ClassLoaderFor(env, jni.Object(app.AppContext())), "org/gioui/x/worker_android")
 }
 
-func Start() error {
+func startService() error {
 	err := jni.Do(jni.JVMFor(app.JavaVM()), func(env jni.Env) error {
 		class, err := loadWorkerClass(env)
 		if err != nil {
@@ -52,7 +125,7 @@ func Start() error {
 	return err
 }
 
-func Stop() error {
+func stopService() error {
 	err := jni.Do(jni.JVMFor(app.JavaVM()), func(env jni.Env) error {
 		class, err := loadWorkerClass(env)
 		if err != nil {
@@ -71,7 +144,7 @@ func Stop() error {
 	return err
 }
 
-func IsForegroundRunning() (bool, error) {
+func isForegroundRunning() (bool, error) {
 	running := false
 	err := jni.Do(jni.JVMFor(app.JavaVM()), func(env jni.Env) error {
 		class, err := loadWorkerClass(env)
@@ -87,7 +160,7 @@ func IsForegroundRunning() (bool, error) {
 	return running, err
 }
 
-func StartForeground() error {
+func startForeground() error {
 	err := jni.Do(jni.JVMFor(app.JavaVM()), func(env jni.Env) error {
 		class, err := loadWorkerClass(env)
 		if err != nil {
@@ -106,7 +179,7 @@ func StartForeground() error {
 	return err
 }
 
-func StopForeground() error {
+func stopForeground() error {
 	err := jni.Do(jni.JVMFor(app.JavaVM()), func(env jni.Env) error {
 		class, err := loadWorkerClass(env)
 		if err != nil {
@@ -125,7 +198,7 @@ func StopForeground() error {
 	return err
 }
 
-func IsRunning() (bool, error) {
+func isServiceRunning() (bool, error) {
 	running := false
 	err := jni.Do(jni.JVMFor(app.JavaVM()), func(env jni.Env) error {
 		class, err := loadWorkerClass(env)
@@ -139,8 +212,4 @@ func IsRunning() (bool, error) {
 	})
 
 	return running, err
-}
-
-func IsAvailable() bool {
-	return true
 }

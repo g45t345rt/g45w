@@ -164,14 +164,12 @@ func runApp() error {
 		}
 
 		if android_background_service.IsAvailable() {
-			err = android_background_service.Start()
-			if err != nil {
-				loadState.SetStatus("", err)
-				return
-			}
-
 			if settings.App.MobileBackgroundService {
-				android_background_service.StartForeground()
+				err = android_background_service.Start()
+				if err != nil {
+					loadState.SetStatus("", err)
+					return
+				}
 			}
 		}
 

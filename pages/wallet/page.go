@@ -244,13 +244,13 @@ func (p *Page) CloseXSWD() error {
 
 	if android_background_service.IsAvailable() {
 		if !settings.App.MobileBackgroundService {
-			foregroundRunning, err := android_background_service.IsForegroundRunning()
+			running, err := android_background_service.IsRunning()
 			if err != nil {
 				return err
 			}
 
-			if foregroundRunning {
-				err := android_background_service.StopForeground()
+			if running {
+				err := android_background_service.Stop()
 				if err != nil {
 					return err
 				}
@@ -268,32 +268,32 @@ func (p *Page) OpenXSWD() error {
 	w := app_instance.Window
 
 	if android_background_service.IsAvailable() {
-		foregroundRunning, err := android_background_service.IsForegroundRunning()
+		running, err := android_background_service.IsRunning()
 		if err != nil {
 			return err
 		}
 
-		if !foregroundRunning && wallet.Settings.NotifyXSWDMobileForegroundService {
-			yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{
-				Title:  lang.Translate("Foreground Service"),
-				Prompt: lang.Translate("Using XSWD on mobile requires running the application in the background."),
-				Yes:    lang.Translate("OK"),
-				No:     lang.Translate("CANCEL"),
-			})
+		if !running {
+			if wallet.Settings.NotifyXSWDMobileForegroundService {
+				yes := <-confirm_modal.Instance.Open(confirm_modal.ConfirmText{
+					Title:  lang.Translate("Foreground Service"),
+					Prompt: lang.Translate("Using XSWD on mobile requires running the application in the background."),
+					Yes:    lang.Translate("OK"),
+					No:     lang.Translate("CANCEL"),
+				})
 
-			if !yes {
-				return nil
+				if !yes {
+					return nil
+				}
+
+				wallet.Settings.NotifyXSWDMobileForegroundService = false
+				err := wallet.SaveSettings()
+				if err != nil {
+					return err
+				}
 			}
 
-			wallet.Settings.NotifyXSWDMobileForegroundService = false
-			err := wallet.SaveSettings()
-			if err != nil {
-				return err
-			}
-		}
-
-		if !foregroundRunning {
-			err = android_background_service.StartForeground()
+			err = android_background_service.Start()
 			if err != nil {
 				return err
 			}

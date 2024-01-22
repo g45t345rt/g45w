@@ -274,9 +274,8 @@ func NewAndroidBackgroundServiceSwitch() *AndroidBackgroundServiceSwitch {
 
 func (a *AndroidBackgroundServiceSwitch) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	available := android_background_service.IsAvailable()
-	running, _ := android_background_service.IsRunning()
 
-	if available && running {
+	if available {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -296,9 +295,9 @@ func (a *AndroidBackgroundServiceSwitch) Layout(gtx layout.Context, th *material
 
 							go func() {
 								if a.switchValue {
-									android_background_service.StartForeground()
+									android_background_service.Start()
 								} else {
-									android_background_service.StopForeground()
+									android_background_service.Stop()
 								}
 
 								settings.App.MobileBackgroundService = a.switchValue
