@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '11'
-          distribution: 'temurin'
+          distribution: 'semeru'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
