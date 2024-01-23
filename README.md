@@ -36,6 +36,7 @@ Additionally, I aim to offer an alternative UI with extra features, including sm
 - Wallet address hashicon (easily recognize your wallets with unique icons) <https://github.com/emeraldpay/hashicon>.
 - DApps connection with XSWD protocol by Slixe (toggle on/off, manage connections and permissions).
 - Testnet/Mainnet switch component mode.
+- Camera to scan QR code (scan wallet/integrated address).
 
 ## Supported languages
 
