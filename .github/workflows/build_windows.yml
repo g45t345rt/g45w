@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Go
       uses: actions/setup-go@v4
@@ -26,7 +26,7 @@ jobs:
       run: bash build_gio.sh windows arm64
 
     - name: Archive build
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Build Windows
         path: build
