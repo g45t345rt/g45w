@@ -28,11 +28,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: NDK List
+      - name: NDK List Installed
         run: sdkmanager --list_installed
 
-      - name: Setup NDK
-        run: sdkmanager "platforms-tools" "ndk;26.1.10909125" "platforms;android-33" "sources;android-33"
+      - name: Setup NDK packages
+        run: sdkmanager "platform-tools" "ndk;26.1.10909125" "platforms;android-33" "sources;android-33" "cmdline-tools;12.0"
 
       - name: Build android arm64
         run: bash build_gio.sh android arm64 
