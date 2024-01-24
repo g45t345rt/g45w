@@ -1239,12 +1239,13 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		item.image.Src = theme.Current.CoinbaseImage
 	}
 
+	wallet := wallet_manager.OpenedWallet
 	hashiconString := ""
 	if !item.entry.Coinbase {
 		if item.entry.Incoming {
-			hashiconString = item.entry.Sender
+			hashiconString = wallet.GetTxSender(item.entry)
 		} else {
-			hashiconString = item.entry.Destination
+			hashiconString = wallet.GetTxDestination(item.entry)
 		}
 	}
 

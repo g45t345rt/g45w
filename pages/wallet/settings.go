@@ -499,10 +499,13 @@ func (p *PageSettings) submitForm(gtx layout.Context, password string) error {
 
 			for scId, entries := range account.EntriesNative {
 				for _, entry := range entries {
+					sender := wallet.GetTxSender(wallet_manager.Entry{Entry: entry})
+					destination := wallet.GetTxDestination(wallet_manager.Entry{Entry: entry})
+
 					row := []string{scId.String(), entry.TXID, fmt.Sprint(entry.Height), entry.BlockHash,
-						fmt.Sprint(entry.Coinbase), fmt.Sprint(entry.Incoming), entry.Destination, fmt.Sprint(entry.Amount),
+						fmt.Sprint(entry.Coinbase), fmt.Sprint(entry.Incoming), destination, fmt.Sprint(entry.Amount),
 						fmt.Sprint(entry.Burn), fmt.Sprint(entry.Fees), entry.Proof, entry.Time.String(), entry.EWData,
-						entry.Sender, fmt.Sprint(entry.DestinationPort), fmt.Sprint(entry.SourcePort)}
+						sender, fmt.Sprint(entry.DestinationPort), fmt.Sprint(entry.SourcePort)}
 					err = writer.Write(row)
 					if err != nil {
 						return setError(err)

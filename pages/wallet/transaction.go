@@ -119,16 +119,18 @@ func (p *PageTransaction) Enter() {
 	scData, _ := json.MarshalIndent(p.entry.SCDATA, "", "  ")
 	p.scDataEditor.SetText(string(scData))
 
+	wallet := wallet_manager.OpenedWallet
 	if p.entry.Incoming {
-		sender := p.entry.Sender
+		sender := wallet.GetTxSender(p.entry)
 		if sender == "" {
-			sender = "?"
+			sender = lang.Translate("Unable to determine the sender from the provided proof.")
 		}
 
 		p.senderDestinationEditor.SetText(sender)
 		p.txTypeImg.Src = theme.Current.ArrowDownArcImage
 	} else {
-		p.senderDestinationEditor.SetText(p.entry.Destination)
+		destination := wallet.GetTxDestination(p.entry)
+		p.senderDestinationEditor.SetText(destination)
 		p.txTypeImg.Src = theme.Current.ArrowUpArcImage
 	}
 
@@ -469,6 +471,7 @@ func NewTxTransferItem(entry wallet_manager.Entry) *TxTransferItem {
 }
 
 func (t *TxTransferItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	wallet := wallet_manager.OpenedWallet
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			txt := utils.ReduceTxId(t.token.SCID)
@@ -492,10 +495,8 @@ func (t *TxTransferItem) Layout(gtx layout.Context, th *material.Theme) layout.D
 			return t.infoRows[3].Layout(gtx, th, lang.Translate("Burn"), burn.Format())
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			txt := utils.ReduceAddr(t.entry.Destination)
-			if txt == "" {
-				txt = "?"
-			}
+			destination := wallet.GetTxDestination(t.entry)
+			txt := utils.ReduceAddr(destination)
 			return t.infoRows[4].Layout(gtx, th, lang.Translate("Destination"), txt)
 		}),
 	)

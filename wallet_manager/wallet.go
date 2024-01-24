@@ -556,3 +556,38 @@ func RPCCall(method string, params interface{}, result interface{}) error {
 
 	return rpcClient.RPC.CallResult(context.Background(), method, params, result)
 }
+
+// Helper func to address this bug that was fixed by Slixe
+// https://github.com/deroproject/derohe/commit/3824e67529839be0d981f3beb4b319db3b929413
+// The generated proof when creating a transaction for sender/receiver was mixed up.
+// You don't know the receiver if the ringsize is more than 2. The receiver is actually the sender :S
+
+func (w *Wallet) GetTxSender(entry Entry) string {
+	addr := w.Memory.GetAddress().String()
+	if entry.Incoming {
+		// if the sender for an incoming tx is the same as the wallet addr
+		// it means the transaction was build with wrong proof prior to fix
+		if entry.Sender == addr {
+			return ""
+		}
+
+		return entry.Sender
+	}
+
+	return addr
+}
+
+func (w *Wallet) GetTxDestination(entry Entry) string {
+	addr := w.Memory.GetAddress().String()
+	if entry.Incoming {
+		// we are always the receiver when it's an incoming transaction
+		return addr
+	}
+
+	if entry.Coinbase {
+		// a coinbase entry is an incoming transaction so return the wallet addr
+		return addr
+	}
+
+	return entry.Destination
+}
