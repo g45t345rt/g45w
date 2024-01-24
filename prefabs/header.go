@@ -11,6 +11,7 @@ import (
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
+	"github.com/g45t345rt/g45w/utils"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -98,6 +99,11 @@ func (h *Header) HandleKeyGoBack(gtx layout.Context) {
 }
 
 func (h *Header) HandleSwipeRightGoBack(gtx layout.Context) {
+	// use swipe action only for mobile
+	if !utils.IsMobile() {
+		return
+	}
+
 	var de *pointer.Event
 	for _, e := range h.slideRight.Update(gtx.Metric, gtx, gesture.Horizontal) {
 		switch e.Kind {
