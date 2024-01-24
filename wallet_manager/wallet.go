@@ -253,12 +253,14 @@ func CreateRandomWallet(name string, password string) error {
 }
 
 func (w *Wallet) Rename(newName string) error {
-	err := app_db.UpdateWalletInfo(w.Info)
+	walletInfo := w.Info
+	walletInfo.Name = newName
+	err := app_db.UpdateWalletInfo(walletInfo)
 	if err != nil {
 		return err
 	}
 
-	w.Info.Name = newName
+	w.Info = walletInfo
 	return nil
 }
 
