@@ -486,7 +486,11 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	xswd := wallet.ServerXSWD
 
 	r := op.Record(gtx.Ops)
-	dims := layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+	width := 20 // 20 because of left + right border and then we calculate each layout.Rigid
+	dims := layout.Inset{
+		Top: unit.Dp(5), Bottom: unit.Dp(5),
+		Left: unit.Dp(10), Right: unit.Dp(10),
+	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				if x.toggleClickable.Clicked(gtx) {
@@ -506,40 +510,31 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 					}()
 				}
 
-				return x.toggleClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				dims := x.toggleClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					if x.toggleClickable.Hovered() {
 						pointer.CursorPointer.Add(gtx.Ops)
 					}
 
-					r := op.Record(gtx.Ops)
-					dims := layout.Inset{
-						Top: unit.Dp(4), Bottom: unit.Dp(4),
-						Left: unit.Dp(12), Right: unit.Dp(4),
-					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						txt := ""
-						if xswd != nil && xswd.IsRunning() {
-							txt = lang.Translate("XSWD ON")
-						} else {
-							txt = lang.Translate("XSWD OFF")
-						}
+					txt := ""
+					if xswd != nil && xswd.IsRunning() {
+						txt = lang.Translate("XSWD ON")
+					} else {
+						txt = lang.Translate("XSWD OFF")
+					}
 
-						lbl := material.Label(th, unit.Sp(14), txt)
-						lbl.Color = theme.Current.XSWDBgTextColor
-						lbl.Font.Weight = font.Bold
-						return lbl.Layout(gtx)
-					})
-					c := r.Stop()
-
-					paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
-						Rect: image.Rectangle{Max: dims.Size},
-						NW:   gtx.Dp(10),
-						SW:   gtx.Dp(10),
-					}.Op(gtx.Ops))
-
-					c.Add(gtx.Ops)
-
-					return dims
+					lbl := material.Label(th, unit.Sp(14), txt)
+					lbl.Color = theme.Current.XSWDBgTextColor
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
 				})
+
+				width += dims.Size.X
+				return dims
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				dims := layout.Spacer{Width: unit.Dp(10)}.Layout(gtx)
+				width += dims.Size.X
+				return dims
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				if x.manageClickable.Clicked(gtx) {
@@ -547,41 +542,32 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 					page_instance.header.AddHistory(PAGE_XSWD_MANAGE)
 				}
 
-				return x.manageClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				dims := x.manageClickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					if x.manageClickable.Hovered() {
 						pointer.CursorPointer.Add(gtx.Ops)
 					}
 
-					r := op.Record(gtx.Ops)
-					dims := layout.Inset{
-						Top: unit.Dp(4), Bottom: unit.Dp(4),
-						Left: unit.Dp(4), Right: unit.Dp(10),
-					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Min.X = gtx.Dp(20)
-						gtx.Constraints.Min.Y = gtx.Dp(20)
-						return x.manageIcon.Layout(gtx, theme.Current.XSWDBgTextColor)
-					})
-					c := r.Stop()
-
-					paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
-						Rect: image.Rectangle{Max: dims.Size},
-						NE:   gtx.Dp(10),
-						SE:   gtx.Dp(10),
-					}.Op(gtx.Ops))
-
-					c.Add(gtx.Ops)
-
-					return dims
+					gtx.Constraints.Min.X = gtx.Dp(20)
+					gtx.Constraints.Min.Y = gtx.Dp(20)
+					return x.manageIcon.Layout(gtx, theme.Current.XSWDBgTextColor)
 				})
+				width += dims.Size.X
+				return dims
 			}),
 		)
 	})
 	c := r.Stop()
 
-	offset := f32.Affine2D{}.Offset(f32.Pt(0, -float32(gtx.Dp(theme.PagePadding+10))))
+	// important -> dims.Size.X != width because we use layout.Flex{} and it keeps the full width
+
+	offset := f32.Affine2D{}.Offset(f32.Pt(float32((dims.Size.X/2)-(width/2)), -float32(gtx.Dp(theme.PagePadding+10))))
 	defer op.Affine(offset).Push(gtx.Ops).Pop()
 
+	paint.FillShape(gtx.Ops, theme.Current.XSWDBgColor, clip.RRect{
+		Rect: image.Rectangle{Max: image.Pt(int(width), dims.Size.Y)},
+		NE:   gtx.Dp(10), NW: gtx.Dp(10),
+		SE: gtx.Dp(10), SW: gtx.Dp(10),
+	}.Op(gtx.Ops))
 	c.Add(gtx.Ops)
-
 	return dims
 }
