@@ -150,8 +150,8 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 				} else {
 					notification_modal.Open(notification_modal.Params{
 						Type:       notification_modal.SUCCESS,
-						Title:      lang.Translate("Outgoing txs cleared."),
-						Text:       err.Error(),
+						Title:      lang.Translate("Success"),
+						Text:       lang.Translate("Outgoing txs cleared."),
 						CloseAfter: notification_modal.CLOSE_AFTER_DEFAULT,
 					})
 					r.LoadOutgoingTxs()
