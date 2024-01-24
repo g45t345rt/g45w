@@ -1239,6 +1239,15 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		item.image.Src = theme.Current.CoinbaseImage
 	}
 
+	hashiconString := ""
+	if !item.entry.Coinbase {
+		if item.entry.Incoming {
+			hashiconString = item.entry.Sender
+		} else {
+			hashiconString = item.entry.Destination
+		}
+	}
+
 	m := op.Record(gtx.Ops)
 	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		if item.clickable.Hovered() {
@@ -1251,7 +1260,10 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return layout.Spacer{Width: unit.Dp(20)}.Layout(gtx)
+					if hashiconString != "" {
+						return layout.Spacer{Width: unit.Dp(20)}.Layout(gtx)
+					}
+					return layout.Dimensions{}
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.X = gtx.Dp(35)
@@ -1302,12 +1314,14 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	c.Add(gtx.Ops)
 
-	size := float32(gtx.Dp(unit.Dp(30)))
-	trans := f32.Affine2D{}.Offset(f32.Pt(-size/2, size/2)).Offset(f32.Pt(float32(gtx.Dp(10)), float32(gtx.Dp(5))))
-	c2 := op.Affine(trans).Push(gtx.Ops)
-	hashicon := gioui_hashicon.Hashicon{Config: gioui_hashicon.DefaultConfig}
-	hashicon.Layout(gtx, size, item.entry.TXID)
-	c2.Pop()
+	if hashiconString != "" {
+		size := float32(gtx.Dp(unit.Dp(30)))
+		trans := f32.Affine2D{}.Offset(f32.Pt(-size/2, size/2)).Offset(f32.Pt(float32(gtx.Dp(10)), float32(gtx.Dp(5))))
+		c2 := op.Affine(trans).Push(gtx.Ops)
+		hashicon := gioui_hashicon.Hashicon{Config: gioui_hashicon.DefaultConfig}
+		hashicon.Layout(gtx, size, hashiconString)
+		c2.Pop()
+	}
 
 	if !settings.App.HideBalance {
 		layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
