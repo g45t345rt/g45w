@@ -516,7 +516,9 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			listStyle.AnchorStrategy = material.Overlay
 
 			return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
-				return layout.Inset{Left: unit.Dp(30), Right: unit.Dp(30)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{
+					Left: theme.PagePadding, Right: theme.PagePadding,
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return widgets[index](gtx, index)
 				})
 			})
