@@ -28,12 +28,13 @@ jobs:
     - name: Build macos arm64
       run: ./build_gio.sh macos arm64
 
-    - name: Zip .app amd64
-      run: zip -r ./build/g45w_macos_amd64.zip  ./build/g45w_macos_amd64.app
+    - name: Zip app
+      run: |
+        cd ./build
+        zip -r g45w_macos_amd64.zip g45w_macos_amd64.app
+        zip -r g45w_macos_arm64.zip g45w_macos_arm64.app
+        rm -r g45w_macos_amd64.app g45w_macos_arm64.app
       
-    - name: Zip .app arm64
-      run: zip -r ./build/g45w_macos_arm64.zip  ./build/g45w_macos_arm64.app
-
     - name: Archive build
       uses: actions/upload-artifact@v4
       with:
