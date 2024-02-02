@@ -157,7 +157,7 @@ func (p *PageContacts) OpenMenu() {
 		listselect_modal.NewSelectListItem("export_contacts",
 			listselect_modal.NewItemText(upIcon, lang.Translate("Export contacts")).Layout,
 		),
-	})
+	}, "")
 
 	for key := range keyChan {
 		switch key {
@@ -285,11 +285,6 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	widgets := []layout.ListElement{}
 
-	if len(p.contactItems) == 0 {
-		lbl := material.Label(th, unit.Sp(16), lang.Translate("You didn't add any contacts yet."))
-		return lbl.Layout(gtx)
-	}
-
 	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -305,9 +300,14 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		)
 	})
 
-	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
-		return prefabs.Divider(gtx, unit.Dp(5))
-	})
+	if len(p.contactItems) == 0 {
+		widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
+			txt := lang.Translate(`We see that you have no contacts. You can add a new contact here or import a list. You can find all these options in the menu button in the upper right.`)
+			lbl := material.Label(th, unit.Sp(16), txt)
+			lbl.Color = theme.Current.TextMuteColor
+			return lbl.Layout(gtx)
+		})
+	}
 
 	for i := 0; i < len(p.contactItems); i++ {
 		item := p.contactItems[i]

@@ -255,7 +255,8 @@ func (p *PageSCFolders) OpenMenu() {
 		listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove tokens")).Layout,
 	))
 
-	keyChan := listselect_modal.Instance.Open(items)
+	keyChan := listselect_modal.Instance.Open(items, "")
+
 	for sKey := range keyChan {
 		switch sKey {
 		case "add_token":

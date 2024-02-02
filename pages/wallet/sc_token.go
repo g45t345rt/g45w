@@ -272,7 +272,7 @@ func (p *PageSCToken) OpenMenu() {
 		listselect_modal.NewItemText(deleteIcon, lang.Translate("Remove token")).Layout,
 	))
 
-	keyChan := listselect_modal.Instance.Open(items)
+	keyChan := listselect_modal.Instance.Open(items, "")
 
 	for sKey := range keyChan {
 		wallet := wallet_manager.OpenedWallet

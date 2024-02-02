@@ -205,7 +205,8 @@ func (p *PageDEXSwap) OpenMenu() {
 		listselect_modal.NewSelectListItem("copy_token2_scid",
 			listselect_modal.NewItemText(copyIcon, txt3).Layout,
 		),
-	})
+	}, "")
+
 	for key := range keyChan {
 		switch key {
 		case "refresh_data":

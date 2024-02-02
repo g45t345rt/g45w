@@ -554,7 +554,7 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 				listselect_modal.NewSelectListItem("scan_qrcode",
 					listselect_modal.NewItemText(scanIcon, lang.Translate("Scan QR code")).Layout,
 				),
-			})
+			}, "")
 
 			for key := range keyChan {
 				switch key {

@@ -64,13 +64,10 @@ func (r *RingSizeSelector) Layout(gtx layout.Context, th *material.Theme) layout
 
 	if r.buttonSelect.Clicked(gtx) {
 		go func() {
-			keyChan := listselect_modal.Instance.Open(r.items)
-
-			for key := range keyChan {
-				size, _ := strconv.Atoi(key)
-				r.Size = size
-				r.Changed = true
-			}
+			keyChan := listselect_modal.Instance.Open(r.items, strconv.Itoa(r.Size))
+			size, _ := strconv.Atoi(<-keyChan)
+			r.Size = size
+			r.Changed = true
 		}()
 	}
 

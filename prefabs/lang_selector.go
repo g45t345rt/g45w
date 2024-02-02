@@ -79,11 +79,9 @@ func (l *LangSelector) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	l.Changed = false
 	if l.buttonSelect.Clicked(gtx) {
 		go func() {
-			keyChan := listselect_modal.Instance.Open(l.items)
-			for key := range keyChan {
-				l.Key = key
-				l.Changed = true
-			}
+			keyChan := listselect_modal.Instance.Open(l.items, l.Key)
+			l.Key = <-keyChan
+			l.Changed = true
 		}()
 	}
 

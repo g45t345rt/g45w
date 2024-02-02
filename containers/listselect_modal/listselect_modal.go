@@ -17,14 +17,13 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 )
 
-type ThemeWidget = func(gtx layout.Context, th *material.Theme) layout.Dimensions
-
 type ListSelectModal struct {
 	Modal *components.Modal
 
-	list    *widget.List
-	keyChan chan string
-	items   []*SelectListItem
+	list      *widget.List
+	keyChan   chan string
+	items     []*SelectListItem
+	activeKey string
 }
 
 var Instance *ListSelectModal
@@ -56,10 +55,11 @@ func LoadInstance() {
 	})
 }
 
-func (l *ListSelectModal) Open(items []*SelectListItem) chan string {
+func (l *ListSelectModal) Open(items []*SelectListItem, activeKey string) chan string {
 	l.items = items
 	l.Modal.SetVisible(true)
 	l.keyChan = make(chan string)
+	l.activeKey = activeKey
 	return l.keyChan
 }
 
@@ -90,11 +90,11 @@ func (l *ListSelectModal) Layout(gtx layout.Context, th *material.Theme) layout.
 
 type SelectListItem struct {
 	Key       string
-	element   ThemeWidget
+	element   func(gtx layout.Context, th *material.Theme) layout.Dimensions
 	clickable *widget.Clickable
 }
 
-func NewSelectListItem(key string, element ThemeWidget) *SelectListItem {
+func NewSelectListItem(key string, element func(gtx layout.Context, th *material.Theme) layout.Dimensions) *SelectListItem {
 	return &SelectListItem{
 		Key:       key,
 		element:   element,
@@ -111,7 +111,7 @@ func (item *SelectListItem) Layout(gtx layout.Context, th *material.Theme) layou
 	})
 	c := r.Stop()
 
-	if item.clickable.Hovered() {
+	if item.clickable.Hovered() || item.Key == Instance.activeKey {
 		pointer.CursorPointer.Add(gtx.Ops)
 
 		paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,

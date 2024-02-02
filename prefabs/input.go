@@ -71,7 +71,7 @@ func (i *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 				listselect_modal.NewSelectListItem("clear",
 					listselect_modal.NewItemText(clearIcon, lang.Translate("Clear")).Layout,
 				),
-			})
+			}, "")
 
 			for key := range keyChan {
 				switch key {

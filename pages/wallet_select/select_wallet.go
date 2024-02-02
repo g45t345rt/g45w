@@ -258,7 +258,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 									listselect_modal.NewSelectListItem(PAGE_CREATE_WALLET_HEXSEED_FORM,
 										listselect_modal.NewItemText(seedIcon, lang.Translate("Recover from hex seed")).Layout,
 									),
-								})
+								}, "")
 
 								for key := range keyChan {
 									page_instance.pageRouter.SetCurrent(key)
