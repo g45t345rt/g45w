@@ -40,6 +40,7 @@ type PageContacts struct {
 
 	contactItems      []*ContactListItem
 	txtFilterContacts *prefabs.Input
+	buttonAddContact  *components.Button
 
 	list              *widget.List
 	buttonMenuContact *components.Button
@@ -66,6 +67,17 @@ func NewPageContacts() *PageContacts {
 	})
 
 	txtFilterContacts := prefabs.NewInput()
+	addContactIcon, _ := widget.NewIcon(icons.SocialPersonAdd)
+	buttonAddContact := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      addContactIcon,
+		TextSize:  unit.Sp(14),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+	})
+	buttonAddContact.Label.Alignment = text.Middle
+	buttonAddContact.Style.Font.Weight = font.Bold
 
 	return &PageContacts{
 		animationEnter: animationEnter,
@@ -74,6 +86,7 @@ func NewPageContacts() *PageContacts {
 		list:              list,
 		buttonMenuContact: buttonMenuContact,
 		txtFilterContacts: txtFilterContacts,
+		buttonAddContact:  buttonAddContact,
 	}
 }
 
@@ -264,6 +277,12 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
+	if p.buttonAddContact.Clicked(gtx) {
+		page_instance.pageContactForm.ClearForm()
+		page_instance.pageRouter.SetCurrent(PAGE_CONTACT_FORM)
+		page_instance.header.AddHistory(PAGE_CONTACT_FORM)
+	}
+
 	widgets := []layout.ListElement{}
 
 	if len(p.contactItems) == 0 {
@@ -272,9 +291,18 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	}
 
 	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
-		p.txtFilterContacts.TextSize = unit.Sp(16)
-		p.txtFilterContacts.Colors = theme.Current.InputColors
-		return p.txtFilterContacts.Layout(gtx, th, lang.Translate("Search contact..."))
+		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				p.txtFilterContacts.TextSize = unit.Sp(16)
+				p.txtFilterContacts.Colors = theme.Current.InputColors
+				return p.txtFilterContacts.Layout(gtx, th, lang.Translate("Search contact..."))
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				p.buttonAddContact.Style.Colors = theme.Current.ButtonPrimaryColors
+				return p.buttonAddContact.Layout(gtx, th)
+			}),
+		)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
