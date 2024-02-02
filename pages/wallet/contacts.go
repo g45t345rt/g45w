@@ -26,6 +26,7 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
+	gioui_hashicon "github.com/g45t345rt/gioui-hashicon"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -382,6 +383,12 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				Axis:      layout.Horizontal,
 				Alignment: layout.Middle,
 			}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					size := float32(gtx.Dp(unit.Dp(30)))
+					hashicon := gioui_hashicon.Hashicon{Config: gioui_hashicon.DefaultConfig}
+					return hashicon.Layout(gtx, size, item.contact.Addr)
+				}),
+				layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
