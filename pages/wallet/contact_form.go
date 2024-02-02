@@ -2,6 +2,7 @@ package page_wallet
 
 import (
 	"fmt"
+	"image"
 	"time"
 
 	"gioui.org/font"
@@ -13,9 +14,11 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/globals"
 	"github.com/g45t345rt/g45w/animation"
+	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
+	"github.com/g45t345rt/g45w/containers/qrcode_scan_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -32,11 +35,13 @@ type PageContactForm struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	buttonSave   *components.Button
-	buttonDelete *components.Button
-	txtName      *prefabs.TextField
-	txtAddr      *prefabs.TextField
-	txtNote      *prefabs.TextField
+	buttonSave     *components.Button
+	buttonDelete   *components.Button
+	txtName        *prefabs.TextField
+	txtAddr        *prefabs.Input
+	txtNote        *prefabs.TextField
+	buttonScanAddr *components.Button
+	txtDims        layout.Dimensions
 
 	contact *wallet_manager.Contact
 
@@ -81,8 +86,15 @@ func NewPageContactForm() *PageContactForm {
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
 
+	scanIcon, _ := widget.NewIcon(app_icons.QRCodeScanner)
+	buttonScanAddr := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      scanIcon,
+		Animation: components.NewButtonAnimationDefault(),
+	})
+
 	txtName := prefabs.NewTextField()
-	txtAddr := prefabs.NewTextField()
+	txtAddr := prefabs.NewInput()
 	txtNote := prefabs.NewTextField()
 	txtNote.Editor().SingleLine = false
 	txtNote.Editor().Submit = false
@@ -91,11 +103,12 @@ func NewPageContactForm() *PageContactForm {
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
-		buttonSave:   buttonSave,
-		buttonDelete: buttonDelete,
-		txtName:      txtName,
-		txtAddr:      txtAddr,
-		txtNote:      txtNote,
+		buttonSave:     buttonSave,
+		buttonDelete:   buttonDelete,
+		buttonScanAddr: buttonScanAddr,
+		txtName:        txtName,
+		txtAddr:        txtAddr,
+		txtNote:        txtNote,
 
 		list: list,
 	}
@@ -202,6 +215,17 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		}()
 	}
 
+	if p.buttonScanAddr.Clicked(gtx) {
+		go qrcode_scan_modal.Instance.Open()
+	}
+
+	{
+		sent, value := qrcode_scan_modal.Instance.Value()
+		if sent {
+			p.txtAddr.SetValue(value)
+		}
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			return p.txtName.Layout(gtx, th, lang.Translate("Name"), "")
@@ -209,7 +233,28 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return p.txtAddr.Layout(gtx, th, lang.Translate("Address"), "")
+					lbl := material.Label(th, unit.Sp(20), lang.Translate("Address"))
+					lbl.Font.Weight = font.Bold
+					return lbl.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							p.txtAddr.Colors = theme.Current.InputColors
+							p.txtDims = p.txtAddr.Layout(gtx, th, "")
+							return p.txtDims
+						}),
+						layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							p.buttonScanAddr.Style.Colors = theme.Current.ButtonPrimaryColors
+							p.buttonScanAddr.Flex = true
+							size := image.Pt(p.txtDims.Size.Y, p.txtDims.Size.Y)
+							gtx.Constraints.Min = size
+							gtx.Constraints.Max = size
+							return p.buttonScanAddr.Layout(gtx, th)
+						}),
+					)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					addr, err := globals.ParseValidateAddress(p.txtAddr.Value())
@@ -288,13 +333,13 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 func (p *PageContactForm) ClearForm() {
 	p.contact = nil
 	p.txtName.Editor().SetText("")
-	p.txtAddr.Editor().SetText("")
+	p.txtAddr.Editor.SetText("")
 	p.txtNote.Editor().SetText("")
 }
 
 func (p *PageContactForm) submitForm() error {
 	txtName := p.txtName.Editor()
-	txtAddr := p.txtAddr.Editor()
+	txtAddr := p.txtAddr.Editor
 	txtNote := p.txtNote.Editor()
 
 	// don't validate addr because of service names

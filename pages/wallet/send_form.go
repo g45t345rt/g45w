@@ -577,11 +577,12 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	var childs []layout.FlexChild
 
-	childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(20), lang.Translate("Wallet Addr / Name"))
-		lbl.Font.Weight = font.Bold
-		return lbl.Layout(gtx)
-	}),
+	childs = append(childs,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			lbl := material.Label(th, unit.Sp(20), lang.Translate("Wallet Addr / Name"))
+			lbl.Font.Weight = font.Bold
+			return lbl.Layout(gtx)
+		}),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(3)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,

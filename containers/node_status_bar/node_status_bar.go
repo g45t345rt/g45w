@@ -148,7 +148,6 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					c := r.Stop()
 					gtx.Constraints.Min = dims.Size
 
-					n.pulseAnimation.Start()
 					state := n.pulseAnimation.Update(gtx)
 					if state.Active {
 						defer animation.TransformScaleCenter(gtx, state.Value).Push(gtx.Ops).Pop()
