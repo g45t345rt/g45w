@@ -57,6 +57,7 @@ type PageBalanceTokens struct {
 	buttonRegister   *components.Button
 	buttonCopyAddr   *components.Button
 	buttonDexSwap    *components.Button
+	buttonContacts   *components.Button
 	tabBars          *components.TabBars
 	txBar            *TxBar
 	txItems          []*TxListItem
@@ -116,6 +117,22 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 	buttonDexSwap.Label.Alignment = text.Middle
 	buttonDexSwap.Style.Font.Weight = font.Bold
 
+	contactIcon, _ := widget.NewIcon(icons.SocialGroup)
+	buttonContacts := components.NewButton(components.ButtonStyle{
+		Icon:      contactIcon,
+		TextSize:  unit.Sp(16),
+		IconGap:   unit.Dp(10),
+		Inset:     layout.UniformInset(unit.Dp(10)),
+		Animation: components.NewButtonAnimationDefault(),
+		Border: widget.Border{
+			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			Width:        unit.Dp(2),
+			CornerRadius: unit.Dp(5),
+		},
+	})
+	buttonContacts.Label.Alignment = text.Middle
+	buttonContacts.Style.Font.Weight = font.Bold
+
 	copyIcon, _ := widget.NewIcon(icons.ContentContentCopy)
 	buttonCopyAddr := components.NewButton(components.ButtonStyle{
 		Icon: copyIcon,
@@ -151,6 +168,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		buttonRegister: buttonRegister,
 		buttonCopyAddr: buttonCopyAddr,
 		buttonDexSwap:  buttonDexSwap,
+		buttonContacts: buttonContacts,
 		tabBars:        tabBars,
 		txBar:          txBar,
 		tokenDragItems: tokenDragItems,
@@ -260,7 +278,14 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 			})
 		}
 
-		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+		// adjust subtile height a little bit
+		offset := f32.Affine2D{}.Offset(f32.Pt(0, float32(gtx.Dp(-3))))
+		defer op.Affine(offset).Push(gtx.Ops).Pop()
+
+		return layout.Flex{
+			Axis:      layout.Horizontal,
+			Alignment: layout.Middle,
+		}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				walletAddr := utils.ReduceAddr(addr)
 				label := material.Label(th, unit.Sp(16), walletAddr)
@@ -269,8 +294,8 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				gtx.Constraints.Max.X = gtx.Dp(18)
-				gtx.Constraints.Max.Y = gtx.Dp(18)
+				gtx.Constraints.Max.X = gtx.Dp(16)
+				gtx.Constraints.Max.Y = gtx.Dp(16)
 				p.buttonCopyAddr.Style.Colors = theme.Current.ModalButtonColors
 				return p.buttonCopyAddr.Layout(gtx, th)
 			}),
@@ -312,6 +337,11 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	if p.buttonDexSwap.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_DEX_PAIRS)
 		page_instance.header.AddHistory(PAGE_DEX_PAIRS)
+	}
+
+	if p.buttonContacts.Clicked(gtx) {
+		page_instance.pageRouter.SetCurrent(PAGE_CONTACTS)
+		page_instance.header.AddHistory(PAGE_CONTACTS)
 	}
 
 	/*
@@ -398,24 +428,41 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Left: theme.PagePadding, Right: theme.PagePadding,
-			Top: unit.Dp(0), Bottom: theme.PagePadding,
+			Top: unit.Dp(0), Bottom: unit.Dp(10),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return p.displayBalance.Layout(gtx, th)
 		})
 	})
 
-	if !settings.App.Testnet {
-		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			return layout.Inset{
-				Left: theme.PagePadding, Right: theme.PagePadding,
-				Top: unit.Dp(0), Bottom: theme.PagePadding,
-			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				p.buttonDexSwap.Style.Colors = theme.Current.ButtonSecondaryColors
-				p.buttonDexSwap.Text = lang.Translate("DEX Swap")
-				return p.buttonDexSwap.Layout(gtx, th)
-			})
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Inset{
+			Left: theme.PagePadding, Right: theme.PagePadding,
+			Top: unit.Dp(0), Bottom: theme.PagePadding,
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			childs := []layout.FlexChild{}
+
+			if !settings.App.Testnet {
+				childs = append(childs,
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						p.buttonDexSwap.Style.Colors = theme.Current.ButtonSecondaryColors
+						p.buttonDexSwap.Text = lang.Translate("DEX Swap")
+						return p.buttonDexSwap.Layout(gtx, th)
+					}),
+					layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				)
+			}
+
+			childs = append(childs,
+				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					p.buttonContacts.Style.Colors = theme.Current.ButtonSecondaryColors
+					p.buttonContacts.Text = lang.Translate("Contacts")
+					return p.buttonContacts.Layout(gtx, th)
+				}),
+			)
+
+			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, childs...)
 		})
-	}
+	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		return prefabs.Divider(gtx, 3)
@@ -705,7 +752,7 @@ func (s *SendReceiveButtons) Layout(gtx layout.Context, th *material.Theme) layo
 			s.ButtonSend.Style.Colors = theme.Current.ButtonPrimaryColors
 			return s.ButtonSend.Layout(gtx, th)
 		}),
-		layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
+		layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.Y = gtx.Dp(40)
 			s.ButtonReceive.Text = lang.Translate("RECEIVE")
@@ -835,7 +882,7 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 				}),
 			)
 		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return d.sendReceiveButtons.Layout(gtx, th)
 		}),

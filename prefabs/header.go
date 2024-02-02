@@ -181,7 +181,10 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 				}))
 			}
 
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, childs...)
+			return layout.Flex{
+				Axis:      layout.Vertical,
+				Alignment: layout.Middle,
+			}.Layout(gtx, childs...)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			if h.RightLayout != nil {

@@ -49,7 +49,7 @@ func (n *ListItemSelect) SetVisible(visible bool) {
 	}
 }
 
-func (n *ListItemSelect) Layout(gtx layout.Context, th *material.Theme, firstButton *components.Button, secondButton *components.Button) layout.Dimensions {
+func (n *ListItemSelect) Layout(gtx layout.Context, th *material.Theme, buttons []*components.Button) layout.Dimensions {
 	if !n.visible {
 		return layout.Dimensions{}
 	}
@@ -75,15 +75,19 @@ func (n *ListItemSelect) Layout(gtx layout.Context, th *material.Theme, firstBut
 	}
 
 	return layout.E.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return firstButton.Layout(gtx, th)
-			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return secondButton.Layout(gtx, th)
-			}),
-		)
+		childs := []layout.FlexChild{}
+
+		for i := range buttons {
+			button := buttons[i]
+			childs = append(childs,
+				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return button.Layout(gtx, th)
+				}),
+			)
+		}
+
+		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, childs...)
 	})
 }
 

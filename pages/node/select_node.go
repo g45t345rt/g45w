@@ -533,7 +533,7 @@ func (item *NodeListItem) Layout(gtx layout.Context, th *material.Theme, fill bo
 		item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 		item.buttonEdit.Text = lang.Translate("Edit")
 		item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
-		item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
+		item.listItemSelect.Layout(gtx, th, []*components.Button{item.buttonSelect, item.buttonEdit})
 
 		c.Add(gtx.Ops)
 		return dims

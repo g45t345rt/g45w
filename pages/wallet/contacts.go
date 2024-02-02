@@ -37,6 +37,7 @@ type PageContacts struct {
 	animationLeave *animation.Animation
 
 	contactItems []*ContactListItem
+	selectMode   bool
 
 	list              *widget.List
 	buttonMenuContact *components.Button
@@ -80,6 +81,7 @@ func (p *PageContacts) Enter() {
 	page_instance.header.Title = func() string { return lang.Translate("Contacts") }
 	page_instance.header.Subtitle = nil
 
+	page_instance.header.LeftLayout = nil
 	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		p.buttonMenuContact.Style.Colors = theme.Current.ButtonIconPrimaryColors
 		gtx.Constraints.Min.X = gtx.Dp(30)
@@ -394,7 +396,7 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 				item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
 				item.buttonEdit.Text = lang.Translate("Edit")
 				item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
-				return item.listItemSelect.Layout(gtx, th, item.buttonSelect, item.buttonEdit)
+				return item.listItemSelect.Layout(gtx, th, []*components.Button{item.buttonSelect, item.buttonEdit})
 			})
 
 			c.Add(gtx.Ops)

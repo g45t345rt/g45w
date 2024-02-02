@@ -371,7 +371,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 
 			item.buttonOpen.Style.Colors = theme.Current.ButtonPrimaryColors
 			item.buttonRemove.Style.Colors = theme.Current.ButtonPrimaryColors
-			item.listItemSelect.Layout(gtx, th, item.buttonOpen, item.buttonRemove)
+			item.listItemSelect.Layout(gtx, th, []*components.Button{item.buttonOpen, item.buttonRemove})
 
 			return dims
 		})
