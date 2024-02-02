@@ -3,6 +3,7 @@ package page_wallet
 import (
 	"encoding/json"
 	"image"
+	"strings"
 
 	"gioui.org/font"
 	"gioui.org/io/pointer"
@@ -36,8 +37,8 @@ type PageContacts struct {
 	animationEnter *animation.Animation
 	animationLeave *animation.Animation
 
-	contactItems []*ContactListItem
-	selectMode   bool
+	contactItems      []*ContactListItem
+	txtFilterContacts *prefabs.Input
 
 	list              *widget.List
 	buttonMenuContact *components.Button
@@ -63,12 +64,15 @@ func NewPageContacts() *PageContacts {
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 
+	txtFilterContacts := prefabs.NewInput()
+
 	return &PageContacts{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 
 		list:              list,
 		buttonMenuContact: buttonMenuContact,
+		txtFilterContacts: txtFilterContacts,
 	}
 }
 
@@ -262,18 +266,33 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	widgets := []layout.ListElement{}
 
 	if len(p.contactItems) == 0 {
-		return layout.Inset{
-			Left: theme.PagePadding, Right: theme.PagePadding,
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Label(th, unit.Sp(16), lang.Translate("You didn't add any contacts yet."))
-			return lbl.Layout(gtx)
-		})
+		lbl := material.Label(th, unit.Sp(16), lang.Translate("You didn't add any contacts yet."))
+		return lbl.Layout(gtx)
 	}
 
+	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
+		p.txtFilterContacts.TextSize = unit.Sp(16)
+		p.txtFilterContacts.Colors = theme.Current.InputColors
+		return p.txtFilterContacts.Layout(gtx, th, lang.Translate("Search contact..."))
+	})
+
+	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
+		return prefabs.Divider(gtx, unit.Dp(5))
+	})
+
 	for i := 0; i < len(p.contactItems); i++ {
-		widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
-			return p.contactItems[index].Layout(gtx, th)
-		})
+		item := p.contactItems[i]
+		searchText := p.txtFilterContacts.Editor.Text()
+		display := true
+		if searchText != "" {
+			display = strings.Contains(item.contact.Name, searchText)
+		}
+
+		if display {
+			widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
+				return item.Layout(gtx, th)
+			})
+		}
 	}
 
 	widgets = append(widgets, func(gtx layout.Context, index int) layout.Dimensions {
@@ -284,7 +303,12 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 	listStyle.AnchorStrategy = material.Overlay
 
 	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
-		return widgets[index](gtx, index)
+		return layout.Inset{
+			Left: theme.PagePadding, Right: theme.PagePadding,
+			Bottom: unit.Dp(10),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return widgets[index](gtx, index)
+		})
 	})
 }
 
@@ -347,72 +371,67 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 		item.listItemSelect.Toggle()
 	}
 
-	return layout.Inset{
-		Top: unit.Dp(0), Bottom: unit.Dp(10),
-		Left: theme.PagePadding, Right: theme.PagePadding,
-	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+	r := op.Record(gtx.Ops)
+	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		r := op.Record(gtx.Ops)
-		dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			r := op.Record(gtx.Ops)
-			dims := layout.Inset{
-				Top: unit.Dp(10), Bottom: unit.Dp(10),
-				Left: unit.Dp(15), Right: unit.Dp(15),
-			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{
-					Axis:      layout.Horizontal,
-					Alignment: layout.Middle,
-				}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								label := material.Label(th, unit.Sp(20), item.contact.Name)
-								label.Font.Weight = font.Bold
-								return label.Layout(gtx)
-							}),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								addr := utils.ReduceAddr(item.contact.Addr)
-								label := material.Label(th, unit.Sp(16), addr)
-								label.Color = theme.Current.TextMuteColor
-								return label.Layout(gtx)
-							}),
-						)
-					}),
-				)
-			})
-			c := r.Stop()
-
-			if item.clickable.Hovered() {
-				pointer.CursorPointer.Add(gtx.Ops)
-				paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
-					clip.UniformRRect(
-						image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
-						gtx.Dp(10),
-					).Op(gtx.Ops),
-				)
-			}
-
-			layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				item.buttonSelect.Text = lang.Translate("Select")
-				item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
-				item.buttonEdit.Text = lang.Translate("Edit")
-				item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
-				return item.listItemSelect.Layout(gtx, th, []*components.Button{item.buttonSelect, item.buttonEdit})
-			})
-
-			c.Add(gtx.Ops)
-			return dims
+		dims := layout.Inset{
+			Top: unit.Dp(10), Bottom: unit.Dp(10),
+			Left: unit.Dp(15), Right: unit.Dp(15),
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{
+				Axis:      layout.Horizontal,
+				Alignment: layout.Middle,
+			}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							label := material.Label(th, unit.Sp(20), item.contact.Name)
+							label.Font.Weight = font.Bold
+							return label.Layout(gtx)
+						}),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							addr := utils.ReduceAddr(item.contact.Addr)
+							label := material.Label(th, unit.Sp(16), addr)
+							label.Color = theme.Current.TextMuteColor
+							return label.Layout(gtx)
+						}),
+					)
+				}),
+			)
 		})
 		c := r.Stop()
 
-		paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
-			clip.RRect{
-				Rect: image.Rectangle{Max: dims.Size},
-				SE:   gtx.Dp(10), SW: gtx.Dp(10),
-				NW: gtx.Dp(10), NE: gtx.Dp(10),
-			}.Op(gtx.Ops))
+		if item.clickable.Hovered() {
+			pointer.CursorPointer.Add(gtx.Ops)
+			paint.FillShape(gtx.Ops, theme.Current.ListItemHoverBgColor,
+				clip.UniformRRect(
+					image.Rectangle{Max: image.Pt(dims.Size.X, dims.Size.Y)},
+					gtx.Dp(10),
+				).Op(gtx.Ops),
+			)
+		}
+
+		layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			item.buttonSelect.Text = lang.Translate("Select")
+			item.buttonSelect.Style.Colors = theme.Current.ButtonPrimaryColors
+			item.buttonEdit.Text = lang.Translate("Edit")
+			item.buttonEdit.Style.Colors = theme.Current.ButtonPrimaryColors
+			return item.listItemSelect.Layout(gtx, th, []*components.Button{item.buttonSelect, item.buttonEdit})
+		})
 
 		c.Add(gtx.Ops)
-
 		return dims
 	})
+	c := r.Stop()
+
+	paint.FillShape(gtx.Ops, theme.Current.ListBgColor,
+		clip.RRect{
+			Rect: image.Rectangle{Max: dims.Size},
+			SE:   gtx.Dp(10), SW: gtx.Dp(10),
+			NW: gtx.Dp(10), NE: gtx.Dp(10),
+		}.Op(gtx.Ops))
+
+	c.Add(gtx.Ops)
+
+	return dims
 }
