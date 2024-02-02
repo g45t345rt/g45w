@@ -486,7 +486,7 @@ func (x *XSWDHeader) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	xswd := wallet.ServerXSWD
 
 	r := op.Record(gtx.Ops)
-	width := 20 // 20 because of left + right border and then we calculate each layout.Rigid
+	width := gtx.Dp(20) // 20 because of left + right border and then we calculate each layout.Rigid
 	dims := layout.Inset{
 		Top: unit.Dp(5), Bottom: unit.Dp(5),
 		Left: unit.Dp(10), Right: unit.Dp(10),
