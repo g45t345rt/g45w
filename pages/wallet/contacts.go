@@ -44,6 +44,7 @@ type PageContacts struct {
 
 	list              *widget.List
 	buttonMenuContact *components.Button
+	txtDims           layout.Dimensions
 }
 
 var _ router.Page = &PageContacts{}
@@ -290,11 +291,17 @@ func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 				p.txtFilterContacts.TextSize = unit.Sp(16)
 				p.txtFilterContacts.Colors = theme.Current.InputColors
-				return p.txtFilterContacts.Layout(gtx, th, lang.Translate("Search contact..."))
+				// we store dims in a out of scope variable or it will be set to zero during the loop
+				p.txtDims = p.txtFilterContacts.Layout(gtx, th, lang.Translate("Search contact..."))
+				return p.txtDims
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				p.buttonAddContact.Style.Colors = theme.Current.ButtonPrimaryColors
+				p.buttonAddContact.Flex = true
+				size := image.Pt(p.txtDims.Size.Y, p.txtDims.Size.Y)
+				gtx.Constraints.Min = size
+				gtx.Constraints.Max = size
 				return p.buttonAddContact.Layout(gtx, th)
 			}),
 		)

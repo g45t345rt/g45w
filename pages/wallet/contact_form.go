@@ -236,7 +236,7 @@ func (p *PageContactForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			if p.contact != nil {
-				p.buttonSave.Text = lang.Translate("EDIT CONTACT")
+				p.buttonSave.Text = lang.Translate("SAVE CONTACT")
 			} else {
 				p.buttonSave.Text = lang.Translate("ADD CONTACT")
 			}

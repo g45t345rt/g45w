@@ -549,7 +549,7 @@ func (p *WalletAddrInput) Layout(gtx layout.Context, th *material.Theme) layout.
 
 			keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
 				listselect_modal.NewSelectListItem("contact_list",
-					listselect_modal.NewItemText(contactIcon, lang.Translate("Contact list")).Layout,
+					listselect_modal.NewItemText(contactIcon, lang.Translate("Contacts")).Layout,
 				),
 				listselect_modal.NewSelectListItem("scan_qrcode",
 					listselect_modal.NewItemText(scanIcon, lang.Translate("Scan QR code")).Layout,
