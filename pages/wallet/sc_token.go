@@ -134,7 +134,12 @@ func (p *PageSCToken) Enter() {
 
 	p.tokenInfo = NewTokenInfoList(p.token)
 
-	page_instance.header.Title = func() string { return p.token.Name }
+	page_instance.header.Title = func() string {
+		if p.token.Name != "" {
+			return p.token.Name
+		}
+		return lang.Translate("Token")
+	}
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		if p.buttonCopySCID.Clicked(gtx) {
 			clipboard.WriteOp{
@@ -151,7 +156,7 @@ func (p *PageSCToken) Enter() {
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				scId := utils.ReduceTxId(p.token.SCID)
-				if p.token.Symbol.Valid {
+				if p.token.Symbol.String != "" {
 					scId = fmt.Sprintf("%s (%s)", scId, p.token.Symbol.String)
 				}
 

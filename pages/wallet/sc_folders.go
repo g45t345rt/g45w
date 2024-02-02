@@ -642,6 +642,10 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				name := item.name
+				if item.name == "" {
+					name = lang.Translate("Token")
+				}
+
 				size := unit.Sp(16)
 				if len(name) > 20 {
 					size = unit.Sp(14)
@@ -691,7 +695,12 @@ func (item *TokenFolderItem) Layout(gtx layout.Context, th *material.Theme) layo
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 								return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										lbl := material.Label(th, unit.Sp(16), item.name)
+										name := item.name
+										if item.name == "" {
+											name = lang.Translate("Token")
+										}
+
+										lbl := material.Label(th, unit.Sp(16), name)
 										lbl.Font.Weight = font.Bold
 										return lbl.Layout(gtx)
 									}),

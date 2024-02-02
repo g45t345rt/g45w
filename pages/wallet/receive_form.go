@@ -116,7 +116,7 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Max.X = gtx.Dp(250)
+			gtx.Constraints.Max.X = gtx.Dp(260)
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				editor := material.Editor(th, p.addrEditor, "")
 				editor.TextSize = unit.Sp(16)
@@ -126,7 +126,7 @@ func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.
 		},
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				gtx.Constraints.Max.Y = gtx.Dp(250)
+				gtx.Constraints.Max.Y = gtx.Dp(260)
 				return p.addrImage.Layout(gtx, nil)
 			})
 		},
