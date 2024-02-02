@@ -400,7 +400,17 @@ func (item *ContactListItem) Layout(gtx layout.Context, th *material.Theme) layo
 	if item.buttonSelect.Clicked(gtx) {
 		txtWalletAddr := page_instance.pageSendForm.walletAddrInput.txtWalletAddr
 		txtWalletAddr.SetValue(item.contact.Addr)
-		page_instance.header.GoBack()
+
+		history := page_instance.header.History()
+		page := history[len(history)-2]
+		switch page {
+		case PAGE_SEND_FORM:
+			page_instance.header.GoBack()
+		case PAGE_BALANCE_TOKENS:
+			page_instance.pageSendForm.SetToken(wallet_manager.DeroToken())
+			page_instance.pageRouter.SetCurrent(PAGE_SEND_FORM)
+			page_instance.header.AddHistory(PAGE_SEND_FORM)
+		}
 	}
 
 	if item.clickable.Clicked(gtx) {
