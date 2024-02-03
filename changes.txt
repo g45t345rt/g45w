@@ -1,3 +1,17 @@
+v0.10.0
+- New smart contract explorer (view data, list & execute functions).
+- Search bar and add button for contacts.
+- Added hashicons for contact items.
+- Swipe right handle for mobile only (unnecessary feature for desktop and annoying if triggered).
+- Fix crash when clearing outgoing txs.
+- Fix wallet rename not persisting after close or restart.
+- Fix XSWD header rectangle paint.
+- Force update token balance after inserting.
+- Access contacts page from main page.
+- Yellow pulse animation when node is syncing.
+- Display current selection on list modal (ringsize selector, theme selector, language selector).
+- Hashicons for transaction items are now set to the wallet address.
+
 v0.9.0
 - Update to GioUI v0.4.1.
 - Apply XSWD integration (toggle ON/OFF, manage apps and permissions) by Slixe.

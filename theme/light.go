@@ -32,11 +32,12 @@ var Light = &Theme{
 	},
 	BottomButtonSelectedColor: blackColor,
 
-	NodeStatusBgColor:        color.NRGBA{A: 255},
-	NodeStatusTextColor:      color.NRGBA{R: 255, G: 255, B: 255, A: 255},
-	NodeStatusDotGreenColor:  color.NRGBA{R: 0, G: 225, B: 0, A: 255},
-	NodeStatusDotYellowColor: color.NRGBA{R: 255, G: 255, B: 0, A: 255},
-	NodeStatusDotRedColor:    color.NRGBA{R: 225, G: 0, B: 0, A: 255},
+	NodeStatusBgColor:         color.NRGBA{A: 255},
+	NodeStatusHeightTextColor: color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+	NodeStatusNodeTextColor:   color.NRGBA{R: 255, G: 255, B: 255, A: 100},
+	NodeStatusDotGreenColor:   color.NRGBA{R: 0, G: 225, B: 0, A: 255},
+	NodeStatusDotYellowColor:  color.NRGBA{R: 255, G: 255, B: 0, A: 255},
+	NodeStatusDotRedColor:     color.NRGBA{R: 225, G: 0, B: 0, A: 255},
 
 	XSWDBgColor:     color.NRGBA{R: 225, G: 225, B: 225, A: 255},
 	XSWDBgTextColor: blackColor,

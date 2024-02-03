@@ -32,11 +32,12 @@ type Theme struct {
 	BottomButtonSelectedColor color.NRGBA
 
 	// Node Status
-	NodeStatusBgColor        color.NRGBA
-	NodeStatusTextColor      color.NRGBA
-	NodeStatusDotGreenColor  color.NRGBA
-	NodeStatusDotYellowColor color.NRGBA
-	NodeStatusDotRedColor    color.NRGBA
+	NodeStatusBgColor         color.NRGBA
+	NodeStatusHeightTextColor color.NRGBA
+	NodeStatusNodeTextColor   color.NRGBA
+	NodeStatusDotGreenColor   color.NRGBA
+	NodeStatusDotYellowColor  color.NRGBA
+	NodeStatusDotRedColor     color.NRGBA
 
 	// XSWD Top Bar
 	XSWDBgColor     color.NRGBA

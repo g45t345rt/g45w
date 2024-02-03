@@ -64,6 +64,7 @@ type Page struct {
 	pageDEXSCBridgeIn   *PageDEXSCBridgeIn
 	pageXSWDManage      *PageXSWDManage
 	pageXSWDApp         *PageXSWDApp
+	pageSCExplorer      *PageSCExplorer
 
 	pageRouter *router.Router
 }
@@ -97,6 +98,7 @@ var (
 	PAGE_DEX_SC_BRIDGE_IN  = "page_dex_sc_bridge_in"
 	PAGE_XSWD_MANAGE       = "page_xswd_manage"
 	PAGE_XSWD_APP          = "page_xswd_app"
+	PAGE_SC_EXPLORER       = "page_sc_explorer"
 )
 
 func New() *Page {
@@ -178,6 +180,9 @@ func New() *Page {
 	pageXSWDApp := NewPageXSWDApp()
 	pageRouter.Add(PAGE_XSWD_APP, pageXSWDApp)
 
+	pageSCExplorer := NewPageSCExplorer()
+	pageRouter.Add(PAGE_SC_EXPLORER, pageSCExplorer)
+
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
@@ -202,6 +207,7 @@ func New() *Page {
 		pageDEXSCBridgeIn:   pageDEXSCBridgeIn,
 		pageXSWDManage:      pageXSWDManage,
 		pageXSWDApp:         pageXSWDApp,
+		pageSCExplorer:      pageSCExplorer,
 
 		pageRouter: pageRouter,
 	}

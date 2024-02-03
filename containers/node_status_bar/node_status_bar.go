@@ -159,13 +159,16 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), status)
-					lbl.Color = theme.Current.NodeStatusTextColor
+					lbl.Color = theme.Current.NodeStatusHeightTextColor
 					return lbl.Layout(gtx)
 				}),
-				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
+				//layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					return layout.Spacer{Width: unit.Dp(1)}.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					lbl := material.Label(th, unit.Sp(16), nodeName)
-					lbl.Color = theme.Current.NodeStatusTextColor
+					lbl.Color = theme.Current.NodeStatusNodeTextColor
 					return lbl.Layout(gtx)
 				}),
 			)

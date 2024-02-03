@@ -207,6 +207,7 @@ func (p *PageSCToken) OpenMenu() {
 	addFavIcon, _ := widget.NewIcon(icons.ToggleStarBorder)
 	delFavIcon, _ := widget.NewIcon(icons.ToggleStar)
 	//editIcon, _ := widget.NewIcon(icons.ActionInput)
+	actionViewIcon, _ := widget.NewIcon(icons.ActionViewModule)
 	deleteIcon, _ := widget.NewIcon(icons.ActionDelete)
 	ethereumIcon, _ := widget.NewIcon(app_icons.Ethereum)
 
@@ -267,6 +268,10 @@ func (p *PageSCToken) OpenMenu() {
 		))
 	}
 
+	items = append(items, listselect_modal.NewSelectListItem("sc_explorer",
+		listselect_modal.NewItemText(actionViewIcon, lang.Translate("SC Explorer")).Layout,
+	))
+
 	/*
 		items = append(items, listselect_modal.NewSelectListItem("edit_token",
 			listselect_modal.NewItemText(editIcon, lang.Translate("Edit token")).Layout,
@@ -296,6 +301,10 @@ func (p *PageSCToken) OpenMenu() {
 			p.token.IsFavorite = false //sql.NullBool{Bool: false, Valid: true}
 			err = wallet.UpdateToken(*p.token)
 			successMsg = lang.Translate("Token removed from favorites.")
+		case "sc_explorer":
+			page_instance.pageSCExplorer.SCID = p.token.SCID
+			page_instance.pageRouter.SetCurrent(PAGE_SC_EXPLORER)
+			page_instance.header.AddHistory(PAGE_SC_EXPLORER)
 		case "remove_token":
 			yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{})
 

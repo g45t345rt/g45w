@@ -418,7 +418,7 @@ func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{
 						Bottom: unit.Dp(10),
-						Left:   unit.Dp(30), Right: unit.Dp(30),
+						Left:   theme.PagePadding, Right: theme.PagePadding,
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						r := op.Record(gtx.Ops)
 						dims := layout.Inset{
