@@ -192,7 +192,9 @@ const App = () => {
         if (bridgeHash) {
           return <SuccessDiv>
             Bridging successful. Your wrapped tokens will appear in a couple of minutes.<br /><br />
-            <a href={`https://etherscan.io/tx/${bridgeHash}`} target="_blank" style="word-break:break-all;">{bridgeHash}</a>
+            <a href={`https://etherscan.io/tx/${bridgeHash}`} target="_blank" rel="noopener noreferrer" style="word-break:break-all;">
+              {bridgeHash}
+            </a>
           </SuccessDiv>
         }
 
