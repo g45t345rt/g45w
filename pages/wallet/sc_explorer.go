@@ -16,6 +16,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
@@ -339,11 +340,20 @@ func NewSCDataItem(key string, data interface{}) *SCDataItem {
 	editor.ReadOnly = true
 
 	value := fmt.Sprintf("%v", data)
+
 	decoded, err := hex.DecodeString(value)
 	if err == nil {
 		editor.SetText(string(decoded))
 	} else {
 		editor.SetText(value)
+	}
+
+	// check if address is raw
+	p := new(crypto.Point)
+	err = p.DecodeCompressed(decoded)
+	if err == nil {
+		addr := rpc.NewAddressFromKeys(p)
+		editor.SetText(addr.String())
 	}
 
 	return &SCDataItem{
