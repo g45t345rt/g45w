@@ -50,8 +50,8 @@ func NewPageAppInfo() *PageAppInfo {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	unix, _ := strconv.ParseUint(settings.BuildTime, 10, 64)
-	buildTimeUnix := time.Unix(int64(unix), 0)
+	unix, _ := strconv.ParseInt(settings.BuildTime, 10, 64)
+	buildTimeUnix := time.Unix(unix, 0)
 	buildTime := fmt.Sprintf("%s (%d)", buildTimeUnix.Local().String(), unix)
 
 	// do not remove @lang.Translate comment

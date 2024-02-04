@@ -322,9 +322,13 @@ func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Th
 }
 
 func (p *PageCreateWalletFastRegForm) startRegistration() error {
-	threadCount, err := strconv.ParseUint(p.txtThreadCount.Value(), 10, 64)
+	threadCount, err := strconv.ParseInt(p.txtThreadCount.Value(), 10, 64)
 	if err != nil {
 		return err
+	}
+
+	if threadCount <= 0 {
+		return fmt.Errorf("the thread count needs to be at least higher than one")
 	}
 
 	p.fastReg.Start(int(threadCount))
