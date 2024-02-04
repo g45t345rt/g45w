@@ -1,6 +1,7 @@
 package page_wallet
 
 import (
+	"encoding/hex"
 	"fmt"
 	"image"
 	"regexp"
@@ -18,20 +19,22 @@ import (
 	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type SCFunction struct {
 	Name string
-	Args []SCFunctionDef
+	Args []SCFunctionArg
 }
 
-type SCFunctionDef struct {
+type SCFunctionArg struct {
 	Name string
 	Type string
 }
@@ -43,9 +46,10 @@ type PageSCExplorer struct {
 	animationLeave *animation.Animation
 	tabBars        *components.TabBars
 
-	scFuncs   []*SCFunctionItem
-	scData    []*SCDataItem
-	immutable bool
+	buttonMenu *components.Button
+	scFuncs    []*SCFunctionItem
+	scData     []*SCDataItem
+	immutable  bool
 
 	SCID string
 	list *widget.List
@@ -55,11 +59,11 @@ var _ router.Page = &PageSCExplorer{}
 
 func NewPageSCExplorer() *PageSCExplorer {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
+		gween.New(-1, 0, .25, ease.Linear),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
+		gween.New(0, -1, .25, ease.Linear),
 	))
 
 	tabBarsItems := []*components.TabBarsItem{
@@ -72,10 +76,18 @@ func NewPageSCExplorer() *PageSCExplorer {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	menuIcon, _ := widget.NewIcon(icons.NavigationMenu)
+	buttonMenu := components.NewButton(components.ButtonStyle{
+		Rounded:   components.UniformRounded(unit.Dp(5)),
+		Icon:      menuIcon,
+		Animation: components.NewButtonAnimationDefault(),
+	})
+
 	return &PageSCExplorer{
 		animationEnter: animationEnter,
 		animationLeave: animationLeave,
 		tabBars:        tabBars,
+		buttonMenu:     buttonMenu,
 
 		list: list,
 	}
@@ -125,7 +137,7 @@ func (p *PageSCExplorer) LoadFunctions() error {
 
 			for _, arg := range args {
 				def := strings.Split(strings.Trim(arg, " "), " ")
-				scFunc.Args = append(scFunc.Args, SCFunctionDef{
+				scFunc.Args = append(scFunc.Args, SCFunctionArg{
 					Name: def[0],
 					Type: def[1],
 				})
@@ -179,7 +191,36 @@ func (p *PageSCExplorer) Enter() {
 	}
 
 	page_instance.header.LeftLayout = nil
-	page_instance.header.RightLayout = nil
+	page_instance.header.RightLayout = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
+		p.buttonMenu.Style.Colors = theme.Current.ButtonIconPrimaryColors
+		gtx.Constraints.Min.X = gtx.Dp(30)
+		gtx.Constraints.Min.Y = gtx.Dp(30)
+
+		if p.buttonMenu.Clicked(gtx) {
+			go func() {
+				codeIcon, _ := widget.NewIcon(icons.ActionCode)
+				refreshIcon, _ := widget.NewIcon(icons.NavigationRefresh)
+
+				keyChan := listselect_modal.Instance.Open([]*listselect_modal.SelectListItem{
+					listselect_modal.NewSelectListItem("view_code",
+						listselect_modal.NewItemText(codeIcon, lang.Translate("View code")).Layout,
+					),
+					listselect_modal.NewSelectListItem("reload_sc",
+						listselect_modal.NewItemText(refreshIcon, lang.Translate("Reload SC")).Layout,
+					),
+				}, "")
+
+				for key := range keyChan {
+					switch key {
+					case "view_code":
+					case "reload_sc":
+					}
+				}
+			}()
+		}
+
+		return p.buttonMenu.Layout(gtx, th)
+	}
 
 	if !page_instance.header.IsHistory(PAGE_SC_EXPLORER) {
 		p.animationEnter.Start()
@@ -221,6 +262,17 @@ func (p *PageSCExplorer) Layout(gtx layout.Context, th *material.Theme) layout.D
 	listStyle.AnchorStrategy = material.Overlay
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		txt := lang.Translate("This smart contract is mutable.")
+		if p.immutable {
+			txt = lang.Translate("This smart contract is immutable.")
+		}
+
+		lbl := material.Label(th, unit.Sp(16), txt)
+		lbl.Color = theme.Current.TextMuteColor
+		return lbl.Layout(gtx)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		text := make(map[string]string)
 
 		txt := lang.Translate("Functions ({})")
@@ -243,17 +295,6 @@ func (p *PageSCExplorer) Layout(gtx layout.Context, th *material.Theme) layout.D
 				return lbl.Layout(gtx)
 			})
 		}
-
-		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			txt := lang.Translate("This smart contract is mutable.")
-			if p.immutable {
-				txt = lang.Translate("This smart contract is immutable.")
-			}
-
-			lbl := material.Label(th, unit.Sp(16), txt)
-			lbl.Color = theme.Current.TextMuteColor
-			return lbl.Layout(gtx)
-		})
 
 		for i := range p.scFuncs {
 			item := p.scFuncs[i]
@@ -296,7 +337,15 @@ type SCDataItem struct {
 func NewSCDataItem(key string, data interface{}) *SCDataItem {
 	editor := &widget.Editor{}
 	editor.ReadOnly = true
-	editor.SetText(fmt.Sprintf("%v", data))
+
+	value := fmt.Sprintf("%v", data)
+	decoded, err := hex.DecodeString(value)
+	if err == nil {
+		editor.SetText(string(decoded))
+	} else {
+		editor.SetText(value)
+	}
+
 	return &SCDataItem{
 		key:    key,
 		editor: editor,
@@ -335,7 +384,10 @@ func NewSCFunctionItem(scFunc SCFunction) *SCFunctionItem {
 
 func (item *SCFunctionItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if item.clickable.Clicked(gtx) {
-
+		scid := page_instance.pageSCExplorer.SCID
+		page_instance.pageSCFunction.SetData(scid, item.scFunc)
+		page_instance.pageRouter.SetCurrent(PAGE_SC_FUNCTION)
+		page_instance.header.AddHistory(PAGE_SC_FUNCTION)
 	}
 
 	m := op.Record(gtx.Ops)

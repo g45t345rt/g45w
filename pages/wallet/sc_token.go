@@ -254,6 +254,10 @@ func (p *PageSCToken) OpenMenu() {
 		))
 	}
 
+	items = append(items, listselect_modal.NewSelectListItem("sc_explorer",
+		listselect_modal.NewItemText(actionViewIcon, lang.Translate("SC Explorer")).Layout,
+	))
+
 	items = append(items, listselect_modal.NewSelectListItem("refresh_cache",
 		listselect_modal.NewItemText(refreshIcon, lang.Translate("Refresh cache")).Layout,
 	))
@@ -267,10 +271,6 @@ func (p *PageSCToken) OpenMenu() {
 			listselect_modal.NewItemText(addFavIcon, lang.Translate("Add to favorites")).Layout,
 		))
 	}
-
-	items = append(items, listselect_modal.NewSelectListItem("sc_explorer",
-		listselect_modal.NewItemText(actionViewIcon, lang.Translate("SC Explorer")).Layout,
-	))
 
 	/*
 		items = append(items, listselect_modal.NewSelectListItem("edit_token",

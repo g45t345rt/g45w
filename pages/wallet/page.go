@@ -65,6 +65,7 @@ type Page struct {
 	pageXSWDManage      *PageXSWDManage
 	pageXSWDApp         *PageXSWDApp
 	pageSCExplorer      *PageSCExplorer
+	pageSCFunction      *PageSCFunction
 
 	pageRouter *router.Router
 }
@@ -99,6 +100,7 @@ var (
 	PAGE_XSWD_MANAGE       = "page_xswd_manage"
 	PAGE_XSWD_APP          = "page_xswd_app"
 	PAGE_SC_EXPLORER       = "page_sc_explorer"
+	PAGE_SC_FUNCTION       = "page_sc_function"
 )
 
 func New() *Page {
@@ -183,6 +185,9 @@ func New() *Page {
 	pageSCExplorer := NewPageSCExplorer()
 	pageRouter.Add(PAGE_SC_EXPLORER, pageSCExplorer)
 
+	pageSCFunction := NewPageSCFunction()
+	pageRouter.Add(PAGE_SC_FUNCTION, pageSCFunction)
+
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
@@ -208,6 +213,7 @@ func New() *Page {
 		pageXSWDManage:      pageXSWDManage,
 		pageXSWDApp:         pageXSWDApp,
 		pageSCExplorer:      pageSCExplorer,
+		pageSCFunction:      pageSCFunction,
 
 		pageRouter: pageRouter,
 	}

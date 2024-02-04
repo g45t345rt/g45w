@@ -37,6 +37,7 @@ Additionally, I aim to offer an alternative UI with extra features, including sm
 - DApps connection with XSWD protocol by Slixe (toggle on/off, manage connections and permissions).
 - Testnet/Mainnet switch component mode.
 - Camera to scan QR code (scan wallet/integrated address).
+- Smart contract explorer for any token (view code, variables, list and execute functions).
 
 ## Supported languages
 
