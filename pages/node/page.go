@@ -105,11 +105,11 @@ func (p *Page) Enter() {
 	if currentNode != nil {
 		if currentNode.Integrated {
 			p.header.AddHistory(PAGE_INTEGRATED_NODE)
-			p.pageIntegratedNode.animationLeave.Reset()
+			//p.pageIntegratedNode.animationLeave.Reset()
 			p.pageRouter.SetCurrent(PAGE_INTEGRATED_NODE)
 		} else {
 			p.header.AddHistory(PAGE_REMOTE_NODE)
-			p.pageRemoteNode.animationLeave.Reset()
+			//p.pageRemoteNode.animationLeave.Reset()
 			p.pageRouter.SetCurrent(PAGE_REMOTE_NODE)
 		}
 	} else {
@@ -118,8 +118,8 @@ func (p *Page) Enter() {
 }
 
 func (p *Page) Leave() {
-	p.pageRemoteNode.animationLeave.Reset()
-	p.pageIntegratedNode.animationLeave.Reset()
+	//p.pageRemoteNode.animationLeave.Reset()
+	//p.pageIntegratedNode.animationLeave.Reset()
 
 	p.animationEnter.Reset()
 	p.animationLeave.Start()

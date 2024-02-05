@@ -6,27 +6,23 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	qrcode "github.com/skip2/go-qrcode"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 )
 
 type PageReceiveForm struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	list       *widget.List
 	addrEditor *widget.Editor
@@ -36,13 +32,6 @@ type PageReceiveForm struct {
 var _ router.Page = &PageReceiveForm{}
 
 func NewPageReceiveForm() *PageReceiveForm {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -52,11 +41,12 @@ func NewPageReceiveForm() *PageReceiveForm {
 	addrEditor.Alignment = text.Middle
 	addrEditor.ReadOnly = true
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_RECEIVE_FORM)
+
 	return &PageReceiveForm{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		list:           list,
-		addrEditor:     addrEditor,
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		addrEditor:          addrEditor,
 	}
 }
 
@@ -65,12 +55,8 @@ func (p *PageReceiveForm) IsActive() bool {
 }
 
 func (p *PageReceiveForm) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
-	if !page_instance.header.IsHistory(PAGE_RECEIVE_FORM) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 	page_instance.pageBalanceTokens.ResetWalletHeader()
 
 	addr := wallet_manager.OpenedWallet.Memory.GetAddress().String()
@@ -90,29 +76,11 @@ func (p *PageReceiveForm) Enter() {
 }
 
 func (p *PageReceiveForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageReceiveForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {

@@ -9,44 +9,33 @@ import (
 	"gioui.org/font"
 	"gioui.org/io/clipboard"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageAppInfo struct {
-	isActive       bool
-	list           *widget.List
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	infoItems      []*InfoListItem
+	isActive            bool
+	headerPageAnimation *prefabs.PageHeaderAnimation
+
+	list      *widget.List
+	infoItems []*InfoListItem
 }
 
 var _ router.Page = &PageAppInfo{}
 
 func NewPageAppInfo() *PageAppInfo {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -68,11 +57,11 @@ func NewPageAppInfo() *PageAppInfo {
 		NewInfoListItem("Donation Address", settings.DonationAddress, text.WrapGraphemes), //@lang.Translate("Donation Address")
 	}
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_APP_INFO)
 	return &PageAppInfo{
-		infoItems:      infoItems,
-		list:           list,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
+		infoItems:           infoItems,
+		list:                list,
 	}
 }
 
@@ -81,39 +70,17 @@ func (p *PageAppInfo) IsActive() bool {
 }
 
 func (p *PageAppInfo) Enter() {
-	p.isActive = true
-	page_instance.header.Title = func() string { return lang.Translate("App Information") }
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
-	if !page_instance.header.IsHistory(PAGE_APP_INFO) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	page_instance.header.Title = func() string { return lang.Translate("App Information") }
 }
 
 func (p *PageAppInfo) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageAppInfo) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	var widgets []layout.Widget
 

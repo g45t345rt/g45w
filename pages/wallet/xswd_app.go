@@ -13,23 +13,20 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi/xswd"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageXSWDApp struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonRemove *components.Button
 	list         *widget.List
@@ -40,13 +37,6 @@ type PageXSWDApp struct {
 var _ router.Page = &PageXSWDApp{}
 
 func NewPageXSWDApp() *PageXSWDApp {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	removeIcon, _ := widget.NewIcon(icons.NavigationCancel)
 	buttonRemove := components.NewButton(components.ButtonStyle{
@@ -56,11 +46,11 @@ func NewPageXSWDApp() *PageXSWDApp {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_XSWD_APP)
 	return &PageXSWDApp{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		list:           list,
-		buttonRemove:   buttonRemove,
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		buttonRemove:        buttonRemove,
 	}
 }
 
@@ -76,7 +66,7 @@ func (p *PageXSWDApp) Load() {
 }
 
 func (p *PageXSWDApp) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	page_instance.header.Title = func() string {
 		return p.app.Name
@@ -112,38 +102,15 @@ func (p *PageXSWDApp) Enter() {
 		return p.buttonRemove.Layout(gtx, th)
 	}
 
-	if !page_instance.header.IsHistory(PAGE_XSWD_APP) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
-
 	p.Load()
 }
 
 func (p *PageXSWDApp) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageXSWDApp) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	widgets := []layout.Widget{}
 

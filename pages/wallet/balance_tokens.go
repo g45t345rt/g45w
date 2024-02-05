@@ -21,7 +21,6 @@ import (
 	"gioui.org/widget/material"
 	crypto "github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/walletapi"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/assets"
@@ -38,16 +37,13 @@ import (
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	gioui_hashicon "github.com/g45t345rt/gioui-hashicon"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageBalanceTokens struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	alertBox         *AlertBox
 	displayBalance   *DisplayBalance
@@ -72,13 +68,6 @@ type PageBalanceTokens struct {
 var _ router.Page = &PageBalanceTokens{}
 
 func NewPageBalanceTokens() *PageBalanceTokens {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -157,23 +146,24 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		Fit: components.Cover,
 	}
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_BALANCE_TOKENS)
+
 	return &PageBalanceTokens{
-		displayBalance: NewDisplayBalance(),
-		tokenBar:       NewTokenBar(),
-		alertBox:       NewAlertBox(),
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		list:           list,
-		buttonSettings: buttonSettings,
-		buttonRegister: buttonRegister,
-		buttonCopyAddr: buttonCopyAddr,
-		buttonDexSwap:  buttonDexSwap,
-		buttonContacts: buttonContacts,
-		tabBars:        tabBars,
-		txBar:          txBar,
-		tokenDragItems: tokenDragItems,
-		tokenList:      tokenList,
-		bgImg:          bgImg,
+		displayBalance:      NewDisplayBalance(),
+		tokenBar:            NewTokenBar(),
+		alertBox:            NewAlertBox(),
+		list:                list,
+		headerPageAnimation: headerPageAnimation,
+		buttonSettings:      buttonSettings,
+		buttonRegister:      buttonRegister,
+		buttonCopyAddr:      buttonCopyAddr,
+		buttonDexSwap:       buttonDexSwap,
+		buttonContacts:      buttonContacts,
+		tabBars:             tabBars,
+		txBar:               txBar,
+		tokenDragItems:      tokenDragItems,
+		tokenList:           tokenList,
+		bgImg:               bgImg,
 	}
 }
 
@@ -182,12 +172,7 @@ func (p *PageBalanceTokens) IsActive() bool {
 }
 
 func (p *PageBalanceTokens) Enter() {
-	p.isActive = true
-
-	if !page_instance.header.IsHistory(PAGE_BALANCE_TOKENS) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	p.ResetWalletHeader()
 
@@ -304,30 +289,12 @@ func (p *PageBalanceTokens) ResetWalletHeader() {
 }
 
 func (p *PageBalanceTokens) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 	page_instance.header.RightLayout = nil
 }
 
 func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonRegister.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_REGISTER_WALLET)

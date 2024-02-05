@@ -5,12 +5,10 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -20,16 +18,12 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageEditNodeForm struct {
-	isActive bool
-
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	isActive            bool
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonEdit   *components.Button
 	buttonDelete *components.Button
@@ -43,14 +37,6 @@ type PageEditNodeForm struct {
 var _ router.Page = &PageEditNodeForm{}
 
 func NewPageEditNodeForm() *PageEditNodeForm {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -83,9 +69,9 @@ func NewPageEditNodeForm() *PageEditNodeForm {
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_EDIT_NODE_FORM)
 	return &PageEditNodeForm{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
 
 		buttonEdit:   buttonEdit,
 		buttonDelete: buttonDelete,
@@ -101,43 +87,19 @@ func (p *PageEditNodeForm) IsActive() bool {
 }
 
 func (p *PageEditNodeForm) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 	page_instance.header.Title = func() string { return lang.Translate("Edit Node") }
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
 
 	p.txtEndpoint.SetValue(p.nodeConn.Endpoint)
 	p.txtName.SetValue(p.nodeConn.Name)
 }
 
 func (p *PageEditNodeForm) Leave() {
-	if page_instance.header.IsHistory(PAGE_EDIT_NODE_FORM) {
-		p.animationEnter.Reset()
-		p.animationLeave.Start()
-	} else {
-		p.isActive = false
-	}
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageEditNodeForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonEdit.Clicked(gtx) {
 		p.submitForm(gtx)

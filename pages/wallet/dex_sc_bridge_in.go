@@ -7,14 +7,12 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"gioui.org/x/browser"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/bridge_metamask"
 	"github.com/g45t345rt/g45w/components"
@@ -23,15 +21,12 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 )
 
 type PageDEXSCBridgeIn struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	balanceContainer *BalanceContainer
 	txtAmount        *prefabs.TextField
@@ -48,13 +43,6 @@ type PageDEXSCBridgeIn struct {
 var _ router.Page = &PageDEXSCBridgeIn{}
 
 func NewPageDEXSCBridgeIn() *PageDEXSCBridgeIn {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -72,15 +60,15 @@ func NewPageDEXSCBridgeIn() *PageDEXSCBridgeIn {
 	buttonConnect.Style.Font.Weight = font.Bold
 
 	txtAmount := prefabs.NewNumberTextField()
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_DEX_SC_BRIDGE_IN)
 
 	return &PageDEXSCBridgeIn{
-		animationEnter:   animationEnter,
-		animationLeave:   animationLeave,
-		list:             list,
-		infoRows:         prefabs.NewInfoRows(1),
-		buttonConnect:    buttonConnect,
-		txtAmount:        txtAmount,
-		balanceContainer: NewBalanceContainer(),
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		infoRows:            prefabs.NewInfoRows(1),
+		buttonConnect:       buttonConnect,
+		txtAmount:           txtAmount,
+		balanceContainer:    NewBalanceContainer(),
 	}
 }
 
@@ -89,12 +77,7 @@ func (p *PageDEXSCBridgeIn) IsActive() bool {
 }
 
 func (p *PageDEXSCBridgeIn) Enter() {
-	p.isActive = true
-
-	if !page_instance.header.IsHistory(PAGE_DEX_SC_BRIDGE_IN) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	page_instance.header.Title = func() string { return p.token.Name }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -107,8 +90,7 @@ func (p *PageDEXSCBridgeIn) Enter() {
 }
 
 func (p *PageDEXSCBridgeIn) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageDEXSCBridgeIn) SetToken(token *wallet_manager.Token) {
@@ -155,24 +137,7 @@ func (p *PageDEXSCBridgeIn) submitForm() error {
 }
 
 func (p *PageDEXSCBridgeIn) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonConnect.Clicked(gtx) {
 		go p.submitForm()

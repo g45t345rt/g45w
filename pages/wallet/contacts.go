@@ -15,7 +15,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
@@ -27,16 +26,13 @@ import (
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	gioui_hashicon "github.com/g45t345rt/gioui-hashicon"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageContacts struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	contactItems      []*ContactListItem
 	txtFilterContacts *prefabs.Input
@@ -50,13 +46,6 @@ type PageContacts struct {
 var _ router.Page = &PageContacts{}
 
 func NewPageContacts() *PageContacts {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -80,9 +69,9 @@ func NewPageContacts() *PageContacts {
 	buttonAddContact.Label.Alignment = text.Middle
 	buttonAddContact.Style.Font.Weight = font.Bold
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_CONTACTS)
 	return &PageContacts{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
 
 		list:              list,
 		buttonMenuContact: buttonMenuContact,
@@ -96,7 +85,8 @@ func (p *PageContacts) IsActive() bool {
 }
 
 func (p *PageContacts) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Contacts") }
 	page_instance.header.Subtitle = nil
 
@@ -113,17 +103,11 @@ func (p *PageContacts) Enter() {
 		return p.buttonMenuContact.Layout(gtx, th)
 	}
 
-	if !page_instance.header.IsHistory(PAGE_CONTACTS) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
-
 	p.Load()
 }
 
 func (p *PageContacts) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageContacts) Load() error {
@@ -259,24 +243,7 @@ func (p *PageContacts) OpenMenu() {
 }
 
 func (p *PageContacts) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonAddContact.Clicked(gtx) {
 		page_instance.pageContactForm.ClearForm()

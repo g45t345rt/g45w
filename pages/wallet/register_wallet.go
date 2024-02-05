@@ -9,12 +9,10 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/transaction"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
@@ -26,16 +24,13 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageRegisterWallet struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	registerWalletForm   *RegisterWalletForm
 	sendRegistrationForm *SendRegistrationForm
@@ -44,37 +39,25 @@ type PageRegisterWallet struct {
 var _ router.Page = &PageRegisterWallet{}
 
 func NewPageRegisterWallet() *PageRegisterWallet {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	registerWalletForm := NewRegisterWalletForm()
 	sendRegistrationForm := NewSendRegistrationForm()
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_REGISTER_WALLET)
+
 	return &PageRegisterWallet{
-		animationEnter:       animationEnter,
-		animationLeave:       animationLeave,
+		headerPageAnimation:  headerPageAnimation,
 		registerWalletForm:   registerWalletForm,
 		sendRegistrationForm: sendRegistrationForm,
 	}
 }
 
 func (p *PageRegisterWallet) Enter() {
-	p.isActive = true
-
-	if !page_instance.header.IsHistory(PAGE_REGISTER_WALLET) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 }
 
 func (p *PageRegisterWallet) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageRegisterWallet) IsActive() bool {
@@ -82,24 +65,7 @@ func (p *PageRegisterWallet) IsActive() bool {
 }
 
 func (p *PageRegisterWallet) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	regTxHex := wallet_manager.OpenedWallet.Info.RegistrationTxHex
 	if regTxHex != "" {

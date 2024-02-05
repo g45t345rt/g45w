@@ -5,30 +5,25 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	crypto "github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageSCFunction struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonExecute *components.Button
 	scArgItems    []*SCArgItem
@@ -40,13 +35,6 @@ type PageSCFunction struct {
 var _ router.Page = &PageSCFunction{}
 
 func NewPageSCFunction() *PageSCFunction {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -63,10 +51,10 @@ func NewPageSCFunction() *PageSCFunction {
 	buttonExecute.Label.Alignment = text.Middle
 	buttonExecute.Style.Font.Weight = font.Bold
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SC_FUNCTION)
 	return &PageSCFunction{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		buttonExecute:  buttonExecute,
+		headerPageAnimation: headerPageAnimation,
+		buttonExecute:       buttonExecute,
 
 		list: list,
 	}
@@ -77,7 +65,7 @@ func (p *PageSCFunction) IsActive() bool {
 }
 
 func (p *PageSCFunction) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	page_instance.header.Title = func() string {
 		return p.scFunction.Name
@@ -85,16 +73,10 @@ func (p *PageSCFunction) Enter() {
 
 	page_instance.header.LeftLayout = nil
 	page_instance.header.RightLayout = nil
-
-	if !page_instance.header.IsHistory(PAGE_SC_FUNCTION) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 }
 
 func (p *PageSCFunction) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSCFunction) SetData(SCID string, scFunction SCFunction) {
@@ -140,24 +122,7 @@ func (p *PageSCFunction) execute() {
 }
 
 func (p *PageSCFunction) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonExecute.Clicked(gtx) {
 		go p.execute()

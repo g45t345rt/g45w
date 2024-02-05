@@ -5,12 +5,10 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -20,16 +18,13 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageEditIPFSGateway struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonEdit   *components.Button
 	buttonDelete *components.Button
@@ -45,14 +40,6 @@ type PageEditIPFSGateway struct {
 var _ router.Page = &PageEditIPFSGateway{}
 
 func NewPageEditIPFSGateway() *PageEditIPFSGateway {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -84,10 +71,10 @@ func NewPageEditIPFSGateway() *PageEditIPFSGateway {
 	})
 	buttonDelete.Label.Alignment = text.Middle
 	buttonDelete.Style.Font.Weight = font.Bold
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_EDIT_IPFS_GATEWAY)
 
 	return &PageEditIPFSGateway{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
 
 		buttonEdit:   buttonEdit,
 		buttonDelete: buttonDelete,
@@ -104,14 +91,10 @@ func (p *PageEditIPFSGateway) IsActive() bool {
 }
 
 func (p *PageEditIPFSGateway) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Edit IPFS Gateway") }
 	page_instance.header.RightLayout = nil
-
-	if !page_instance.header.IsHistory(PAGE_EDIT_IPFS_GATEWAY) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 
 	p.txtEndpoint.SetValue(p.gateway.Endpoint)
 	p.txtName.SetValue(p.gateway.Name)
@@ -119,29 +102,11 @@ func (p *PageEditIPFSGateway) Enter() {
 }
 
 func (p *PageEditIPFSGateway) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageEditIPFSGateway) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonEdit.Clicked(gtx) {
 		p.submitForm(gtx)

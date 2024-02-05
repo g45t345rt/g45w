@@ -10,7 +10,6 @@ import (
 	"gioui.org/font"
 	"gioui.org/io/key"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -18,7 +17,6 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
@@ -29,15 +27,12 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 )
 
 type PageDonation struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonAmount1     *components.Button
 	buttonAmount2     *components.Button
@@ -55,14 +50,6 @@ type PageDonation struct {
 var _ router.Page = &PageDonation{}
 
 func NewPageDonation() *PageDonation {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -125,9 +112,9 @@ func NewPageDonation() *PageDonation {
 	txtAmount.Input.TextSize = unit.Sp(20)
 	txtAmount.Input.FontWeight = font.Bold
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_DONATION)
 	return &PageDonation{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
 
 		txtAmount:         txtAmount,
 		buttonDonate:      buttonDonate,
@@ -146,22 +133,17 @@ func (p *PageDonation) IsActive() bool {
 }
 
 func (p *PageDonation) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Donation") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.RightLayout = nil
-
-	if !page_instance.header.IsHistory(PAGE_DONATION) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 
 	p.Load()
 }
 
 func (p *PageDonation) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 type DonationResult struct {
@@ -216,24 +198,7 @@ func (p *PageDonation) Load() error {
 }
 
 func (p *PageDonation) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonAmount1.Clicked(gtx) {
 		p.txtAmount.SetValue("1")

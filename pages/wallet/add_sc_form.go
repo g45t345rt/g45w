@@ -16,7 +16,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -25,8 +24,6 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 	"golang.org/x/text/language"
 )
@@ -34,8 +31,7 @@ import (
 type PageAddSCForm struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	scDetailsContainer *SCDetailsContainer
 
@@ -48,13 +44,6 @@ type PageAddSCForm struct {
 var _ router.Page = &PageAddSCForm{}
 
 func NewPageAddSCForm() *PageAddSCForm {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -76,13 +65,14 @@ func NewPageAddSCForm() *PageAddSCForm {
 	txtSCID := prefabs.NewTextField()
 	scDetailsContainer := NewSCDetailsContainer()
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_ADD_SC_FORM)
+
 	return &PageAddSCForm{
-		animationEnter:     animationEnter,
-		animationLeave:     animationLeave,
-		txtSCID:            txtSCID,
-		buttonFetchData:    buttonFetchData,
-		scDetailsContainer: scDetailsContainer,
-		list:               list,
+		headerPageAnimation: headerPageAnimation,
+		txtSCID:             txtSCID,
+		buttonFetchData:     buttonFetchData,
+		scDetailsContainer:  scDetailsContainer,
+		list:                list,
 	}
 }
 
@@ -91,40 +81,19 @@ func (p *PageAddSCForm) IsActive() bool {
 }
 
 func (p *PageAddSCForm) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Add Token") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.RightLayout = nil
-	if !page_instance.header.IsHistory(PAGE_ADD_SC_FORM) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 }
 
 func (p *PageAddSCForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageAddSCForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonFetchData.Clicked(gtx) {
 		go func() {

@@ -6,14 +6,12 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
@@ -23,18 +21,15 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageServiceNames struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	buttonRegister *components.Button
-	txtName        *prefabs.TextField
+	headerPageAnimation *prefabs.PageHeaderAnimation
+	buttonRegister      *components.Button
+	txtName             *prefabs.TextField
 
 	entries []wallet_manager.Entry
 
@@ -46,13 +41,6 @@ var _ router.Page = &PageServiceNames{}
 var SERVICE_NAME_SCID = crypto.HashHexToHash("0000000000000000000000000000000000000000000000000000000000000001")
 
 func NewPageServiceNames() *PageServiceNames {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	addIcon, _ := widget.NewIcon(icons.ContentCreate)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
@@ -73,13 +61,13 @@ func NewPageServiceNames() *PageServiceNames {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SERVICE_NAMES)
 	return &PageServiceNames{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		list:           list,
-		buttonRegister: buttonRegister,
-		txtName:        txtName,
-		entries:        make([]wallet_manager.Entry, 0),
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		buttonRegister:      buttonRegister,
+		txtName:             txtName,
+		entries:             make([]wallet_manager.Entry, 0),
 	}
 }
 
@@ -88,12 +76,7 @@ func (p *PageServiceNames) IsActive() bool {
 }
 
 func (p *PageServiceNames) Enter() {
-	p.isActive = true
-
-	if !page_instance.header.IsHistory(PAGE_SERVICE_NAMES) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	page_instance.header.Title = func() string {
 		return lang.Translate("Service Names")
@@ -116,29 +99,11 @@ func (p *PageServiceNames) Load() {
 }
 
 func (p *PageServiceNames) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageServiceNames) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonRegister.Clicked(gtx) {
 		go func() {

@@ -7,12 +7,10 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -25,8 +23,6 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -43,8 +39,7 @@ type PageSettings struct {
 	buttonExportTxs         *components.Button
 	buttonAddDEXTokens      *components.Button
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	action string
 
@@ -157,24 +152,16 @@ func NewPageSettings() *PageSettings {
 	buttonAddDEXTokens.Label.Alignment = text.Middle
 	buttonAddDEXTokens.Style.Font.Weight = font.Bold
 
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
 	txtWalletName := prefabs.NewTextField()
 	txtWalletChangePassword := prefabs.NewPasswordTextField()
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SETTINGS)
 	return &PageSettings{
 		buttonDeleteWallet:      buttonDeleteWallet,
-		animationEnter:          animationEnter,
-		animationLeave:          animationLeave,
+		headerPageAnimation:     headerPageAnimation,
 		list:                    list,
 		txtWalletName:           txtWalletName,
 		txtWalletChangePassword: txtWalletChangePassword,
@@ -200,17 +187,11 @@ func (p *PageSettings) Enter() {
 	page_instance.header.RightLayout = nil
 	page_instance.header.LeftLayout = nil
 
-	p.isActive = true
-
-	if !page_instance.header.IsHistory(PAGE_SETTINGS) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 }
 
 func (p *PageSettings) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -288,24 +269,7 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}
 	}
 
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {

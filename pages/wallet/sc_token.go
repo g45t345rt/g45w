@@ -18,7 +18,6 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
@@ -35,16 +34,13 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageSCToken struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonOpenMenu      *components.Button
 	sendReceiveButtons  *SendReceiveButtons
@@ -66,13 +62,6 @@ type PageSCToken struct {
 var _ router.Page = &PageSCToken{}
 
 func NewPageSCToken() *PageSCToken {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	addIcon, _ := widget.NewIcon(icons.NavigationMenu)
 	buttonOpenMenu := components.NewButton(components.ButtonStyle{
@@ -105,9 +94,10 @@ func NewPageSCToken() *PageSCToken {
 		Icon: copyIcon,
 	})
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SC_TOKEN)
+
 	return &PageSCToken{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
 
 		buttonOpenMenu:      buttonOpenMenu,
 		scIdEditor:          scIdEditor,
@@ -127,7 +117,7 @@ func (p *PageSCToken) IsActive() bool {
 }
 
 func (p *PageSCToken) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	wallet := wallet_manager.OpenedWallet
 	wallet.Memory.TokenAdd(p.token.GetHash()) // we don't check error because the only possible error is if the token was already added
@@ -188,16 +178,10 @@ func (p *PageSCToken) Enter() {
 	}
 
 	p.scIdEditor.SetText(p.token.SCID)
-
-	if !page_instance.header.IsHistory(PAGE_SC_TOKEN) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 }
 
 func (p *PageSCToken) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSCToken) OpenMenu() {
@@ -453,24 +437,7 @@ func (p *PageSCToken) SetToken(token *wallet_manager.Token) {
 }
 
 func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	{
 		changed, tab := p.txBar.Changed()

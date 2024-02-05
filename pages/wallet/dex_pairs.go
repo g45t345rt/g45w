@@ -18,30 +18,27 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/sc/dex_sc"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageDEXPairs struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	tlvUSDT        uint64 // total locked value in USDT
-	swapCount      uint64
-	buttonRefresh  *components.Button
-	loaded         bool
-	loading        bool
+	headerPageAnimation *prefabs.PageHeaderAnimation
+	tlvUSDT             uint64 // total locked value in USDT
+	swapCount           uint64
+	buttonRefresh       *components.Button
+	loaded              bool
+	loading             bool
 
 	list  *widget.List
 	items []*DexPairItem
@@ -50,13 +47,6 @@ type PageDEXPairs struct {
 var _ router.Page = &PageDEXPairs{}
 
 func NewPageDEXPairs() *PageDEXPairs {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -67,11 +57,11 @@ func NewPageDEXPairs() *PageDEXPairs {
 		Animation: components.NewButtonAnimationScale(.98),
 	})
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_DEX_PAIRS)
 	return &PageDEXPairs{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		list:           list,
-		buttonRefresh:  buttonRefresh,
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		buttonRefresh:       buttonRefresh,
 	}
 }
 
@@ -80,12 +70,8 @@ func (p *PageDEXPairs) IsActive() bool {
 }
 
 func (p *PageDEXPairs) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
-	if !page_instance.header.IsHistory(PAGE_DEX_PAIRS) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 	page_instance.header.Title = func() string {
 		return lang.Translate("DEX Pairs")
 	}
@@ -109,8 +95,7 @@ func (p *PageDEXPairs) Enter() {
 }
 
 func (p *PageDEXPairs) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageDEXPairs) Load() error {
@@ -221,24 +206,7 @@ func (p *PageDEXPairs) Load() error {
 }
 
 func (p *PageDEXPairs) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	widgets := []layout.Widget{}
 

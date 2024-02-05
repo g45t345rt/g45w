@@ -230,6 +230,7 @@ func (p *Page) Enter() {
 	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet != nil {
 		p.isActive = true
+
 		w := app_instance.Window
 		w.Option(app.StatusColor(color.NRGBA{A: 255}))
 

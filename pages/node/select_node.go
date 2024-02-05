@@ -13,7 +13,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -24,15 +23,12 @@ import (
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageSelectNode struct {
 	isActive                bool
-	animationEnter          *animation.Animation
-	animationLeave          *animation.Animation
+	headerPageAnimation     *prefabs.PageHeaderAnimation
 	buttonSetIntegratedNode *components.Button
 	buttonUseLocalNode      *components.Button
 	buttonAddNode           *components.Button
@@ -46,14 +42,6 @@ type PageSelectNode struct {
 var _ router.Page = &PageSelectNode{}
 
 func NewPageSelectNode() *PageSelectNode {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .5, ease.OutCubic),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .5, ease.OutCubic),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -100,11 +88,10 @@ func NewPageSelectNode() *PageSelectNode {
 	})
 	buttonResetNodeList.Label.Alignment = text.Middle
 	buttonResetNodeList.Style.Font.Weight = font.Bold
-
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SELECT_NODE)
 	return &PageSelectNode{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		list:           list,
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
 
 		nodeList:                nodeList,
 		buttonSetIntegratedNode: buttonSetIntegratedNode,
@@ -119,45 +106,17 @@ func (p *PageSelectNode) IsActive() bool {
 }
 
 func (p *PageSelectNode) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 	page_instance.header.Title = func() string { return lang.Translate("Select Node") }
-
-	if !page_instance.header.IsHistory(PAGE_SELECT_NODE) {
-		p.animationLeave.Reset()
-		p.animationEnter.Start()
-	}
-
 	p.nodeList.Load()
 }
 
 func (p *PageSelectNode) Leave() {
-	if page_instance.header.IsHistory(PAGE_SELECT_NODE) {
-		p.animationEnter.Reset()
-		p.animationLeave.Start()
-	} else {
-		p.isActive = false
-	}
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSelectNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonAddNode.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_ADD_NODE_FORM)

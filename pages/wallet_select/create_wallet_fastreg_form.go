@@ -9,14 +9,12 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi/mnemonics"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
@@ -26,8 +24,6 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -55,8 +51,7 @@ func NewRegResult(tx *transaction.Transaction, secret *big.Int) *RegResult {
 type PageCreateWalletFastRegForm struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	list *widget.List
 
@@ -78,14 +73,6 @@ var _ router.Page = &PageCreateWalletFastRegForm{}
 func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	txtThreadCount := prefabs.NewTextField()
 
@@ -131,10 +118,10 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 		w.Invalidate()
 	}
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_CREATE_WALLET_FASTREG_FORM)
 	page := &PageCreateWalletFastRegForm{
-		list:           list,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		list:                list,
+		headerPageAnimation: headerPageAnimation,
 
 		txtThreadCount: txtThreadCount,
 		buttonStart:    buttonStart,
@@ -176,18 +163,12 @@ func NewPageCreateWalletFastRegForm() *PageCreateWalletFastRegForm {
 }
 
 func (p *PageCreateWalletFastRegForm) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 	page_instance.header.Title = func() string { return lang.Translate("Fast Registration") }
-
-	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_FASTREG_FORM) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 }
 
 func (p *PageCreateWalletFastRegForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 	p.fastReg.Stop()
 }
 
@@ -196,24 +177,7 @@ func (p *PageCreateWalletFastRegForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletFastRegForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonStart.Clicked(gtx) {
 		err := p.startRegistration()

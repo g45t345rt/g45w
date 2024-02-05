@@ -13,25 +13,23 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageIPFSGateways struct {
-	isActive               bool
-	list                   *widget.List
-	animationEnter         *animation.Animation
-	animationLeave         *animation.Animation
+	isActive            bool
+	list                *widget.List
+	headerPageAnimation *prefabs.PageHeaderAnimation
+
 	buttonInfo             *components.Button
 	modalInfo              *components.Modal
 	buttonResetGatewayList *components.Button
@@ -44,14 +42,6 @@ type PageIPFSGateways struct {
 var _ router.Page = &PageIPFSGateways{}
 
 func NewPageIPFSGateways() *PageIPFSGateways {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -116,10 +106,11 @@ func NewPageIPFSGateways() *PageIPFSGateways {
 		},
 	})
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_IPFS_GATEWAYS)
+
 	return &PageIPFSGateways{
 		list:                   list,
-		animationEnter:         animationEnter,
-		animationLeave:         animationLeave,
+		headerPageAnimation:    headerPageAnimation,
 		gatewayList:            gatewayList,
 		buttonAdd:              buttonAdd,
 		buttonInfo:             buttonInfo,
@@ -133,7 +124,8 @@ func (p *PageIPFSGateways) IsActive() bool {
 }
 
 func (p *PageIPFSGateways) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("IPFS Gateways") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		lbl := material.Label(th, unit.Sp(16), lang.Translate("Interplanetary File System"))
@@ -153,38 +145,15 @@ func (p *PageIPFSGateways) Enter() {
 		return p.buttonAdd.Layout(gtx, th)
 	}
 
-	if !page_instance.header.IsHistory(PAGE_IPFS_GATEWAYS) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
-
 	p.gatewayList.Load()
 }
 
 func (p *PageIPFSGateways) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonInfo.Clicked(gtx) {
 		p.modalInfo.SetVisible(true)

@@ -8,14 +8,11 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -27,8 +24,7 @@ type PageSendOptionsForm struct {
 	txtDstPort     *prefabs.TextField
 	buttonContinue *components.Button
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	list *widget.List
 }
@@ -43,14 +39,6 @@ func NewPageSendOptionsForm() *PageSendOptionsForm {
 	txtDescription.Editor().SingleLine = false
 	txtDescription.Editor().Submit = false
 	txtDstPort := prefabs.NewNumberTextField()
-
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -67,14 +55,14 @@ func NewPageSendOptionsForm() *PageSendOptionsForm {
 	buttonContinue.Label.Alignment = text.Middle
 	buttonContinue.Style.Font.Weight = font.Bold
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SEND_OPTIONS_FORM)
 	return &PageSendOptionsForm{
-		txtComment:     txtComment,
-		txtDstPort:     txtDstPort,
-		txtDescription: txtDescription,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		list:           list,
-		buttonContinue: buttonContinue,
+		txtComment:          txtComment,
+		txtDstPort:          txtDstPort,
+		txtDescription:      txtDescription,
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		buttonContinue:      buttonContinue,
 	}
 }
 
@@ -83,40 +71,19 @@ func (p *PageSendOptionsForm) IsActive() bool {
 }
 
 func (p *PageSendOptionsForm) Enter() {
-	p.isActive = true
-	if !page_instance.header.IsHistory(PAGE_SEND_OPTIONS_FORM) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Send Options") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.LeftLayout = nil
 }
 
 func (p *PageSendOptionsForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSendOptionsForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonContinue.Clicked(gtx) {
 		page_instance.header.GoBack()

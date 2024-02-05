@@ -18,15 +18,13 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -43,9 +41,8 @@ type SCFunctionArg struct {
 type PageSCExplorer struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	tabBars        *components.TabBars
+	headerPageAnimation *prefabs.PageHeaderAnimation
+	tabBars             *components.TabBars
 
 	buttonMenu *components.Button
 	scFuncs    []*SCFunctionItem
@@ -59,13 +56,6 @@ type PageSCExplorer struct {
 var _ router.Page = &PageSCExplorer{}
 
 func NewPageSCExplorer() *PageSCExplorer {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	tabBarsItems := []*components.TabBarsItem{
 		components.NewTabBarItem("functions"),
@@ -84,11 +74,12 @@ func NewPageSCExplorer() *PageSCExplorer {
 		Animation: components.NewButtonAnimationDefault(),
 	})
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SC_EXPLORER)
+
 	return &PageSCExplorer{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		tabBars:        tabBars,
-		buttonMenu:     buttonMenu,
+		headerPageAnimation: headerPageAnimation,
+		tabBars:             tabBars,
+		buttonMenu:          buttonMenu,
 
 		list: list,
 	}
@@ -185,7 +176,7 @@ func (p *PageSCExplorer) LoadData() error {
 }
 
 func (p *PageSCExplorer) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	page_instance.header.Title = func() string {
 		return lang.Translate("SC Explorer")
@@ -223,39 +214,16 @@ func (p *PageSCExplorer) Enter() {
 		return p.buttonMenu.Layout(gtx, th)
 	}
 
-	if !page_instance.header.IsHistory(PAGE_SC_EXPLORER) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
-
 	p.LoadFunctions()
 	p.LoadData()
 }
 
 func (p *PageSCExplorer) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSCExplorer) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	widgets := []layout.Widget{}
 

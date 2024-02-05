@@ -16,25 +16,21 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageRemoteNode struct {
-	isActive bool
-
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	isActive            bool
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonReconnect  *components.Button
 	buttonDisconnect *components.Button
@@ -48,14 +44,6 @@ type PageRemoteNode struct {
 var _ router.Page = &PageRemoteNode{}
 
 func NewPageRemoteNode() *PageRemoteNode {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
-	))
-
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
@@ -96,15 +84,14 @@ func NewPageRemoteNode() *PageRemoteNode {
 	buttonDeselect.Style.Font.Weight = font.Bold
 
 	nodeInfo := NewRemoteNodeInfo(3 * time.Second)
-
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_REMOTE_NODE)
 	return &PageRemoteNode{
-		animationEnter:   animationEnter,
-		animationLeave:   animationLeave,
-		nodeInfo:         nodeInfo,
-		buttonReconnect:  buttonReconnect,
-		buttonDisconnect: buttonDisconnect,
-		buttonDeselect:   buttonDeselect,
-		list:             list,
+		headerPageAnimation: headerPageAnimation,
+		nodeInfo:            nodeInfo,
+		buttonReconnect:     buttonReconnect,
+		buttonDisconnect:    buttonDisconnect,
+		buttonDeselect:      buttonDeselect,
+		list:                list,
 	}
 }
 
@@ -113,39 +100,16 @@ func (p *PageRemoteNode) IsActive() bool {
 }
 
 func (p *PageRemoteNode) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 	page_instance.header.Title = func() string { return lang.Translate("Remote Node") }
-
-	if !page_instance.header.IsHistory(PAGE_REMOTE_NODE) {
-		p.animationLeave.Reset()
-		p.animationEnter.Start()
-	}
 }
 
 func (p *PageRemoteNode) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	currentNode := node_manager.CurrentNode
 	if currentNode == nil {

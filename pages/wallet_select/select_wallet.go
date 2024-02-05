@@ -15,7 +15,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_db"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -25,13 +24,12 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/pages"
 	page_wallet "github.com/g45t345rt/g45w/pages/wallet"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	gioui_hashicon "github.com/g45t345rt/gioui-hashicon"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -39,8 +37,7 @@ type PageSelectWallet struct {
 	isActive  bool
 	clickable *widget.Clickable
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonWalletCreate *components.Button
 	walletList         *widget.List
@@ -53,14 +50,6 @@ type PageSelectWallet struct {
 var _ router.Page = &PageSelectWallet{}
 
 func NewPageSelectWallet() *PageSelectWallet {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
-
 	//walletList := NewWalletList()
 
 	addIcon, _ := widget.NewIcon(icons.ContentAddCircleOutline)
@@ -79,11 +68,11 @@ func NewPageSelectWallet() *PageSelectWallet {
 	walletList.Axis = layout.Vertical
 	dragItems := components.NewDragItems()
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SELECT_WALLET)
 	return &PageSelectWallet{
 		clickable: new(widget.Clickable),
 
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
 
 		buttonWalletCreate: buttonWalletCreate,
 		walletList:         walletList,
@@ -96,24 +85,19 @@ func (p *PageSelectWallet) IsActive() bool {
 }
 
 func (p *PageSelectWallet) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string {
 		txt := lang.Translate("Select Wallet ({})")
 		txt = strings.Replace(txt, "{}", fmt.Sprint(len(p.items)), -1)
 		return txt
 	}
 
-	if !page_instance.header.IsHistory(PAGE_SELECT_WALLET) {
-		p.animationLeave.Reset()
-		p.animationEnter.Start()
-	}
-
 	p.Load()
 }
 
 func (p *PageSelectWallet) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSelectWallet) Load() error {
@@ -134,24 +118,7 @@ func (p *PageSelectWallet) Load() error {
 }
 
 func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	{
 		moved, cIndex, nIndex := p.dragItems.ItemMoved()

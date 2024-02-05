@@ -19,7 +19,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
@@ -34,8 +33,6 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -54,8 +51,7 @@ type PageSendForm struct {
 
 	ringSizeSelector *prefabs.RingSizeSelector
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	list *widget.List
 }
@@ -80,14 +76,6 @@ func NewPageSendForm() *PageSendForm {
 	txtAmount := prefabs.NewNumberTextField()
 	txtAmount.Input.TextSize = unit.Sp(26)
 	txtAmount.Input.FontWeight = font.Bold
-
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -120,17 +108,17 @@ func NewPageSendForm() *PageSendForm {
 	balanceContainer := NewBalanceContainer()
 	walletAddrInput := NewWalletAddrInput()
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SEND_FORM)
 	return &PageSendForm{
-		txtAmount:        txtAmount,
-		buttonValidate:   buttonValidate,
-		ringSizeSelector: ringSizeSelector,
-		animationEnter:   animationEnter,
-		animationLeave:   animationLeave,
-		list:             list,
-		buttonOptions:    buttonOptions,
-		buttonSetMax:     buttonSetMax,
-		balanceContainer: balanceContainer,
-		walletAddrInput:  walletAddrInput,
+		txtAmount:           txtAmount,
+		buttonValidate:      buttonValidate,
+		ringSizeSelector:    ringSizeSelector,
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		buttonOptions:       buttonOptions,
+		buttonSetMax:        buttonSetMax,
+		balanceContainer:    balanceContainer,
+		walletAddrInput:     walletAddrInput,
 	}
 }
 
@@ -139,17 +127,12 @@ func (p *PageSendForm) IsActive() bool {
 }
 
 func (p *PageSendForm) Enter() {
-	p.isActive = true
-	if !page_instance.header.IsHistory(PAGE_SEND_FORM) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 	page_instance.pageBalanceTokens.ResetWalletHeader()
 }
 
 func (p *PageSendForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSendForm) SetToken(token *wallet_manager.Token) {
@@ -158,24 +141,7 @@ func (p *PageSendForm) SetToken(token *wallet_manager.Token) {
 }
 
 func (p *PageSendForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonValidate.Clicked(gtx) {
 		go func() {

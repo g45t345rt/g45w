@@ -5,11 +5,9 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -17,16 +15,13 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageCreateWalletHexSeedForm struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	list *widget.List
 
@@ -42,14 +37,6 @@ var _ router.Page = &PageCreateWalletHexSeedForm{}
 func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
-
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	txtWalletName := prefabs.NewTextField()
 	txtPassword := prefabs.NewPasswordTextField()
@@ -67,11 +54,11 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 		Animation: components.NewButtonAnimationDefault(),
 	})
 	buttonCreate.Style.Font.Weight = font.Bold
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_CREATE_WALLET_HEXSEED_FORM)
 
 	return &PageCreateWalletHexSeedForm{
-		list:           list,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		list:                list,
+		headerPageAnimation: headerPageAnimation,
 
 		txtHexSeed:         txtHexSeed,
 		txtWalletName:      txtWalletName,
@@ -82,18 +69,13 @@ func NewPageCreateWalletHexSeedForm() *PageCreateWalletHexSeedForm {
 }
 
 func (p *PageCreateWalletHexSeedForm) Enter() {
-	p.isActive = true
-	page_instance.header.Title = func() string { return lang.Translate("Recover from Hex Seed") }
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
-	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_HEXSEED_FORM) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	page_instance.header.Title = func() string { return lang.Translate("Recover from Hex Seed") }
 }
 
 func (p *PageCreateWalletHexSeedForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageCreateWalletHexSeedForm) IsActive() bool {
@@ -101,24 +83,7 @@ func (p *PageCreateWalletHexSeedForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletHexSeedForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonCreate.Clicked(gtx) {
 		err := p.submitForm()

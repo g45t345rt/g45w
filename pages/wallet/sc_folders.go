@@ -18,7 +18,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -26,21 +25,19 @@ import (
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/containers/prompt_modal"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageSCFolders struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	items []*TokenFolderItem
 
@@ -58,13 +55,6 @@ type PageSCFolders struct {
 var _ router.Page = &PageSCFolders{}
 
 func NewPageSCFolders() *PageSCFolders {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -80,12 +70,13 @@ func NewPageSCFolders() *PageSCFolders {
 		Icon: backIcon,
 	})
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SC_FOLDERS)
+
 	page := &PageSCFolders{
-		animationEnter:     animationEnter,
-		animationLeave:     animationLeave,
-		list:               list,
-		buttonOpenMenu:     buttonOpenMenu,
-		buttonFolderGoBack: buttonFolderGoBack,
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		buttonOpenMenu:      buttonOpenMenu,
+		buttonFolderGoBack:  buttonFolderGoBack,
 	}
 
 	page.SetLayout(settings.App.FolderLayout)
@@ -98,7 +89,8 @@ func (p *PageSCFolders) IsActive() bool {
 }
 
 func (p *PageSCFolders) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Tokens") }
 	page_instance.header.Subtitle = func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		folderName := "root"
@@ -124,17 +116,11 @@ func (p *PageSCFolders) Enter() {
 		return p.buttonOpenMenu.Layout(gtx, th)
 	}
 
-	if !page_instance.header.IsHistory(PAGE_SC_FOLDERS) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
-
 	p.Load()
 }
 
 func (p *PageSCFolders) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageSCFolders) SetLayout(layout string) {
@@ -389,24 +375,7 @@ func (p *PageSCFolders) OpenMenu() {
 }
 
 func (p *PageSCFolders) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonFolderGoBack.Clicked(gtx) {
 		p.changeFolder(p.currentFolder.ParentId)

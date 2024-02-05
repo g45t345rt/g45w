@@ -6,13 +6,11 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/g45t345rt/g45w/android_background_service"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_icons"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -22,16 +20,13 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageMain struct {
-	isActive       bool
-	list           *widget.List
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	isActive            bool
+	list                *widget.List
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	langSelector                   *prefabs.LangSelector
 	themeSelector                  *prefabs.ThemeSelector
@@ -49,14 +44,6 @@ func NewPageFront() *PageMain {
 	defaultThemeKey := settings.App.Theme
 	langSelector := prefabs.NewLangSelector(defaultLangKey)
 	themeSelector := prefabs.NewThemeSelector(defaultThemeKey)
-
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	infoIcon, _ := widget.NewIcon(icons.ActionInfo)
 	buttonInfo := components.NewButton(components.ButtonStyle{
@@ -108,12 +95,11 @@ func NewPageFront() *PageMain {
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_MAIN)
 
 	return &PageMain{
-		list:           list,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-
+		list:                           list,
+		headerPageAnimation:            headerPageAnimation,
 		langSelector:                   langSelector,
 		themeSelector:                  themeSelector,
 		buttonInfo:                     buttonInfo,
@@ -129,44 +115,23 @@ func (p *PageMain) IsActive() bool {
 }
 
 func (p *PageMain) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Settings") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.LeftLayout = nil
 	page_instance.header.RightLayout = nil
 
-	if !page_instance.header.IsHistory(PAGE_MAIN) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
-
 	p.testnetSwitch.Load()
 }
 
 func (p *PageMain) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
+
 }
 
 func (p *PageMain) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonInfo.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_APP_INFO)

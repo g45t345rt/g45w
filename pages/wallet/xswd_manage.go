@@ -13,25 +13,22 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi/xswd"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageXSWDManage struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	buttonStart    *components.Button
-	buttonStop     *components.Button
+	headerPageAnimation *prefabs.PageHeaderAnimation
+	buttonStart         *components.Button
+	buttonStop          *components.Button
 
 	list *widget.List
 	apps []*DAppItem
@@ -40,13 +37,6 @@ type PageXSWDManage struct {
 var _ router.Page = &PageXSWDManage{}
 
 func NewPageXSWDManage() *PageXSWDManage {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	playIcon, _ := widget.NewIcon(icons.AVPlayArrow)
 	buttonStart := components.NewButton(components.ButtonStyle{
@@ -61,13 +51,13 @@ func NewPageXSWDManage() *PageXSWDManage {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_XSWD_MANAGE)
 	return &PageXSWDManage{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
-		buttonStop:     buttonStop,
-		buttonStart:    buttonStart,
-		list:           list,
-		apps:           make([]*DAppItem, 0),
+		headerPageAnimation: headerPageAnimation,
+		buttonStop:          buttonStop,
+		buttonStart:         buttonStart,
+		list:                list,
+		apps:                make([]*DAppItem, 0),
 	}
 }
 
@@ -76,7 +66,7 @@ func (p *PageXSWDManage) IsActive() bool {
 }
 
 func (p *PageXSWDManage) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	page_instance.header.Title = func() string {
 		return lang.Translate("DApp connections")
@@ -118,11 +108,6 @@ func (p *PageXSWDManage) Enter() {
 		return p.buttonStart.Layout(gtx, th)
 	}
 
-	if !page_instance.header.IsHistory(PAGE_XSWD_MANAGE) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
-
 	p.Load()
 }
 
@@ -138,29 +123,11 @@ func (p *PageXSWDManage) Load() {
 }
 
 func (p *PageXSWDManage) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageXSWDManage) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	widgets := []layout.Widget{}
 

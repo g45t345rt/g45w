@@ -13,7 +13,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -21,16 +20,13 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageCreateWalletForm struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	list *widget.List
 
@@ -48,14 +44,6 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
-
 	txtWalletName := prefabs.NewTextField()
 	txtPassword := prefabs.NewPasswordTextField()
 	txtConfirmPassword := prefabs.NewPasswordTextField()
@@ -71,10 +59,10 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 	})
 	buttonCreate.Style.Font.Weight = font.Bold
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_CREATE_WALLET_FORM)
 	return &PageCreateWalletForm{
-		list:           list,
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		list:                list,
+		headerPageAnimation: headerPageAnimation,
 
 		txtWalletName:      txtWalletName,
 		txtPassword:        txtPassword,
@@ -84,18 +72,13 @@ func NewPageCreateWalletForm() *PageCreateWalletForm {
 }
 
 func (p *PageCreateWalletForm) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 	page_instance.header.Title = func() string { return lang.Translate("Create New Wallet") }
-
-	if !page_instance.header.IsHistory(PAGE_CREATE_WALLET_FORM) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 }
 
 func (p *PageCreateWalletForm) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
+
 }
 
 func (p *PageCreateWalletForm) IsActive() bool {
@@ -103,24 +86,7 @@ func (p *PageCreateWalletForm) IsActive() bool {
 }
 
 func (p *PageCreateWalletForm) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonCreate.Clicked(gtx) {
 		err := p.submitForm()

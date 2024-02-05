@@ -7,14 +7,12 @@ import (
 
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
@@ -25,16 +23,13 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageDEXRemLiquidity struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	txtPercent         *prefabs.TextField
 	buttonRemove       *components.Button
@@ -51,13 +46,6 @@ type PageDEXRemLiquidity struct {
 var _ router.Page = &PageDEXRemLiquidity{}
 
 func NewPageDEXRemLiquidity() *PageDEXRemLiquidity {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -77,15 +65,15 @@ func NewPageDEXRemLiquidity() *PageDEXRemLiquidity {
 	})
 	buttonRemove.Label.Alignment = text.Middle
 	buttonRemove.Style.Font.Weight = font.Bold
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_DEX_REM_LIQUIDITY)
 
 	return &PageDEXRemLiquidity{
-		animationEnter:     animationEnter,
-		animationLeave:     animationLeave,
-		list:               list,
-		txtPercent:         txtPercent,
-		buttonRemove:       buttonRemove,
-		infoRows:           prefabs.NewInfoRows(2),
-		liquidityContainer: NewLiquidityContainer(),
+		headerPageAnimation: headerPageAnimation,
+		list:                list,
+		txtPercent:          txtPercent,
+		buttonRemove:        buttonRemove,
+		infoRows:            prefabs.NewInfoRows(2),
+		liquidityContainer:  NewLiquidityContainer(),
 	}
 }
 
@@ -94,12 +82,8 @@ func (p *PageDEXRemLiquidity) IsActive() bool {
 }
 
 func (p *PageDEXRemLiquidity) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
-	if !page_instance.header.IsHistory(PAGE_DEX_REM_LIQUIDITY) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 	page_instance.header.Title = func() string {
 		return lang.Translate("Remove Liquidity")
 	}
@@ -115,8 +99,7 @@ func (p *PageDEXRemLiquidity) Enter() {
 }
 
 func (p *PageDEXRemLiquidity) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageDEXRemLiquidity) submitForm() error {
@@ -155,24 +138,7 @@ func (p *PageDEXRemLiquidity) submitForm() error {
 }
 
 func (p *PageDEXRemLiquidity) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonRemove.Clicked(gtx) {
 		go func() {

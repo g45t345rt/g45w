@@ -19,7 +19,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
@@ -31,16 +30,13 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageScanCollection struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonFetchData              *components.Button
 	txtSCID                      *prefabs.TextField
@@ -52,13 +48,6 @@ type PageScanCollection struct {
 var _ router.Page = &PageScanCollection{}
 
 func NewPageScanCollection() *PageScanCollection {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.Linear),
-	))
 
 	searchIcon, _ := widget.NewIcon(icons.ActionSearch)
 	loadingIcon, _ := widget.NewIcon(icons.NavigationRefresh)
@@ -80,9 +69,9 @@ func NewPageScanCollection() *PageScanCollection {
 	list.Axis = layout.Vertical
 	scCollectionDetailsContainer := NewSCCollectionDetailsContainer()
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SCAN_COLLECTION)
 	return &PageScanCollection{
-		animationEnter:               animationEnter,
-		animationLeave:               animationLeave,
+		headerPageAnimation:          headerPageAnimation,
 		buttonFetchData:              buttonFetchData,
 		txtSCID:                      txtSCID,
 		scCollectionDetailsContainer: scCollectionDetailsContainer,
@@ -96,40 +85,19 @@ func (p *PageScanCollection) IsActive() bool {
 }
 
 func (p *PageScanCollection) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+
 	page_instance.header.Title = func() string { return lang.Translate("Scan Collection") }
 	page_instance.header.Subtitle = nil
 	page_instance.header.RightLayout = nil
-	if !page_instance.header.IsHistory(PAGE_SCAN_COLLECTION) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 }
 
 func (p *PageScanCollection) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageScanCollection) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonFetchData.Clicked(gtx) {
 		go func() {

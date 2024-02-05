@@ -5,13 +5,17 @@ import (
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
+	"github.com/tanema/gween"
+	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
@@ -49,6 +53,16 @@ func NewHeader(r *router.Router) *Header {
 
 func (h *Header) History() []interface{} {
 	return h.history
+}
+
+func (h *Header) GetPosition(tag interface{}) int {
+	for i, history := range h.history {
+		if history == tag {
+			return i
+		}
+	}
+
+	return -1
 }
 
 func (h *Header) IsHistory(tag interface{}) bool {
@@ -199,4 +213,105 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 			return layout.Dimensions{}
 		}),
 	)
+}
+
+/*
+func GetPageHeaderAnimation(pos int) (enter *animation.Animation, leave *animation.Animation) {
+	if pos%2 == 0 {
+		enter = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(-1, 0, .25, ease.Linear),
+		))
+		leave = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(0, -1, .25, ease.Linear),
+		))
+	} else {
+		enter = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(1, 0, .25, ease.Linear),
+		))
+		leave = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(0, 1, .25, ease.Linear),
+		))
+	}
+
+	return
+}*/
+
+type PageHeaderAnimation struct {
+	tag            interface{}
+	animationEnter *animation.Animation
+	animationLeave *animation.Animation
+}
+
+func NewPageHeaderAnimation(tag interface{}) *PageHeaderAnimation {
+	return &PageHeaderAnimation{
+		tag: tag,
+	}
+}
+
+// This is a helper to load page animation based on the header depth
+func (p *PageHeaderAnimation) Enter(header *Header) bool {
+	pos := header.GetPosition(p.tag)
+	if pos == -1 {
+		pos = len(header.history)
+	}
+
+	if pos%2 == 0 {
+		p.animationEnter = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(-1, 0, .25, ease.OutExpo),
+		))
+		p.animationLeave = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(0, -1, .25, ease.OutExpo),
+		))
+	} else {
+		p.animationEnter = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(1, 0, .25, ease.OutExpo),
+		))
+		p.animationLeave = animation.NewAnimation(false, gween.NewSequence(
+			gween.New(0, 1, .25, ease.OutExpo),
+		))
+	}
+
+	// this is when a section enter and trigger the page enter event
+	// we don't want to execute the animation
+	if !header.IsHistory(p.tag) {
+		p.animationLeave.Reset()
+		p.animationEnter.Start()
+	}
+
+	return true
+}
+
+func (p *PageHeaderAnimation) Leave(header *Header) bool {
+	// same here when a section leave we don't want to trigger the page animation
+	if header.IsHistory(p.tag) {
+		p.animationEnter.Reset()
+		p.animationLeave.Start()
+		return true
+	} else {
+		return false
+		//a.page.SetActive(false)
+	}
+}
+
+func (p *PageHeaderAnimation) Update(gtx layout.Context, finished func()) (trans op.TransformOp) {
+	{
+		state := p.animationEnter.Update(gtx)
+		if state.Active {
+			trans = animation.TransformX(gtx, state.Value)
+		}
+	}
+
+	{
+		state := p.animationLeave.Update(gtx)
+		if state.Active {
+			trans = animation.TransformX(gtx, state.Value)
+		}
+
+		if state.Finished {
+			finished()
+			//a.page.SetActive(false)
+			op.InvalidateOp{}.Add(gtx.Ops)
+		}
+	}
+	return
 }

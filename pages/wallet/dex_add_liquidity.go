@@ -15,7 +15,6 @@ import (
 	"gioui.org/widget/material"
 	crypto "github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
@@ -26,16 +25,13 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageDEXAddLiquidity struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	buttonAdd               *components.Button
 	liquidityContainer      *LiquidityContainer
@@ -51,13 +47,6 @@ type PageDEXAddLiquidity struct {
 var _ router.Page = &PageDEXAddLiquidity{}
 
 func NewPageDEXAddLiquidity() *PageDEXAddLiquidity {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	list := new(widget.List)
 	list.Axis = layout.Vertical
@@ -75,10 +64,9 @@ func NewPageDEXAddLiquidity() *PageDEXAddLiquidity {
 	buttonAdd.Style.Font.Weight = font.Bold
 
 	pairTokenInputContainer := NewPairTokenInputContainer()
-
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_DEX_ADD_LIQUIDITY)
 	return &PageDEXAddLiquidity{
-		animationEnter:          animationEnter,
-		animationLeave:          animationLeave,
+		headerPageAnimation:     headerPageAnimation,
 		list:                    list,
 		pairTokenInputContainer: pairTokenInputContainer,
 		buttonAdd:               buttonAdd,
@@ -92,12 +80,8 @@ func (p *PageDEXAddLiquidity) IsActive() bool {
 }
 
 func (p *PageDEXAddLiquidity) Enter() {
-	p.isActive = true
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
-	if !page_instance.header.IsHistory(PAGE_DEX_ADD_LIQUIDITY) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
 	page_instance.header.Title = func() string {
 		return lang.Translate("Add Liquidity")
 	}
@@ -124,8 +108,7 @@ func (p *PageDEXAddLiquidity) SetPair(pair dex_sc.Pair, token1 *wallet_manager.T
 }
 
 func (p *PageDEXAddLiquidity) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageDEXAddLiquidity) submitForm() error {
@@ -166,24 +149,7 @@ func (p *PageDEXAddLiquidity) submitForm() error {
 }
 
 func (p *PageDEXAddLiquidity) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	if p.buttonAdd.Clicked(gtx) {
 		go func() {

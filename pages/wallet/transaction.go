@@ -17,7 +17,6 @@ import (
 	"gioui.org/widget/material"
 	"gioui.org/x/browser"
 	"github.com/deroproject/derohe/rpc"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -26,16 +25,13 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type PageTransaction struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	headerPageAnimation *prefabs.PageHeaderAnimation
 
 	entry wallet_manager.Entry
 
@@ -58,13 +54,6 @@ type PageTransaction struct {
 var _ router.Page = &PageTransaction{}
 
 func NewPageTransaction() *PageTransaction {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.Linear),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.Linear),
-	))
 
 	txTypeImg := components.Image{
 		Fit: components.Cover,
@@ -78,9 +67,10 @@ func NewPageTransaction() *PageTransaction {
 	list := new(widget.List)
 	list.Axis = layout.Vertical
 
+	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_TRANSACTION)
+
 	return &PageTransaction{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		headerPageAnimation: headerPageAnimation,
 
 		list:                    list,
 		txIdEditor:              &widget.Editor{ReadOnly: true},
@@ -171,16 +161,11 @@ func (p *PageTransaction) Enter() {
 		return p.buttonViewExplorer.Layout(gtx, th)
 	}
 
-	p.isActive = true
-	if !page_instance.header.IsHistory(PAGE_TRANSACTION) {
-		p.animationEnter.Start()
-		p.animationLeave.Reset()
-	}
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 }
 
 func (p *PageTransaction) Leave() {
-	p.animationLeave.Start()
-	p.animationEnter.Reset()
+	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
 func (p *PageTransaction) SetEntry(e wallet_manager.Entry) {
@@ -189,24 +174,7 @@ func (p *PageTransaction) SetEntry(e wallet_manager.Entry) {
 }
 
 func (p *PageTransaction) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-	}
-
-	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			defer animation.TransformX(gtx, state.Value).Push(gtx.Ops).Pop()
-		}
-
-		if state.Finished {
-			p.isActive = false
-			op.InvalidateOp{}.Add(gtx.Ops)
-		}
-	}
+	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 	widgets := []layout.Widget{}
 
