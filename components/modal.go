@@ -56,11 +56,11 @@ func NewModalAnimationScaleBounce() ModalAnimation {
 
 func NewModalAnimationUp() ModalAnimation {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .25, ease.OutCubic),
+		gween.New(1, 0, .25, ease.OutExpo),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .25, ease.InCubic),
+		gween.New(0, 1, .25, ease.InExpo),
 	))
 
 	return ModalAnimation{
@@ -73,11 +73,11 @@ func NewModalAnimationUp() ModalAnimation {
 
 func NewModalAnimationDown() ModalAnimation {
 	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(-1, 0, .25, ease.OutCubic),
+		gween.New(-1, 0, .25, ease.OutExpo),
 	))
 
 	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, -1, .25, ease.InCubic),
+		gween.New(0, -1, .25, ease.InExpo),
 	))
 
 	return ModalAnimation{

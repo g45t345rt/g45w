@@ -165,8 +165,8 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 	r.modal.Style.Colors = theme.Current.ModalColors
 	r.modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
-			Top: unit.Dp(15), Bottom: unit.Dp(15),
-			Left: unit.Dp(15),
+			Top: theme.PagePadding, Bottom: theme.PagePadding,
+			Left: theme.PagePadding, Right: theme.PagePadding,
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -181,18 +181,19 @@ func (r *RecentTxsModal) layout(gtx layout.Context, th *material.Theme) {
 							r.buttonClear.Style.Colors = theme.Current.ModalButtonColors
 							return r.buttonClear.Layout(gtx, th)
 						}),
-						layout.Rigid(layout.Spacer{Width: unit.Dp(15)}.Layout),
 					)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Max.Y = gtx.Dp(250)
 					if wallet == nil {
-						lbl := material.Label(th, unit.Sp(16), lang.Translate("Wallet is not opened."))
+						lbl := material.Label(th, unit.Sp(16), lang.Translate("To view transactions, a wallet must be opened."))
+						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
 					} else {
 						if len(r.txItems) == 0 {
-							lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have outgoing txs yet."))
+							lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any outgoing transactions yet."))
+							lbl.Color = theme.Current.TextMuteColor
 							return lbl.Layout(gtx)
 						}
 
@@ -324,7 +325,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	dims := item.clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Inset{
 			Top: unit.Dp(5), Bottom: unit.Dp(5),
-			Left: unit.Dp(5), Right: unit.Dp(5),
+			Left: unit.Dp(8), Right: unit.Dp(8),
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			var flexChilds []layout.FlexChild
 
@@ -337,6 +338,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						lbl := material.Label(th, unit.Sp(16), status)
+						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
 					}),
 				)
@@ -352,6 +354,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						lbl := material.Label(th, unit.Sp(16), lang.TimeAgo(date))
 						lbl.Alignment = text.End
+						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
 					}),
 				)
