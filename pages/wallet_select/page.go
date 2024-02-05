@@ -3,10 +3,8 @@ package page_wallet_select
 import (
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -17,16 +15,13 @@ import (
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 )
 
 type Page struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	header         *prefabs.Header
+	pageSectionAnimation *pages.PageSectionAnimation
+	header               *prefabs.Header
 
 	pageSelectWallet     *PageSelectWallet
 	pageCreateWalletForm *PageCreateWalletForm
@@ -49,14 +44,6 @@ const (
 )
 
 func New() *Page {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
-	))
-
 	pageRouter := router.NewRouter()
 
 	pageSelectWallet := NewPageSelectWallet()
@@ -80,8 +67,7 @@ func New() *Page {
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
-		animationEnter:           animationEnter,
-		animationLeave:           animationLeave,
+		pageSectionAnimation:     pages.NewPageSectionAnimation(),
 		pageRouter:               pageRouter,
 		header:                   header,
 		pageSelectWallet:         pageSelectWallet,
@@ -99,9 +85,7 @@ func (p *Page) IsActive() bool {
 
 func (p *Page) Enter() {
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
-	p.isActive = true
-	p.animationLeave.Reset()
-	p.animationEnter.Start()
+	p.isActive = p.pageSectionAnimation.Enter()
 
 	p.pageSelectWallet.Load()
 
@@ -131,8 +115,7 @@ func (p *Page) Enter() {
 }
 
 func (p *Page) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.pageSectionAnimation.Leave()
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -142,24 +125,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			{
-				state := p.animationEnter.Update(gtx)
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-			}
-
-			{
-				state := p.animationLeave.Update(gtx)
-				if state.Finished {
-					p.isActive = false
-					op.InvalidateOp{}.Add(gtx.Ops)
-				}
-
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-			}
+			defer p.pageSectionAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 			startColor := theme.Current.BgGradientStartColor
 			endColor := theme.Current.BgGradientEndColor

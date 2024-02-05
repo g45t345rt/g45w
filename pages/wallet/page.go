@@ -21,7 +21,6 @@ import (
 	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/android_background_service"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -36,15 +35,12 @@ import (
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type Page struct {
-	isActive       bool
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	isActive             bool
+	pageSectionAnimation *pages.PageSectionAnimation
 
 	header     *prefabs.Header
 	xswdHeader *XSWDHeader
@@ -104,14 +100,6 @@ var (
 )
 
 func New() *Page {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
-	))
-
 	pageRouter := router.NewRouter()
 	pageBalanceTokens := NewPageBalanceTokens()
 	pageRouter.Add(PAGE_BALANCE_TOKENS, pageBalanceTokens)
@@ -191,8 +179,7 @@ func New() *Page {
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		pageSectionAnimation: pages.NewPageSectionAnimation(),
 
 		header:     header,
 		xswdHeader: NewXSWDHeader(),
@@ -226,16 +213,14 @@ func (p *Page) IsActive() bool {
 }
 
 func (p *Page) Enter() {
+	p.isActive = p.pageSectionAnimation.Enter()
+
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_WALLET)
 	openedWallet := wallet_manager.OpenedWallet
 	if openedWallet != nil {
-		p.isActive = true
 
 		w := app_instance.Window
 		w.Option(app.StatusColor(color.NRGBA{A: 255}))
-
-		p.animationLeave.Reset()
-		p.animationEnter.Start()
 
 		lastHistory := p.header.GetLastHistory()
 		if lastHistory != nil {
@@ -393,8 +378,7 @@ func (p *Page) askToCreateFolderTokens() {
 }
 
 func (p *Page) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.pageSectionAnimation.Leave()
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -405,25 +389,7 @@ func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			{
-				state := p.animationEnter.Update(gtx)
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-			}
-
-			{
-				state := p.animationLeave.Update(gtx)
-
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-
-				if state.Finished {
-					p.isActive = false
-					op.InvalidateOp{}.Add(gtx.Ops)
-				}
-			}
+			defer p.pageSectionAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 			p.header.HandleKeyGoBack(gtx)
 			p.header.HandleSwipeRightGoBack(gtx)

@@ -3,18 +3,15 @@ package page_node
 import (
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
 	"github.com/g45t345rt/g45w/node_manager"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 )
 
 type Page struct {
@@ -29,8 +26,7 @@ type Page struct {
 	pageIntegratedNode *PageIntegratedNode
 	header             *prefabs.Header
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
+	pageSectionAnimation *pages.PageSectionAnimation
 }
 
 var _ router.Page = &Page{}
@@ -46,14 +42,6 @@ const (
 )
 
 func New() *Page {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
-	))
-
 	pageRouter := router.NewRouter()
 	pageSelectNode := NewPageSelectNode()
 	pageRouter.Add(PAGE_SELECT_NODE, pageSelectNode)
@@ -81,8 +69,7 @@ func New() *Page {
 		pageIntegratedNode: pageIntegratedNode,
 		header:             header,
 
-		animationEnter: animationEnter,
-		animationLeave: animationLeave,
+		pageSectionAnimation: pages.NewPageSectionAnimation(),
 	}
 	page_instance = page
 	return page
@@ -94,9 +81,7 @@ func (p *Page) IsActive() bool {
 
 func (p *Page) Enter() {
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_NODE)
-	p.isActive = true
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+	p.isActive = p.pageSectionAnimation.Enter()
 
 	currentNode := node_manager.CurrentNode
 
@@ -120,33 +105,13 @@ func (p *Page) Enter() {
 func (p *Page) Leave() {
 	//p.pageRemoteNode.animationLeave.Reset()
 	//p.pageIntegratedNode.animationLeave.Reset()
-
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.pageSectionAnimation.Leave()
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			{
-				state := p.animationEnter.Update(gtx)
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-			}
-
-			{
-				state := p.animationLeave.Update(gtx)
-
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-
-				if state.Finished {
-					p.isActive = false
-					op.InvalidateOp{}.Add(gtx.Ops)
-				}
-			}
+			defer p.pageSectionAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 			startColor := theme.Current.BgGradientStartColor
 			endColor := theme.Current.BgGradientEndColor

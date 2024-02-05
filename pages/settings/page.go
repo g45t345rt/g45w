@@ -3,26 +3,22 @@ package page_settings
 import (
 	"gioui.org/font"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/pages"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
-	"github.com/tanema/gween"
-	"github.com/tanema/gween/ease"
 )
 
 type Page struct {
 	isActive bool
 
-	animationEnter *animation.Animation
-	animationLeave *animation.Animation
-	header         *prefabs.Header
-	pageRouter     *router.Router
+	pageSectionAnimation *pages.PageSectionAnimation
+	header               *prefabs.Header
+	pageRouter           *router.Router
 
 	pageEditIPFSGateway *PageEditIPFSGateway
 
@@ -44,14 +40,6 @@ var page_instance *Page
 var _ router.Page = &Page{}
 
 func New() *Page {
-	animationEnter := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(1, 0, .5, ease.OutCubic),
-	))
-
-	animationLeave := animation.NewAnimation(false, gween.NewSequence(
-		gween.New(0, 1, .5, ease.OutCubic),
-	))
-
 	pageRouter := router.NewRouter()
 
 	pageMain := NewPageFront()
@@ -75,13 +63,12 @@ func New() *Page {
 	header := prefabs.NewHeader(pageRouter)
 
 	page := &Page{
-		animationEnter:      animationEnter,
-		animationLeave:      animationLeave,
-		header:              header,
-		pageRouter:          pageRouter,
-		pageMain:            pageMain,
-		pageAppInfo:         pageAppInfo,
-		pageEditIPFSGateway: pageEditIPFSGateway,
+		header:               header,
+		pageRouter:           pageRouter,
+		pageMain:             pageMain,
+		pageAppInfo:          pageAppInfo,
+		pageEditIPFSGateway:  pageEditIPFSGateway,
+		pageSectionAnimation: pages.NewPageSectionAnimation(),
 	}
 
 	page_instance = page
@@ -94,8 +81,7 @@ func (p *Page) IsActive() bool {
 
 func (p *Page) Enter() {
 	bottom_bar.Instance.SetButtonActive(bottom_bar.BUTTON_SETTINGS)
-	p.animationEnter.Start()
-	p.animationLeave.Reset()
+	p.isActive = p.pageSectionAnimation.Enter()
 
 	lastHistory := p.header.GetLastHistory()
 	if lastHistory != nil {
@@ -104,37 +90,16 @@ func (p *Page) Enter() {
 		p.header.AddHistory(PAGE_MAIN)
 		p.pageRouter.SetCurrent(PAGE_MAIN)
 	}
-
-	p.isActive = true
 }
 
 func (p *Page) Leave() {
-	p.animationEnter.Reset()
-	p.animationLeave.Start()
+	p.isActive = p.pageSectionAnimation.Leave()
 }
 
 func (p *Page) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			{
-				state := p.animationEnter.Update(gtx)
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-			}
-
-			{
-				state := p.animationLeave.Update(gtx)
-
-				if state.Active {
-					defer animation.TransformY(gtx, state.Value).Push(gtx.Ops).Pop()
-				}
-
-				if state.Finished {
-					p.isActive = false
-					op.InvalidateOp{}.Add(gtx.Ops)
-				}
-			}
+			defer p.pageSectionAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
 			startColor := theme.Current.BgGradientStartColor
 			endColor := theme.Current.BgGradientEndColor
