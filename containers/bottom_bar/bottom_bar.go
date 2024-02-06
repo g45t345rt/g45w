@@ -2,6 +2,7 @@ package bottom_bar
 
 import (
 	"image"
+	"image/color"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -117,6 +118,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		Max: gtx.Constraints.Max,
 	}.Op())
 
+	BottomBarTopShadow{}.Layout(gtx)
 	BottomBarTopWallet{}.Layout(gtx, th)
 
 	if wallet_manager.OpenedWallet != nil {
@@ -157,7 +159,7 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		recent_txs_modal.Instance.SetVisible(true)
 	}
 
-	return layout.Inset{
+	dims := layout.Inset{
 		Top: theme.PagePadding, Bottom: theme.PagePadding,
 		Left: theme.PagePadding - unit.Dp(5), Right: theme.PagePadding - unit.Dp(10), // weird values but probably because of the icon
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -183,6 +185,8 @@ func (b *BottomBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 			}),
 		)
 	})
+
+	return dims
 }
 
 type BottomBarButton struct {
@@ -212,6 +216,26 @@ func (b *BottomBarButton) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 
 	return b.Button.Layout(gtx, th)
+}
+
+type BottomBarTopShadow struct{}
+
+func (b BottomBarTopShadow) Layout(gtx layout.Context) {
+	height := gtx.Dp(75)
+	rect := image.Rect(0, 0, gtx.Constraints.Max.X, height)
+	paint.LinearGradientOp{
+		Stop1:  f32.Pt(0, float32(0)),
+		Stop2:  f32.Pt(0, float32(300)),
+		Color1: color.NRGBA{A: 0},
+		Color2: theme.Current.BottomShadowColor,
+	}.Add(gtx.Ops)
+
+	offset := f32.Affine2D{}.Offset(f32.Pt(0, float32(-height)))
+	s1 := op.Affine(offset).Push(gtx.Ops)
+	s2 := clip.Rect(rect).Push(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
+	s1.Pop()
+	s2.Pop()
 }
 
 type BottomBarTopWallet struct{}

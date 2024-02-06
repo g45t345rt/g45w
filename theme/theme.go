@@ -30,6 +30,7 @@ type Theme struct {
 	BottomBarBgColor          color.NRGBA
 	BottomButtonColors        components.ButtonColors
 	BottomButtonSelectedColor color.NRGBA
+	BottomShadowColor         color.NRGBA
 
 	// Node Status
 	NodeStatusBgColor         color.NRGBA

@@ -31,6 +31,7 @@ var Light = &Theme{
 		HoverTextColor: &blackColor,
 	},
 	BottomButtonSelectedColor: blackColor,
+	BottomShadowColor:         blackColor,
 
 	NodeStatusBgColor:         color.NRGBA{A: 255},
 	NodeStatusHeightTextColor: color.NRGBA{R: 255, G: 255, B: 255, A: 255},

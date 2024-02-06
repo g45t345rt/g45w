@@ -31,6 +31,7 @@ var Blue = &Theme{
 		HoverTextColor: &whiteColor,
 	},
 	BottomButtonSelectedColor: whiteColor,
+	BottomShadowColor:         blackColor,
 
 	NodeStatusBgColor:         color.NRGBA{A: 255},
 	NodeStatusHeightTextColor: color.NRGBA{R: 255, G: 255, B: 255, A: 255},
