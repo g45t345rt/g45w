@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"gioui.org/f32"
 	"gioui.org/gpu/headless"
@@ -321,4 +322,35 @@ func CreateFolderPath(folderPath string) error {
 	}
 
 	return nil
+}
+
+func CompactTimeAgo(date time.Time) string {
+	diff := time.Since(date)
+	years := int(diff.Hours() / (364 * 24))
+	if years > 0 {
+		return fmt.Sprintf("%dy", years)
+	}
+
+	months := int(diff.Hours() / (31 * 24))
+	if months > 0 {
+		return fmt.Sprintf("%dmo", months)
+	}
+
+	days := int(diff.Hours() / 24)
+	if days > 0 {
+		return fmt.Sprintf("%dd", days)
+	}
+
+	hours := int(diff.Hours())
+	if hours > 0 {
+		return fmt.Sprintf("%dh", hours)
+	}
+
+	minutes := int(diff.Minutes())
+	if minutes > 0 {
+		return fmt.Sprintf("%dm", minutes)
+	}
+
+	seconds := int(diff.Seconds())
+	return fmt.Sprintf("%ds", seconds)
 }

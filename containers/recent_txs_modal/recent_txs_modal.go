@@ -351,7 +351,7 @@ func (item *TxItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 						return lbl.Layout(gtx)
 					}),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						lbl := material.Label(th, unit.Sp(16), lang.TimeAgo(date))
+						lbl := material.Label(th, unit.Sp(16), utils.CompactTimeAgo(date))
 						lbl.Alignment = text.End
 						lbl.Color = theme.Current.TextMuteColor
 						return lbl.Layout(gtx)
