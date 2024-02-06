@@ -3,7 +3,6 @@ package integrated_node
 import (
 	"fmt"
 	"io"
-	"net"
 	"os"
 	"runtime"
 	"time"
@@ -22,16 +21,6 @@ import (
 var Chain *blockchain.Blockchain
 var RPCServer *derodrpc.RPCServer
 var Running bool
-
-func isTcpPortInUse(addr string) bool {
-	conn, err := net.Listen("tcp", addr)
-	if err != nil {
-		return true
-	}
-	defer conn.Close()
-
-	return false
-}
 
 func Start() error {
 	if Running {
@@ -63,8 +52,9 @@ func Start() error {
 
 	rpcPort := globals.Config.RPC_Default_Port
 	rpcAddr := fmt.Sprintf("127.0.0.1:%d", rpcPort)
-	if isTcpPortInUse(rpcAddr) {
-		return fmt.Errorf("rpc port (%d) already in use", rpcPort)
+	_, err := utils.IsTcpAddrInUse(rpcAddr)
+	if err != nil {
+		return err
 	}
 
 	params := make(map[string]interface{})

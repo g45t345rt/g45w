@@ -22,6 +22,7 @@ import (
 	"github.com/g45t345rt/g45w/app_db/schema_version"
 	"github.com/g45t345rt/g45w/sc"
 	"github.com/g45t345rt/g45w/settings"
+	"github.com/g45t345rt/g45w/utils"
 
 	"database/sql"
 
@@ -147,11 +148,20 @@ open_wallet:
 	return nil
 }
 
-func (w *Wallet) OpenXSWD(appHandler func(appData *xswd.ApplicationData) bool, reqHandler func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission) {
+func (w *Wallet) OpenXSWD(appHandler func(appData *xswd.ApplicationData) bool, reqHandler func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission) error {
 	// create the XSWD server and start listening to incoming calls for authorization
 	// XSWD is a secure communication protocol that offers easy interaction between the user wallet and a dApp
 	// it was create by Slixe
+
+	// check if not already in use from another software
+	addr := fmt.Sprintf(":%d", xswd.XSWD_PORT)
+	_, err := utils.IsTcpAddrInUse(addr)
+	if err != nil {
+		return err
+	}
+
 	w.ServerXSWD = xswd.NewXSWDServer(w.Memory, appHandler, reqHandler)
+	return nil
 }
 
 func (w *Wallet) CloseXSWD() {

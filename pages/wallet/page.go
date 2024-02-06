@@ -326,7 +326,11 @@ func (p *Page) OpenXSWD() error {
 		return <-permChan
 	}
 
-	wallet.OpenXSWD(appHandler, reqHandler)
+	err := wallet.OpenXSWD(appHandler, reqHandler)
+	if err != nil {
+		return err
+	}
+
 	w.Invalidate()
 	return nil
 }

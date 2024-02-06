@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"math"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -353,4 +354,14 @@ func CompactTimeAgo(date time.Time) string {
 
 	seconds := int(diff.Seconds())
 	return fmt.Sprintf("%ds", seconds)
+}
+
+func IsTcpAddrInUse(addr string) (bool, error) {
+	conn, err := net.Listen("tcp", addr)
+	if err != nil {
+		return true, err
+	}
+
+	defer conn.Close()
+	return false, nil
 }
