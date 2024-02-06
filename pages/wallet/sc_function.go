@@ -133,35 +133,33 @@ func (p *PageSCFunction) Layout(gtx layout.Context, th *material.Theme) layout.D
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		lbl := material.Label(th, unit.Sp(18), lang.Translate("Arguments"))
+		return lbl.Layout(gtx)
+	})
+
 	if len(p.scArgItems) == 0 {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			lbl := material.Label(th, unit.Sp(16), lang.Translate("This function does not have any arguments."))
 			lbl.Color = theme.Current.TextMuteColor
 			return lbl.Layout(gtx)
 		})
+	} else {
+		for i := range p.scArgItems {
+			item := p.scArgItems[i]
+			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+				return item.Layout(gtx, th)
+			})
+		}
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(16), lang.Translate("Arguments"))
-		lbl.Color = theme.Current.TextMuteColor
-		return lbl.Layout(gtx)
-	})
-
-	for i := range p.scArgItems {
-		item := p.scArgItems[i]
-		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			return item.Layout(gtx, th)
-		})
-	}
-
-	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(16), lang.Translate("Transfers"))
-		lbl.Color = theme.Current.TextMuteColor
+		lbl := material.Label(th, unit.Sp(18), lang.Translate("Transfers"))
 		return lbl.Layout(gtx)
 	})
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(16), lang.Translate("TODO!!"))
+		lbl := material.Label(th, unit.Sp(16), "todo")
 		lbl.Color = theme.Current.TextMuteColor
 		return lbl.Layout(gtx)
 	})

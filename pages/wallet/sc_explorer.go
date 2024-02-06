@@ -47,7 +47,7 @@ type PageSCExplorer struct {
 	buttonMenu *components.Button
 	scFuncs    []*SCFunctionItem
 	scData     []*SCDataItem
-	immutable  bool
+	mutable    bool
 
 	SCID string
 	list *widget.List
@@ -100,23 +100,24 @@ func (p *PageSCExplorer) LoadFunctions() error {
 		return err
 	}
 
+	matchUpdateCode, err := regexp.Compile(`UPDATE_SC_CODE\(.+\)`)
+	if err != nil {
+		return err
+	}
+
+	p.mutable = matchUpdateCode.MatchString(result.Code)
+
 	matchFunctions, err := regexp.Compile(`Function ([A-Z]\w+)\(?(.+)\)`)
 	if err != nil {
 		return err
 	}
 
 	p.scFuncs = make([]*SCFunctionItem, 0)
-	p.immutable = true
-
 	values := matchFunctions.FindAllStringSubmatch(result.Code, -1)
 	for _, value := range values {
 		funcName := value[1]
 		if funcName == "Initialize" || funcName == "InitializePrivate" {
 			continue
-		}
-
-		if funcName == "UpdateCode" {
-			p.immutable = false
 		}
 
 		scFunc := SCFunction{
@@ -232,7 +233,7 @@ func (p *PageSCExplorer) Layout(gtx layout.Context, th *material.Theme) layout.D
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		txt := lang.Translate("This smart contract is mutable.")
-		if p.immutable {
+		if !p.mutable {
 			txt = lang.Translate("This smart contract is immutable.")
 		}
 
