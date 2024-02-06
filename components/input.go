@@ -125,7 +125,7 @@ func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layo
 		for _, e := range t.Editor.Events() {
 			e, ok := e.(widget.SubmitEvent)
 			if ok {
-				t.Editor.SetText("")
+				//t.Editor.SetText("")
 				t.submitText = e.Text
 				t.submitted = true
 			}

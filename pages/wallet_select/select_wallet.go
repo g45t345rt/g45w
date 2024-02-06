@@ -250,6 +250,7 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				password_modal.Instance.SetLoading(true)
 				err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
 				password_modal.Instance.SetLoading(false)
+
 				if err == nil {
 					wallet := wallet_manager.OpenedWallet
 					wallet.Memory.SetOnlineMode()

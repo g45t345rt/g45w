@@ -252,6 +252,7 @@ func (item *RegResultContainer) Layout(gtx layout.Context, th *material.Theme) l
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						editor := material.Editor(th, item.addrEditor, "")
 						editor.TextSize = unit.Sp(14)
+						editor.Color = theme.Current.TextMuteColor
 						return editor.Layout(gtx)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
@@ -263,6 +264,7 @@ func (item *RegResultContainer) Layout(gtx layout.Context, th *material.Theme) l
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						editor := material.Editor(th, item.wordSeedEditor, "")
 						editor.TextSize = unit.Sp(14)
+						editor.Color = theme.Current.TextMuteColor
 						return editor.Layout(gtx)
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
@@ -274,6 +276,7 @@ func (item *RegResultContainer) Layout(gtx layout.Context, th *material.Theme) l
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						editor := material.Editor(th, item.hexSeedEditor, "")
 						editor.TextSize = unit.Sp(14)
+						editor.Color = theme.Current.TextMuteColor
 						return editor.Layout(gtx)
 					}),
 				)

@@ -250,6 +250,7 @@ func (b *BuildTxModal) buildAndSendTx() {
 
 	err := buildAndSend()
 	b.buttonSend.SetLoading(false)
+	b.modal.SetVisible(false)
 	if err != nil {
 		notification_modal.Open(notification_modal.Params{
 			Type:  notification_modal.ERROR,
@@ -257,9 +258,9 @@ func (b *BuildTxModal) buildAndSendTx() {
 			Text:  err.Error(),
 		})
 	} else {
-		b.modal.SetVisible(false)
 		recent_txs_modal.Instance.SetVisible(true)
 	}
+
 	app_instance.Window.Invalidate()
 }
 
@@ -276,14 +277,18 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 
 	submitted, password := password_modal.Instance.Input.Submitted()
 	if submitted {
-		validPassword := wallet.Memory.Check_Password(password)
+		go func() {
+			password_modal.Instance.SetLoading(true)
+			validPassword := wallet.Memory.Check_Password(password)
+			password_modal.Instance.SetLoading(false)
 
-		if !validPassword {
-			password_modal.Instance.StartWrongPassAnimation()
-		} else {
-			password_modal.Instance.SetVisible(false)
-			go b.buildAndSendTx()
-		}
+			if !validPassword {
+				password_modal.Instance.StartWrongPassAnimation()
+			} else {
+				password_modal.Instance.SetVisible(false)
+				b.buildAndSendTx()
+			}
+		}()
 	}
 
 	b.modal.Style.Colors = theme.Current.ModalColors

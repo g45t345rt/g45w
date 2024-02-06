@@ -250,23 +250,27 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 
 	submitted, password := password_modal.Instance.Input.Submitted()
 	if submitted {
-		wallet := wallet_manager.OpenedWallet
-		validPassword := wallet.Memory.Check_Password(password)
+		go func() {
+			wallet := wallet_manager.OpenedWallet
+			password_modal.Instance.SetLoading(true)
+			validPassword := wallet.Memory.Check_Password(password)
+			password_modal.Instance.SetLoading(false)
 
-		if !validPassword {
-			password_modal.Instance.StartWrongPassAnimation()
-		} else {
-			password_modal.Instance.Modal.SetVisible(false)
-			err := p.submitForm(gtx, password)
+			if !validPassword {
+				password_modal.Instance.StartWrongPassAnimation()
+			} else {
+				password_modal.Instance.Modal.SetVisible(false)
+				err := p.submitForm(gtx, password)
 
-			if err != nil {
-				notification_modal.Open(notification_modal.Params{
-					Type:  notification_modal.ERROR,
-					Title: lang.Translate("Error"),
-					Text:  err.Error(),
-				})
+				if err != nil {
+					notification_modal.Open(notification_modal.Params{
+						Type:  notification_modal.ERROR,
+						Title: lang.Translate("Error"),
+						Text:  err.Error(),
+					})
+				}
 			}
-		}
+		}()
 	}
 
 	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()

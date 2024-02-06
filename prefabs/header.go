@@ -295,23 +295,29 @@ func (p *PageHeaderAnimation) Leave(header *Header) bool {
 
 func (p *PageHeaderAnimation) Update(gtx layout.Context, finished func()) (trans op.TransformOp) {
 	{
-		state := p.animationEnter.Update(gtx)
-		if state.Active {
-			trans = animation.TransformX(gtx, state.Value)
+		// check if nil because it's not instanciated in constructor (just to be sure and avoid race condition with Enter func and Update loop)
+		if p.animationEnter != nil {
+			state := p.animationEnter.Update(gtx)
+			if state.Active {
+				trans = animation.TransformX(gtx, state.Value)
+			}
 		}
 	}
 
 	{
-		state := p.animationLeave.Update(gtx)
-		if state.Active {
-			trans = animation.TransformX(gtx, state.Value)
-		}
+		if p.animationLeave != nil {
+			state := p.animationLeave.Update(gtx)
+			if state.Active {
+				trans = animation.TransformX(gtx, state.Value)
+			}
 
-		if state.Finished {
-			finished()
-			//a.page.SetActive(false)
-			op.InvalidateOp{}.Add(gtx.Ops)
+			if state.Finished {
+				finished()
+				//a.page.SetActive(false)
+				op.InvalidateOp{}.Add(gtx.Ops)
+			}
 		}
 	}
+
 	return
 }
