@@ -286,7 +286,7 @@ func (p *PageSCToken) OpenMenu() {
 			err = wallet.UpdateToken(*p.token)
 			successMsg = lang.Translate("Token removed from favorites.")
 		case "sc_explorer":
-			page_instance.pageSCExplorer.SCID = p.token.SCID
+			page_instance.pageSCExplorer.Set(p.token.SCID)
 			page_instance.pageRouter.SetCurrent(PAGE_SC_EXPLORER)
 			page_instance.header.AddHistory(PAGE_SC_EXPLORER)
 		case "remove_token":

@@ -18,8 +18,10 @@ import (
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/listselect_modal"
+	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
@@ -49,7 +51,10 @@ type PageSCExplorer struct {
 	scData     []*SCDataItem
 	mutable    bool
 
-	SCID string
+	result rpc.GetSC_Result
+	loaded bool
+	scid   string
+
 	list *widget.List
 }
 
@@ -89,23 +94,61 @@ func (p *PageSCExplorer) IsActive() bool {
 	return p.isActive
 }
 
-func (p *PageSCExplorer) LoadFunctions() error {
-	var result rpc.GetSC_Result
-	err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
-		SCID:      p.SCID,
-		Code:      true,
-		Variables: false,
-	}, &result)
-	if err != nil {
-		return err
+func (p *PageSCExplorer) Set(scid string) {
+	p.loaded = false
+	p.scid = scid
+}
+
+func (p *PageSCExplorer) Load() {
+	if p.loaded {
+		return
 	}
 
+	load := func() error {
+		var result rpc.GetSC_Result
+		err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
+			SCID:      p.scid,
+			Code:      true,
+			Variables: true,
+		}, &result)
+		if err != nil {
+			return err
+		}
+
+		p.result = result
+		err = p.parseFunctions()
+		if err != nil {
+			return err
+		}
+
+		p.parseVariables()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err := load()
+	if err != nil {
+		notification_modal.Open(notification_modal.Params{
+			Type:  notification_modal.ERROR,
+			Title: lang.Translate("Error"),
+			Text:  err.Error(),
+		})
+	}
+
+	p.loaded = true
+	app_instance.Window.Invalidate()
+}
+
+func (p *PageSCExplorer) parseFunctions() error {
 	matchUpdateCode, err := regexp.Compile(`UPDATE_SC_CODE\(.+\)`)
 	if err != nil {
 		return err
 	}
 
-	p.mutable = matchUpdateCode.MatchString(result.Code)
+	p.mutable = matchUpdateCode.MatchString(p.result.Code)
 
 	matchFunctions, err := regexp.Compile(`Function ([A-Z]\w+)\(?(.+)\)`)
 	if err != nil {
@@ -113,7 +156,7 @@ func (p *PageSCExplorer) LoadFunctions() error {
 	}
 
 	p.scFuncs = make([]*SCFunctionItem, 0)
-	values := matchFunctions.FindAllStringSubmatch(result.Code, -1)
+	values := matchFunctions.FindAllStringSubmatch(p.result.Code, -1)
 	for _, value := range values {
 		funcName := value[1]
 		if funcName == "Initialize" || funcName == "InitializePrivate" {
@@ -148,19 +191,10 @@ func (p *PageSCExplorer) LoadFunctions() error {
 	return nil
 }
 
-func (p *PageSCExplorer) LoadData() error {
+func (p *PageSCExplorer) parseVariables() error {
 	p.scData = make([]*SCDataItem, 0)
-	var result rpc.GetSC_Result
-	err := wallet_manager.RPCCall("DERO.GetSC", rpc.GetSC_Params{
-		SCID:      p.SCID,
-		Code:      false,
-		Variables: true,
-	}, &result)
-	if err != nil {
-		return err
-	}
 
-	for key, data := range result.VariableStringKeys {
+	for key, data := range p.result.VariableStringKeys {
 		if key == "C" {
 			continue
 		}
@@ -206,7 +240,13 @@ func (p *PageSCExplorer) Enter() {
 				for key := range keyChan {
 					switch key {
 					case "view_code":
+						page_instance.pageSCViewCode.SetCode(p.result.Code)
+						page_instance.pageRouter.SetCurrent(PAGE_SC_VIEW_CODE)
+						page_instance.header.AddHistory(PAGE_SC_VIEW_CODE)
 					case "reload_sc":
+						p.loaded = false
+						p.Load()
+						app_instance.Window.Invalidate()
 					}
 				}
 			}()
@@ -215,8 +255,7 @@ func (p *PageSCExplorer) Enter() {
 		return p.buttonMenu.Layout(gtx, th)
 	}
 
-	p.LoadFunctions()
-	p.LoadData()
+	go p.Load()
 }
 
 func (p *PageSCExplorer) Leave() {
@@ -363,7 +402,7 @@ func NewSCFunctionItem(scFunc SCFunction) *SCFunctionItem {
 
 func (item *SCFunctionItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if item.clickable.Clicked(gtx) {
-		scid := page_instance.pageSCExplorer.SCID
+		scid := page_instance.pageSCExplorer.scid
 		page_instance.pageSCFunction.SetData(scid, item.scFunc)
 		page_instance.pageRouter.SetCurrent(PAGE_SC_FUNCTION)
 		page_instance.header.AddHistory(PAGE_SC_FUNCTION)
