@@ -74,7 +74,7 @@ func rowsScanOutgoingTxs(rows *sql.Rows) ([]OutgoingTx, error) {
 type GetOutgoingTxsParams struct {
 	Descending bool
 	OrderBy    string
-	Limit      *uint64
+	Limit      uint64
 	TxType     *transaction.TransactionType
 }
 
@@ -94,8 +94,8 @@ func (w *Wallet) GetOutgoingTxs(params GetOutgoingTxsParams) ([]OutgoingTx, erro
 		query = query.OrderBy(fmt.Sprintf("%s %s", params.OrderBy, direction))
 	}
 
-	if params.Limit != nil {
-		query = query.Limit(*params.Limit)
+	if params.Limit > 0 {
+		query = query.Limit(params.Limit)
 	}
 
 	rows, err := query.RunWith(w.DB).Query()
@@ -143,6 +143,11 @@ func (w *Wallet) CheckRegistrationTx(tx transaction.Transaction) (rpc.GetEncrypt
 }
 
 func (w *Wallet) UpdatePendingOutgoingTxs() (int, error) {
+	// lock is important because we run UpdatePendingOutgoingTxs in 15s loop
+	// avoid "database is locked" (SQLite busy) if we insert at the same this is running
+	w.Memory.Lock()
+	defer w.Memory.Unlock()
+
 	if !walletapi.Connected {
 		return 0, nil
 	}

@@ -90,7 +90,7 @@ func (r *RecentTxsModal) startCheckingPendingTxs() {
 					fmt.Println(err)
 				}
 
-				if updated > 0 {
+				if updated > 0 && r.modal.Visible {
 					r.LoadOutgoingTxs()
 					w.Invalidate()
 				}
@@ -104,11 +104,10 @@ func (r *RecentTxsModal) LoadOutgoingTxs() error {
 
 	wallet := wallet_manager.OpenedWallet
 	if wallet != nil {
-		limit := uint64(10)
 		outgoingTxs, err := wallet.GetOutgoingTxs(wallet_manager.GetOutgoingTxsParams{
 			OrderBy:    "timestamp",
 			Descending: true,
-			Limit:      &limit,
+			Limit:      uint64(10),
 		})
 		if err != nil {
 			return err
