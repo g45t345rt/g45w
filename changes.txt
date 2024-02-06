@@ -11,6 +11,9 @@ v0.10.0
 - Yellow pulse animation when node is syncing.
 - Display current selection on list modal (ringsize selector, theme selector, language selector).
 - Hashicons for transaction items are now set to the wallet address.
+- Fix minor security issues.
+- Change / fix page navigation animations.
+- Add plus/minus sign to transaction balance.
 
 v0.9.0
 - Update to GioUI v0.4.1.

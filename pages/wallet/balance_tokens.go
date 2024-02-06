@@ -950,8 +950,8 @@ func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout
 					}
 
 					item.imageHover.Image.Src = item.token.LoadImageOp()
-					gtx.Constraints.Max.X = gtx.Dp(50)
-					gtx.Constraints.Max.Y = gtx.Dp(50)
+					gtx.Constraints.Max.X = gtx.Dp(40)
+					gtx.Constraints.Max.Y = gtx.Dp(40)
 					return item.imageHover.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
@@ -1281,8 +1281,8 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					return layout.Dimensions{}
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					gtx.Constraints.Max.X = gtx.Dp(35)
-					gtx.Constraints.Max.Y = gtx.Dp(35)
+					gtx.Constraints.Max.X = gtx.Dp(25)
+					gtx.Constraints.Max.Y = gtx.Dp(25)
 					return item.image.Layout(gtx, nil)
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
@@ -1347,7 +1347,15 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				amount := item.entry.Amount
 				balance := utils.ShiftNumber{Number: amount, Decimals: item.decimals}
-				label := material.Label(th, unit.Sp(18), balance.Format())
+
+				txt := balance.Format()
+				if item.entry.Incoming {
+					txt = fmt.Sprintf("+%s", txt)
+				} else {
+					txt = fmt.Sprintf("-%s", txt)
+				}
+
+				label := material.Label(th, unit.Sp(18), txt)
 				label.Font.Weight = font.Bold
 				return label.Layout(gtx)
 			})
