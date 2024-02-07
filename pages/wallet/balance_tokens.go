@@ -1349,7 +1349,7 @@ func (item *TxListItem) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				balance := utils.ShiftNumber{Number: amount, Decimals: item.decimals}
 
 				txt := balance.Format()
-				if item.entry.Incoming {
+				if item.entry.Incoming || item.entry.Coinbase {
 					txt = fmt.Sprintf("+%s", txt)
 				} else {
 					txt = fmt.Sprintf("-%s", txt)

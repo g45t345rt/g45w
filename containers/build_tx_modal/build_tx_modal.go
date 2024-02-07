@@ -98,7 +98,7 @@ func LoadInstance() {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  false,
 		Direction:           layout.N,
-		Inset:               layout.UniformInset(unit.Dp(10)),
+		Inset:               layout.UniformInset(theme.PagePadding),
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Animation:           components.NewModalAnimationDown(),
 	})

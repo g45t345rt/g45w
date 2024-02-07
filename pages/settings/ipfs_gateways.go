@@ -66,7 +66,7 @@ func NewPageIPFSGateways() *PageIPFSGateways {
 		CloseOnOutsideClick: true,
 		CloseOnInsideClick:  true,
 		Direction:           layout.Center,
-		Inset:               layout.UniformInset(unit.Dp(30)),
+		Inset:               layout.UniformInset(theme.PagePadding),
 		Rounded:             components.UniformRounded(unit.Dp(10)),
 		Animation:           components.NewModalAnimationScaleBounce(),
 	})
@@ -189,7 +189,7 @@ func (p *PageIPFSGateways) Layout(gtx layout.Context, th *material.Theme) layout
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 		p.buttonInfo.Text = lang.Translate("Why use IPFS?")
-		p.buttonInfo.Style.Colors = theme.Current.ButtonPrimaryColors
+		p.buttonInfo.Style.Colors = theme.Current.ButtonInvertColors
 		return p.buttonInfo.Layout(gtx, th)
 	})
 

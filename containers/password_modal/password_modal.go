@@ -51,7 +51,7 @@ func LoadInstance() {
 		CloseOnInsideClick:  false,
 		Direction:           layout.Center,
 		Rounded:             components.UniformRounded(unit.Dp(10)),
-		Inset:               layout.UniformInset(25),
+		Inset:               layout.UniformInset(theme.PagePadding),
 		Animation:           components.NewModalAnimationScaleBounce(),
 	})
 

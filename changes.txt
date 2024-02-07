@@ -1,6 +1,6 @@
 v0.10.0
-- New smart contract explorer (view data, list & execute functions).
-- Search bar and add button for contacts.
+- New smart contract explorer (view data/code, list & execute functions).
+- Search bar and add contact button for contacts page.
 - Added hashicons for contact items.
 - Swipe right handle for mobile only (unnecessary feature for desktop and annoying if triggered).
 - Fix crash when clearing outgoing txs.
@@ -12,9 +12,10 @@ v0.10.0
 - Display current selection on list modal (ringsize selector, theme selector, language selector).
 - Hashicons for transaction items are now set to the wallet address.
 - Fix minor security issues.
-- Change / fix page navigation animations.
+- Change/fix page navigation animations.
 - Add plus/minus sign to transaction balance.
 - Fix possible "database is locked" (SQLite busy) errors.
+- Check if XSWD is already in use before starting.
 
 v0.9.0
 - Update to GioUI v0.4.1.
