@@ -3,6 +3,7 @@ package page_wallet
 import (
 	"encoding/hex"
 	"fmt"
+	"image"
 	"image/color"
 	"strconv"
 
@@ -310,6 +311,7 @@ type SCTransferItem struct {
 	scIdInput    *prefabs.Input
 	amountInput  *prefabs.Input
 	buttonRemove *components.Button
+	txtDims      layout.Dimensions
 }
 
 func NewSCTransferItem(onDelete func(index int)) *SCTransferItem {
@@ -354,13 +356,18 @@ func (item *SCTransferItem) Layout(gtx layout.Context, th *material.Theme, index
 			return item.scIdInput.Layout(gtx, th, "SCID")
 		}),
 		layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 			item.amountInput.Colors = theme.Current.InputColors
-			return item.amountInput.Layout(gtx, th, lang.Translate("Amount"))
+			item.txtDims = item.amountInput.Layout(gtx, th, lang.Translate("Amount"))
+			return item.txtDims
 		}),
 		layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			item.buttonRemove.Style.Colors = theme.Current.ButtonSecondaryColors
+			item.buttonRemove.Flex = true
+			size := image.Pt(item.txtDims.Size.Y, item.txtDims.Size.Y)
+			gtx.Constraints.Min = size
+			gtx.Constraints.Max = size
 			return item.buttonRemove.Layout(gtx, th)
 		}),
 	)

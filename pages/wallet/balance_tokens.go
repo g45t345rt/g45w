@@ -822,13 +822,17 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 						d.balanceEditor.SetText(amount)
 					}
 
-					r := op.Record(gtx.Ops)
-					amountEditor := material.Editor(th, d.balanceEditor, "")
-					amountEditor.TextSize = unit.Sp(34)
+					if settings.App.HideBalance {
+						d.balanceEditor.SetText("")
+					}
+
+					//r := op.Record(gtx.Ops)
+					amountEditor := material.Editor(th, d.balanceEditor, lang.Translate("HIDDEN"))
+					amountEditor.TextSize = unit.Sp(40)
 					amountEditor.Font.Weight = font.Bold
 
-					dims := amountEditor.Layout(gtx)
-					c := r.Stop()
+					return amountEditor.Layout(gtx)
+					/*c := r.Stop()
 
 					if settings.App.HideBalance {
 						paint.FillShape(gtx.Ops, theme.Current.HideBalanceBgColor, clip.Rect{
@@ -836,9 +840,9 @@ func (d *DisplayBalance) Layout(gtx layout.Context, th *material.Theme) layout.D
 						}.Op())
 					} else {
 						c.Add(gtx.Ops)
-					}
+					}*/
 
-					return dims
+					//return dims
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
