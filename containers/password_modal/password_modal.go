@@ -88,6 +88,8 @@ func (w *PasswordModal) SetLoading(loading bool) {
 	} else {
 		w.animationLoading.Pause()
 	}
+
+	app_instance.Window.Invalidate()
 }
 
 func (w *PasswordModal) SetVisible(visible bool) {
@@ -97,6 +99,7 @@ func (w *PasswordModal) SetVisible(visible bool) {
 func (w *PasswordModal) StartWrongPassAnimation() {
 	w.animationWrongPass.Reset()
 	w.animationWrongPass.Start()
+	app_instance.Window.Invalidate()
 }
 
 func (w *PasswordModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
