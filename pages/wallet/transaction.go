@@ -146,7 +146,11 @@ func (p *PageTransaction) Enter() {
 
 		if p.buttonViewExplorer.Clicked(gtx) {
 			go func() {
-				url := fmt.Sprintf("https://explorer.dero.io/tx/%s", p.entry.TXID)
+				url := fmt.Sprintf("https://explorer.dero.io/block/%s", p.entry.BlockHash)
+				if p.entry.TXID != "" {
+					url = fmt.Sprintf("https://explorer.dero.io/tx/%s", p.entry.TXID)
+				}
+
 				err := browser.OpenUrl(url)
 				if err != nil {
 					notification_modal.Open(notification_modal.Params{
