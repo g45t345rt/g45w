@@ -1,18 +1,18 @@
 package xswd_perm_modal
 
 import (
-	"strings"
-
 	"gioui.org/font"
 	"gioui.org/layout"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/lang"
+	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
 	"github.com/g45t345rt/g45w/theme"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -21,12 +21,13 @@ import (
 type XSWDPermModal struct {
 	Modal *components.Modal
 
-	method            string
+	req               *jrpc2.Request
 	app               *xswd.ApplicationData
 	buttonAllow       *components.Button
 	buttonDeny        *components.Button
 	buttonAlwaysAllow *components.Button
 	buttonAlwaysDeny  *components.Button
+	buttonClose       *components.Button
 
 	permChan chan xswd.Permission
 }
@@ -105,12 +106,19 @@ func LoadInstance() {
 	buttonAlwaysDeny.Label.Alignment = text.Middle
 	buttonAlwaysDeny.Style.Font.Weight = font.Bold
 
+	closeIcon, _ := widget.NewIcon(icons.NavigationCancel)
+	buttonClose := components.NewButton(components.ButtonStyle{
+		Icon:      closeIcon,
+		Animation: components.NewButtonAnimationDefault(),
+	})
+
 	Instance = &XSWDPermModal{
 		Modal:             modal,
 		buttonAllow:       buttonAllow,
 		buttonDeny:        buttonDeny,
 		buttonAlwaysAllow: buttonAlwaysAllow,
 		buttonAlwaysDeny:  buttonAlwaysDeny,
+		buttonClose:       buttonClose,
 	}
 
 	app_instance.Router.AddLayout(router.KeyLayout{
@@ -121,9 +129,9 @@ func LoadInstance() {
 	})
 }
 
-func (c *XSWDPermModal) Open(app *xswd.ApplicationData, method string) chan xswd.Permission {
+func (c *XSWDPermModal) Open(app *xswd.ApplicationData, req *jrpc2.Request) chan xswd.Permission {
 	c.app = app
-	c.method = method
+	c.req = req
 
 	c.Modal.SetVisible(true)
 	c.permChan = make(chan xswd.Permission)
@@ -154,6 +162,10 @@ func (c *XSWDPermModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		go c.set(xswd.AlwaysDeny)
 	}
 
+	if c.buttonClose.Clicked(gtx) {
+		go c.set(xswd.Deny)
+	}
+
 	c.Modal.Style.Colors = theme.Current.ModalColors
 	return c.Modal.Layout(gtx, nil, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -161,17 +173,66 @@ func (c *XSWDPermModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							lbl := material.Label(th, unit.Sp(22), c.app.Name)
-							lbl.Font.Weight = font.Bold
-							return lbl.Layout(gtx)
+							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(22), c.app.Name)
+									lbl.Font.Weight = font.Bold
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									c.buttonClose.Style.Colors = theme.Current.ModalButtonColors
+									return c.buttonClose.Layout(gtx, th)
+								}),
+							)
 						}),
 						layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							txt := lang.Translate("A dApp from {1} wants to request [{2}].")
-							txt = strings.Replace(txt, "{1}", c.app.Url, -1)
-							txt = strings.Replace(txt, "{2}", c.method, -1)
-							lbl := material.Label(th, unit.Sp(16), txt)
-							return lbl.Layout(gtx)
+							return layout.Flex{}.Layout(gtx,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									txt := lang.Translate("From:")
+									lbl := material.Label(th, unit.Sp(16), txt)
+									lbl.Color = theme.Current.TextMuteColor
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), c.app.Url)
+									return lbl.Layout(gtx)
+								}),
+							)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{}.Layout(gtx,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									txt := lang.Translate("Method:")
+									lbl := material.Label(th, unit.Sp(16), txt)
+									lbl.Color = theme.Current.TextMuteColor
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Label(th, unit.Sp(16), c.req.Method())
+									return lbl.Layout(gtx)
+								}),
+							)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									txt := lang.Translate("Parameters:")
+									lbl := material.Label(th, unit.Sp(16), txt)
+									lbl.Color = theme.Current.TextMuteColor
+									return lbl.Layout(gtx)
+								}),
+								layout.Rigid(layout.Spacer{Width: unit.Dp(3)}.Layout),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									params := c.req.ParamString()
+									lbl := material.Label(th, unit.Sp(14), params)
+									return lbl.Layout(gtx)
+								}),
+							)
 						}),
 					)
 				}),
@@ -186,6 +247,10 @@ func (c *XSWDPermModal) Layout(gtx layout.Context, th *material.Theme) layout.Di
 					c.buttonAlwaysAllow.Style.Colors = theme.Current.ButtonSecondaryColors
 					c.buttonAlwaysAllow.Text = lang.Translate("Allow Always")
 					return c.buttonAlwaysAllow.Layout(gtx, th)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return prefabs.Divider(gtx, unit.Dp(5))
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

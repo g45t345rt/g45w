@@ -32,10 +32,11 @@ import (
 )
 
 type TxPayload struct {
+	Description string
 	Transfers   []rpc.Transfer
 	Ringsize    uint64
 	SCArgs      rpc.Arguments
-	Description string
+	Note        string
 	TokensInfo  []*wallet_manager.Token
 }
 
@@ -240,7 +241,7 @@ func (b *BuildTxModal) buildAndSendTx() {
 			return err
 		}
 
-		err = wallet.InsertOutgoingTx(tx, b.txPayload.Description)
+		err = wallet.InsertOutgoingTx(tx, b.txPayload.Note)
 		if err != nil {
 			return err
 		}
@@ -362,6 +363,17 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 					}),
 					layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 				)
+
+				if b.txPayload.Description != "" {
+					childs = append(childs,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							lbl := material.Label(th, unit.Sp(16), b.txPayload.Description)
+							lbl.Color = theme.Current.TextMuteColor
+							return lbl.Layout(gtx)
+						}),
+						layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+					)
+				}
 
 				childs = append(childs,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {

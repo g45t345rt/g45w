@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [[ $# -ne 2 ]]; then
-  echo "Usage: $0 <OS> <ARCH>"
+if [[ $# < 2 ]]; then
+  echo "Usage: $0 <OS> <ARCH> <MIN_SDK>"
   echo "Example: $0 windows amd64"
   exit 1
 fi
@@ -10,7 +10,7 @@ mkdir -p "./build"
 
 GOOS=$1
 GOARCH=$2
-MIN_SDK=0
+MIN_SDK=$3
 #CGO_CFLAGS=""
 OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
 
@@ -21,7 +21,10 @@ if [ $GOOS = "windows" ]; then
 fi
 
 if [ $GOOS = "android" ]; then
-  MIN_SDK=33
+  if [ ! $MIN_SDK ]; then
+    MIN_SDK=21 # https://en.wikipedia.org/wiki/Android_version_history
+  fi
+  echo "MIN_SDK: ${MIN_SDK}"
   OUTPUT+=".apk"
 fi
 

@@ -19,10 +19,12 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/creachadair/jrpc2"
+	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/android_background_service"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/containers/bottom_bar"
+	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
 	"github.com/g45t345rt/g45w/containers/node_status_bar"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
@@ -327,7 +329,28 @@ func (p *Page) OpenXSWD() error {
 
 	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
 		fmt.Println(req.Method(), req.ParamString())
-		permChan := xswd_perm_modal.Instance.Open(appData, req.Method())
+
+		switch req.Method() {
+		case "transfer":
+			var params rpc.Transfer_Params
+			err := req.UnmarshalParams(&params)
+			if err != nil {
+				return xswd.Deny
+			}
+
+			description := lang.Translate("A dApp from {} wants to make a transfer.")
+			description = strings.Replace(description, "{}", appData.Url, -1)
+			build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
+				Transfers:   params.Transfers,
+				Ringsize:    params.Ringsize,
+				SCArgs:      params.SC_RPC,
+				Description: description,
+			})
+
+			return xswd.Deny
+		}
+
+		permChan := xswd_perm_modal.Instance.Open(appData, req)
 		w.Invalidate()
 		return <-permChan
 	}
