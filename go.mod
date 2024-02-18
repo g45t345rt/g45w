@@ -26,8 +26,10 @@ require (
 )
 
 require (
+	git.sr.ht/~jackmordaunt/go-toast v1.0.0 // indirect
 	github.com/cenkalti/hub v1.0.2 // indirect
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815 // indirect
+	github.com/esiqveland/notify v0.11.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect

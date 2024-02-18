@@ -3,7 +3,6 @@ package prefabs
 import (
 	"fmt"
 	"image"
-	"image/color"
 
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -49,15 +48,9 @@ func NewThemeSelector(defaultThemeKey string) *ThemeSelector {
 		items = append(items, listselect_modal.NewSelectListItem(theme.Key, func(gtx layout.Context, th *material.Theme) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return widget.Border{
-						Color:        color.NRGBA{A: 255},
-						Width:        unit.Dp(2),
-						CornerRadius: unit.Dp(gtx.Dp(5)),
-					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						rect := image.Rectangle{Max: image.Pt(gtx.Dp(25), gtx.Dp(25))}
-						paint.FillShape(gtx.Ops, indicatorColor, clip.UniformRRect(rect, gtx.Dp(5)).Op(gtx.Ops))
-						return layout.Dimensions{Size: rect.Max}
-					})
+					rect := image.Rectangle{Max: image.Pt(gtx.Dp(25), gtx.Dp(25))}
+					paint.FillShape(gtx.Ops, indicatorColor, clip.UniformRRect(rect, gtx.Dp(5)).Op(gtx.Ops))
+					return layout.Dimensions{Size: rect.Max}
 				}),
 				layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {

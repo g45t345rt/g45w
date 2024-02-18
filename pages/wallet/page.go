@@ -18,6 +18,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/notify"
 	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi/xswd"
@@ -309,6 +310,8 @@ func (p *Page) OpenXSWD() error {
 	// TODO: IOS background app with GPS hack
 
 	appHandler := func(appData *xswd.ApplicationData) bool {
+		notify.Push("XSWD", lang.Translate("An app is trying to connect with your wallet."))
+
 		prompt := lang.Translate("The app [{}] is trying to connect. Do you want to give permission?")
 		prompt = strings.Replace(prompt, "{}", appData.Name, -1)
 		yesChan := confirm_modal.Instance.Open(confirm_modal.ConfirmText{
@@ -329,6 +332,9 @@ func (p *Page) OpenXSWD() error {
 
 	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
 		fmt.Println(req.Method(), req.ParamString())
+		txt := lang.Translate("An app is requesting access for {}.")
+		txt = strings.Replace(txt, "{}", req.Method(), -1)
+		notify.Push("XSWD", txt)
 
 		switch req.Method() {
 		case "transfer":

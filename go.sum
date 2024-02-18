@@ -5,6 +5,8 @@ gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 h1:AGDDxsJE1RpcXTAxPG2B4jrwVUJG
 gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2/go.mod h1:A8M0Cn5o+vY5LTMlnRoK3O5kG+rH0kWfJjeKd9QpBmQ=
 gioui.org/shader v1.0.8 h1:6ks0o/A+b0ne7RzEqRZK5f4Gboz2CfG+mVliciy6+qA=
 gioui.org/shader v1.0.8/go.mod h1:mWdiME581d/kV7/iEhLmUgUK5iZ09XR5XpduXzbePVM=
+git.sr.ht/~jackmordaunt/go-toast v1.0.0 h1:bbRox6VkotdOj3QcWimZQ84APoszIsA/pSIj8ypDdV8=
+git.sr.ht/~jackmordaunt/go-toast v1.0.0/go.mod h1:aIuRX/HdBOz7yRS8rOVYQCwJQlFS7DbYBTpUV0SHeeg=
 git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 h1:bGG/g4ypjrCJoSvFrP5hafr9PPB5aw8SjcOWWila7ZI=
 git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0/go.mod h1:+axXBRUTIDlCeE73IKeD/os7LoEnTKdkp8/gQOFjqyo=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
@@ -47,6 +49,8 @@ github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+m
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
+github.com/esiqveland/notify v0.11.0 h1:0WJ/xW+3Ln8uRBYntG7f0XihXxnlOaQTdha1yyzXz30=
+github.com/esiqveland/notify v0.11.0/go.mod h1:63UbVSaeJwF0LVJARHFuPgUAoM7o1BEvCZyknsuonBc=
 github.com/ethereum/go-ethereum v1.13.10 h1:Ppdil79nN+Vc+mXfge0AuUgmKWuVv4eMqzoIVSdqZek=
 github.com/ethereum/go-ethereum v1.13.10/go.mod h1:sc48XYQxCzH3fG9BcrXCOOgQk2JfZzNAmIKnceogzsA=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
@@ -89,6 +93,7 @@ github.com/gobwas/pool v0.2.0 h1:QEmUOlnSjWtnpRGHF3SauEiOsy82Cup83Vf2LcMlnc8=
 github.com/gobwas/pool v0.2.0/go.mod h1:q8bcK0KcYlCgd9e7WYLm9LpyS+YeLd8JVDW6WezmKEw=
 github.com/gobwas/ws v1.0.2 h1:CoAavW/wd/kulfZmSIBt6p24n4j7tHgNVCjsfHVNUbo=
 github.com/gobwas/ws v1.0.2/go.mod h1:szmBTxLgaFppYjEmNtny/v3w89xOydFnnZMcgRRu/EM=
+github.com/godbus/dbus/v5 v5.0.3/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/godbus/dbus/v5 v5.0.6 h1:mkgN1ofwASrYnJ5W6U/BxG15eXXXjirgZc7CLqkcaro=
 github.com/godbus/dbus/v5 v5.0.6/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
