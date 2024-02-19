@@ -764,8 +764,6 @@ func (w *Wallet) InsertToken(token Token) error {
 		return err
 	}
 
-	// update token balance right away
-	w.Memory.TokenAdd(token.GetHash())
 	return nil
 }
 

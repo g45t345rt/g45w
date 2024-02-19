@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"strings"
+	"time"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -61,6 +62,8 @@ type PageBalanceTokens struct {
 	tokenDragItems   *components.DragItems
 	tokenList        *widget.List
 	bgImg            *components.Image
+	syncLoop         *utils.ForceActiveLoop
+	isSyncing        bool
 
 	list *widget.List
 }
@@ -148,7 +151,7 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 
 	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_BALANCE_TOKENS)
 
-	return &PageBalanceTokens{
+	page := &PageBalanceTokens{
 		displayBalance:      NewDisplayBalance(),
 		tokenBar:            NewTokenBar(),
 		alertBox:            NewAlertBox(),
@@ -164,7 +167,25 @@ func NewPageBalanceTokens() *PageBalanceTokens {
 		tokenDragItems:      tokenDragItems,
 		tokenList:           tokenList,
 		bgImg:               bgImg,
+		tokenItems:          make([]*TokenListItem, 0),
+		txItems:             make([]*TxListItem, 0),
 	}
+
+	page.syncLoop = utils.NewForceActiveLoop(5*time.Second, func() {
+		wallet := wallet_manager.OpenedWallet
+		if wallet == nil {
+			return
+		}
+
+		changed := page.isSyncing != walletapi.IsSyncing(crypto.ZEROHASH)
+		if changed || page.isSyncing {
+			page.isSyncing = walletapi.IsSyncing(crypto.ZEROHASH)
+			page.LoadTxs()
+			app_instance.Window.Invalidate()
+		}
+	})
+
+	return page
 }
 
 func (p *PageBalanceTokens) IsActive() bool {
@@ -192,15 +213,9 @@ func (p *PageBalanceTokens) Enter() {
 	p.Load()
 }
 
-func (p *PageBalanceTokens) Load() error {
+func (p *PageBalanceTokens) Load() {
 	p.LoadTxs()
-
-	err := p.LoadTokens()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	p.LoadTokens()
 }
 
 func (p *PageBalanceTokens) LoadTokens() error {
@@ -211,6 +226,10 @@ func (p *PageBalanceTokens) LoadTokens() error {
 	})
 	if err != nil {
 		return err
+	}
+
+	for _, item := range p.tokenItems {
+		item.syncLoop.Close()
 	}
 
 	tokenItems := []*TokenListItem{}
@@ -296,6 +315,8 @@ func (p *PageBalanceTokens) Leave() {
 func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
+	p.syncLoop.SetActive()
+
 	if p.buttonRegister.Clicked(gtx) {
 		page_instance.pageRouter.SetCurrent(PAGE_REGISTER_WALLET)
 		page_instance.header.AddHistory(PAGE_REGISTER_WALLET)
@@ -335,24 +356,20 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	} else {
 		if walletapi.Connected && wallet != nil {
 			nodeSynced := false
-			walletSynced := false
 
-			walletHeight := wallet.Memory.Get_Height()
+			//walletHeight := wallet.Memory.Get_Height()
 			stableHeight := uint64(0)
 			nodeHeight := uint64(0)
-
 			if currentNode.Integrated {
 				nodeStatus := node_status_bar.Instance.IntegratedNodeStatus
 				nodeHeight = uint64(nodeStatus.Height)
 				stableHeight = uint64(nodeStatus.BestHeight)
 				nodeSynced = nodeHeight >= stableHeight-8
-				walletSynced = walletHeight >= stableHeight-8
 			} else {
-				nodeStatus := node_status_bar.Instance.RemoteNodeInfo.Result
+				nodeStatus := node_status_bar.Instance.RemoteNodeInfo
 				nodeHeight = uint64(nodeStatus.Height)
 				stableHeight = uint64(nodeStatus.StableHeight)
 				nodeSynced = nodeHeight >= stableHeight
-				walletSynced = walletHeight >= stableHeight
 			}
 
 			if nodeSynced {
@@ -372,11 +389,6 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 							p.buttonRegister.Style.Colors = theme.Current.ButtonPrimaryColors
 							return p.buttonRegister.Layout(gtx, th)
 						})
-					})
-				} else if !walletSynced {
-					widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-						text := lang.Translate("The wallet is not synced. Please wait and let it sync. The node height is currently {}.")
-						return p.alertBox.Layout(gtx, th, strings.Replace(text, "{}", fmt.Sprint(nodeHeight), -1))
 					})
 				}
 			} else {
@@ -451,24 +463,27 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	{
 		changed, tab := p.txBar.Changed()
 		if changed {
-			switch tab {
-			case "all":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{}
-			case "in":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{
-					In: sql.NullBool{Bool: true, Valid: true},
+			go func() {
+				switch tab {
+				case "all":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{}
+				case "in":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{
+						In: sql.NullBool{Bool: true, Valid: true},
+					}
+				case "out":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{
+						Out: sql.NullBool{Bool: true, Valid: true},
+					}
+				case "coinbase":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{
+						Coinbase: sql.NullBool{Bool: true, Valid: true},
+					}
 				}
-			case "out":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{
-					Out: sql.NullBool{Bool: true, Valid: true},
-				}
-			case "coinbase":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{
-					Coinbase: sql.NullBool{Bool: true, Valid: true},
-				}
-			}
 
-			p.LoadTxs()
+				p.LoadTxs()
+				app_instance.Window.Invalidate()
+			}()
 		}
 	}
 
@@ -585,6 +600,13 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 			})
 		})
 
+		if p.isSyncing {
+			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+				txt := lang.Translate("The wallet is syncing. Please wait for transactions to appear.")
+				return p.alertBox.Layout(gtx, th, txt)
+			})
+		}
+
 		if len(p.txItems) == 0 {
 			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{
@@ -605,7 +627,11 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 					Top: unit.Dp(0), Bottom: unit.Dp(15),
 					Left: theme.PagePadding, Right: theme.PagePadding,
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return p.txItems[idx].Layout(gtx, th)
+					if idx < len(p.txItems) { // p.txItems can be modified by goroutines so we need this check
+						return p.txItems[idx].Layout(gtx, th)
+					}
+
+					return layout.Dimensions{}
 				})
 			})
 		}
@@ -618,8 +644,8 @@ func (p *PageBalanceTokens) Layout(gtx layout.Context, th *material.Theme) layou
 	listStyle := material.List(th, p.list)
 	listStyle.AnchorStrategy = material.Overlay
 
-	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, index int) layout.Dimensions {
-		return widgets[index](gtx)
+	return listStyle.Layout(gtx, len(widgets), func(gtx layout.Context, i int) layout.Dimensions {
+		return widgets[i](gtx)
 	})
 }
 
@@ -919,17 +945,36 @@ type TokenListItem struct {
 	token      *wallet_manager.Token
 	clickable  *widget.Clickable
 	imageHover *prefabs.ImageHoverClick
+	syncLoop   *utils.ForceActiveLoop
 }
 
 func NewTokenListItem(token wallet_manager.Token) *TokenListItem {
-	return &TokenListItem{
+	item := &TokenListItem{
 		token:      &token,
 		imageHover: prefabs.NewImageHoverClick(),
 		clickable:  new(widget.Clickable),
 	}
+
+	item.syncLoop = utils.NewForceActiveLoop(5*time.Second, func() {
+		wallet := wallet_manager.OpenedWallet
+		if wallet == nil {
+			return
+		}
+
+		scId := item.token.GetHash()
+		if !walletapi.IsSyncing(scId) {
+			wallet.Memory.Sync_Wallet_Token(scId)
+		}
+
+		app_instance.Window.Invalidate()
+	})
+
+	return item
 }
 
 func (item *TokenListItem) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	item.syncLoop.SetActive()
+
 	if item.clickable.Clicked(gtx) {
 		page_instance.pageSCToken.SetToken(item.token)
 		page_instance.pageRouter.SetCurrent(PAGE_SC_TOKEN)

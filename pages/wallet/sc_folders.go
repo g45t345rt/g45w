@@ -318,7 +318,6 @@ func (p *PageSCFolders) OpenMenu() {
 
 			for _, item := range p.items {
 				if item.token != nil {
-					wallet.Memory.TokenAdd(item.token.GetHash())
 					wallet.ResetBalanceResult(item.token.SCID)
 				}
 			}

@@ -239,10 +239,10 @@ func (p *PageSCFunction) Layout(gtx layout.Context, th *material.Theme) layout.D
 	})
 
 	for i := range p.scTransferItems {
-		index := i
+		idx := i
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-			if index < len(p.scTransferItems) {
-				return p.scTransferItems[index].Layout(gtx, th, index)
+			if idx < len(p.scTransferItems) { // items can be deleted so we need this check
+				return p.scTransferItems[idx].Layout(gtx, th, idx)
 			}
 
 			return layout.Dimensions{}

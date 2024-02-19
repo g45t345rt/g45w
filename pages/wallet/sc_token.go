@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"strconv"
+	"time"
 
 	"gioui.org/font"
 	"gioui.org/io/clipboard"
@@ -18,7 +19,9 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/rpc"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/app_icons"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/build_tx_modal"
 	"github.com/g45t345rt/g45w/containers/confirm_modal"
@@ -52,9 +55,13 @@ type PageSCToken struct {
 	balanceContainer    *BalanceContainer
 	g45DisplayContainer *G45DisplayContainer
 	buttonCopySCID      *components.Button
+	alertBox            *AlertBox
 
 	token      *wallet_manager.Token
 	scIdEditor *widget.Editor
+
+	syncLoop  *utils.ForceActiveLoop
+	isSyncing bool
 
 	list *widget.List
 }
@@ -96,7 +103,7 @@ func NewPageSCToken() *PageSCToken {
 
 	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SC_TOKEN)
 
-	return &PageSCToken{
+	page := &PageSCToken{
 		headerPageAnimation: headerPageAnimation,
 
 		buttonOpenMenu:      buttonOpenMenu,
@@ -107,9 +114,12 @@ func NewPageSCToken() *PageSCToken {
 		balanceContainer:    balanceContainer,
 		g45DisplayContainer: g45DisplayContainer,
 		buttonCopySCID:      buttonCopySCID,
+		alertBox:            NewAlertBox(),
 
 		list: list,
 	}
+
+	return page
 }
 
 func (p *PageSCToken) IsActive() bool {
@@ -117,10 +127,26 @@ func (p *PageSCToken) IsActive() bool {
 }
 
 func (p *PageSCToken) Enter() {
-	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
+	p.syncLoop = utils.NewForceActiveLoop(5*time.Second, func() {
+		wallet := wallet_manager.OpenedWallet
+		if wallet == nil || p.token == nil {
+			return
+		}
 
-	wallet := wallet_manager.OpenedWallet
-	wallet.Memory.TokenAdd(p.token.GetHash()) // we don't check error because the only possible error is if the token was already added
+		scId := p.token.GetHash()
+		changed := p.isSyncing != walletapi.IsSyncing(scId)
+		if changed || p.isSyncing {
+			p.isSyncing = walletapi.IsSyncing(scId)
+			p.LoadTxs()
+			app_instance.Window.Invalidate()
+		}
+
+		if !p.isSyncing {
+			wallet.Memory.Sync_Wallet_Token(scId)
+		}
+	})
+
+	p.isActive = p.headerPageAnimation.Enter(page_instance.header)
 
 	p.tokenInfo = NewTokenInfoList(p.token)
 
@@ -181,6 +207,7 @@ func (p *PageSCToken) Enter() {
 }
 
 func (p *PageSCToken) Leave() {
+	p.syncLoop.Close()
 	p.isActive = p.headerPageAnimation.Leave(page_instance.header)
 }
 
@@ -439,27 +466,32 @@ func (p *PageSCToken) SetToken(token *wallet_manager.Token) {
 func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
+	p.syncLoop.SetActive()
+
 	{
 		changed, tab := p.txBar.Changed()
 		if changed {
-			switch tab {
-			case "all":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{}
-			case "in":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{
-					In: sql.NullBool{Bool: true, Valid: true},
+			go func() {
+				switch tab {
+				case "all":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{}
+				case "in":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{
+						In: sql.NullBool{Bool: true, Valid: true},
+					}
+				case "out":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{
+						Out: sql.NullBool{Bool: true, Valid: true},
+					}
+				case "coinbase":
+					p.getEntriesParams = wallet_manager.GetEntriesParams{
+						Coinbase: sql.NullBool{Bool: true, Valid: true},
+					}
 				}
-			case "out":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{
-					Out: sql.NullBool{Bool: true, Valid: true},
-				}
-			case "coinbase":
-				p.getEntriesParams = wallet_manager.GetEntriesParams{
-					Coinbase: sql.NullBool{Bool: true, Valid: true},
-				}
-			}
 
-			p.LoadTxs()
+				p.LoadTxs()
+				app_instance.Window.Invalidate()
+			}()
 		}
 	}
 
@@ -510,6 +542,15 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 			return p.txBar.Layout(gtx, th)
 		})
 
+		if p.token != nil {
+			if p.isSyncing {
+				widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+					txt := lang.Translate("The wallet is syncing. Please wait for transactions to appear.")
+					return p.alertBox.Layout(gtx, th, txt)
+				})
+			}
+		}
+
 		if len(p.txItems) == 0 {
 			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 				lbl := material.Label(th, unit.Sp(16), lang.Translate("You don't have any txs. Try adjusting filtering options or wait for wallet to sync."))
@@ -521,7 +562,11 @@ func (p *PageSCToken) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		for i := range p.txItems {
 			idx := i
 			widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-				return p.txItems[idx].Layout(gtx, th)
+				if idx < len(p.txItems) {
+					return p.txItems[idx].Layout(gtx, th)
+				}
+
+				return layout.Dimensions{}
 			})
 		}
 	}

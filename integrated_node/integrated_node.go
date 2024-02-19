@@ -13,7 +13,6 @@ import (
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/metrics"
 	"github.com/deroproject/derohe/p2p"
-	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/utils"
 )
@@ -112,10 +111,37 @@ type NodeStatus struct {
 	TimeOffset    time.Duration
 	TimeOffsetNTP time.Duration
 	TimeOffsetP2P time.Duration
-
-	isActive bool
 }
 
+func GetStatus() (n NodeStatus) {
+	if Chain == nil {
+		return
+	}
+
+	n.Height = Chain.Get_Height()
+	bestHeight, _ := p2p.Best_Peer_Height()
+	n.StableHeight = Chain.Get_Stable_Height()
+	n.BestHeight = bestHeight
+	//topo_height := chain.Load_TOPO_HEIGHT()
+
+	n.MemCount = len(Chain.Mempool.Mempool_List_TX())
+	n.RegCount = len(Chain.Regpool.Regpool_List_TX())
+
+	//p2p.PeerList_Print()
+	//n.PeerCount = p2p.Peer_Count()
+	in, out := p2p.Peer_Direction_Count()
+	n.PeerInCount = in
+	n.PeerOutCount = out
+
+	n.NetworkHashRate = Chain.Get_Network_HashRate()
+
+	n.TimeOffset = globals.GetOffset().Round(time.Millisecond)
+	n.TimeOffsetNTP = globals.GetOffsetNTP().Round(time.Millisecond)
+	n.TimeOffsetP2P = globals.GetOffsetP2P().Round(time.Millisecond)
+	return
+}
+
+/*
 func NewNodeStatus(d time.Duration) *NodeStatus {
 	nodeStatus := &NodeStatus{isActive: false}
 	ticker := time.NewTicker(d)
@@ -135,7 +161,7 @@ func NewNodeStatus(d time.Duration) *NodeStatus {
 	return nodeStatus
 }
 
-func (n *NodeStatus) Active() {
+func (n *NodeStatus) SetActive() {
 	n.isActive = true
 }
 
@@ -193,7 +219,7 @@ func NewNodeSize(d time.Duration) *NodeSize {
 	return nodedSize
 }
 
-func (n *NodeSize) Active() {
+func (n *NodeSize) SetActive() {
 	n.isActive = true
 }
 
@@ -202,3 +228,4 @@ func (n *NodeSize) update() {
 	size, _ := utils.GetFolderSize(nodeDir)
 	n.Size = size
 }
+*/

@@ -135,9 +135,12 @@ func (p *PageXSWDManage) Layout(gtx layout.Context, th *material.Theme) layout.D
 	if xswd != nil && xswd.IsRunning() {
 		if len(p.apps) > 0 {
 			for i := range p.apps {
-				app := p.apps[i]
+				idx := i
 				widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-					return app.Layout(gtx, th)
+					if idx < len(p.apps) {
+						return p.apps[idx].Layout(gtx, th)
+					}
+					return layout.Dimensions{}
 				})
 			}
 		} else {

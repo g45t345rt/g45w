@@ -35,8 +35,13 @@ type PageRemoteNode struct {
 	buttonReconnect  *components.Button
 	buttonDisconnect *components.Button
 	buttonDeselect   *components.Button
-	nodeInfo         *RemoteNodeInfo
-	connecting       bool
+
+	updateInfo   func()
+	nodeInfoLoop *utils.ForceActiveLoop
+	nodeInfo     rpc.GetInfo_Result
+	nodeErr      error
+
+	connecting bool
 
 	list *widget.List
 }
@@ -83,16 +88,27 @@ func NewPageRemoteNode() *PageRemoteNode {
 	buttonDeselect.Label.Alignment = text.Middle
 	buttonDeselect.Style.Font.Weight = font.Bold
 
-	nodeInfo := NewRemoteNodeInfo(3 * time.Second)
 	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_REMOTE_NODE)
-	return &PageRemoteNode{
+	page := &PageRemoteNode{
 		headerPageAnimation: headerPageAnimation,
-		nodeInfo:            nodeInfo,
 		buttonReconnect:     buttonReconnect,
 		buttonDisconnect:    buttonDisconnect,
 		buttonDeselect:      buttonDeselect,
 		list:                list,
 	}
+
+	page.updateInfo = func() {
+		rpcClient := walletapi.GetRPCClient()
+		if rpcClient.RPC == nil {
+			return
+		}
+
+		page.nodeErr = rpcClient.Call("DERO.GetInfo", nil, &page.nodeInfo)
+		app_instance.Window.Invalidate()
+	}
+
+	page.nodeInfoLoop = utils.NewForceActiveLoop(3*time.Second, page.updateInfo)
+	return page
 }
 
 func (p *PageRemoteNode) IsActive() bool {
@@ -116,7 +132,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		return layout.Dimensions{}
 	}
 
-	p.nodeInfo.Active()
+	p.nodeInfoLoop.SetActive()
 
 	if p.buttonReconnect.Clicked(gtx) {
 		p.reconnect()
@@ -174,7 +190,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 		return dims
 	})
 
-	if p.nodeInfo.Err != nil {
+	if p.nodeErr != nil {
 		widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -184,7 +200,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(2)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					lbl := material.Label(th, unit.Sp(16), p.nodeInfo.Err.Error())
+					lbl := material.Label(th, unit.Sp(16), p.nodeErr.Error())
 					return lbl.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(15)}.Layout),
@@ -210,7 +226,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 					return label.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					status := fmt.Sprintf("%d / %d", p.nodeInfo.Result.StableHeight, p.nodeInfo.Result.Height)
+					status := fmt.Sprintf("%d / %d", p.nodeInfo.StableHeight, p.nodeInfo.Height)
 					label := material.Label(th, unit.Sp(22), status)
 					return label.Layout(gtx)
 				}),
@@ -222,8 +238,8 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 					return label.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					inc := p.nodeInfo.Result.Incoming_connections_count
-					out := p.nodeInfo.Result.Outgoing_connections_count
+					inc := p.nodeInfo.Incoming_connections_count
+					out := p.nodeInfo.Outgoing_connections_count
 					status := fmt.Sprintf("%d / %d", inc, out)
 					label := material.Label(th, unit.Sp(22), status)
 					return label.Layout(gtx)
@@ -236,7 +252,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 					return label.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					diff := p.nodeInfo.Result.Difficulty
+					diff := p.nodeInfo.Difficulty
 					status := utils.FormatHashRate(diff)
 					label := material.Label(th, unit.Sp(22), status)
 					return label.Layout(gtx)
@@ -249,7 +265,7 @@ func (p *PageRemoteNode) Layout(gtx layout.Context, th *material.Theme) layout.D
 					return label.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					version := p.nodeInfo.Result.Version
+					version := p.nodeInfo.Version
 					label := material.Label(th, unit.Sp(16), version)
 					return label.Layout(gtx)
 				}),
@@ -310,8 +326,7 @@ func (p *PageRemoteNode) reconnect() {
 				Text:  err.Error(),
 			})
 		} else {
-			p.nodeInfo.Update()
-			app_instance.Window.Invalidate()
+			p.updateInfo()
 			notification_modal.Open(notification_modal.Params{
 				Type:       notification_modal.SUCCESS,
 				Title:      lang.Translate("Success"),
@@ -322,6 +337,7 @@ func (p *PageRemoteNode) reconnect() {
 	}()
 }
 
+/*
 type RemoteNodeInfo struct {
 	Result rpc.GetInfo_Result
 	Err    error
@@ -348,7 +364,7 @@ func NewRemoteNodeInfo(d time.Duration) *RemoteNodeInfo {
 	return nodeInfo
 }
 
-func (n *RemoteNodeInfo) Active() {
+func (n *RemoteNodeInfo) SetActive() {
 	n.isActive = true
 }
 
@@ -360,3 +376,4 @@ func (n *RemoteNodeInfo) Update() {
 
 	n.Err = rpcClient.Call("DERO.GetInfo", nil, &n.Result)
 }
+*/

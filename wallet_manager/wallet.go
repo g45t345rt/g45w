@@ -98,6 +98,7 @@ open_wallet:
 	}
 
 	memory.SetNetwork(globals.IsMainnet())
+	//memory.SetOnlineMode()
 
 	CloseOpenedWallet()
 	dbPath := filepath.Join(walletsDir, addr, "data.db")
@@ -144,6 +145,7 @@ open_wallet:
 		return err
 	}
 
+	go wallet.sync_dero_loop()
 	OpenedWallet = wallet
 	return nil
 }
@@ -600,4 +602,16 @@ func (w *Wallet) GetTxDestination(entry Entry) string {
 	}
 
 	return entry.Destination
+}
+
+func (w *Wallet) sync_dero_loop() {
+	for {
+		select {
+		case <-w.Memory.Quit:
+			return
+		default:
+			w.Memory.Sync_Wallet_Dero()
+			time.Sleep(5 * time.Second)
+		}
+	}
 }

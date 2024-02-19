@@ -57,8 +57,8 @@ github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD88=
 github.com/fxamacker/cbor/v2 v2.4.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
-github.com/g45t345rt/derohe v0.0.0-20240209005504-0d0ebde4a0b3 h1:7C5ZSC2zX4HYFb8pr16wgldytje+c+FJ0cUoobEfBx4=
-github.com/g45t345rt/derohe v0.0.0-20240209005504-0d0ebde4a0b3/go.mod h1:EWHh1VkXRnCHvyGML98kXhngDFYebmOhk/9kZ1ATJ1c=
+github.com/g45t345rt/derohe v0.0.0-20240219223108-1627ba777d21 h1:BM7gyYGFXKdPQjF6CS/tkwTICp7W/lmehpV0Ld5ly6c=
+github.com/g45t345rt/derohe v0.0.0-20240219223108-1627ba777d21/go.mod h1:EWHh1VkXRnCHvyGML98kXhngDFYebmOhk/9kZ1ATJ1c=
 github.com/g45t345rt/gio v0.0.0-20240122184612-c525c77eb0c7 h1:ao26fRPFbsw2q/a448IGdQOrZFtXo0qLCnRqfUWXchA=
 github.com/g45t345rt/gio v0.0.0-20240122184612-c525c77eb0c7/go.mod h1:2atiYR4upH71/6ehnh6XsUELa7JZOrOHHNMDxGBZF0Q=
 github.com/g45t345rt/gio-x v0.0.0-20230919164904-d758e00e2b78 h1:K61Povf1yc0aFbTbNWYrOkS3h2RQa3jnKYK6e+AuP6A=

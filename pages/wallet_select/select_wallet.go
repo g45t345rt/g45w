@@ -252,8 +252,8 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 				password_modal.Instance.SetLoading(false)
 
 				if err == nil {
-					wallet := wallet_manager.OpenedWallet
-					wallet.Memory.SetOnlineMode()
+					//wallet := wallet_manager.OpenedWallet
+					//wallet.Memory.SetOnlineMode()
 					password_modal.Instance.SetVisible(false)
 					// important reset wallet pages to initial state
 					app_instance.Router.Pages[pages.PAGE_WALLET] = page_wallet.New()

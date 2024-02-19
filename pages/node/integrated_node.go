@@ -11,6 +11,7 @@ import (
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/prefabs"
 	"github.com/g45t345rt/g45w/router"
+	"github.com/g45t345rt/g45w/settings"
 	"github.com/g45t345rt/g45w/theme"
 	"github.com/g45t345rt/g45w/utils"
 )
@@ -19,19 +20,32 @@ type PageIntegratedNode struct {
 	isActive            bool
 	headerPageAnimation *prefabs.PageHeaderAnimation
 
-	nodeSize   *integrated_node.NodeSize
-	nodeStatus *integrated_node.NodeStatus
+	nodeStatus     integrated_node.NodeStatus
+	nodeStatusLoop *utils.ForceActiveLoop
+	nodeSize       int64
+	nodeSizeLoop   *utils.ForceActiveLoop
 }
 
 var _ router.Page = &PageIntegratedNode{}
 
 func NewPageIntegratedNode() *PageIntegratedNode {
 	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_INTEGRATED_NODE)
-	return &PageIntegratedNode{
+
+	page := &PageIntegratedNode{
 		headerPageAnimation: headerPageAnimation,
-		nodeSize:            integrated_node.NewNodeSize(10 * time.Second),
-		nodeStatus:          integrated_node.NewNodeStatus(1 * time.Second),
 	}
+
+	page.nodeStatusLoop = utils.NewForceActiveLoop(1*time.Second, func() {
+		page.nodeStatus = integrated_node.GetStatus()
+	})
+
+	page.nodeSizeLoop = utils.NewForceActiveLoop(10*time.Second, func() {
+		nodeDir := settings.IntegratedNodeDir
+		size, _ := utils.GetFolderSize(nodeDir)
+		page.nodeSize = size
+	})
+
+	return page
 }
 
 func (p *PageIntegratedNode) IsActive() bool {
@@ -50,8 +64,8 @@ func (p *PageIntegratedNode) Leave() {
 func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	defer p.headerPageAnimation.Update(gtx, func() { p.isActive = false }).Push(gtx.Ops).Pop()
 
-	p.nodeStatus.Active()
-	p.nodeSize.Active()
+	p.nodeStatusLoop.SetActive()
+	p.nodeSizeLoop.SetActive()
 
 	return layout.Inset{
 		Top: unit.Dp(0), Bottom: unit.Dp(30),
@@ -120,7 +134,7 @@ func (p *PageIntegratedNode) Layout(gtx layout.Context, th *material.Theme) layo
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				value := utils.FormatBytes(p.nodeSize.Size)
+				value := utils.FormatBytes(p.nodeSize)
 				label := material.Label(th, unit.Sp(22), value)
 				return label.Layout(gtx)
 			}),

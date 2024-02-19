@@ -13,14 +13,16 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/deroproject/derohe/rpc"
+	"github.com/deroproject/derohe/walletapi"
 	"github.com/g45t345rt/g45w/animation"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/integrated_node"
 	"github.com/g45t345rt/g45w/lang"
 	"github.com/g45t345rt/g45w/node_manager"
 	"github.com/g45t345rt/g45w/pages"
-	page_node "github.com/g45t345rt/g45w/pages/node"
 	"github.com/g45t345rt/g45w/theme"
+	"github.com/g45t345rt/g45w/utils"
 	"github.com/g45t345rt/g45w/wallet_manager"
 	"github.com/tanema/gween"
 	"github.com/tanema/gween/ease"
@@ -28,36 +30,50 @@ import (
 
 type NodeStatusBar struct {
 	clickable            *widget.Clickable
-	IntegratedNodeStatus *integrated_node.NodeStatus
-	RemoteNodeInfo       *page_node.RemoteNodeInfo
-	pulseAnimation       *animation.Animation
+	IntegratedNodeStatus integrated_node.NodeStatus
+	RemoteNodeInfo       rpc.GetInfo_Result
+	RemoteNodeErr        error
+
+	integratedNodeLoop *utils.ForceActiveLoop
+	remoteNodeLoop     *utils.ForceActiveLoop
+
+	pulseAnimation *animation.Animation
 }
 
 var Instance *NodeStatusBar
 
 func LoadInstance() *NodeStatusBar {
 	nodeStatusBar := &NodeStatusBar{
-		clickable:            new(widget.Clickable),
-		IntegratedNodeStatus: integrated_node.NewNodeStatus(1 * time.Second),
-		RemoteNodeInfo:       page_node.NewRemoteNodeInfo(3 * time.Second),
+		clickable: new(widget.Clickable),
 		pulseAnimation: animation.NewAnimation(false, gween.NewSequence(
 			gween.New(1, .7, .5, ease.OutBounce),
 			gween.New(.7, 1, .5, ease.InBounce),
 		)),
 	}
+
+	nodeStatusBar.integratedNodeLoop = utils.NewForceActiveLoop(1*time.Second, func() {
+		if integrated_node.Running {
+			nodeStatusBar.IntegratedNodeStatus = integrated_node.GetStatus()
+			app_instance.Window.Invalidate()
+		}
+	})
+
+	nodeStatusBar.remoteNodeLoop = utils.NewForceActiveLoop(3*time.Second, func() {
+		if integrated_node.Running {
+			return
+		}
+
+		rpcClient := walletapi.GetRPCClient()
+		if rpcClient.RPC == nil {
+			return
+		}
+
+		nodeStatusBar.RemoteNodeErr = rpcClient.Call("DERO.GetInfo", nil, &nodeStatusBar.RemoteNodeInfo)
+		app_instance.Window.Invalidate()
+	})
+
 	Instance = nodeStatusBar
 	return nodeStatusBar
-}
-
-func (n *NodeStatusBar) Update() {
-	currentNode := node_manager.CurrentNode
-	if currentNode != nil {
-		if currentNode.Integrated {
-			n.IntegratedNodeStatus.Update()
-		} else {
-			n.RemoteNodeInfo.Update()
-		}
-	}
 }
 
 func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -78,7 +94,7 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	if currentNode != nil {
 		if currentNode.Integrated {
-			n.IntegratedNodeStatus.Active()
+			n.integratedNodeLoop.SetActive()
 
 			//height := n.integratedNodeStatus.Height
 			//bestHeight := n.integratedNodeStatus.BestHeight
@@ -95,13 +111,13 @@ func (n *NodeStatusBar) Layout(gtx layout.Context, th *material.Theme) layout.Di
 			nodeName = lang.Translate("Integrated Node")
 			status = fmt.Sprintf("%d / %d", walletHeight, daemonHeight)
 		} else {
-			n.RemoteNodeInfo.Active()
+			n.remoteNodeLoop.SetActive()
 			walletHeight := wallet.Memory.Get_Height()
 			daemonHeight := wallet.Memory.Get_Daemon_Height()
 			//out := n.RemoteNodeInfo.Result.Outgoing_connections_count
 			nodeName = currentNode.Name
 
-			if n.RemoteNodeInfo.Err == nil {
+			if n.RemoteNodeErr == nil {
 				if walletHeight < daemonHeight {
 					statusDotColor = theme.Current.NodeStatusDotYellowColor //color.NRGBA{R: 255, G: 255, B: 0, A: 255}
 				} else {
