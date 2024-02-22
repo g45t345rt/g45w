@@ -14,7 +14,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v4
       with:
-        go-version: 1.19.10
+        go-version: 1.21.6
 
     - name: Install gogio tool
       run: go install github.com/g45t345rt/gio-cmd/gogio@latest
