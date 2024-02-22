@@ -16,15 +16,18 @@ OUTPUT="./build/g45w_${GOOS}_${GOARCH}"
 
 source ./build_vars.sh
 
+if [ ! $MIN_SDK ]; then
+  MIN_SDK=0
+fi
+
 if [ $GOOS = "windows" ]; then
   OUTPUT+=".exe"
 fi
 
 if [ $GOOS = "android" ]; then
-  if [ ! $MIN_SDK ]; then
+  if [ $MIN_SDK -eq 0 ]; then
     MIN_SDK=21 # https://en.wikipedia.org/wiki/Android_version_history
   fi
-  echo "MIN_SDK: ${MIN_SDK}"
   OUTPUT+=".apk"
 fi
 
@@ -57,4 +60,5 @@ fi
 #	signKey       = flag.String("signkey", "", "specify the path of the keystore to be used to sign Android apk files.")
 #	signPass      = flag.String("signpass", "", "specify the password to decrypt the signkey.")
 
+echo "MIN_SDK: ${MIN_SDK}"
 gogio -name $NAME -target $GOOS -arch $GOARCH -minsdk $MIN_SDK -x -ldflags "$FLAGS" -appid $APPID -version $VERSION -o "$OUTPUT" .
