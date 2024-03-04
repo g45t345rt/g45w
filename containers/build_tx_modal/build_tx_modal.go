@@ -78,6 +78,13 @@ func (t TxPayload) TotalTokensAmount() map[crypto.Hash]uint64 {
 	return tokensAmount
 }
 
+type ActionStatus string
+
+var (
+	Sent   ActionStatus = "sent"
+	Closed ActionStatus = "closed"
+)
+
 type BuildTxModal struct {
 	modal            *components.Modal
 	buttonSend       *components.Button
@@ -90,6 +97,8 @@ type BuildTxModal struct {
 	gasFees    uint64
 
 	txPayload TxPayload
+
+	ActionStatusChan chan ActionStatus
 }
 
 var Instance *BuildTxModal
@@ -141,6 +150,7 @@ func LoadInstance() {
 		loadingIcon:      loadingIcon,
 		animationLoading: animationLoading,
 		buttonClose:      buttonClose,
+		ActionStatusChan: make(chan ActionStatus),
 	}
 
 	app_instance.Router.AddLayout(router.KeyLayout{
@@ -157,12 +167,13 @@ func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr str
 	randomAddr, err := wallet.GetRandomAddress(scId)
 	time.Sleep(1 * time.Second)
 	if err != nil {
-		b.modal.SetVisible(false)
+		b.Close(Closed)
 		notification_modal.Open(notification_modal.Params{
 			Type:  notification_modal.ERROR,
 			Title: lang.Translate("Error"),
 			Text:  err.Error(),
 		})
+		return
 	}
 
 	txPayload := onLoad(randomAddr)
@@ -202,15 +213,17 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 	err := loadFees()
 	time.Sleep(1 * time.Second)
 	if err != nil {
-		b.modal.SetVisible(false)
+		b.Close(Closed)
 		notification_modal.Open(notification_modal.Params{
 			Type:  notification_modal.ERROR,
 			Title: lang.Translate("Error"),
 			Text:  err.Error(),
 		})
-	} else {
-		b.SetLoadStatus("")
+
+		return
 	}
+
+	b.SetLoadStatus("")
 }
 
 func (b *BuildTxModal) SetLoadStatus(status string) {
@@ -222,6 +235,11 @@ func (b *BuildTxModal) SetLoadStatus(status string) {
 
 	b.loadStatus = status
 	app_instance.Window.Invalidate()
+}
+
+func (b *BuildTxModal) Close(actionStatus ActionStatus) {
+	b.modal.SetVisible(false)
+	b.ActionStatusChan <- actionStatus
 }
 
 func (b *BuildTxModal) buildAndSendTx() {
@@ -251,14 +269,15 @@ func (b *BuildTxModal) buildAndSendTx() {
 
 	err := buildAndSend()
 	b.buttonSend.SetLoading(false)
-	b.modal.SetVisible(false)
 	if err != nil {
+		b.Close(Closed)
 		notification_modal.Open(notification_modal.Params{
 			Type:  notification_modal.ERROR,
 			Title: lang.Translate("Error"),
 			Text:  err.Error(),
 		})
 	} else {
+		b.Close(Sent)
 		recent_txs_modal.Instance.SetVisible(true)
 	}
 
@@ -273,7 +292,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 	}
 
 	if b.buttonClose.Clicked(gtx) {
-		b.modal.SetVisible(false)
+		b.Close(Closed)
 	}
 
 	submitted, password := password_modal.Instance.Input.Submitted()

@@ -353,7 +353,13 @@ func (p *Page) OpenXSWD() error {
 				Description: description,
 			})
 
-			return xswd.Deny
+			actionStatus := <-build_tx_modal.Instance.ActionStatusChan
+			switch actionStatus {
+			case build_tx_modal.Sent:
+				return xswd.Allow
+			case build_tx_modal.Closed:
+				return xswd.Deny
+			}
 		}
 
 		permChan := xswd_perm_modal.Instance.Open(appData, req)
