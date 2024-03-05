@@ -267,15 +267,17 @@ func (p *PageDEXSwap) submitForm() error {
 
 	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(randomAddr string) build_tx_modal.TxPayload {
 		return build_tx_modal.TxPayload{
-			SCArgs: rpc.Arguments{
-				{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-				{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(p.pair.SCID)},
-				{Name: "entrypoint", DataType: rpc.DataString, Value: "Swap"},
+			Transfer: rpc.Transfer_Params{
+				SC_RPC: rpc.Arguments{
+					{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+					{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(p.pair.SCID)},
+					{Name: "entrypoint", DataType: rpc.DataString, Value: "Swap"},
+				},
+				Transfers: []rpc.Transfer{
+					rpc.Transfer{SCID: token1.GetHash(), Burn: amount.Number, Destination: randomAddr},
+				},
+				Ringsize: 2,
 			},
-			Transfers: []rpc.Transfer{
-				rpc.Transfer{SCID: token1.GetHash(), Burn: amount.Number, Destination: randomAddr},
-			},
-			Ringsize:   2,
 			TokensInfo: []*wallet_manager.Token{token1},
 		}
 	})

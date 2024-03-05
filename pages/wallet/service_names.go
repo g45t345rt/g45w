@@ -221,12 +221,14 @@ func (p *PageServiceNames) submitForm() error {
 	}
 
 	build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
-		Ringsize: 2,
-		SCArgs: rpc.Arguments{
-			{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-			{Name: rpc.SCID, DataType: rpc.DataHash, Value: SERVICE_NAME_SCID},
-			{Name: "entrypoint", DataType: rpc.DataString, Value: "Register"},
-			{Name: "name", DataType: rpc.DataString, Value: name},
+		Transfer: rpc.Transfer_Params{
+			Ringsize: 2,
+			SC_RPC: rpc.Arguments{
+				{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+				{Name: rpc.SCID, DataType: rpc.DataHash, Value: SERVICE_NAME_SCID},
+				{Name: "entrypoint", DataType: rpc.DataString, Value: "Register"},
+				{Name: "name", DataType: rpc.DataString, Value: name},
+			},
 		},
 	})
 

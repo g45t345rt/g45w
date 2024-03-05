@@ -189,9 +189,11 @@ func (p *PageSCFunction) execute() {
 		}
 
 		return build_tx_modal.TxPayload{
-			SCArgs:    args,
-			Transfers: transfers,
-			Ringsize:  2,
+			Transfer: rpc.Transfer_Params{
+				SC_RPC:    args,
+				Transfers: transfers,
+				Ringsize:  2,
+			},
 			//TokensInfo: []*wallet_manager.Token{token1, token2},
 		}
 	})

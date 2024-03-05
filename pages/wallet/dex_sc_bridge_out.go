@@ -139,17 +139,19 @@ func (p *PageDEXSCBridgeOut) submitForm() error {
 
 	build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(randomAddr string) build_tx_modal.TxPayload {
 		return build_tx_modal.TxPayload{
-			SCArgs: rpc.Arguments{
-				{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-				{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(p.token.SCID)},
-				{Name: "entrypoint", DataType: rpc.DataString, Value: "Bridge"},
-				{Name: "eth_addr", DataType: rpc.DataString, Value: ethAddr},
+			Transfer: rpc.Transfer_Params{
+				SC_RPC: rpc.Arguments{
+					{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+					{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(p.token.SCID)},
+					{Name: "entrypoint", DataType: rpc.DataString, Value: "Bridge"},
+					{Name: "eth_addr", DataType: rpc.DataString, Value: ethAddr},
+				},
+				Transfers: []rpc.Transfer{
+					rpc.Transfer{SCID: p.token.GetHash(), Burn: amount.Number, Destination: randomAddr},
+					rpc.Transfer{SCID: crypto.ZEROHASH, Burn: p.deroBridgeFee, Destination: randomAddr},
+				},
+				Ringsize: uint64(p.ringSizeSelector.Size),
 			},
-			Transfers: []rpc.Transfer{
-				rpc.Transfer{SCID: p.token.GetHash(), Burn: amount.Number, Destination: randomAddr},
-				rpc.Transfer{SCID: crypto.ZEROHASH, Burn: p.deroBridgeFee, Destination: randomAddr},
-			},
-			Ringsize:   uint64(p.ringSizeSelector.Size),
 			TokensInfo: []*wallet_manager.Token{p.token},
 		}
 	})

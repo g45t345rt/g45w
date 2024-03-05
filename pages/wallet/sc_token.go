@@ -343,14 +343,16 @@ func (p *PageSCToken) OpenMenu() {
 			scId := p.token.GetHash()
 			build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string) build_tx_modal.TxPayload {
 				return build_tx_modal.TxPayload{
-					Transfers: []rpc.Transfer{
-						{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
-					},
-					Ringsize: 2,
-					SCArgs: rpc.Arguments{
-						{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-						{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-						{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
+					Transfer: rpc.Transfer_Params{
+						Transfers: []rpc.Transfer{
+							{SCID: scId, Destination: randomAddr, Burn: uint64(1)},
+						},
+						Ringsize: 2,
+						SC_RPC: rpc.Arguments{
+							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+							{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayNFT"},
+						},
 					},
 					TokensInfo: []*wallet_manager.Token{p.token},
 				}
@@ -358,11 +360,13 @@ func (p *PageSCToken) OpenMenu() {
 		case "g45_retrieve_nft":
 			scId := p.token.GetHash()
 			build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
-				Ringsize: 2,
-				SCArgs: rpc.Arguments{
-					{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-					{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-					{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveNFT"},
+				Transfer: rpc.Transfer_Params{
+					Ringsize: 2,
+					SC_RPC: rpc.Arguments{
+						{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+						{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+						{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveNFT"},
+					},
 				},
 			})
 		case "g45_display_token":
@@ -377,14 +381,16 @@ func (p *PageSCToken) OpenMenu() {
 				scId := p.token.GetHash()
 				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string) build_tx_modal.TxPayload {
 					return build_tx_modal.TxPayload{
-						Transfers: []rpc.Transfer{
-							{SCID: scId, Destination: randomAddr, Burn: amount.Number},
-						},
-						Ringsize: 2,
-						SCArgs: rpc.Arguments{
-							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-							{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
+						Transfer: rpc.Transfer_Params{
+							Transfers: []rpc.Transfer{
+								{SCID: scId, Destination: randomAddr, Burn: amount.Number},
+							},
+							Ringsize: 2,
+							SC_RPC: rpc.Arguments{
+								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+								{Name: "entrypoint", DataType: rpc.DataString, Value: "DisplayToken"},
+							},
 						},
 						TokensInfo: []*wallet_manager.Token{p.token},
 					}
@@ -402,12 +408,14 @@ func (p *PageSCToken) OpenMenu() {
 				scId := p.token.GetHash()
 				build_tx_modal.Instance.OpenWithRandomAddr(scId, func(randomAddr string) build_tx_modal.TxPayload {
 					return build_tx_modal.TxPayload{
-						Ringsize: 2,
-						SCArgs: rpc.Arguments{
-							{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
-							{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
-							{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
-							{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
+						Transfer: rpc.Transfer_Params{
+							Ringsize: 2,
+							SC_RPC: rpc.Arguments{
+								{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)},
+								{Name: rpc.SCID, DataType: rpc.DataHash, Value: scId},
+								{Name: "entrypoint", DataType: rpc.DataString, Value: "RetrieveToken"},
+								{Name: "amount", DataType: rpc.DataUint64, Value: amount.Number},
+							},
 						},
 					}
 				})

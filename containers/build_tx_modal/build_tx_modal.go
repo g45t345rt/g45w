@@ -1,6 +1,7 @@
 package build_tx_modal
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -31,13 +32,19 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
+type ActionStatus string
+
+var (
+	Sent   ActionStatus = "sent"
+	Closed ActionStatus = "closed"
+)
+
 type TxPayload struct {
-	Description string
-	Transfers   []rpc.Transfer
-	Ringsize    uint64
-	SCArgs      rpc.Arguments
-	Note        string
-	TokensInfo  []*wallet_manager.Token
+	Transfer     rpc.Transfer_Params
+	Description  string
+	Note         string
+	TokensInfo   []*wallet_manager.Token
+	ActionStatus chan ActionStatus
 }
 
 func (t TxPayload) GetTokenInfo(scId crypto.Hash) *wallet_manager.Token {
@@ -52,7 +59,7 @@ func (t TxPayload) GetTokenInfo(scId crypto.Hash) *wallet_manager.Token {
 
 func (t TxPayload) TotalDeroAmount() uint64 {
 	totalDero := uint64(0)
-	for _, transfer := range t.Transfers {
+	for _, transfer := range t.Transfer.Transfers {
 		if transfer.SCID.IsZero() {
 			totalDero += transfer.Amount + transfer.Burn
 		}
@@ -64,7 +71,7 @@ func (t TxPayload) TotalDeroAmount() uint64 {
 func (t TxPayload) TotalTokensAmount() map[crypto.Hash]uint64 {
 	tokensAmount := make(map[crypto.Hash]uint64)
 
-	for _, transfer := range t.Transfers {
+	for _, transfer := range t.Transfer.Transfers {
 		if !transfer.SCID.IsZero() {
 			_, ok := tokensAmount[transfer.SCID]
 			if !ok {
@@ -78,13 +85,6 @@ func (t TxPayload) TotalTokensAmount() map[crypto.Hash]uint64 {
 	return tokensAmount
 }
 
-type ActionStatus string
-
-var (
-	Sent   ActionStatus = "sent"
-	Closed ActionStatus = "closed"
-)
-
 type BuildTxModal struct {
 	modal            *components.Modal
 	buttonSend       *components.Button
@@ -97,8 +97,6 @@ type BuildTxModal struct {
 	gasFees    uint64
 
 	txPayload TxPayload
-
-	ActionStatusChan chan ActionStatus
 }
 
 var Instance *BuildTxModal
@@ -150,13 +148,59 @@ func LoadInstance() {
 		loadingIcon:      loadingIcon,
 		animationLoading: animationLoading,
 		buttonClose:      buttonClose,
-		ActionStatusChan: make(chan ActionStatus),
 	}
 
 	app_instance.Router.AddLayout(router.KeyLayout{
 		DrawIndex: 2,
 		Layout:    Instance.layout,
 	})
+}
+
+func FormatSCInvoke(p rpc.SC_Invoke_Params, randomAddr string) (t rpc.Transfer_Params) {
+	if p.SC_DERO_Deposit > 0 {
+		t.Transfers = append(t.Transfers, rpc.Transfer{Destination: randomAddr, Amount: 0, Burn: p.SC_DERO_Deposit})
+	}
+	if p.SC_TOKEN_Deposit > 0 {
+		scid := crypto.HashHexToHash(p.SC_ID)
+		t.Transfers = append(t.Transfers, rpc.Transfer{SCID: scid, Amount: 0, Burn: p.SC_TOKEN_Deposit})
+	}
+	t.SC_RPC = p.SC_RPC
+	t.SC_ID = p.SC_ID
+	t.Ringsize = p.Ringsize
+	return
+}
+
+func FormatTransfer(p rpc.Transfer_Params) (rpc.Transfer_Params, error) {
+	for _, t := range p.Transfers {
+		_, err := t.Payload_RPC.CheckPack(transaction.PAYLOAD0_LIMIT)
+		if err != nil {
+			return p, err
+		}
+	}
+
+	if len(p.SC_Code) >= 1 {
+		sc, err := base64.StdEncoding.DecodeString(p.SC_Code)
+		if err != nil {
+			return p, err
+		}
+
+		p.SC_Code = string(sc)
+	}
+
+	if p.SC_Code != "" && p.SC_ID == "" {
+		p.SC_RPC = append(p.SC_RPC, rpc.Argument{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_INSTALL)})
+		p.SC_RPC = append(p.SC_RPC, rpc.Argument{Name: rpc.SCCODE, DataType: rpc.DataString, Value: p.SC_Code})
+	}
+
+	if p.SC_ID != "" {
+		p.SC_RPC = append(p.SC_RPC, rpc.Argument{Name: rpc.SCACTION, DataType: rpc.DataUint64, Value: uint64(rpc.SC_CALL)})
+		p.SC_RPC = append(p.SC_RPC, rpc.Argument{Name: rpc.SCID, DataType: rpc.DataHash, Value: crypto.HashHexToHash(p.SC_ID)})
+		if p.SC_Code != "" {
+			p.SC_RPC = append(p.SC_RPC, rpc.Argument{Name: rpc.SCCODE, DataType: rpc.DataString, Value: p.SC_Code})
+		}
+	}
+
+	return p, nil
 }
 
 func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr string) TxPayload) {
@@ -186,31 +230,33 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 		b.modal.SetVisible(true)
 	}
 
-	loadFees := func() error {
-		txType := transaction.NORMAL
-		if len(txPayload.SCArgs) > 0 {
-			txType = transaction.SC_TX
+	// func to format transfer and calculate fees
+	load := func() (err error) {
+		txPayload.Transfer, err = FormatTransfer(txPayload.Transfer)
+		if err != nil {
+			return
+		}
 
-			signer := wallet.Memory.GetAddress().String()
-			gasFees, err := wallet.Memory.EstimateGasFees(rpc.Transfer_Params{
-				Transfers: txPayload.Transfers,
-				SC_RPC:    txPayload.SCArgs,
-				Ringsize:  txPayload.Ringsize,
-				Signer:    signer,
-			})
+		txType := transaction.NORMAL
+		if len(txPayload.Transfer.SC_RPC) > 0 {
+			txType = transaction.SC_TX
+			txPayload.Transfer.Signer = wallet.Memory.GetAddress().String()
+
+			var gasFees uint64
+			gasFees, err = wallet.Memory.EstimateGasFees(txPayload.Transfer)
 			if err != nil {
-				return err
+				return
 			}
 			b.gasFees = gasFees
 		}
 
-		b.txFees = wallet.Memory.EstimateTxFees(len(txPayload.Transfers), int(txPayload.Ringsize), txPayload.SCArgs, txType)
+		b.txFees = wallet.Memory.EstimateTxFees(len(txPayload.Transfer.Transfers), int(txPayload.Transfer.Ringsize), txPayload.Transfer.SC_RPC, txType)
 		b.txPayload = txPayload
 		return nil
 	}
 
 	b.SetLoadStatus("load_fees")
-	err := loadFees()
+	err := load()
 	time.Sleep(1 * time.Second)
 	if err != nil {
 		b.Close(Closed)
@@ -239,7 +285,10 @@ func (b *BuildTxModal) SetLoadStatus(status string) {
 
 func (b *BuildTxModal) Close(actionStatus ActionStatus) {
 	b.modal.SetVisible(false)
-	b.ActionStatusChan <- actionStatus
+
+	if b.txPayload.ActionStatus != nil {
+		b.txPayload.ActionStatus <- actionStatus
+	}
 }
 
 func (b *BuildTxModal) buildAndSendTx() {
@@ -248,7 +297,7 @@ func (b *BuildTxModal) buildAndSendTx() {
 
 	buildAndSend := func() error {
 		b.SetLoadStatus("building")
-		tx, err := wallet.Memory.TransferFeesPrecomputed(b.txPayload.Transfers, b.txPayload.Ringsize, false, b.txPayload.SCArgs, b.gasFees, b.txFees, false)
+		tx, err := wallet.Memory.TransferFeesPrecomputed(b.txPayload.Transfer.Transfers, b.txPayload.Transfer.Ringsize, false, b.txPayload.Transfer.SC_RPC, b.gasFees, b.txFees, false)
 		if err != nil {
 			return err
 		}
@@ -404,7 +453,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								//ringSize := len(b.txPayload.RingMembers.Rings)
-								ringsize := b.txPayload.Ringsize
+								ringsize := b.txPayload.Transfer.Ringsize
 								//lbl := material.Label(th, unit.Sp(16), fmt.Sprint(b.txPayload.Ringsize))
 								lbl := material.Label(th, unit.Sp(16), fmt.Sprint(ringsize))
 								return lbl.Layout(gtx)
@@ -488,7 +537,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 					layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 				)
 
-				if len(b.txPayload.Transfers) >= 1 && len(b.txPayload.SCArgs) == 0 {
+				if len(b.txPayload.Transfer.Transfers) >= 1 && len(b.txPayload.Transfer.SC_RPC) == 0 {
 					childs = append(childs,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
@@ -499,10 +548,10 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 									txt := ""
-									if len(b.txPayload.Transfers) > 1 {
+									if len(b.txPayload.Transfer.Transfers) > 1 {
 										txt = lang.Translate("Multiple receivers")
-									} else if len(b.txPayload.Transfers) == 1 {
-										addr := b.txPayload.Transfers[0].Destination
+									} else if len(b.txPayload.Transfer.Transfers) == 1 {
+										addr := b.txPayload.Transfer.Transfers[0].Destination
 										txt = utils.ReduceAddr(addr)
 									}
 
@@ -515,7 +564,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 					)
 				}
 
-				if b.txPayload.SCArgs.HasValue(rpc.SCID, rpc.DataHash) {
+				if b.txPayload.Transfer.SC_RPC.HasValue(rpc.SCID, rpc.DataHash) {
 					childs = append(childs,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
@@ -525,7 +574,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									scId := b.txPayload.SCArgs.Value(rpc.SCID, rpc.DataHash).(crypto.Hash)
+									scId := b.txPayload.Transfer.SC_RPC.Value(rpc.SCID, rpc.DataHash).(crypto.Hash)
 									txt := utils.ReduceAddr(scId.String())
 									lbl := material.Label(th, unit.Sp(16), txt)
 									return lbl.Layout(gtx)
@@ -536,7 +585,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 					)
 				}
 
-				if b.txPayload.SCArgs.HasValue("entrypoint", rpc.DataString) {
+				if b.txPayload.Transfer.SC_RPC.HasValue("entrypoint", rpc.DataString) {
 					childs = append(childs,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
@@ -546,7 +595,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 									return lbl.Layout(gtx)
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									entrypoint := b.txPayload.SCArgs.Value("entrypoint", rpc.DataString).(string)
+									entrypoint := b.txPayload.Transfer.SC_RPC.Value("entrypoint", rpc.DataString).(string)
 									lbl := material.Label(th, unit.Sp(16), entrypoint)
 									return lbl.Layout(gtx)
 								}),

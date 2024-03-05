@@ -20,6 +20,7 @@ import (
 	"gioui.org/widget/material"
 	"gioui.org/x/notify"
 	"github.com/creachadair/jrpc2"
+	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi/xswd"
 	"github.com/g45t345rt/g45w/android_background_service"
@@ -336,30 +337,55 @@ func (p *Page) OpenXSWD() error {
 		txt = strings.Replace(txt, "{}", req.Method(), -1)
 		notify.Push("XSWD", txt)
 
+		// rpc transfer -> always return allow even if it was not sent or xswd will not accept further transfer anymore
 		switch req.Method() {
 		case "transfer":
 			var params rpc.Transfer_Params
 			err := req.UnmarshalParams(&params)
 			if err != nil {
-				return xswd.Deny
+				return xswd.Allow
 			}
 
 			description := lang.Translate("A dApp from {} wants to make a transfer.")
 			description = strings.Replace(description, "{}", appData.Url, -1)
+
+			actionStatus := make(chan build_tx_modal.ActionStatus)
 			build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
-				Transfers:   params.Transfers,
-				Ringsize:    params.Ringsize,
-				SCArgs:      params.SC_RPC,
-				Description: description,
+				Transfer: rpc.Transfer_Params{
+					Transfers: params.Transfers,
+					Ringsize:  params.Ringsize,
+					SC_RPC:    params.SC_RPC,
+				},
+				Description:  description,
+				ActionStatus: actionStatus,
 			})
 
-			actionStatus := <-build_tx_modal.Instance.ActionStatusChan
-			switch actionStatus {
-			case build_tx_modal.Sent:
+			<-actionStatus
+			return xswd.Allow
+		case "sc_invoke":
+			var params rpc.SC_Invoke_Params
+			err := req.UnmarshalParams(&params)
+			if err != nil {
 				return xswd.Allow
-			case build_tx_modal.Closed:
-				return xswd.Deny
 			}
+
+			description := lang.Translate("A dApp from {} wants to make a transfer.")
+			description = strings.Replace(description, "{}", appData.Url, -1)
+
+			actionStatus := make(chan build_tx_modal.ActionStatus)
+			//if params.SC_DERO_Deposit > 0 {
+			build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string) build_tx_modal.TxPayload {
+				transferParams := build_tx_modal.FormatSCInvoke(params, addr)
+				return build_tx_modal.TxPayload{
+					Transfer:     transferParams,
+					ActionStatus: actionStatus,
+					Description:  description,
+				}
+			})
+			//}
+
+			<-actionStatus
+			return xswd.Allow
 		}
 
 		permChan := xswd_perm_modal.Instance.Open(appData, req)
