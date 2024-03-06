@@ -186,7 +186,11 @@ func (h *Header) Layout(gtx layout.Context, th *material.Theme, titleLayout Head
 			var childs []layout.FlexChild
 
 			childs = append(childs, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return titleLayout(gtx, th, h.Title())
+				if h.Title != nil {
+					return titleLayout(gtx, th, h.Title())
+				}
+
+				return titleLayout(gtx, th, "")
 			}))
 
 			if h.Subtitle != nil {
