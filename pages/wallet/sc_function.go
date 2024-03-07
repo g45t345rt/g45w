@@ -14,6 +14,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	crypto "github.com/deroproject/derohe/cryptography/crypto"
+	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
@@ -33,6 +34,7 @@ type PageSCFunction struct {
 
 	buttonExecute     *components.Button
 	buttonAddTransfer *components.Button
+	txtDeroTransfer   *components.Input
 	scArgItems        []*SCArgItem
 	scTransferItems   []*SCTransferItem
 	scFunction        SCFunction
@@ -76,11 +78,14 @@ func NewPageSCFunction() *PageSCFunction {
 	buttonExecute.Label.Alignment = text.Middle
 	buttonExecute.Style.Font.Weight = font.Bold
 
+	txtDeroTransfer := components.NewNumberInput()
+
 	headerPageAnimation := prefabs.NewPageHeaderAnimation(PAGE_SC_FUNCTION)
 	return &PageSCFunction{
 		headerPageAnimation: headerPageAnimation,
 		buttonExecute:       buttonExecute,
 		buttonAddTransfer:   buttonAddTransfer,
+		txtDeroTransfer:     txtDeroTransfer,
 
 		list: list,
 	}
@@ -149,6 +154,15 @@ func (p *PageSCFunction) execute() {
 	}
 
 	var transfers []rpc.Transfer
+
+	deroTransfer := p.txtDeroTransfer.Value()
+	if len(deroTransfer) > 0 {
+		burn, _ := globals.ParseAmount(deroTransfer)
+		transfers = append(transfers, rpc.Transfer{
+			SCID: crypto.ZEROHASH,
+			Burn: burn,
+		})
+	}
 
 	formatTransfers := func() error {
 		for _, item := range p.scTransferItems {
@@ -238,8 +252,28 @@ func (p *PageSCFunction) Layout(gtx layout.Context, th *material.Theme) layout.D
 	}
 
 	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
-		lbl := material.Label(th, unit.Sp(18), lang.Translate("Transfers"))
+		lbl := material.Label(th, unit.Sp(18), lang.Translate("Dero Transfer"))
 		return lbl.Layout(gtx)
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		p.txtDeroTransfer.Colors = theme.Current.InputColors
+		return p.txtDeroTransfer.Layout(gtx, th, lang.Translate("Amount"))
+	})
+
+	widgets = append(widgets, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(18), lang.Translate("Transfers"))
+				return lbl.Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(1)}.Layout),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				lbl := material.Label(th, unit.Sp(14), lang.Translate("Amount in atomic units."))
+				lbl.Color = theme.Current.TextMuteColor
+				return lbl.Layout(gtx)
+			}),
+		)
 	})
 
 	for i := range p.scTransferItems {
