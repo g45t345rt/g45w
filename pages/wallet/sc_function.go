@@ -135,11 +135,13 @@ func (p *PageSCFunction) execute() {
 
 	for _, item := range p.scArgItems {
 		dataType := rpc.DataString
+		var txtValue = item.txtValue.Value()
+		var value interface{} = txtValue
 		if item.arg.Type == "Uint64" {
 			dataType = rpc.DataUint64
+			value, _ = strconv.ParseUint(txtValue, 10, 64)
 		}
 		name := item.arg.Name
-		value := item.txtValue.Value()
 
 		args = append(args, rpc.Argument{
 			Name: name, DataType: dataType, Value: value,
