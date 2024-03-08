@@ -244,16 +244,16 @@ func (p *PageSelectWallet) Layout(gtx layout.Context, th *material.Theme) layout
 	)
 
 	{
-		submitted, text := password_modal.Instance.Input.Submitted()
+		submitted, text := password_modal.Instance.Submitted()
 		if submitted {
 			go func() {
 				password_modal.Instance.SetLoading(true)
 				err := wallet_manager.OpenWallet(p.currentWallet.Addr, text)
 				password_modal.Instance.SetLoading(false)
+				password_modal.Instance.Input.UnlockSubmit()
 
 				if err == nil {
-					//wallet := wallet_manager.OpenedWallet
-					//wallet.Memory.SetOnlineMode()
+					password_modal.Instance.Input.SetValue("")
 					password_modal.Instance.SetVisible(false)
 					// important reset wallet pages to initial state
 					app_instance.Router.Pages[pages.PAGE_WALLET] = page_wallet.New()

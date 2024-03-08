@@ -79,6 +79,14 @@ func LoadInstance() {
 	})
 }
 
+func (w *PasswordModal) Submitted() (bool, string) {
+	if !w.Modal.Visible {
+		return false, ""
+	}
+
+	return w.Input.Submitted()
+}
+
 func (w *PasswordModal) SetLoading(loading bool) {
 	w.loading = loading
 	w.Input.Editor.ReadOnly = loading

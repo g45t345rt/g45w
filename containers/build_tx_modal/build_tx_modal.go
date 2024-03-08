@@ -334,6 +334,10 @@ func (b *BuildTxModal) buildAndSendTx() {
 }
 
 func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
+	if !b.modal.Visible {
+		return
+	}
+
 	wallet := wallet_manager.OpenedWallet
 
 	if b.buttonSend.Clicked(gtx) {
@@ -344,16 +348,18 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 		b.Close(Closed)
 	}
 
-	submitted, password := password_modal.Instance.Input.Submitted()
+	submitted, password := password_modal.Instance.Submitted()
 	if submitted {
 		go func() {
 			password_modal.Instance.SetLoading(true)
 			validPassword := wallet.Memory.Check_Password(password)
 			password_modal.Instance.SetLoading(false)
+			password_modal.Instance.Input.UnlockSubmit()
 
 			if !validPassword {
 				password_modal.Instance.StartWrongPassAnimation()
 			} else {
+				password_modal.Instance.Input.SetValue("")
 				password_modal.Instance.SetVisible(false)
 				b.buildAndSendTx()
 			}

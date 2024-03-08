@@ -3,6 +3,7 @@ package components
 import (
 	"image"
 	"image/color"
+	"sync"
 
 	"gioui.org/font"
 	"gioui.org/io/key"
@@ -36,7 +37,7 @@ type Input struct {
 	keyboardClick *widget.Clickable
 	submitted     bool
 	submitText    string
-	activeSubmit  bool
+	submitMutex   sync.Mutex
 
 	setValue bool
 	newValue string
@@ -99,32 +100,33 @@ func (t *Input) Value() string {
 	return t.Editor.Text()
 }
 
-/*
-func (t *Input) SetValue(text string) {
-	t.Editor.SetText(text)
-}
-*/
-
 func (t *Input) SetValue(text string) {
 	t.setValue = true
 	t.newValue = text
 }
 
+// submit is lock by a mutex to avoid multiple calls because it work with press and not release
+// key.release is not implemented for mobile app
+// you have to call UnlockSubmit after a submit
 func (t *Input) Submitted() (bool, string) {
-	t.activeSubmit = true
 	if t.submitted {
 		t.submitted = false
 		return true, t.submitText
 	}
 
-	return false, t.submitText
+	return t.submitted, t.submitText
+}
+
+func (t *Input) UnlockSubmit() {
+	t.submitMutex.Unlock()
 }
 
 func (t *Input) Layout(gtx layout.Context, th *material.Theme, hint string) layout.Dimensions {
-	if t.activeSubmit {
-		for _, e := range t.Editor.Events() {
-			e, ok := e.(widget.SubmitEvent)
-			if ok {
+	for _, e := range t.Editor.Events() {
+		e, ok := e.(widget.SubmitEvent)
+		if ok {
+			canSubmit := t.submitMutex.TryLock()
+			if canSubmit {
 				//t.Editor.SetText("")
 				t.submitText = e.Text
 				t.submitted = true

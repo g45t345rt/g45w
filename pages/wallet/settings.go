@@ -248,17 +248,19 @@ func (p *PageSettings) Layout(gtx layout.Context, th *material.Theme) layout.Dim
 		}()
 	}
 
-	submitted, password := password_modal.Instance.Input.Submitted()
+	submitted, password := password_modal.Instance.Submitted()
 	if submitted {
 		go func() {
 			wallet := wallet_manager.OpenedWallet
 			password_modal.Instance.SetLoading(true)
 			validPassword := wallet.Memory.Check_Password(password)
 			password_modal.Instance.SetLoading(false)
+			password_modal.Instance.Input.UnlockSubmit()
 
 			if !validPassword {
 				password_modal.Instance.StartWrongPassAnimation()
 			} else {
+				password_modal.Instance.Input.SetValue("")
 				password_modal.Instance.Modal.SetVisible(false)
 				err := p.submitForm(gtx, password)
 
