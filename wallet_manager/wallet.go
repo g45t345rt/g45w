@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/creachadair/jrpc2"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
@@ -150,7 +149,7 @@ open_wallet:
 	return nil
 }
 
-func (w *Wallet) OpenXSWD(appHandler func(appData *xswd.ApplicationData) bool, reqHandler func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission) error {
+func (w *Wallet) OpenXSWD(appHandler func(appData *xswd.ApplicationData) bool, reqHandler xswd.RequestHandlerFunc) error {
 	// create the XSWD server and start listening to incoming calls for authorization
 	// XSWD is a secure communication protocol that offers easy interaction between the user wallet and a dApp
 	// it was create by Slixe

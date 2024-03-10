@@ -32,19 +32,17 @@ import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
-type ActionStatus string
-
-var (
-	Sent   ActionStatus = "sent"
-	Closed ActionStatus = "closed"
-)
+type TransferResponse struct {
+	Result rpc.Transfer_Result
+	Err    error
+}
 
 type TxPayload struct {
-	Transfer     rpc.Transfer_Params
-	Description  string
-	Note         string
-	TokensInfo   []*wallet_manager.Token
-	ActionStatus chan ActionStatus
+	Transfer         rpc.Transfer_Params
+	Description      string
+	Note             string
+	TokensInfo       []*wallet_manager.Token
+	TransferResponse chan TransferResponse
 }
 
 func (t TxPayload) GetTokenInfo(scId crypto.Hash) *wallet_manager.Token {
@@ -211,7 +209,7 @@ func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr str
 	randomAddr, err := wallet.GetRandomAddress(scId)
 	time.Sleep(1 * time.Second)
 	if err != nil {
-		b.Close(Closed)
+		b.Close(err)
 		notification_modal.Open(notification_modal.Params{
 			Type:  notification_modal.ERROR,
 			Title: lang.Translate("Error"),
@@ -259,7 +257,7 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 	err := load()
 	time.Sleep(1 * time.Second)
 	if err != nil {
-		b.Close(Closed)
+		b.Close(err)
 		notification_modal.Open(notification_modal.Params{
 			Type:  notification_modal.ERROR,
 			Title: lang.Translate("Error"),
@@ -283,50 +281,62 @@ func (b *BuildTxModal) SetLoadStatus(status string) {
 	app_instance.Window.Invalidate()
 }
 
-func (b *BuildTxModal) Close(actionStatus ActionStatus) {
+func (b *BuildTxModal) Complete(response TransferResponse) {
 	b.modal.SetVisible(false)
 
-	if b.txPayload.ActionStatus != nil {
-		b.txPayload.ActionStatus <- actionStatus
+	if b.txPayload.TransferResponse != nil {
+		b.txPayload.TransferResponse <- response
 	}
+}
+
+func (b *BuildTxModal) Close(err error) {
+	if err != nil {
+		b.Complete(TransferResponse{Err: err})
+	}
+
+	b.Complete(TransferResponse{Err: fmt.Errorf("cancel transfer")})
 }
 
 func (b *BuildTxModal) buildAndSendTx() {
 	b.buttonSend.SetLoading(true)
 	wallet := wallet_manager.OpenedWallet
 
-	buildAndSend := func() error {
+	buildAndSend := func() (tx *transaction.Transaction, err error) {
 		b.SetLoadStatus("building")
-		tx, err := wallet.Memory.TransferFeesPrecomputed(b.txPayload.Transfer.Transfers, b.txPayload.Transfer.Ringsize, false, b.txPayload.Transfer.SC_RPC, b.gasFees, b.txFees, false)
+		tx, err = wallet.Memory.TransferFeesPrecomputed(b.txPayload.Transfer.Transfers, b.txPayload.Transfer.Ringsize, false, b.txPayload.Transfer.SC_RPC, b.gasFees, b.txFees, false)
 		if err != nil {
-			return err
+			return
 		}
 
 		b.SetLoadStatus("sending")
 		err = wallet.Memory.SendTransaction(tx)
 		if err != nil {
-			return err
+			return
 		}
 
 		err = wallet.InsertOutgoingTx(tx, b.txPayload.Note)
 		if err != nil {
-			return err
+			return
 		}
 
-		return nil
+		return
 	}
 
-	err := buildAndSend()
+	tx, err := buildAndSend()
 	b.buttonSend.SetLoading(false)
 	if err != nil {
-		b.Close(Closed)
+		b.Close(err)
 		notification_modal.Open(notification_modal.Params{
 			Type:  notification_modal.ERROR,
 			Title: lang.Translate("Error"),
 			Text:  err.Error(),
 		})
 	} else {
-		b.Close(Sent)
+		b.Complete(TransferResponse{
+			Result: rpc.Transfer_Result{
+				TXID: tx.GetHash().String(),
+			}},
+		)
 		recent_txs_modal.Instance.SetVisible(true)
 	}
 
@@ -345,7 +355,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 	}
 
 	if b.buttonClose.Clicked(gtx) {
-		b.Close(Closed)
+		b.Close(nil)
 	}
 
 	submitted, password := password_modal.Instance.Submitted()

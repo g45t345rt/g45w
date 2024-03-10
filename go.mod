@@ -1,4 +1,4 @@
-replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20240219223108-1627ba777d21
+replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20240310201622-fa6068dae90e
 
 replace gioui.org => github.com/g45t345rt/gio v0.0.0-20240122184612-c525c77eb0c7
 

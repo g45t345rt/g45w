@@ -331,66 +331,63 @@ func (p *Page) OpenXSWD() error {
 		return yes
 	}
 
-	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) xswd.Permission {
+	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) (xswd.Permission, interface{}, error) {
 		fmt.Println(req.Method(), req.ParamString())
 		txt := lang.Translate("An app is requesting access for {}.")
 		txt = strings.Replace(txt, "{}", req.Method(), -1)
 		notify.Push("XSWD", txt)
 
-		// rpc transfer -> always return allow even if it was not sent or xswd will not accept further transfer anymore
 		switch req.Method() {
 		case "transfer":
 			var params rpc.Transfer_Params
 			err := req.UnmarshalParams(&params)
 			if err != nil {
-				return xswd.Allow
+				return xswd.Allow, nil, err
 			}
 
 			description := lang.Translate("A dApp from {} wants to make a transfer.")
 			description = strings.Replace(description, "{}", appData.Url, -1)
 
-			actionStatus := make(chan build_tx_modal.ActionStatus)
+			transferResponse := make(chan build_tx_modal.TransferResponse)
 			build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
 				Transfer: rpc.Transfer_Params{
 					Transfers: params.Transfers,
 					Ringsize:  params.Ringsize,
 					SC_RPC:    params.SC_RPC,
 				},
-				Description:  description,
-				ActionStatus: actionStatus,
+				Description:      description,
+				TransferResponse: transferResponse,
 			})
 
-			<-actionStatus
-			return xswd.Allow
+			res := <-transferResponse
+			return xswd.Allow, res.Result, res.Err
 		case "sc_invoke":
 			var params rpc.SC_Invoke_Params
 			err := req.UnmarshalParams(&params)
 			if err != nil {
-				return xswd.Allow
+				return xswd.Allow, nil, err
 			}
 
 			description := lang.Translate("A dApp from {} wants to make a transfer.")
 			description = strings.Replace(description, "{}", appData.Url, -1)
 
-			actionStatus := make(chan build_tx_modal.ActionStatus)
-			//if params.SC_DERO_Deposit > 0 {
+			transferResponse := make(chan build_tx_modal.TransferResponse)
 			build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string) build_tx_modal.TxPayload {
 				transferParams := build_tx_modal.FormatSCInvoke(params, addr)
 				return build_tx_modal.TxPayload{
-					Transfer:     transferParams,
-					ActionStatus: actionStatus,
-					Description:  description,
+					Transfer:         transferParams,
+					TransferResponse: transferResponse,
+					Description:      description,
 				}
 			})
-			//}
 
-			<-actionStatus
-			return xswd.Allow
+			res := <-transferResponse
+			return xswd.Allow, res.Result, res.Err
 		}
 
 		permChan := xswd_perm_modal.Instance.Open(appData, req)
 		w.Invalidate()
-		return <-permChan
+		return <-permChan, nil, nil
 	}
 
 	err := wallet.OpenXSWD(appHandler, reqHandler)
