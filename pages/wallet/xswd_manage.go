@@ -13,6 +13,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/deroproject/derohe/walletapi/xswd"
+	"github.com/g45t345rt/g45w/app_instance"
 	"github.com/g45t345rt/g45w/components"
 	"github.com/g45t345rt/g45w/containers/notification_modal"
 	"github.com/g45t345rt/g45w/lang"
@@ -120,6 +121,8 @@ func (p *PageXSWDManage) Load() {
 			p.apps = append(p.apps, NewDAppItem(app))
 		}
 	}
+
+	app_instance.Window.Invalidate()
 }
 
 func (p *PageXSWDManage) Leave() {

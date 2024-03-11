@@ -93,17 +93,21 @@ func (c *ConfirmModal) Open(confirmText ConfirmText) chan bool {
 	return c.resChan
 }
 
-func (c *ConfirmModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if c.buttonYes.Clicked(gtx) {
-		c.resChan <- true
+func (c *ConfirmModal) Close(yes bool) {
+	if c.Modal.Visible {
+		c.resChan <- yes
 		c.Modal.SetVisible(false)
 		close(c.resChan)
 	}
+}
+
+func (c *ConfirmModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if c.buttonYes.Clicked(gtx) {
+		c.Close(true)
+	}
 
 	if c.buttonNo.Clicked(gtx) {
-		c.resChan <- false
-		c.Modal.SetVisible(false)
-		close(c.resChan)
+		c.Close(false)
 	}
 
 	var lblSize layout.Dimensions

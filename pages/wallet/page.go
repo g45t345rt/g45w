@@ -1,7 +1,6 @@
 package page_wallet
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"strings"
@@ -320,25 +319,31 @@ func (p *Page) OpenXSWD() error {
 			Prompt: prompt,
 		})
 
+		go func() {
+			<-appData.OnClose
+			confirm_modal.Instance.Close(false)
+		}()
+
 		w.Invalidate()
 		yes := <-yesChan
-		go func() {
-			time.Sleep(100 * time.Millisecond)
+
+		time.AfterFunc(500*time.Millisecond, func() {
 			page_instance.pageXSWDManage.Load()
-			w.Invalidate()
-		}()
+		})
 
 		return yes
 	}
 
 	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) (xswd.Permission, interface{}, error) {
-		fmt.Println(req.Method(), req.ParamString())
+		// fmt.Println(req.Method(), req.ParamString())
+
 		txt := lang.Translate("An app is requesting access for {}.")
 		txt = strings.Replace(txt, "{}", req.Method(), -1)
-		notify.Push("XSWD", txt)
 
 		switch req.Method() {
 		case "transfer":
+			notify.Push("XSWD", txt) // notify only for transfer or sc_invoke
+
 			var params rpc.Transfer_Params
 			err := req.UnmarshalParams(&params)
 			if err != nil {
@@ -362,6 +367,8 @@ func (p *Page) OpenXSWD() error {
 			res := <-transferResponse
 			return xswd.Allow, res.Result, res.Err
 		case "sc_invoke":
+			notify.Push("XSWD", txt)
+
 			var params rpc.SC_Invoke_Params
 			err := req.UnmarshalParams(&params)
 			if err != nil {
