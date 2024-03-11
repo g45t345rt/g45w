@@ -243,7 +243,6 @@
   "Scan Collection": "Collectie scannen",
   "Scan collection": "Collectie scannen",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "De node is niet gesynchroniseerd. Wacht even en laat hem synchroniseren. De stabiele hoogte is momenteel {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "De portemonnee is niet gesynchroniseerd. Wacht even en laat hem synchroniseren. De hoogte van de node is momenteel {}.",
   "View grid": "Raster bekijken",
   "error": "fout",
   "Chinese Simplified": "Vereenvoudigd Chinees",
@@ -332,7 +331,6 @@
   "Scan QR code": "QR-code scannen",
   "Select All": "Selecteer alles",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "Het commentaar wordt opgeslagen op de blockchain en is native versleuteld. Alleen de verzender / ontvanger kan het decoderen.",
-  "A dApp from {1} wants to request [{2}].": "Een dApp van {1} wil [{2}] aanvragen.",
   "Add DEX tokens": "Voeg DEX-tokens toe",
   "Allow": "Toestaan",
   "Allow Always": "Altijd toestaan",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Ongekoppelde Node",
   "VALIDATE FUNCTION": "FUNCTIE VALIDEREN",
   "View code": "Code bekijken",
-  "You don't have any outgoing transactions yet.": "Je hebt nog geen uitgaande transacties."
+  "You don't have any outgoing transactions yet.": "Je hebt nog geen uitgaande transacties.",
+  "A dApp from {} wants to make a transfer.": "Een dApp van {} wil een overboeking maken.",
+  "Amount in atomic units.": "Bedrag in atomaire eenheden.",
+  "An app is requesting access for {}.": "Een app vraagt toegang voor {} aan.",
+  "An app is trying to connect with your wallet.": "Een app probeert verbinding te maken met je portemonnee.",
+  "Dero Transfer": "Dero-overdracht",
+  "From:": "Van:",
+  "Method:": "Methode:",
+  "Parameters:": "Parameters:",
+  "The wallet is syncing. Please wait for transactions to appear.": "De portemonnee wordt gesynchroniseerd. Wacht alstublieft totdat de transacties verschijnen."
 }

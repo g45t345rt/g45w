@@ -243,7 +243,6 @@
   "Scan Collection": "Escanear colección",
   "Scan collection": "Escanear colección",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "El nodo no está sincronizado. Por favor espera y permítele sincronizarse. La altura estable actual es {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "La billetera no está sincronizada. Por favor espera y permítele sincronizarse. La altura del nodo es {}.",
   "View grid": "Ver cuadrícula",
   "error": "error",
   "Chinese Simplified": "Chino Simplificado",
@@ -332,7 +331,6 @@
   "Scan QR code": "Escanear código QR",
   "Select All": "Seleccionar todo",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "El comentario se almacena en la cadena de bloques y está cifrado de forma nativa. Solo el remitente / receptor puede descifrarlo.",
-  "A dApp from {1} wants to request [{2}].": "Una dApp de {1} desea solicitar [{2}].",
   "Add DEX tokens": "Agregar tokens DEX",
   "Allow": "Permitir",
   "Allow Always": "Permitir Siempre",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Nodo no asignado",
   "VALIDATE FUNCTION": "VALIDAR FUNCIÓN",
   "View code": "Ver código",
-  "You don't have any outgoing transactions yet.": "Todavía no tienes ninguna transacción saliente."
+  "You don't have any outgoing transactions yet.": "Todavía no tienes ninguna transacción saliente.",
+  "A dApp from {} wants to make a transfer.": "Una dApp de {} quiere realizar una transferencia.",
+  "Amount in atomic units.": "Monto en unidades atómicas.",
+  "An app is requesting access for {}.": "Una aplicación solicita acceso para {}.",
+  "An app is trying to connect with your wallet.": "Una aplicación está intentando conectarse con tu billetera.",
+  "Dero Transfer": "Transferencia Dero",
+  "From:": "De:",
+  "Method:": "Método:",
+  "Parameters:": "Parámetros:",
+  "The wallet is syncing. Please wait for transactions to appear.": "La billetera se está sincronizando. Por favor, espera a que aparezcan las transacciones."
 }

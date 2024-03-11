@@ -243,7 +243,6 @@
   "Scan Collection": "Scanează colecția",
   "Scan collection": "Scanează colecția",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "Nodul nu este sincronizat. Vă rugăm să așteptați și lăsați-l să se sincronizeze. Înălțimea stabilă este în prezent {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "Portofelul nu este sincronizat. Vă rugăm să așteptați și lăsați-l să se sincronizeze. Înălțimea nodului este în prezent {}.",
   "View grid": "Vizualizează grila",
   "error": "eroare",
   "Chinese Simplified": "Chineză Simplificată",
@@ -332,7 +331,6 @@
   "Scan QR code": "Scanează codul QR",
   "Select All": "Selectează tot",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "Comentariul este stocat pe blockchain și este criptat nativ. Doar expeditorul/destinatarul poate decripta.",
-  "A dApp from {1} wants to request [{2}].": "O dApp de la {1} dorește să solicite [{2}].",
   "Add DEX tokens": "Adaugă token-uri DEX",
   "Allow": "Permite",
   "Allow Always": "Permite întotdeauna",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Nod neatribuit",
   "VALIDATE FUNCTION": "VALIDARE FUNCȚIE",
   "View code": "Vezi codul",
-  "You don't have any outgoing transactions yet.": "Încă nu ai nicio tranzacție de ieșire."
+  "You don't have any outgoing transactions yet.": "Încă nu ai nicio tranzacție de ieșire.",
+  "A dApp from {} wants to make a transfer.": "O dApp de la {} dorește să efectueze o transferare.",
+  "Amount in atomic units.": "Suma în unități atomice.",
+  "An app is requesting access for {}.": "O aplicație solicită accesul pentru {}.",
+  "An app is trying to connect with your wallet.": "O aplicație încearcă să se conecteze la portofelul tău.",
+  "Dero Transfer": "Transfer Dero",
+  "From:": "De la:",
+  "Method:": "Metodă:",
+  "Parameters:": "Parametri:",
+  "The wallet is syncing. Please wait for transactions to appear.": "Portofelul se sincronizează. Te rugăm să aștepți ca tranzacțiile să apară."
 }

@@ -243,7 +243,6 @@
   "Scan Collection": "Analyser la collection",
   "Scan collection": "Analyser la collection",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "Le nœud n'est pas synchronisé. Veuillez patienter et laissez-le se synchroniser. La hauteur stable est actuellement de {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "Le portefeuille n'est pas synchronisé. Veuillez patienter et laissez-le se synchroniser. La hauteur du nœud est actuellement de {}.",
   "View grid": "Voir la grille",
   "error": "erreur",
   "Chinese Simplified": "Chinois simplifié",
@@ -332,7 +331,6 @@
   "Scan QR code": "Scanner le code QR",
   "Select All": "Sélectionner tout",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "Le commentaire est stocké sur la blockchain et est crypté nativement. Seul l'expéditeur / le destinataire peut le décrypter.",
-  "A dApp from {1} wants to request [{2}].": "Une dApp de {1} souhaite demander [{2}].",
   "Add DEX tokens": "Ajouter des jetons DEX",
   "Allow": "Autoriser",
   "Allow Always": "Autoriser toujours",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Nœud non attribué",
   "VALIDATE FUNCTION": "VALIDER LA FONCTION",
   "View code": "Voir le code",
-  "You don't have any outgoing transactions yet.": "Vous n'avez encore aucune transaction sortante."
+  "You don't have any outgoing transactions yet.": "Vous n'avez encore aucune transaction sortante.",
+  "A dApp from {} wants to make a transfer.": "Une dApp de {} souhaite effectuer un transfert.",
+  "Amount in atomic units.": "Montant en unités atomiques.",
+  "An app is requesting access for {}.": "Une application demande l'accès pour {}.",
+  "An app is trying to connect with your wallet.": "Une application tente de se connecter à votre portefeuille.",
+  "Dero Transfer": "Transfert Dero",
+  "From:": "De :",
+  "Method:": "Méthode :",
+  "Parameters:": "Paramètres :",
+  "The wallet is syncing. Please wait for transactions to appear.": "Le portefeuille est en cours de synchronisation. Veuillez patienter pour que les transactions apparaissent."
 }

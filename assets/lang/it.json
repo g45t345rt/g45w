@@ -243,7 +243,6 @@
   "Scan Collection": "Scansiona collezione",
   "Scan collection": "Scansiona collezione",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "Il nodo non è sincronizzato. Attendi e lascia che si sincronizzi. L'altezza stabile è attualmente {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "Il portafoglio non è sincronizzato. Attendi e lascia che si sincronizzi. L'altezza del nodo è attualmente {}.",
   "View grid": "Visualizza griglia",
   "error": "errore",
   "Chinese Simplified": "Cinese semplificato",
@@ -332,7 +331,6 @@
   "Scan QR code": "Scansiona il codice QR",
   "Select All": "Seleziona tutto",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "Il commento è memorizzato sulla blockchain e criptato nativamente. Solo il mittente / destinatario può decifrarlo.",
-  "A dApp from {1} wants to request [{2}].": "Un'applicazione decentralizzata da {1} desidera richiedere [{2}].",
   "Add DEX tokens": "Aggiungi token DEX",
   "Allow": "Consenti",
   "Allow Always": "Consenti sempre",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Nodo non assegnato",
   "VALIDATE FUNCTION": "VALIDA FUNZIONE",
   "View code": "Visualizza codice",
-  "You don't have any outgoing transactions yet.": "Non hai ancora transazioni in uscita."
+  "You don't have any outgoing transactions yet.": "Non hai ancora transazioni in uscita.",
+  "A dApp from {} wants to make a transfer.": "Una dApp da {} desidera effettuare un trasferimento.",
+  "Amount in atomic units.": "Importo in unità atomiche.",
+  "An app is requesting access for {}.": "Un'app sta richiedendo l'accesso per {}.",
+  "An app is trying to connect with your wallet.": "Un'app sta cercando di connettersi al tuo portafoglio.",
+  "Dero Transfer": "Trasferimento Dero",
+  "From:": "Da:",
+  "Method:": "Metodo:",
+  "Parameters:": "Parametri:",
+  "The wallet is syncing. Please wait for transactions to appear.": "Il portafoglio si sta sincronizzando. Attendere che le transazioni appaiano."
 }

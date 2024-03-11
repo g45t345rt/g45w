@@ -243,7 +243,6 @@
   "Scan Collection": "コレクションをスキャン",
   "Scan collection": "コレクションをスキャン",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "ノードが同期されていません。同期が完了するまでお待ちください。安定した高さは現在 {} です。",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "ウォレットが同期されていません。同期が完了するまでお待ちください。ノードの高さは現在 {} です。",
   "View grid": "グリッドを表示",
   "error": "エラー",
   "Chinese Simplified": "簡体字中国語",
@@ -332,7 +331,6 @@
   "Scan QR code": "QRコードをスキャン",
   "Select All": "すべて選択",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "コメントはブロックチェーンに格納され、ネイティブに暗号化されます。送信者/受信者だけが復号化できます。",
-  "A dApp from {1} wants to request [{2}].": "{1} からの dApp が [{2}] をリクエストしたいです。",
   "Add DEX tokens": "DEX トークンを追加",
   "Allow": "許可する",
   "Allow Always": "常に許可",
@@ -412,5 +410,14 @@
   "Unassigned Node": "未割り当てノード",
   "VALIDATE FUNCTION": "関数を検証",
   "View code": "コードを表示",
-  "You don't have any outgoing transactions yet.": "まだ送信トランザクションはありません。"
+  "You don't have any outgoing transactions yet.": "まだ送信トランザクションはありません。",
+  "A dApp from {} wants to make a transfer.": "{} からの dApp が転送を行いたいです。",
+  "Amount in atomic units.": "原子単位での金額。",
+  "An app is requesting access for {}.": "{} へのアクセスをリクエストしています。",
+  "An app is trying to connect with your wallet.": "アプリがあなたのウォレットに接続しようとしています。",
+  "Dero Transfer": "デロ転送",
+  "From:": "送信元:",
+  "Method:": "メソッド:",
+  "Parameters:": "パラメータ:",
+  "The wallet is syncing. Please wait for transactions to appear.": "ウォレットが同期中です。取引が表示されるまでお待ちください。"
 }

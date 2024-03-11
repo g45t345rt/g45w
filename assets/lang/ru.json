@@ -243,7 +243,6 @@
   "Scan Collection": "Сканировать коллекцию",
   "Scan collection": "Сканировать коллекцию",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "Узел не синхронизирован. Пожалуйста, подождите и дайте ему синхронизироваться. Текущая стабильная высота: {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "Кошелек не синхронизирован. Пожалуйста, подождите и дайте ему синхронизироваться. Текущая высота узла: {}.",
   "View grid": "Просмотреть сетку",
   "error": "ошибка",
   "Chinese Simplified": "Упрощенный китайский",
@@ -332,7 +331,6 @@
   "Scan QR code": "Сканировать QR-код",
   "Select All": "Выбрать все",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "Комментарий хранится в блокчейне и шифруется нативно. Расшифровать его может только отправитель/получатель.",
-  "A dApp from {1} wants to request [{2}].": "dApp от {1} хочет запросить [{2}].",
   "Add DEX tokens": "Добавить токены DEX",
   "Allow": "Разрешить",
   "Allow Always": "Всегда разрешать",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Неназначенный узел",
   "VALIDATE FUNCTION": "ПРОВЕРИТЬ ФУНКЦИЮ",
   "View code": "Просмотреть код",
-  "You don't have any outgoing transactions yet.": "У вас еще нет исходящих транзакций."
+  "You don't have any outgoing transactions yet.": "У вас еще нет исходящих транзакций.",
+  "A dApp from {} wants to make a transfer.": "dApp от {} хочет совершить перевод.",
+  "Amount in atomic units.": "Сумма в атомных единицах.",
+  "An app is requesting access for {}.": "Приложение запрашивает доступ для {}.",
+  "An app is trying to connect with your wallet.": "Приложение пытается подключиться к вашему кошельку.",
+  "Dero Transfer": "Перевод Dero",
+  "From:": "От:",
+  "Method:": "Метод:",
+  "Parameters:": "Параметры:",
+  "The wallet is syncing. Please wait for transactions to appear.": "Кошелек синхронизируется. Пожалуйста, подождите, пока появятся транзакции."
 }

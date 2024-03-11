@@ -243,7 +243,6 @@
   "Scan Collection": "Analisar coleção",
   "Scan collection": "Analisar coleção",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "O nó não está sincronizado. Por favor, aguarde e deixe-o sincronizar. A altura estável é atualmente {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "A carteira não está sincronizada. Por favor, aguarde e deixe-a sincronizar. A altura do nó é atualmente {}.",
   "View grid": "Ver grade",
   "error": "erro",
   "Chinese Simplified": "Chinês Simplificado",
@@ -332,7 +331,6 @@
   "Scan QR code": "Escanear código QR",
   "Select All": "Selecionar Tudo",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "O comentário é armazenado na blockchain e criptografado nativamente. Apenas o remetente/receptor pode descriptografar.",
-  "A dApp from {1} wants to request [{2}].": "Um dApp de {1} deseja solicitar [{2}].",
   "Add DEX tokens": "Adicionar tokens DEX",
   "Allow": "Permitir",
   "Allow Always": "Permitir sempre",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Nó não atribuído",
   "VALIDATE FUNCTION": "VALIDAR FUNÇÃO",
   "View code": "Ver código",
-  "You don't have any outgoing transactions yet.": "Você ainda não possui transações de saída."
+  "You don't have any outgoing transactions yet.": "Você ainda não possui transações de saída.",
+  "A dApp from {} wants to make a transfer.": "Um dApp de {} deseja fazer uma transferência.",
+  "Amount in atomic units.": "Quantidade em unidades atômicas.",
+  "An app is requesting access for {}.": "Um aplicativo está solicitando acesso para {}.",
+  "An app is trying to connect with your wallet.": "Um aplicativo está tentando se conectar à sua carteira.",
+  "Dero Transfer": "Transferência Dero",
+  "From:": "De:",
+  "Method:": "Método:",
+  "Parameters:": "Parâmetros:",
+  "The wallet is syncing. Please wait for transactions to appear.": "A carteira está sincronizando. Por favor, aguarde as transações aparecerem."
 }

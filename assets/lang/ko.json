@@ -243,7 +243,6 @@
   "Scan Collection": "컬렉션 스캔",
   "Scan collection": "컬렉션 스캔",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "노드가 동기화되지 않았습니다. 동기화가 완료될 때까지 기다려주세요. 안정된 높이는 현재 {}입니다.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "지갑이 동기화되지 않았습니다. 동기화가 완료될 때까지 기다려주세요. 노드 높이는 현재 {}입니다.",
   "View grid": "그리드 보기",
   "error": "오류",
   "Chinese Simplified": "중국어 간체",
@@ -332,7 +331,6 @@
   "Scan QR code": "QR 코드 스캔",
   "Select All": "모두 선택",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "댓글은 블록체인에 저장되며 원시적으로 암호화됩니다. 발신자 / 수신자 만이 복호화 할 수 있습니다.",
-  "A dApp from {1} wants to request [{2}].": "{1}에서 온 dApp이 [{2}]을(를) 요청하고 있습니다.",
   "Add DEX tokens": "DEX 토큰 추가",
   "Allow": "허용",
   "Allow Always": "항상 허용",
@@ -412,5 +410,14 @@
   "Unassigned Node": "미할당 노드",
   "VALIDATE FUNCTION": "기능 유효성 검사",
   "View code": "코드 보기",
-  "You don't have any outgoing transactions yet.": "아직 나가는 거래가 없습니다."
+  "You don't have any outgoing transactions yet.": "아직 나가는 거래가 없습니다.",
+  "A dApp from {} wants to make a transfer.": "{}에서 온 dApp이 이체를 하려고 합니다.",
+  "Amount in atomic units.": "원자 단위의 금액입니다.",
+  "An app is requesting access for {}.": "{}에 대한 앱 접근 권한이 요청 중입니다.",
+  "An app is trying to connect with your wallet.": "앱이 당신의 지갑과 연결을 시도 중입니다.",
+  "Dero Transfer": "데로 이체",
+  "From:": "보낸 이:",
+  "Method:": "방법:",
+  "Parameters:": "매개 변수:",
+  "The wallet is syncing. Please wait for transactions to appear.": "지갑이 동기화 중입니다. 거래가 나타날 때까지 기다려주십시오."
 }

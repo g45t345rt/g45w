@@ -243,7 +243,6 @@
   "Scan Collection": "Scansammlung",
   "Scan collection": "Scansammlung",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "Der Knoten ist nicht synchronisiert. Bitte warten Sie und lassen Sie ihn synchronisieren. Die stabile Höhe beträgt derzeit {}.",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "Die Brieftasche ist nicht synchronisiert. Bitte warten Sie und lassen Sie sie synchronisieren. Die Knotenhöhe beträgt derzeit {}.",
   "View grid": "Raster anzeigen",
   "error": "Fehler",
   "Chinese Simplified": "Chinesisch (vereinfacht)",
@@ -332,7 +331,6 @@
   "Scan QR code": "QR-Code scannen",
   "Select All": "Alle auswählen",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "Der Kommentar wird auf der Blockchain gespeichert und nativ verschlüsselt. Nur der Sender / Empfänger kann entschlüsseln.",
-  "A dApp from {1} wants to request [{2}].": "Eine dApp von {1} möchte [{2}] anfordern.",
   "Add DEX tokens": "DEX Tokens hinzufügen",
   "Allow": "Erlauben",
   "Allow Always": "Immer erlauben",
@@ -412,5 +410,14 @@
   "Unassigned Node": "Nicht zugewiesener Knoten",
   "VALIDATE FUNCTION": "FUNKTION VALIDIEREN",
   "View code": "Code anzeigen",
-  "You don't have any outgoing transactions yet.": "Sie haben noch keine ausgehenden Transaktionen."
+  "You don't have any outgoing transactions yet.": "Sie haben noch keine ausgehenden Transaktionen.",
+  "A dApp from {} wants to make a transfer.": "Eine dApp von {} möchte eine Überweisung durchführen.",
+  "Amount in atomic units.": "Betrag in atomaren Einheiten.",
+  "An app is requesting access for {}.": "Eine App fordert Zugriff für {} an.",
+  "An app is trying to connect with your wallet.": "Eine App versucht, sich mit Ihrer Geldbörse zu verbinden.",
+  "Dero Transfer": "Dero-Überweisung",
+  "From:": "Von:",
+  "Method:": "Methode:",
+  "Parameters:": "Parameter:",
+  "The wallet is syncing. Please wait for transactions to appear.": "Die Geldbörse synchronisiert sich. Bitte warten Sie, bis Transaktionen angezeigt werden."
 }

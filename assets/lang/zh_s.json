@@ -243,7 +243,6 @@
   "Scan Collection": "扫描收藏",
   "Scan collection": "扫描收藏",
   "The node is out of synced. Please wait and let it sync. The stable height is currently {}.": "节点未同步。请等待并让它同步。稳定高度目前为 {}。",
-  "The wallet is not synced. Please wait and let it sync. The node height is currently {}.": "钱包未同步。请等待并让它同步。节点高度目前为 {}。",
   "View grid": "查看网格",
   "error": "错误",
   "Chinese Simplified": "简体中文",
@@ -332,7 +331,6 @@
   "Scan QR code": "扫描QR码",
   "Select All": "全选",
   "The comment is stored on the blockchain and natively encrypted. Only the sender / receiver can decrypt.": "评论存储在区块链上并进行了本地加密。只有发送方/接收方才能解密。",
-  "A dApp from {1} wants to request [{2}].": "{1} 的 dApp 想要请求 [{2}]。",
   "Add DEX tokens": "添加 DEX 代币",
   "Allow": "允许",
   "Allow Always": "始终允许",
@@ -412,5 +410,14 @@
   "Unassigned Node": "未分配节点",
   "VALIDATE FUNCTION": "验证函数",
   "View code": "查看代码",
-  "You don't have any outgoing transactions yet.": "您还没有任何即将发生的交易。"
+  "You don't have any outgoing transactions yet.": "您还没有任何即将发生的交易。",
+  "A dApp from {} wants to make a transfer.": "{} 的 dApp 想要进行转账。",
+  "Amount in atomic units.": "原子单位中的金额。",
+  "An app is requesting access for {}.": "一个应用正在请求访问权限，用于 {}。",
+  "An app is trying to connect with your wallet.": "一个应用正尝试与您的钱包连接。",
+  "Dero Transfer": "Dero 转账",
+  "From:": "来自：",
+  "Method:": "方法：",
+  "Parameters:": "参数：",
+  "The wallet is syncing. Please wait for transactions to appear.": "钱包正在同步中，请等待交易出现。"
 }
