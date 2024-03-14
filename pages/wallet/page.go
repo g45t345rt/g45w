@@ -335,14 +335,13 @@ func (p *Page) OpenXSWD() error {
 	}
 
 	reqHandler := func(appData *xswd.ApplicationData, req *jrpc2.Request) (xswd.Permission, interface{}, error) {
-		// fmt.Println(req.Method(), req.ParamString())
-
 		txt := lang.Translate("An app is requesting access for {}.")
 		txt = strings.Replace(txt, "{}", req.Method(), -1)
 
-		switch req.Method() {
+		method := strings.ToLower(req.Method())
+		switch method {
 		case "transfer":
-			notify.Push("XSWD", txt) // notify only for transfer or sc_invoke
+			notify.Push("XSWD", txt) // notify only for transfer or scinvoke
 
 			var params rpc.Transfer_Params
 			err := req.UnmarshalParams(&params)
@@ -354,11 +353,13 @@ func (p *Page) OpenXSWD() error {
 			description = strings.Replace(description, "{}", appData.Url, -1)
 
 			transferResponse := make(chan build_tx_modal.TransferResponse)
-			build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
+			go build_tx_modal.Instance.Open(build_tx_modal.TxPayload{
 				Transfer: rpc.Transfer_Params{
 					Transfers: params.Transfers,
 					Ringsize:  params.Ringsize,
 					SC_RPC:    params.SC_RPC,
+					SC_Code:   params.SC_Code,
+					SC_ID:     params.SC_ID,
 				},
 				Description:      description,
 				TransferResponse: transferResponse,
@@ -366,7 +367,7 @@ func (p *Page) OpenXSWD() error {
 
 			res := <-transferResponse
 			return xswd.Allow, res.Result, res.Err
-		case "sc_invoke":
+		case "scinvoke":
 			notify.Push("XSWD", txt)
 
 			var params rpc.SC_Invoke_Params
@@ -379,7 +380,7 @@ func (p *Page) OpenXSWD() error {
 			description = strings.Replace(description, "{}", appData.Url, -1)
 
 			transferResponse := make(chan build_tx_modal.TransferResponse)
-			build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string) build_tx_modal.TxPayload {
+			go build_tx_modal.Instance.OpenWithRandomAddr(crypto.ZEROHASH, func(addr string) build_tx_modal.TxPayload {
 				transferParams := build_tx_modal.FormatSCInvoke(params, addr)
 				return build_tx_modal.TxPayload{
 					Transfer:         transferParams,

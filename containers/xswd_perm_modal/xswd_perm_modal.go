@@ -138,32 +138,33 @@ func (c *XSWDPermModal) Open(app *xswd.ApplicationData, req *jrpc2.Request) chan
 	return c.permChan
 }
 
-func (c *XSWDPermModal) set(perm xswd.Permission) {
-	c.permChan <- perm
-	c.Modal.SetVisible(false)
-	close(c.permChan)
-	app_instance.Window.Invalidate()
+func (c *XSWDPermModal) Close(perm xswd.Permission) {
+	if c.Modal.Visible {
+		c.permChan <- perm
+		c.Modal.SetVisible(false)
+		close(c.permChan)
+	}
 }
 
 func (c *XSWDPermModal) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if c.buttonAllow.Clicked(gtx) {
-		go c.set(xswd.Allow)
+		c.Close(xswd.Allow)
 	}
 
 	if c.buttonDeny.Clicked(gtx) {
-		go c.set(xswd.Deny)
+		c.Close(xswd.Deny)
 	}
 
 	if c.buttonAlwaysAllow.Clicked(gtx) {
-		go c.set(xswd.AlwaysAllow)
+		c.Close(xswd.AlwaysAllow)
 	}
 
 	if c.buttonAlwaysDeny.Clicked(gtx) {
-		go c.set(xswd.AlwaysDeny)
+		c.Close(xswd.AlwaysDeny)
 	}
 
 	if c.buttonClose.Clicked(gtx) {
-		go c.set(xswd.Deny)
+		c.Close(xswd.Deny)
 	}
 
 	c.Modal.Style.Colors = theme.Current.ModalColors

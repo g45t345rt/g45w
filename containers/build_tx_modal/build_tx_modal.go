@@ -37,6 +37,16 @@ type TransferResponse struct {
 	Err    error
 }
 
+type LoadStatus string
+
+var (
+	Default   LoadStatus = ""
+	FetchAddr LoadStatus = "fetch_addr"
+	LoadFees  LoadStatus = "load_fees"
+	Building  LoadStatus = "building"
+	Sending   LoadStatus = "sending"
+)
+
 type TxPayload struct {
 	Transfer         rpc.Transfer_Params
 	Description      string
@@ -90,7 +100,7 @@ type BuildTxModal struct {
 	animationLoading *animation.Animation
 	buttonClose      *components.Button
 
-	loadStatus string
+	loadStatus LoadStatus
 	txFees     uint64
 	gasFees    uint64
 
@@ -205,7 +215,7 @@ func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr str
 	wallet := wallet_manager.OpenedWallet
 	b.modal.SetVisible(true)
 
-	b.SetLoadStatus("fetch_addr")
+	b.SetLoadStatus(FetchAddr)
 	randomAddr, err := wallet.GetRandomAddress(scId)
 	time.Sleep(1 * time.Second)
 	if err != nil {
@@ -223,6 +233,7 @@ func (b *BuildTxModal) OpenWithRandomAddr(scId crypto.Hash, onLoad func(addr str
 }
 
 func (b *BuildTxModal) Open(txPayload TxPayload) {
+	b.txPayload = txPayload
 	wallet := wallet_manager.OpenedWallet
 	if !b.modal.Visible {
 		b.modal.SetVisible(true)
@@ -249,13 +260,12 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 		}
 
 		b.txFees = wallet.Memory.EstimateTxFees(len(txPayload.Transfer.Transfers), int(txPayload.Transfer.Ringsize), txPayload.Transfer.SC_RPC, txType)
-		b.txPayload = txPayload
 		return nil
 	}
 
-	b.SetLoadStatus("load_fees")
+	b.SetLoadStatus(LoadFees)
 	err := load()
-	time.Sleep(1 * time.Second)
+	time.Sleep(500 * time.Millisecond) // tiny sleep so we can see the estimated fees status
 	if err != nil {
 		b.Close(err)
 		notification_modal.Open(notification_modal.Params{
@@ -263,14 +273,12 @@ func (b *BuildTxModal) Open(txPayload TxPayload) {
 			Title: lang.Translate("Error"),
 			Text:  err.Error(),
 		})
-
-		return
 	}
 
-	b.SetLoadStatus("")
+	b.SetLoadStatus(Default)
 }
 
-func (b *BuildTxModal) SetLoadStatus(status string) {
+func (b *BuildTxModal) SetLoadStatus(status LoadStatus) {
 	if status == "" {
 		b.animationLoading.Reset()
 	} else {
@@ -292,6 +300,7 @@ func (b *BuildTxModal) Complete(response TransferResponse) {
 func (b *BuildTxModal) Close(err error) {
 	if err != nil {
 		b.Complete(TransferResponse{Err: err})
+		return
 	}
 
 	b.Complete(TransferResponse{Err: fmt.Errorf("cancel transfer")})
@@ -302,13 +311,13 @@ func (b *BuildTxModal) buildAndSendTx() {
 	wallet := wallet_manager.OpenedWallet
 
 	buildAndSend := func() (tx *transaction.Transaction, err error) {
-		b.SetLoadStatus("building")
+		b.SetLoadStatus(Building)
 		tx, err = wallet.Memory.TransferFeesPrecomputed(b.txPayload.Transfer.Transfers, b.txPayload.Transfer.Ringsize, false, b.txPayload.Transfer.SC_RPC, b.gasFees, b.txFees, false)
 		if err != nil {
 			return
 		}
 
-		b.SetLoadStatus("sending")
+		b.SetLoadStatus(Sending)
 		err = wallet.Memory.SendTransaction(tx)
 		if err != nil {
 			return
@@ -384,7 +393,7 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			var childs []layout.FlexChild
 
-			if b.loadStatus != "" {
+			if b.loadStatus != Default {
 				childs = append(childs,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{
@@ -394,13 +403,13 @@ func (b *BuildTxModal) layout(gtx layout.Context, th *material.Theme) {
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 								txt := ""
 								switch b.loadStatus {
-								case "building":
+								case Building:
 									txt = lang.Translate("Building transaction...")
-								case "sending":
+								case Sending:
 									txt = lang.Translate("Sending transaction...")
-								case "fetch_addr":
+								case FetchAddr:
 									txt = lang.Translate("Fetching addr...")
-								case "load_fees":
+								case LoadFees:
 									txt = lang.Translate("Estimating fees...")
 								}
 
