@@ -97,7 +97,6 @@ func (c *ConfirmModal) Close(yes bool) {
 	if c.Modal.Visible {
 		c.resChan <- yes
 		c.Modal.SetVisible(false)
-		close(c.resChan)
 	}
 }
 
