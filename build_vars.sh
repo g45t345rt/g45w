@@ -1,4 +1,4 @@
-VERSION="v0.10.2"
+VERSION="v0.10.3"
 NAME=G45W
 
 FLAGS="-X github.com/g45t345rt/g45w/settings.Version=$VERSION"
